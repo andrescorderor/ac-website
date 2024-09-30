@@ -2,99 +2,105 @@ module.exports = {
   env: { browser: true, es2020: true },
   root: true,
   extends: [
-    "airbnb",
-    "airbnb/hooks",
-    "airbnb-typescript",
-    "plugin:react-hooks/recommended",
-    "plugin:@typescript-eslint/recommended",
-    "plugin:react-hooks/recommended",
-    "plugin:prettier/recommended",
-    "plugin:tailwindcss/recommended",
+    'airbnb',
+    'airbnb/hooks',
+    'airbnb-typescript',
+    'plugin:react-hooks/recommended',
+    'plugin:@typescript-eslint/recommended',
+    'plugin:react-hooks/recommended',
+    'plugin:prettier/recommended',
+    'plugin:tailwindcss/recommended',
   ],
   overrides: [
     {
-      files: ["*.ts", "*.tsx", "*.js"],
-      parser: "@typescript-eslint/parser",
+      files: ['*.ts', '*.tsx', '*.js'],
+      parser: '@typescript-eslint/parser',
       parserOptions: {
-        project: "./tsconfig.json",
+        project:
+          'D:/MISC/Projects/aC_Firm/Development/ac-portfolio/tsconfig.json',
+        ecmaVersion: 'latest',
+        ecmaFeatures: {
+          jsx: true,
+        },
+        sourceType: 'module',
       },
     },
   ],
-  parser: "@typescript-eslint/parser",
+  parser: '@typescript-eslint/parser',
   parserOptions: {
-    ecmaVersion: "latest",
+    ecmaVersion: 'latest',
     ecmaFeatures: {
       jsx: true,
     },
-    sourceType: "module",
+    sourceType: 'module',
   },
-  plugins: ["react-refresh", "prettier"],
+  plugins: ['react-refresh', 'prettier'],
   rules: {
-    "react/react-in-jsx-scope": "off",
-    "import/prefer-default-export": "off",
-    "import/order": [
-      "error",
+    'react/react-in-jsx-scope': 'off',
+    'import/prefer-default-export': 'off',
+    'import/order': [
+      'error',
       {
-        groups: ["builtin", "external", "internal"],
+        groups: ['builtin', 'external', 'internal'],
         pathGroups: [
           {
-            pattern: "react",
-            group: "external",
-            position: "before",
+            pattern: 'react',
+            group: 'external',
+            position: 'before',
           },
         ],
-        pathGroupsExcludedImportTypes: ["react"],
-        "newlines-between": "always",
+        pathGroupsExcludedImportTypes: ['react'],
+        'newlines-between': 'always',
         alphabetize: {
-          order: "asc",
+          order: 'asc',
           caseInsensitive: true,
         },
       },
     ],
-    "prettier/prettier": [
-      "error",
+    'prettier/prettier': [
+      'error',
       {
-        trailingComma: "all",
+        trailingComma: 'all',
         tabWidth: 2,
         semi: true,
         singleQuote: true,
-        arrowParens: "always",
+        arrowParens: 'always',
         useTabs: false,
-        endOfLine: "auto",
+        endOfLine: 'auto',
       },
     ],
-    "import/extensions": [
-      "error",
-      "ignorePackages",
+    'import/extensions': [
+      'error',
+      'ignorePackages',
       {
-        js: "never",
-        jsx: "never",
-        ts: "never",
-        tsx: "never",
+        js: 'never',
+        jsx: 'never',
+        ts: 'never',
+        tsx: 'never',
       },
     ],
-    "no-unused-vars": "warn",
-    "react/jsx-filename-extension": [
+    'no-unused-vars': 'warn',
+    'react/jsx-filename-extension': [
       1,
       {
-        extensions: [".js", ".jsx", ".ts", ".tsx"],
+        extensions: ['.js', '.jsx', '.ts', '.tsx'],
       },
     ],
-    "no-console": [
-      "error",
+    'no-console': [
+      'error',
       {
-        allow: ["error"],
+        allow: ['error'],
       },
     ],
-    "@typescript-eslint/no-explicit-any": "warn",
-    "import/no-extraneous-dependencies": [
-      "warn",
+    '@typescript-eslint/no-explicit-any': 'warn',
+    'import/no-extraneous-dependencies': [
+      'warn',
       {
         devDependencies: true,
       },
     ],
-    "no-param-reassign": "error",
-    "import/no-cycle": 0,
+    'no-param-reassign': 'error',
+    'import/no-cycle': 0,
   },
-  ignorePatterns: ["postcss.config.js", "tailwind.config.js", "vite.config.ts"],
+  ignorePatterns: ['postcss.config.js', 'tailwind.config.js', 'vite.config.ts'],
 };
