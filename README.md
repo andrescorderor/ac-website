@@ -75,9 +75,11 @@ To run this project locally, follow these steps:
 
    Or with Yarn:
 
-   ```bash
+   ````bash
    yarn dev
-   ```
+   ```****
+
+   ````
 
 5. **Build the project for production:**
    ```bash
@@ -87,7 +89,3 @@ To run this project locally, follow these steps:
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-```
-
-```
