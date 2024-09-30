@@ -9,6 +9,7 @@ export default defineConfig({
       '@mocks': path.resolve(__dirname, 'src/mocks'),
       '@interfaces': path.resolve(__dirname, 'src/interfaces'),
       '@components': path.resolve(__dirname, 'src/components'),
+      '@pages': path.resolve(__dirname, 'src/pages'),
     },
   },
   build: {
