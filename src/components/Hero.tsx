@@ -65,6 +65,7 @@ export default function Hero() {
             className="font-manrope text-[10rem] leading-none text-[var(--black)]"
             animate={{
               opacity: [1, 0],
+              transition: { repeat: Infinity, duration: 1 },
             }}
           >
             |
