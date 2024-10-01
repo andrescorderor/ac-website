@@ -1,7 +1,7 @@
 {
   "name": "ac-website",
   "private": true,
-  "version": "0.2.2",
+  "version": "0.3.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -17,7 +17,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "framer-motion": "^11.5.4",
+    "framer-motion": "^11.9.0",
     "heroicons-react": "^1.4.1",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",

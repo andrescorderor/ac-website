@@ -1,10 +1,10 @@
+/* Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700&family=Segoe+UI:wght@400;500;700&display=swap');
+
 /* Tailwind Directives */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
-/* Fonts */
-@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700&family=Segoe+UI:wght@400;500;700&display=swap');
 
 /* Color Variables */
 :root {
@@ -13,9 +13,27 @@
   --vibrant-sky-blue: #0487b9;
   --magenta-pink: #ce0c98;
   --white: #ffffff;
+  --soft-light-gray: #ececec;
 }
 
 /* Apply Fonts */
 body {
   font-family: 'Segoe UI', 'Manrope', sans-serif;
+}
+
+@keyframes gradient-rotate {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+.animate-gradient-rotate {
+  background-size: 200% 200%;
+  animation: gradient-rotate 5s ease infinite;
 }
