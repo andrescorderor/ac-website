@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+
 import { motion } from 'framer-motion';
 
 export default function Hero() {
@@ -28,7 +29,6 @@ export default function Hero() {
       const currentPhrase = phrases[currentPhraseIndex];
 
       if (!isDeleting && charIndex < currentPhrase.length) {
-        // Escribiendo
         setDisplayText((prev) => prev + currentPhrase[charIndex]);
         setCharIndex((prev) => prev + 1);
       } else if (isDeleting && charIndex > 0) {
@@ -52,27 +52,26 @@ export default function Hero() {
   return (
     <div className="flex h-screen w-full items-center justify-between">
       <div className="flex flex-col items-start justify-center text-[var(--black)]">
-        <h1 className="mb-0 text-[10rem] leading-none">Make it</h1>
+        <h1 className="font-manrope mb-0 text-[10rem] leading-none">Make it</h1>
         <div className="flex">
           <motion.h1
             key={currentPhraseIndex}
-            className="bg-gradient-to-r from-[var(--deep-navy-blue)] via-[var(--vibrant-sky-blue)] to-[var(--magenta-pink)] bg-clip-text text-[10rem] font-bold leading-none text-transparent animate-gradient-rotate"
+            className="font-manrope animate-gradient-rotate bg-gradient-to-r from-[var(--deep-navy-blue)] via-[var(--vibrant-sky-blue)] to-[var(--magenta-pink)] bg-clip-text text-[10rem] font-bold leading-none text-transparent"
             style={{ backgroundPosition: `${gradientStart}% 50%` }}
           >
             {displayText}
           </motion.h1>
           <motion.div
-            className="text-[10rem] font-l leading-none text-[var(--black)]"
+            className="font-manrope text-[10rem] leading-none text-[var(--black)]"
             animate={{
               opacity: [1, 0],
-              transition: { repeat: Infinity, duration: 1 },
             }}
           >
             |
           </motion.div>
         </div>
       </div>
-      <div className="mr-16 h-[300px] w-1/4 rounded-lg bg-white shadow-lg backdrop-blur-lg justify-center">
+      <div className="mr-16 h-[300px] w-1/4 justify-center rounded-lg bg-white shadow-lg backdrop-blur-lg">
         test
       </div>
     </div>

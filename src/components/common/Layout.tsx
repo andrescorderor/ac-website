@@ -8,6 +8,8 @@ export default function Layout() {
     <div className="flex size-full flex-col items-center overflow-x-hidden">
       <Header />
       <Outlet />
+      <Outlet />
+      <Outlet />
       <Footer />
     </div>
   );

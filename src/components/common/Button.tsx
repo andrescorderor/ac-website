@@ -1,5 +1,3 @@
-import { twMerge } from 'tailwind-merge';
-
 type ButtonProps = {
   icon: React.ElementType;
   name: string;
@@ -7,11 +5,6 @@ type ButtonProps = {
 };
 
 export function Button({ icon: Icon, name, url }: ButtonProps) {
-  const baseClasses =
-    'group relative flex justify-center items-center p-3 rounded-full transition-all duration-500 ease-in-out';
-  const getButtonClasses = () =>
-    'bg-white border border-[var(--gray-color)] text-[var(--black)] hover:bg-gray-100';
-
   const onClick = () => {
     window.open(url, '_blank');
   };
@@ -20,7 +13,7 @@ export function Button({ icon: Icon, name, url }: ButtonProps) {
     <button
       type="button"
       onClick={onClick}
-      className={twMerge(baseClasses, getButtonClasses(), 'hover:px-4')}
+      className="font-manrope group relative flex items-center justify-center rounded-full border border-[var(--soft-light-gray)] bg-white p-2 text-[var(--black)] transition-all duration-500 ease-in-out hover:px-4"
     >
       <div className="flex items-center justify-center">
         <Icon className="size-6 transition-transform duration-500 ease-in-out" />

@@ -12,7 +12,7 @@ export default function Header() {
   };
 
   return (
-    <div className="fixed left-0 top-0 z-50 flex w-full items-center justify-between bg-clip-padding px-8 py-4 backdrop-blur-lg">
+    <div className="font-manrope fixed left-0 top-0 z-50 flex w-full items-center justify-between bg-clip-padding px-8 py-4  backdrop-blur-lg">
       <div className="w-32" />
 
       <div className="flex grow items-center justify-center gap-40">
