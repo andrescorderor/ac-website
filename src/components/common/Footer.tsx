@@ -1,60 +1,64 @@
-import { motion } from 'framer-motion';
-import { FaGithub, FaLinkedin, FaFilePdf } from 'react-icons/fa';
+import { FaGithub, FaLinkedinIn } from 'react-icons/fa';
+import { HiDocumentDownload } from 'react-icons/hi';
+import { IoLogoWhatsapp, IoMdMail } from 'react-icons/io';
+
+import { Button } from './Button';
 
 export default function Footer() {
   return (
-    <motion.footer
-      initial={{ y: 100, opacity: 0 }}
-      animate={{ y: 0, opacity: 1 }}
-      transition={{ duration: 1, ease: 'easeInOut' }}
-      className="mx-auto w-3/4 bg-gray-800 text-white py-8 rounded-t-3xl flex flex-col items-center" // Añadido mx-auto para centrar y rounded-t-3xl para bordes redondeados
-    >
+    <footer className="mx-auto flex w-3/4 flex-col items-center rounded-t-3xl bg-gray-800 pt-8 text-white shadow-lg">
       <div className="flex flex-col items-center gap-4">
         <div className="flex flex-col items-center">
           <img
             src="/assets/ac-website-icon.svg"
             alt="Logo"
-            className="h-12 w-12 mb-2"
+            className="mb-2 size-12"
           />
-          <p className="text-xl font-semibold text-center">
-            Make it extraordinary. Make it yours.
+          <p className="text-center text-xl font-semibold">
+            &quot;Make it happen. The best way to predict the future is to
+            create it.&quot; — Peter Drucker
           </p>
         </div>
 
-        <div className="flex gap-6 mt-4">
-          <a
-            href="https://github.com/yourprofile"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-red-500"
-          >
-            <FaGithub className="h-8 w-8" />
-          </a>
-          <a
-            href="https://github.com/yoursecondprofile"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-red-500"
-          >
-            <FaGithub className="h-8 w-8" />
-          </a>
-          <a
-            href="https://linkedin.com/in/yourprofile"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-red-500"
-          >
-            <FaLinkedin className="h-8 w-8" />
-          </a>
-          <a href="/assets/your-cv.pdf" download className="text-red-500">
-            <FaFilePdf className="h-8 w-8" />
-          </a>
+        <div className="mt-4 flex gap-6">
+          <Button
+            icon={FaGithub}
+            name="Professional GitHub"
+            url="https://github.com/andrescordero-cbqa"
+          />
+          <Button
+            icon={FaGithub}
+            name="Personal GitHub"
+            url="https://github.com/andrescorderor"
+          />
+          <Button
+            icon={FaLinkedinIn}
+            name="LinkedIn"
+            url="https://www.linkedin.com/in/andresmcorderor/"
+          />
+          <Button
+            icon={HiDocumentDownload}
+            name="Download CV"
+            url="/assets/cv.pdf"
+          />
+          <Button
+            icon={IoMdMail}
+            name="Email"
+            url="mailto:andresmcorderor@gmail.com"
+          />
+          <Button
+            icon={IoLogoWhatsapp}
+            name="WhatsApp"
+            url="https://wa.me/524777037913"
+          />
         </div>
       </div>
 
-      <div className="mt-6 text-center text-sm">
-        <p>2024 aC firm. All rights reserved</p>
+      <div className="mt-6 pb-8 text-center text-sm">
+        <p>2024 Andrés Cordero. All rights reserved</p>
       </div>
-    </motion.footer>
+
+      <div className="animate-gradient-rotate h-1 w-full bg-gradient-to-r from-[var(--deep-navy-blue)] via-[var(--vibrant-sky-blue)] to-[var(--magenta-pink)]" />
+    </footer>
   );
 }
