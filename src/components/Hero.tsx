@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react';
-
 import { motion } from 'framer-motion';
 
 export default function Hero() {
@@ -22,12 +21,14 @@ export default function Hero() {
   const [displayText, setDisplayText] = useState('');
   const [isDeleting, setIsDeleting] = useState(false);
   const [charIndex, setCharIndex] = useState(0);
+  const [gradientStart, setGradientStart] = useState(Math.random() * 100);
 
   useEffect(() => {
     const handleTyping = () => {
       const currentPhrase = phrases[currentPhraseIndex];
 
       if (!isDeleting && charIndex < currentPhrase.length) {
+        // Escribiendo
         setDisplayText((prev) => prev + currentPhrase[charIndex]);
         setCharIndex((prev) => prev + 1);
       } else if (isDeleting && charIndex > 0) {
@@ -38,6 +39,7 @@ export default function Hero() {
       } else if (isDeleting && charIndex === 0) {
         setIsDeleting(false);
         setCurrentPhraseIndex((prevIndex) => (prevIndex + 1) % phrases.length);
+        setGradientStart(Math.random() * 100);
       }
     };
 
@@ -54,22 +56,23 @@ export default function Hero() {
         <div className="flex">
           <motion.h1
             key={currentPhraseIndex}
-            className="animate-gradient-rotate bg-gradient-to-r from-[var(--deep-navy-blue)] via-[var(--vibrant-sky-blue)] to-[var(--magenta-pink)] bg-clip-text text-[10rem] font-bold leading-none text-transparent"
+            className="bg-gradient-to-r from-[var(--deep-navy-blue)] via-[var(--vibrant-sky-blue)] to-[var(--magenta-pink)] bg-clip-text text-[10rem] font-bold leading-none text-transparent animate-gradient-rotate"
+            style={{ backgroundPosition: `${gradientStart}% 50%` }}
           >
             {displayText}
           </motion.h1>
           <motion.div
-            className="text-[10rem] font-bold leading-none text-[var(--black)]"
+            className="text-[10rem] font-l leading-none text-[var(--black)]"
             animate={{
               opacity: [1, 0],
-              transition: { repeat: Infinity, duration: 0.5 },
+              transition: { repeat: Infinity, duration: 1 },
             }}
           >
             |
           </motion.div>
         </div>
       </div>
-      <div className="mr-16 h-[300px] w-1/4 justify-center rounded-lg bg-white shadow-lg backdrop-blur-lg">
+      <div className="mr-16 h-[300px] w-1/4 rounded-lg bg-white shadow-lg backdrop-blur-lg justify-center">
         test
       </div>
     </div>
