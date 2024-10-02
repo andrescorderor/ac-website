@@ -1,4 +1,4 @@
-import Card from './common/Card';
+import Card from '../common/Card';
 
 export default function CardSection() {
   return (
@@ -7,16 +7,19 @@ export default function CardSection() {
         title="Project Management"
         text="  This is an example paragraph for the second card. Hover to reveal the
           button."
+        imageUrl="/src/assets/ProjectManagement.svg"
       />
       <Card
         title="Front-End Development"
         text="  This is an example paragraph for the second card. Hover to reveal the
-          button."
+        button."
+        imageUrl="/src/assets/SoftwareDevelopment.svg"
       />
       <Card
         title="QA Assurance"
         text="  This is an example paragraph for the second card. Hover to reveal the
-          button."
+        button."
+        imageUrl="/src/assets/QualityAssurance.svg"
       />
     </div>
   );

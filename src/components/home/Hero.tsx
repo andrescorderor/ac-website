@@ -2,8 +2,6 @@ import { useEffect, useState, useMemo } from 'react';
 
 import { motion } from 'framer-motion';
 
-import CardSection from './CardSection';
-
 export default function Hero() {
   const phrases = useMemo(
     () => [
@@ -47,7 +45,6 @@ export default function Hero() {
       } else if (isDeleting && charIndex === 0) {
         setIsDeleting(false);
 
-        // Selecciona una nueva frase que no sea igual a la anterior
         let newIndex = currentPhraseIndex;
         while (
           newIndex === currentPhraseIndex ||
@@ -69,30 +66,25 @@ export default function Hero() {
   }, [charIndex, isDeleting, currentPhraseIndex, previousPhraseIndex, phrases]);
 
   return (
-    <div className="flex h-screen w-full items-center justify-between gap-7">
-      <div className="flex flex-col items-start justify-center text-[var(--black)]">
-        <h1 className="font-manrope mb-0 text-[10rem] leading-none">Make it</h1>
-        <div className="flex">
-          <motion.h1
-            key={currentPhraseIndex}
-            className="font-manrope animate-gradient-rotate bg-gradient-to-r from-[var(--deep-navy-blue)] via-[var(--vibrant-sky-blue)] to-[var(--magenta-pink)] bg-clip-text text-[10rem] font-bold leading-none text-transparent"
-            style={{ backgroundPosition: `${gradientStart}% 50%` }}
-          >
-            {displayText}
-          </motion.h1>
-          <motion.div
-            className="font-manrope text-[10rem] leading-none text-[var(--black)]"
-            animate={{
-              opacity: [1, 0],
-              transition: { repeat: Infinity, duration: 1 },
-            }}
-          >
-            |
-          </motion.div>
-        </div>
-      </div>
-      <div className=" justify-end ">
-        <CardSection />
+    <div className="m-64 text-[var(--black)]">
+      <h1 className="font-manrope mb-0 text-[10rem] leading-none">Make it</h1>
+      <div className="flex">
+        <motion.h1
+          key={currentPhraseIndex}
+          className="font-manrope animate-gradient-rotate bg-gradient-to-r from-[var(--deep-navy-blue)] via-[var(--vibrant-sky-blue)] to-[var(--magenta-pink)] bg-clip-text text-[10rem] font-bold leading-none text-transparent"
+          style={{ backgroundPosition: `${gradientStart}% 50%` }}
+        >
+          {displayText}
+        </motion.h1>
+        <motion.div
+          className="font-manrope text-[10rem] leading-none text-[var(--black)]"
+          animate={{
+            opacity: [1, 0],
+            transition: { repeat: Infinity, duration: 1 },
+          }}
+        >
+          |
+        </motion.div>
       </div>
     </div>
   );
