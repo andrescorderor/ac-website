@@ -10,8 +10,11 @@
 :root {
   --black: #0d0d0d;
   --deep-navy-blue: #01218c;
+  --deep-navy-blue-light: #e3e9ff;
   --vibrant-sky-blue: #0487b9;
+  --vibrant-sky-blue-light: #e6f8ff;
   --magenta-pink: #ce0c98;
+  --magenta-pink-light: #ffeefa;
   --white: #ffffff;
   --soft-light-gray: #ececec;
   --light-gray: #bcbcbc;

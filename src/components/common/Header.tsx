@@ -20,14 +20,13 @@ export default function Header() {
       <div className="flex grow items-center justify-center gap-40">
         <a
           className={twMerge(
-            'px-4 py-1 rounded-full',
             location.pathname === '/about'
               ? ' text-[var(--deep-navy-blue)]  font-bold'
               : 'text-[var(--black)]',
           )}
           href="/about"
         >
-          ABOUT
+          <p className="tracking-widest">ABOUT</p>
         </a>
 
         <a href="/">
@@ -40,14 +39,13 @@ export default function Header() {
 
         <a
           className={twMerge(
-            'px-4 py-1 rounded-full',
             location.pathname === '/contact'
               ? ' text-[var(--deep-navy-blue)]  font-bold'
               : 'text-[var(--black)]',
           )}
           href="/contact"
         >
-          CONTACT
+          <p className="tracking-widest">CONTACT</p>
         </a>
       </div>
 

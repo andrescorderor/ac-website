@@ -67,13 +67,14 @@ export default function Hero() {
   }, [charIndex, isDeleting, currentPhraseIndex, previousPhraseIndex, phrases]);
 
   return (
-    <div>
-      <div className="absolute inset-0 -z-10 overflow-hidden rounded-t-3xl">
+    <div className="relative h-screen overflow-hidden">
+      <div className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
         <div className="circle animate-bounce-slow size-80 rounded-full bg-[var(--deep-navy-blue)] opacity-70 blur-3xl" />
         <div className="circle animate-bounce-slow size-80 rounded-full bg-[var(--vibrant-sky-blue)] opacity-70 blur-3xl" />
-        <div className="circle animate-bounce-slow size-80 rounded-full bg-[var(--magenta-pink)] opacity-70 blur-3xl" />
+        <div className="circle animate-bounce-slow size-80  rounded-full bg-[var(--magenta-pink)] opacity-70 blur-3xl" />
       </div>
-      <div className="m-64 text-[var(--black)]">
+
+      <div className="relative z-10 m-64 text-[var(--black)]">
         <h1 className="font-manrope mb-0 text-[10rem] leading-none">Make it</h1>
         <div className="flex">
           <motion.h1
