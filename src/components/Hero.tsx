@@ -1,26 +1,32 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 
 import { motion } from 'framer-motion';
 
 import CardSection from './CardSection';
 
 export default function Hero() {
-  const phrases = [
-    'better',
-    'useful',
-    'creative',
-    'efficient',
-    'impactful',
-    'accessible',
-    'scalable',
-    'innovative',
-    'simple',
-    'effective',
-    'possible',
-    'happen',
-  ];
+  const phrases = useMemo(
+    () => [
+      'better',
+      'useful',
+      'creative',
+      'efficient',
+      'impactful',
+      'accessible',
+      'scalable',
+      'innovative',
+      'simple',
+      'effective',
+      'possible',
+      'happen',
+    ],
+    [],
+  );
 
   const [currentPhraseIndex, setCurrentPhraseIndex] = useState(0);
+  const [previousPhraseIndex, setPreviousPhraseIndex] = useState<number | null>(
+    null,
+  );
   const [displayText, setDisplayText] = useState('');
   const [isDeleting, setIsDeleting] = useState(false);
   const [charIndex, setCharIndex] = useState(0);
@@ -40,7 +46,18 @@ export default function Hero() {
         setTimeout(() => setIsDeleting(true), 1000);
       } else if (isDeleting && charIndex === 0) {
         setIsDeleting(false);
-        setCurrentPhraseIndex((prevIndex) => (prevIndex + 1) % phrases.length);
+
+        // Selecciona una nueva frase que no sea igual a la anterior
+        let newIndex = currentPhraseIndex;
+        while (
+          newIndex === currentPhraseIndex ||
+          newIndex === previousPhraseIndex
+        ) {
+          newIndex = Math.floor(Math.random() * phrases.length);
+        }
+
+        setPreviousPhraseIndex(currentPhraseIndex);
+        setCurrentPhraseIndex(newIndex);
         setGradientStart(Math.random() * 100);
       }
     };
@@ -49,7 +66,7 @@ export default function Hero() {
     const typingInterval = setInterval(handleTyping, typingSpeed);
 
     return () => clearInterval(typingInterval);
-  }, [charIndex, isDeleting, currentPhraseIndex, phrases]);
+  }, [charIndex, isDeleting, currentPhraseIndex, previousPhraseIndex, phrases]);
 
   return (
     <div className="flex h-screen w-full items-center justify-between gap-7">
