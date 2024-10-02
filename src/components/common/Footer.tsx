@@ -6,6 +6,7 @@ import { IoLogoWhatsapp, IoMdMail } from 'react-icons/io';
 import { Button } from './Button';
 
 export default function Footer() {
+  const currentYear = new Date().getFullYear();
   return (
     <footer className="mx-auto flex w-3/4 flex-col items-center rounded-t-3xl text-black shadow-2xl backdrop-blur-lg">
       <div className="p-8">
@@ -96,7 +97,7 @@ export default function Footer() {
       <div className="animate-gradient-rotate mt-8 h-1 w-full bg-gradient-to-r from-[var(--deep-navy-blue)] via-[var(--vibrant-sky-blue)] to-[var(--magenta-pink)]" />
 
       <p className="font-manrope my-4 text-center text-sm font-bold text-gray-500">
-        © 2024 Andrés Cordero. All rights reserved.
+        © {currentYear} Andrés Cordero. All rights reserved.
       </p>
     </footer>
   );
