@@ -1,3 +1,4 @@
+/* eslint-disable tailwindcss/no-custom-classname */
 import { useEffect, useState, useMemo } from 'react';
 
 import { motion } from 'framer-motion';
@@ -66,25 +67,32 @@ export default function Hero() {
   }, [charIndex, isDeleting, currentPhraseIndex, previousPhraseIndex, phrases]);
 
   return (
-    <div className="m-64 text-[var(--black)]">
-      <h1 className="font-manrope mb-0 text-[10rem] leading-none">Make it</h1>
-      <div className="flex">
-        <motion.h1
-          key={currentPhraseIndex}
-          className="font-manrope animate-gradient-rotate bg-gradient-to-r from-[var(--deep-navy-blue)] via-[var(--vibrant-sky-blue)] to-[var(--magenta-pink)] bg-clip-text text-[10rem] font-bold leading-none text-transparent"
-          style={{ backgroundPosition: `${gradientStart}% 50%` }}
-        >
-          {displayText}
-        </motion.h1>
-        <motion.div
-          className="font-manrope text-[10rem] leading-none text-[var(--black)]"
-          animate={{
-            opacity: [1, 0],
-            transition: { repeat: Infinity, duration: 1 },
-          }}
-        >
-          |
-        </motion.div>
+    <div>
+      <div className="absolute inset-0 -z-10 overflow-hidden rounded-t-3xl">
+        <div className="circle animate-bounce-slow size-80 rounded-full bg-[var(--deep-navy-blue)] opacity-70 blur-3xl" />
+        <div className="circle animate-bounce-slow size-80 rounded-full bg-[var(--vibrant-sky-blue)] opacity-70 blur-3xl" />
+        <div className="circle animate-bounce-slow size-80 rounded-full bg-[var(--magenta-pink)] opacity-70 blur-3xl" />
+      </div>
+      <div className="m-64 text-[var(--black)]">
+        <h1 className="font-manrope mb-0 text-[10rem] leading-none">Make it</h1>
+        <div className="flex">
+          <motion.h1
+            key={currentPhraseIndex}
+            className="font-manrope animate-gradient-rotate bg-gradient-to-r from-[var(--deep-navy-blue)] via-[var(--vibrant-sky-blue)] to-[var(--magenta-pink)] bg-clip-text text-[10rem] font-bold leading-none text-transparent"
+            style={{ backgroundPosition: `${gradientStart}% 50%` }}
+          >
+            {displayText}
+          </motion.h1>
+          <motion.div
+            className="font-manrope text-[10rem] leading-none text-[var(--black)]"
+            animate={{
+              opacity: [1, 0],
+              transition: { repeat: Infinity, duration: 1 },
+            }}
+          >
+            |
+          </motion.div>
+        </div>
       </div>
     </div>
   );
