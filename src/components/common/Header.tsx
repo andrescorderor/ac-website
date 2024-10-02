@@ -3,6 +3,8 @@ import { useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { twMerge } from 'tailwind-merge';
 
+import { Button } from './Button';
+
 export default function Header() {
   const location = useLocation();
   const [showLanguageOptions, setShowLanguageOptions] = useState(false);
@@ -50,13 +52,12 @@ export default function Header() {
       </div>
 
       <div className="relative flex w-32 justify-end">
-        <button
-          className="rounded-full px-4 py-1 font-medium text-[#8D8D8D] hover:bg-[#E4E4E4]"
-          type="button"
+        <Button
+          type="text-only"
+          name="Language"
           onClick={toggleLanguageOptions}
-        >
-          Language
-        </button>
+        />
+
         {showLanguageOptions && (
           <div className="absolute right-0 mt-2 w-32 rounded-md bg-white shadow-lg">
             <button

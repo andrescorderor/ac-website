@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react';
 
 import { motion } from 'framer-motion';
 
+import CardSection from './CardSection';
+
 export default function Hero() {
   const phrases = [
     'better',
@@ -50,7 +52,7 @@ export default function Hero() {
   }, [charIndex, isDeleting, currentPhraseIndex, phrases]);
 
   return (
-    <div className="flex h-screen w-full items-center justify-between">
+    <div className="flex h-screen w-full items-center justify-between gap-7">
       <div className="flex flex-col items-start justify-center text-[var(--black)]">
         <h1 className="font-manrope mb-0 text-[10rem] leading-none">Make it</h1>
         <div className="flex">
@@ -72,8 +74,8 @@ export default function Hero() {
           </motion.div>
         </div>
       </div>
-      <div className="mr-16 h-[300px] w-1/4 justify-center rounded-lg bg-white shadow-lg backdrop-blur-lg">
-        test
+      <div className=" justify-end ">
+        <CardSection />
       </div>
     </div>
   );

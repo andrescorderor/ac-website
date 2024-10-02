@@ -5,10 +5,8 @@ import Header from './Header';
 
 export default function Layout() {
   return (
-    <div className="flex size-full flex-col items-center overflow-x-hidden">
+    <div>
       <Header />
-      <Outlet />
-      <Outlet />
       <Outlet />
       <Footer />
     </div>
