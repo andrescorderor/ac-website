@@ -29,6 +29,7 @@ export default function Hero() {
   const [displayText, setDisplayText] = useState('');
   const [isDeleting, setIsDeleting] = useState(false);
   const [charIndex, setCharIndex] = useState(0);
+  const [scrollY, setScrollY] = useState(0);
 
   useEffect(() => {
     const handleTyping = () => {
@@ -63,6 +64,24 @@ export default function Hero() {
 
     return () => clearInterval(typingInterval);
   }, [charIndex, isDeleting, currentPhraseIndex, previousPhraseIndex, phrases]);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setScrollY(window.scrollY);
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+    };
+  }, []);
+
+  // Helper function to calculate position based on scroll
+  const calculatePosition = (initialX: number, finalX: number) => {
+    const maxScroll = 1000; // Define the maximum scroll value for full movement
+    const scrollPercentage = Math.min(scrollY / maxScroll, 1); // Limit scroll percentage to 1
+    return initialX + (finalX - initialX) * scrollPercentage; // Linear interpolation between initial and final positions
+  };
 
   return (
     <section className="hover:cursor-default">
@@ -108,11 +127,29 @@ export default function Hero() {
           </p>
         </div>
       </div>
-      <div className="font-segoe w-full  whitespace-nowrap bg-[var(--black)] text-[4rem] font-bold text-[var(--white)]">
-        <div className="animate-scroll flex gap-16 py-8 ">
-          <h3>Project Management</h3>
-          <h3>Software Development</h3>
-          <h3>Quality Assurance</h3>
+      <div className="font-segoe w-full whitespace-nowrap bg-[var(--black)] text-[4rem] font-bold text-[var(--white)]">
+        <div className="flex py-8">
+          <motion.h3
+            className="text-[var(--white)]"
+            animate={{ x: calculatePosition(-400, 700) }}
+            transition={{ type: 'tween', ease: 'easeOut' }}
+          >
+            Quality Assurance
+          </motion.h3>
+          <motion.h3
+            className="text-[var(--white)]"
+            animate={{ x: calculatePosition(-300, 800) }}
+            transition={{ type: 'tween', ease: 'easeOut' }}
+          >
+            Project Management
+          </motion.h3>
+          <motion.h3
+            className="text-[var(--white)]"
+            animate={{ x: calculatePosition(-200, 900) }}
+            transition={{ type: 'tween', ease: 'easeOut' }}
+          >
+            Software Development
+          </motion.h3>
         </div>
       </div>
     </section>
