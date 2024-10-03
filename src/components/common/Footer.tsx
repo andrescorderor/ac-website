@@ -8,7 +8,7 @@ import { Button } from './Button';
 export default function Footer() {
   const currentYear = new Date().getFullYear();
   return (
-    <footer className="mx-auto flex w-3/4 flex-col items-center rounded-t-3xl border-2 border-[var(--soft-light-gray)] text-black shadow-2xl backdrop-blur-lg">
+    <footer className="mx-auto flex w-3/4 flex-col items-center rounded-t-3xl border-2 border-[var(--soft-light-gray)] text-[var(--black)] shadow-2xl backdrop-blur-lg">
       <div className="p-8">
         <div className="absolute inset-0 -z-10 overflow-hidden rounded-t-3xl">
           <div className="circle animate-bounce-slow size-80 rounded-full bg-[var(--deep-navy-blue)] opacity-70 blur-3xl" />
