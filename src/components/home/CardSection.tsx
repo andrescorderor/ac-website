@@ -2,11 +2,11 @@ import Card from '../common/Card';
 
 export default function CardSection() {
   return (
-    <div className="mx-64">
-      <h1 className="font-manrope animate-gradient-rotate my-16 bg-gradient-to-r from-[var(--deep-navy-blue)] via-[var(--vibrant-sky-blue)] to-[var(--black)] bg-clip-text text-center text-[4rem] font-bold leading-none text-transparent">
+    <div className="mx-64 ">
+      <h1 className="font-manrope animate-gradient-rotate pointer-events-none my-16 bg-gradient-to-r from-[var(--deep-navy-blue)] via-[var(--vibrant-sky-blue)] to-[var(--black)] bg-clip-text text-center text-[4rem] font-bold leading-none text-transparent">
         My expertise
       </h1>
-      <div className="relative z-20 flex flex-col gap-8">
+      <div className="relative z-20 flex flex-col gap-8 ">
         <div className="w-full">
           <Card
             type="full"

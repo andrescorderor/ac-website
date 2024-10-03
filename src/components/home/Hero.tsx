@@ -74,7 +74,7 @@ export default function Hero() {
         <div className="circle animate-bounce-slow size-80  rounded-full bg-[var(--magenta-pink)] opacity-70 blur-3xl" />
       </div>
 
-      <div className="relative z-10 m-64 text-[var(--black)]">
+      <div className="pointer-events-none relative z-10 m-64 text-[var(--black)]">
         <h1 className="font-manrope mb-0 text-[10rem] leading-none">Make it</h1>
         <div className="flex">
           <motion.h1
