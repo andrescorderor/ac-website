@@ -29,7 +29,6 @@ export default function Hero() {
   const [displayText, setDisplayText] = useState('');
   const [isDeleting, setIsDeleting] = useState(false);
   const [charIndex, setCharIndex] = useState(0);
-  const [gradientStart, setGradientStart] = useState(Math.random() * 100);
 
   useEffect(() => {
     const handleTyping = () => {
@@ -56,7 +55,6 @@ export default function Hero() {
 
         setPreviousPhraseIndex(currentPhraseIndex);
         setCurrentPhraseIndex(newIndex);
-        setGradientStart(Math.random() * 100);
       }
     };
 
@@ -67,34 +65,56 @@ export default function Hero() {
   }, [charIndex, isDeleting, currentPhraseIndex, previousPhraseIndex, phrases]);
 
   return (
-    <div className="relative overflow-hidden">
-      <div className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
-        <div className="circle animate-bounce-slow size-80 rounded-full bg-[var(--deep-navy-blue)] opacity-70 blur-3xl" />
-        <div className="circle animate-bounce-slow size-80 rounded-full bg-[var(--vibrant-sky-blue)] opacity-70 blur-3xl" />
-        <div className="circle animate-bounce-slow size-80  rounded-full bg-[var(--magenta-pink)] opacity-70 blur-3xl" />
-      </div>
+    <section className="hover:cursor-default">
+      <div className="flex flex-col gap-8 px-24 pb-24 pt-28">
+        <div>
+          <h1 className="font-manrope mb-0 text-[10rem] leading-none">
+            Make it
+          </h1>
+          <div className="flex">
+            <motion.h1
+              key={currentPhraseIndex}
+              className="font-manrope bg-clip-text text-[10rem] font-bold leading-none text-transparent"
+              style={{
+                backgroundImage:
+                  'linear-gradient(to right, var(--deep-navy-blue), var(--vibrant-sky-blue), var(--magenta-pink))',
+                backgroundSize: '400% 400%',
+                animation: 'gradient-random 6s ease infinite',
+              }}
+            >
+              {displayText}
+            </motion.h1>
 
-      <div className="pointer-events-none relative z-10 m-64 text-[var(--black)]">
-        <h1 className="font-manrope mb-0 text-[10rem] leading-none">Make it</h1>
-        <div className="flex">
-          <motion.h1
-            key={currentPhraseIndex}
-            className="font-manrope animate-gradient-rotate bg-gradient-to-r from-[var(--deep-navy-blue)] via-[var(--vibrant-sky-blue)] to-[var(--magenta-pink)] bg-clip-text text-[10rem] font-bold leading-none text-transparent"
-            style={{ backgroundPosition: `${gradientStart}% 50%` }}
-          >
-            {displayText}
-          </motion.h1>
-          <motion.div
-            className="font-manrope text-[10rem] leading-none text-[var(--black)]"
-            animate={{
-              opacity: [1, 0],
-              transition: { repeat: Infinity, duration: 1 },
-            }}
-          >
-            |
-          </motion.div>
+            <motion.div
+              className="font-manrope text-[10rem] leading-none text-[var(--black)]"
+              animate={{
+                opacity: [1, 0],
+                transition: { repeat: Infinity, duration: 1 },
+              }}
+            >
+              |
+            </motion.div>
+          </div>
+        </div>
+        <div className="flex gap-4 rounded-2xl border-2 p-8">
+          <img
+            src="/assets/Profile.png"
+            alt="Profile"
+            className="size-14 rounded-full"
+          />
+          <p className="text-gray w-1/4 text-xl ">
+            I am a developer and project manager with experience in software
+            development, project coordination, and more.
+          </p>
         </div>
       </div>
-    </div>
+      <div className="font-segoe w-full  whitespace-nowrap bg-[var(--black)] text-[4rem] font-bold text-[var(--white)]">
+        <div className="animate-scroll flex gap-16 py-8 ">
+          <h3>Project Management</h3>
+          <h3>Software Development</h3>
+          <h3>Quality Assurance</h3>
+        </div>
+      </div>
+    </section>
   );
 }

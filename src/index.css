@@ -35,67 +35,25 @@ body {
   font-family: 'Inter', sans-serif;
 }
 
-/* Rotating Gradient */
-@keyframes gradient-rotate {
+@keyframes gradient-random {
   0% {
     background-position: 0% 50%;
+  }
+  25% {
+    background-position: 50% 0%;
   }
   50% {
     background-position: 100% 50%;
   }
+  75% {
+    background-position: 50% 100%;
+  }
   100% {
     background-position: 0% 50%;
   }
 }
 
-.animate-gradient-rotate {
-  background-size: 200% 200%;
-  animation: gradient-rotate 2s both infinite;
-}
-
-/* Footer Background Gradient */
-@keyframes bounce-slow {
-  0% {
-    transform: translate(0, 0);
-  }
-  25% {
-    transform: translate(600px, 300px);
-  }
-  50% {
-    transform: translate(-350px, -350px);
-  }
-  75% {
-    transform: translate(500px, -400px);
-  }
-  100% {
-    transform: translate(0, 0);
-  }
-}
-
-.circle {
-  position: absolute;
-  animation: bounce-slow 2s infinite ease-in-out;
-}
-
-.circle:nth-child(1) {
-  top: 5%;
-  left: 10%;
-  animation-duration: 10s;
-}
-
-.circle:nth-child(2) {
-  top: 50%;
-  right: 10%;
-  animation-duration: 15s;
-}
-
-.circle:nth-child(3) {
-  bottom: 25%;
-  left: 40%;
-  animation-duration: 12s;
-}
-
-/* Text Shadow for White */
-.text-shadow-white {
-  text-shadow: 2px 2px 4px rgba(255, 255, 255, 0.8);
+.animate-gradient-random {
+  background-size: 400% 400%;
+  animation: gradient-random 6s ease infinite;
 }

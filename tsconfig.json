@@ -21,6 +21,7 @@
     "baseUrl": "./src",
     "paths": {
       "@mocks/*": ["mocks/*"],
+      "@assets/*": ["assets/*"],
       "@interfaces/*": ["interfaces/*"],
       "@components/*": ["components/*"],
       "@pages/*": ["pages/*"]

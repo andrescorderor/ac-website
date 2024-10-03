@@ -1,6 +1,7 @@
 import { StrictMode } from 'react';
 
 import './index.css';
+import Cursor from '@components/common/Cursor';
 import Layout from '@components/common/Layout';
 import About from '@pages/About';
 import Home from '@pages/Home';
@@ -26,6 +27,7 @@ const router = createBrowserRouter([
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
+    <Cursor />
     <RouterProvider router={router} />
   </StrictMode>,
 );
