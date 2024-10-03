@@ -14,14 +14,33 @@ export default function Header() {
   };
 
   return (
-    <div className="font-manrope fixed left-0 top-0 z-50 flex w-full items-center justify-between bg-clip-padding px-8 py-4  backdrop-blur-lg">
-      <div className="w-32" />
+    <div className="font-manrope fixed left-0  z-50 flex w-full items-center bg-clip-padding px-8 py-4 backdrop-blur-lg">
+      <div className="shrink-0">
+        <a href="/">
+          <img
+            src="/assets/ac-website-icon.svg"
+            alt="Profile"
+            className="size-10"
+          />
+        </a>
+      </div>
 
-      <div className="flex grow items-center justify-center gap-40">
+      <div className="flex grow justify-center gap-40">
+        <a
+          className={twMerge(
+            location.pathname === '/'
+              ? 'animate-gradient-rotate bg-gradient-to-r from-[var(--deep-navy-blue)] via-[var(--vibrant-sky-blue)] to-[var(--magenta-pink)] bg-clip-text font-extrabold  text-transparent'
+              : 'text-[var(--black)]',
+          )}
+          href="/"
+        >
+          <p className="tracking-widest">HOME</p>
+        </a>
+
         <a
           className={twMerge(
             location.pathname === '/about'
-              ? ' text-[var(--deep-navy-blue)]  font-bold'
+              ? 'animate-gradient-rotate bg-gradient-to-r from-[var(--deep-navy-blue)] via-[var(--vibrant-sky-blue)] to-[var(--magenta-pink)] bg-clip-text font-extrabold  text-transparent'
               : 'text-[var(--black)]',
           )}
           href="/about"
@@ -29,18 +48,10 @@ export default function Header() {
           <p className="tracking-widest">ABOUT</p>
         </a>
 
-        <a href="/">
-          <img
-            src="/assets/ac-website-icon.svg"
-            alt="Profile"
-            className="size-14"
-          />
-        </a>
-
         <a
           className={twMerge(
             location.pathname === '/contact'
-              ? ' text-[var(--deep-navy-blue)]  font-bold'
+              ? 'animate-gradient-rotate bg-gradient-to-r from-[var(--deep-navy-blue)] via-[var(--vibrant-sky-blue)] to-[var(--magenta-pink)] bg-clip-text font-extrabold  text-transparent'
               : 'text-[var(--black)]',
           )}
           href="/contact"
@@ -48,8 +59,7 @@ export default function Header() {
           <p className="tracking-widest">CONTACT</p>
         </a>
       </div>
-
-      <div className="relative flex w-32 justify-end">
+      <div className="">
         <Button
           type="text-only"
           name="Language"
@@ -57,7 +67,7 @@ export default function Header() {
         />
 
         {showLanguageOptions && (
-          <div className="absolute right-0 mt-2 w-32 rounded-md bg-white shadow-lg">
+          <div className="absolute mt-2 rounded-s bg-white shadow-lg">
             <button
               type="button"
               className="block w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100"

@@ -4,6 +4,7 @@ import { FaPlus } from 'react-icons/fa';
 interface CardProps {
   title: string;
   text: string;
+  paragraph?: string;
   imageUrl: string;
   bgColorLight: string;
   bgColor: string;
@@ -13,7 +14,7 @@ interface CardProps {
 function Title({ title }: { title: string }) {
   return (
     <motion.h3
-      className="font-inter pointer-events-none mb-4 inline-block max-w-max rounded-full border-2 border-[var(--soft-light-gray)] bg-[var(--white)] px-4 py-2 text-sm font-medium text-[var(--gray)]"
+      className="font-inter pointer-events-none text-sm tracking-widest text-[var(--gray)]"
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.6 }}
@@ -23,7 +24,7 @@ function Title({ title }: { title: string }) {
   );
 }
 
-function Paragraph({ text }: { text: string }) {
+function Text({ text }: { text: string }) {
   return (
     <motion.p
       className="font-manrope pointer-events-none max-w-lg text-3xl font-black leading-normal text-[var(--black)]"
@@ -36,45 +37,63 @@ function Paragraph({ text }: { text: string }) {
   );
 }
 
+function Paragraph({ paragraph }: { paragraph: string }) {
+  return (
+    <motion.p
+      className="pt-8 text-[var(--gray)]"
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.6 }}
+    >
+      {paragraph}
+    </motion.p>
+  );
+}
+
 function Image({ imageUrl, title }: { imageUrl: string; title: string }) {
   return (
     <motion.img
       src={imageUrl}
       alt={title}
-      className="m-8 h-64"
+      className="h-72 p-4"
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.6 }}
     />
   );
 }
-export default function Card({
+
+export function Card({
   title,
   text,
+  paragraph = '',
   imageUrl,
   bgColor,
   bgColorLight,
   type,
 }: CardProps) {
+  const isFullType = type === 'full';
+
   return (
     <motion.div
       whileHover={{ scale: 1.05 }}
       className={`group relative flex ${
-        type === 'full' ? 'flex-row' : 'flex-col'
-      } w-full justify-between rounded-2xl p-14 transition-transform duration-500 ease-in-out ${bgColorLight}`}
+        isFullType ? 'flex-row' : 'flex-col'
+      } w-full justify-between rounded-2xl p-7 transition-transform duration-500 ease-in-out ${bgColorLight}`}
     >
-      <div className="flex-1">
+      <div className="flex-1 gap-8 p-7">
         <Title title={title} />
-        <Paragraph text={text} />
+        <Text text={text} />
+        {isFullType && <Paragraph paragraph={paragraph} />}
       </div>
 
-      {type === 'full' && (
-        <div className="flex flex-1 items-center justify-center">
-          <Image imageUrl={imageUrl} title={title} />
-        </div>
-      )}
-
-      {type === 'half' && <Image imageUrl={imageUrl} title={title} />}
+      <div
+        className={`flex ${
+          isFullType ? 'flex-1 items-center justify-center' : ''
+        }`}
+      >
+        <Image imageUrl={imageUrl} title={title} />
+      </div>
 
       <motion.div
         className={`absolute bottom-4 right-4 flex size-12 items-center justify-center rounded-full ${bgColor} text-[var(--white)]`}
@@ -85,3 +104,7 @@ export default function Card({
     </motion.div>
   );
 }
+
+Card.defaultProps = {
+  paragraph: '',
+};

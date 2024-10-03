@@ -7,7 +7,7 @@ type ButtonProps = {
 
 export function Button({ icon: Icon, name, type, onClick }: ButtonProps) {
   const baseClasses =
-    'font-manrope group relative flex items-center justify-center rounded-full border border-[var(--light-gray)] bg-white p-2 text-[var(--black)] transition-all duration-500 ease-in-out';
+    'font-manrope group relative hover:bg-[var(--soft-light-gray)] flex items-center justify-center rounded-full text-sm border border-[var(--soft-light-gray)] bg-[var(--white)] p-2 text-[var(--black)] transition-all duration-500 ease-in-out';
 
   const getButtonClasses = () => {
     switch (type) {
@@ -40,12 +40,12 @@ export function Button({ icon: Icon, name, type, onClick }: ButtonProps) {
 
   const renderText = () => {
     if (type === 'text-only' || type === 'full-static') {
-      return <span className="mx-2 font-bold text-[var(--gray)]">{name}</span>;
+      return <span className="mx-2 ">{name}</span>;
     }
 
     if (type === 'full-dynamic') {
       return (
-        <span className=" ml-0 max-w-0 overflow-hidden whitespace-nowrap transition-all duration-500 ease-in-out group-hover:ml-2 group-hover:max-w-xs">
+        <span className="ml-0 max-w-0 overflow-hidden whitespace-nowrap transition-all duration-500 ease-in-out group-hover:ml-2 group-hover:max-w-xs">
           {name}
         </span>
       );

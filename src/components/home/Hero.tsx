@@ -67,7 +67,7 @@ export default function Hero() {
   }, [charIndex, isDeleting, currentPhraseIndex, previousPhraseIndex, phrases]);
 
   return (
-    <div className="relative h-screen overflow-hidden">
+    <div className="relative overflow-hidden">
       <div className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
         <div className="circle animate-bounce-slow size-80 rounded-full bg-[var(--deep-navy-blue)] opacity-70 blur-3xl" />
         <div className="circle animate-bounce-slow size-80 rounded-full bg-[var(--vibrant-sky-blue)] opacity-70 blur-3xl" />

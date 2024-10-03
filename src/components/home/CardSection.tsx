@@ -1,4 +1,4 @@
-import Card from '../common/Card';
+import { Card } from '@components/common/Card';
 
 export default function CardSection() {
   return (
@@ -12,6 +12,7 @@ export default function CardSection() {
             type="full"
             title="PROJECT MANAGEMENT"
             text="Manage your projects efficiently and collaborate with your team."
+            paragraph="Lorem Ipsum es simplemente el texto de relleno de las imprentas y archivos de texto. Lorem Ipsum ha sido el texto de relleno estándar de las industrias desde el año 1500, cuando un impresor (N. del T. persona que se dedica a la imprenta) "
             imageUrl="/src/assets/ProjectManagement.svg"
             bgColorLight="bg-[var(--deep-navy-blue-light)]"
             bgColor="bg-[var(--deep-navy-blue)]"
