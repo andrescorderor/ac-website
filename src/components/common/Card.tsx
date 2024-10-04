@@ -36,7 +36,13 @@ function Paragraph({ paragraph }: { paragraph: string }) {
 }
 
 function Image({ imageUrl, title }: { imageUrl: string; title: string }) {
-  return <img src={imageUrl} alt={title} className="h-72" />;
+  return (
+    <img
+      src={imageUrl}
+      alt={title}
+      className="mt-16 h-44 transition-transform duration-500 group-hover:scale-150"
+    />
+  );
 }
 
 export function Card({
@@ -61,13 +67,13 @@ export function Card({
     <div
       onMouseEnter={() => setIsExpanded(true)}
       onMouseLeave={() => setIsExpanded(false)}
-      className={`group relative flex rounded-2xl p-6 transition-all duration-500 ease-in-out ${bgColorLight} w-full overflow-hidden`}
+      className={`group relative flex rounded-2xl transition-all duration-500 ease-in-out ${bgColorLight} w-full overflow-hidden`}
       style={{
-        height: isExpanded ? contentHeight : '150px',
+        height: isExpanded ? contentHeight : '140px',
       }}
     >
       <div className="flex w-full">
-        <div className="w-2/6 flex-1">
+        <div className="w-2/6 flex-1 p-6">
           <Title title={title} />
           <Subtitle subtitle={subtitle} />
           <div className=" opacity-0 transition-opacity duration-500 group-hover:opacity-100">
@@ -82,8 +88,17 @@ export function Card({
           >
             <Image imageUrl={imageUrl} title={title} />
           </div>
+
+          {/* Icono FaPlus con transición fluida de posición */}
           <div
-            className={`absolute bottom-4 right-4 flex size-12 items-center justify-center rounded-full ${bgColor} text-[var(--white)] opacity-0 transition-opacity duration-500 group-hover:opacity-100`}
+            className={`absolute flex size-12 items-center justify-center rounded-full ${bgColor} text-[var(--white)] transition-transform duration-500`}
+            style={{
+              transform: isExpanded
+                ? 'translate(0, 0)' // Posición final (bottom-4 right-4 equivalente)
+                : 'translate(0, -60px)', // Posición inicial (top-4 right-4 equivalente)
+              bottom: '1rem',
+              right: '1rem',
+            }}
           >
             <FaPlus />
           </div>

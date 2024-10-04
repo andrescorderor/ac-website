@@ -1,6 +1,7 @@
 /* eslint-disable tailwindcss/no-custom-classname */
 import { useEffect, useState, useMemo } from 'react';
 
+import { heroParagraph, rolesCarousel } from '@mocks/HomeMocks';
 import { motion } from 'framer-motion';
 
 export default function Hero() {
@@ -114,13 +115,12 @@ export default function Hero() {
         </div>
         <div className="mt-32 flex w-5/12 gap-4">
           <img
-            src="/assets/Profile.png"
+            src={heroParagraph.profilePicture}
             alt="Profile"
             className="size-14 rounded-full"
           />
           <p className="font-inter text-3xl font-medium tracking-tight text-[var(--black)]">
-            I am a developer and project manager with experience in software
-            development, project coordination, and more.
+            {heroParagraph.text}
           </p>
         </div>
       </div>
@@ -131,33 +131,33 @@ export default function Hero() {
             animate={{ x: calculatePosition(-1800, 700) }}
             transition={{
               type: 'tween',
-              ease: [0.17, 0.67, 0.83, 0.67], // Cubic Bezier for smoother easing
-              duration: 2.5, // Longer duration for smoother animation
+              ease: [0.17, 0.67, 0.83, 0.67],
+              duration: 2.5,
             }}
           >
-            Quality Assurance
+            {rolesCarousel[0].role}
           </motion.h3>
           <motion.h3
             className="text-[var(--white)]"
             animate={{ x: calculatePosition(-1700, 800) }}
             transition={{
               type: 'tween',
-              ease: [0.17, 0.67, 0.83, 0.67], // Cubic Bezier for smoother easing
-              duration: 2.5, // Longer duration for smoother animation
+              ease: [0.17, 0.67, 0.83, 0.67],
+              duration: 2.5,
             }}
           >
-            Project Management
+            {rolesCarousel[1].role}
           </motion.h3>
           <motion.h3
             className="text-[var(--white)]"
             animate={{ x: calculatePosition(-1600, 900) }}
             transition={{
               type: 'tween',
-              ease: [0.17, 0.67, 0.83, 0.67], // Cubic Bezier for smoother easing
-              duration: 2.5, // Longer duration for smoother animation
+              ease: [0.17, 0.67, 0.83, 0.67],
+              duration: 2.5,
             }}
           >
-            Software Development
+            {rolesCarousel[2].role}
           </motion.h3>
         </div>
       </div>

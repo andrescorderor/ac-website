@@ -1,4 +1,5 @@
 import { Card } from '@components/common/Card';
+import { expertiseCards } from '@mocks/HomeMocks';
 
 export default function ExpertiseSection() {
   return (
@@ -9,26 +10,26 @@ export default function ExpertiseSection() {
 
       <div className="ml-auto flex flex-col gap-8">
         <Card
-          title="PROJECT MANAGEMENT"
-          subtitle="Get expert advice on your project and optimize your workflow."
-          paragraph="We offer asfasasfsfasfasfasfasfasf consulting to meet your business needs."
-          imageUrl="/assets/ProjectManagement.svg"
+          title={expertiseCards[0].title}
+          subtitle={expertiseCards[0].subtitle}
+          paragraph={expertiseCards[0].paragraph}
+          imageUrl={expertiseCards[0].image}
           bgColorLight="bg-[var(--vibrant-sky-blue-light)]"
           bgColor="bg-[var(--vibrant-sky-blue)]"
         />
         <Card
-          title="SOFTWARE DEVELOPMENT"
-          subtitle="We develop software solutions tailored to your specifications."
-          paragraph="Our experienced team builds robust applications for your business."
-          imageUrl="/assets/SoftwareDevelopment.svg"
+          title={expertiseCards[1].title}
+          subtitle={expertiseCards[1].subtitle}
+          paragraph={expertiseCards[1].paragraph}
+          imageUrl={expertiseCards[1].image}
           bgColorLight="bg-[var(--deep-navy-blue-light)]"
           bgColor="bg-[var(--deep-navy-blue)]"
         />
         <Card
-          title="QA ASSURANCE"
-          subtitle="Receive 24/7 support to keep your projects running smoothly."
-          paragraph="Our support team is always available to help resolve any issues."
-          imageUrl="/assets/QualityAssurance.svg"
+          title={expertiseCards[2].title}
+          subtitle={expertiseCards[2].subtitle}
+          paragraph={expertiseCards[2].paragraph}
+          imageUrl={expertiseCards[2].image}
           bgColorLight="bg-[var(--magenta-pink-light)]"
           bgColor="bg-[var(--magenta-pink)]"
         />
