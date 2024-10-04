@@ -45,7 +45,7 @@ export const expertiseCards: ExpertiseCards[] = [
     image: '/assets/SoftwareDevelopment.svg',
   },
   {
-    title: 'QUALITY ASSURANCE DEVELOPMENT',
+    title: 'QUALITY ASSURANCE',
     subtitle: 'Receive 24/7 support to keep your projects running smoothly.',
     paragraph: 'asfasf',
     image: '/assets/QualityAssurance.svg',

@@ -14,24 +14,21 @@ export default function ExpertiseSection() {
           subtitle={expertiseCards[0].subtitle}
           paragraph={expertiseCards[0].paragraph}
           imageUrl={expertiseCards[0].image}
-          bgColorLight="bg-[var(--vibrant-sky-blue-light)]"
-          bgColor="bg-[var(--vibrant-sky-blue)]"
+          buttonColor="bg-[var(--vibrant-sky-blue)]"
         />
         <Card
           title={expertiseCards[1].title}
           subtitle={expertiseCards[1].subtitle}
           paragraph={expertiseCards[1].paragraph}
           imageUrl={expertiseCards[1].image}
-          bgColorLight="bg-[var(--deep-navy-blue-light)]"
-          bgColor="bg-[var(--deep-navy-blue)]"
+          buttonColor="bg-[var(--deep-navy-blue)]"
         />
         <Card
           title={expertiseCards[2].title}
           subtitle={expertiseCards[2].subtitle}
           paragraph={expertiseCards[2].paragraph}
           imageUrl={expertiseCards[2].image}
-          bgColorLight="bg-[var(--magenta-pink-light)]"
-          bgColor="bg-[var(--magenta-pink)]"
+          buttonColor="bg-[var(--magenta-pink)]"
         />
       </div>
     </section>

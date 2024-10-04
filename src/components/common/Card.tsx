@@ -7,13 +7,12 @@ interface CardProps {
   subtitle: string;
   paragraph?: string;
   imageUrl: string;
-  bgColorLight: string;
-  bgColor: string;
+  buttonColor: string;
 }
 
 function Title({ title }: { title: string }) {
   return (
-    <h3 className="font-syne mb-2 text-sm font-semibold tracking-widest text-[var(--gray)] hover:cursor-default">
+    <h3 className="font-syne mb-2 text-sm font-semibold tracking-widest text-[var(--black)] hover:cursor-default">
       {title}
     </h3>
   );
@@ -50,8 +49,7 @@ export function Card({
   subtitle,
   paragraph = '',
   imageUrl,
-  bgColor,
-  bgColorLight,
+  buttonColor,
 }: CardProps) {
   const [isExpanded, setIsExpanded] = useState(false);
   const contentRef = useRef<HTMLDivElement>(null);
@@ -67,7 +65,7 @@ export function Card({
     <div
       onMouseEnter={() => setIsExpanded(true)}
       onMouseLeave={() => setIsExpanded(false)}
-      className={`group relative flex rounded-2xl transition-all duration-500 ease-in-out ${bgColorLight} w-full overflow-hidden`}
+      className="group relative flex w-full overflow-hidden rounded-2xl bg-[var(--soft-light-gray)] transition-all duration-500 ease-in-out"
       style={{
         height: isExpanded ? contentHeight : '140px',
       }}
@@ -89,9 +87,8 @@ export function Card({
             <Image imageUrl={imageUrl} title={title} />
           </div>
 
-          {/* Icono FaPlus con transición fluida de posición */}
           <div
-            className={`absolute flex size-12 items-center justify-center rounded-full ${bgColor} text-[var(--white)] transition-transform duration-500`}
+            className={`absolute flex size-12 items-center justify-center rounded-full ${buttonColor} text-[var(--white)] transition-transform duration-500`}
             style={{
               transform: isExpanded
                 ? 'translate(0, 0)' // Posición final (bottom-4 right-4 equivalente)

@@ -1,8 +1,10 @@
 /* eslint-disable tailwindcss/no-custom-classname */
 import { useEffect, useState, useMemo } from 'react';
 
-import { heroParagraph, rolesCarousel } from '@mocks/HomeMocks';
+import { heroParagraph } from '@mocks/HomeMocks';
 import { motion } from 'framer-motion';
+
+import RolesCarousel from './RolesCarousel';
 
 export default function Hero() {
   const phrases = useMemo(
@@ -30,7 +32,6 @@ export default function Hero() {
   const [displayText, setDisplayText] = useState('');
   const [isDeleting, setIsDeleting] = useState(false);
   const [charIndex, setCharIndex] = useState(0);
-  const [scrollY, setScrollY] = useState(0);
 
   useEffect(() => {
     const handleTyping = () => {
@@ -66,27 +67,10 @@ export default function Hero() {
     return () => clearInterval(typingInterval);
   }, [charIndex, isDeleting, currentPhraseIndex, previousPhraseIndex, phrases]);
 
-  useEffect(() => {
-    const handleScroll = () => {
-      setScrollY(window.scrollY);
-    };
-
-    window.addEventListener('scroll', handleScroll);
-    return () => {
-      window.removeEventListener('scroll', handleScroll);
-    };
-  }, []);
-
-  const calculatePosition = (initialX: number, finalX: number) => {
-    const maxScroll = 1000;
-    const scrollPercentage = Math.min(scrollY / maxScroll, 1);
-    return initialX + (finalX - initialX) * scrollPercentage;
-  };
-
   return (
     <section className="hover:cursor-default ">
-      <div className=" px-36 pb-36 pt-28">
-        <div>
+      <div className=" flex px-36 pb-36 pt-28">
+        <div className="">
           <h1 className="font-dm-sans text-[10rem] font-medium leading-none">
             Make it
           </h1>
@@ -112,55 +96,20 @@ export default function Hero() {
               |
             </motion.div>
           </div>
+          <div className="mt-32 flex w-5/12 gap-4">
+            <img
+              src={heroParagraph.profilePicture}
+              alt="Profile"
+              className="size-14 rounded-full"
+            />
+            <p className="font-inter text-3xl font-medium tracking-tight text-[var(--black)]">
+              {heroParagraph.text}
+            </p>
+          </div>
         </div>
-        <div className="mt-32 flex w-5/12 gap-4">
-          <img
-            src={heroParagraph.profilePicture}
-            alt="Profile"
-            className="size-14 rounded-full"
-          />
-          <p className="font-inter text-3xl font-medium tracking-tight text-[var(--black)]">
-            {heroParagraph.text}
-          </p>
-        </div>
+        <div>Nuevo</div>
       </div>
-      <div className="font-syne w-full whitespace-nowrap bg-[var(--black)] text-[6rem] font-bold text-[var(--white)]">
-        <div className="flex ">
-          <motion.h3
-            className="text-[var(--white)]"
-            animate={{ x: calculatePosition(-1800, 700) }}
-            transition={{
-              type: 'tween',
-              ease: [0.17, 0.67, 0.83, 0.67],
-              duration: 2.5,
-            }}
-          >
-            {rolesCarousel[0].role}
-          </motion.h3>
-          <motion.h3
-            className="text-[var(--white)]"
-            animate={{ x: calculatePosition(-1700, 800) }}
-            transition={{
-              type: 'tween',
-              ease: [0.17, 0.67, 0.83, 0.67],
-              duration: 2.5,
-            }}
-          >
-            {rolesCarousel[1].role}
-          </motion.h3>
-          <motion.h3
-            className="text-[var(--white)]"
-            animate={{ x: calculatePosition(-1600, 900) }}
-            transition={{
-              type: 'tween',
-              ease: [0.17, 0.67, 0.83, 0.67],
-              duration: 2.5,
-            }}
-          >
-            {rolesCarousel[2].role}
-          </motion.h3>
-        </div>
-      </div>
+      <RolesCarousel />
     </section>
   );
 }
