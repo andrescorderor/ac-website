@@ -36,7 +36,7 @@ export default function Header() {
             alt="icon"
             className="size-8"
           />
-          <p className="font-manrope flex items-center  text-base">
+          <p className="font-dm-sans flex items-center  text-base">
             andrés Cordero.
           </p>
         </div>

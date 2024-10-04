@@ -76,36 +76,33 @@ export default function Hero() {
     };
   }, []);
 
-  // Helper function to calculate position based on scroll
   const calculatePosition = (initialX: number, finalX: number) => {
-    const maxScroll = 1000; // Define the maximum scroll value for full movement
-    const scrollPercentage = Math.min(scrollY / maxScroll, 1); // Limit scroll percentage to 1
-    return initialX + (finalX - initialX) * scrollPercentage; // Linear interpolation between initial and final positions
+    const maxScroll = 1000;
+    const scrollPercentage = Math.min(scrollY / maxScroll, 1);
+    return initialX + (finalX - initialX) * scrollPercentage;
   };
 
   return (
-    <section className="hover:cursor-default">
-      <div className="flex flex-col gap-8 px-24 pb-24 pt-28">
+    <section className="hover:cursor-default ">
+      <div className=" px-36 pb-36 pt-28">
         <div>
-          <h1 className="font-manrope mb-0 text-[10rem] leading-none">
+          <h1 className="font-dm-sans text-[10rem] font-medium leading-none">
             Make it
           </h1>
           <div className="flex">
             <motion.h1
               key={currentPhraseIndex}
-              className="font-manrope bg-clip-text text-[10rem] font-bold leading-none text-transparent"
+              className="font-dm-sans animate-gradient-random bg-clip-text text-[10rem] font-bold leading-none text-transparent"
               style={{
                 backgroundImage:
                   'linear-gradient(to right, var(--deep-navy-blue), var(--vibrant-sky-blue), var(--magenta-pink))',
-                backgroundSize: '400% 400%',
-                animation: 'gradient-random 6s ease infinite',
               }}
             >
               {displayText}
             </motion.h1>
 
             <motion.div
-              className="font-manrope text-[10rem] leading-none text-[var(--black)]"
+              className="font-dm-sans text-[10rem] leading-none text-[var(--black)]"
               animate={{
                 opacity: [1, 0],
                 transition: { repeat: Infinity, duration: 1 },
@@ -115,38 +112,50 @@ export default function Hero() {
             </motion.div>
           </div>
         </div>
-        <div className="flex gap-4 rounded-2xl border-2 p-8">
+        <div className="mt-32 flex w-5/12 gap-4">
           <img
             src="/assets/Profile.png"
             alt="Profile"
             className="size-14 rounded-full"
           />
-          <p className="text-gray w-1/4 text-xl ">
+          <p className="font-inter text-3xl font-medium tracking-tight text-[var(--black)]">
             I am a developer and project manager with experience in software
             development, project coordination, and more.
           </p>
         </div>
       </div>
-      <div className="font-segoe w-full whitespace-nowrap bg-[var(--black)] text-[4rem] font-bold text-[var(--white)]">
-        <div className="flex py-8">
+      <div className="font-syne w-full whitespace-nowrap bg-[var(--black)] text-[6rem] font-bold text-[var(--white)]">
+        <div className="flex ">
           <motion.h3
             className="text-[var(--white)]"
-            animate={{ x: calculatePosition(-400, 700) }}
-            transition={{ type: 'tween', ease: 'easeOut' }}
+            animate={{ x: calculatePosition(-1800, 700) }}
+            transition={{
+              type: 'tween',
+              ease: [0.17, 0.67, 0.83, 0.67], // Cubic Bezier for smoother easing
+              duration: 2.5, // Longer duration for smoother animation
+            }}
           >
             Quality Assurance
           </motion.h3>
           <motion.h3
             className="text-[var(--white)]"
-            animate={{ x: calculatePosition(-300, 800) }}
-            transition={{ type: 'tween', ease: 'easeOut' }}
+            animate={{ x: calculatePosition(-1700, 800) }}
+            transition={{
+              type: 'tween',
+              ease: [0.17, 0.67, 0.83, 0.67], // Cubic Bezier for smoother easing
+              duration: 2.5, // Longer duration for smoother animation
+            }}
           >
             Project Management
           </motion.h3>
           <motion.h3
             className="text-[var(--white)]"
-            animate={{ x: calculatePosition(-200, 900) }}
-            transition={{ type: 'tween', ease: 'easeOut' }}
+            animate={{ x: calculatePosition(-1600, 900) }}
+            transition={{
+              type: 'tween',
+              ease: [0.17, 0.67, 0.83, 0.67], // Cubic Bezier for smoother easing
+              duration: 2.5, // Longer duration for smoother animation
+            }}
           >
             Software Development
           </motion.h3>

@@ -23,7 +23,7 @@ export default function Footer() {
               className="size-12"
             />
             <div className="pointer-events-none">
-              <p className="font-manrope mb-4 text-center text-4xl font-semibold italic leading-snug">
+              <p className="font-dm-sans mb-4 text-center text-4xl font-semibold italic leading-snug">
                 &quot;Make it happen. The best way to
                 <br />
                 predict the future is to create it.&quot;
@@ -96,7 +96,7 @@ export default function Footer() {
 
       <div className="animate-gradient-rotate mt-8 h-1 w-full bg-gradient-to-r from-[var(--deep-navy-blue)] via-[var(--vibrant-sky-blue)] to-[var(--magenta-pink)]" />
 
-      <p className="font-manrope pointer-events-none my-4 text-center text-sm text-[var(--black)] ">
+      <p className="font-dm-sans pointer-events-none my-4 text-center text-sm text-[var(--black)] ">
         © {currentYear} Andrés Cordero. All rights reserved.
       </p>
     </footer>
