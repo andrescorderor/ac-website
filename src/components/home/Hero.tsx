@@ -1,9 +1,9 @@
-/* eslint-disable tailwindcss/no-custom-classname */
 import { useEffect, useState, useMemo } from 'react';
 
 import { heroParagraph } from '@mocks/HomeMocks';
 import { motion } from 'framer-motion';
 
+import HeroCircles from './HeroCircles';
 import RolesCarousel from './RolesCarousel';
 
 export default function Hero() {
@@ -32,6 +32,18 @@ export default function Hero() {
   const [displayText, setDisplayText] = useState('');
   const [isDeleting, setIsDeleting] = useState(false);
   const [charIndex, setCharIndex] = useState(0);
+  const [, setMousePosition] = useState({ x: 0, y: 0 });
+
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      setMousePosition({ x: e.clientX, y: e.clientY });
+    };
+
+    window.addEventListener('mousemove', handleMouseMove);
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+    };
+  }, []);
 
   useEffect(() => {
     const handleTyping = () => {
@@ -69,8 +81,8 @@ export default function Hero() {
 
   return (
     <section className="hover:cursor-default ">
-      <div className=" flex px-36 pb-36 pt-28">
-        <div className="">
+      <div className="flex items-center px-36 pb-36 pt-28">
+        <div>
           <h1 className="font-dm-sans text-[10rem] font-medium leading-none">
             Make it
           </h1>
@@ -107,7 +119,7 @@ export default function Hero() {
             </p>
           </div>
         </div>
-        <div>Nuevo</div>
+        <HeroCircles />
       </div>
       <RolesCarousel />
     </section>
