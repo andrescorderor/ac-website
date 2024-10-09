@@ -49,7 +49,7 @@ export default function KnowledgeCarousel() {
   }, []);
 
   return (
-    <div className="relative overflow-hidden">
+    <div className="relative overflow-hidden p-36">
       <div
         ref={carousel1Ref}
         className="flex"
@@ -66,7 +66,7 @@ export default function KnowledgeCarousel() {
         )}
       </div>
       <h3 className="font-syne py-16 text-center text-[4rem] font-bold text-black mix-blend-multiply">
-        knowledge
+        Knowledge
       </h3>
       <div
         ref={carousel2Ref}
