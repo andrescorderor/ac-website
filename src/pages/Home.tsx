@@ -1,4 +1,5 @@
 import Certifications from '@components/home/CertificationsSection';
+import DiscussionCarousel from '@components/home/DiscussionCarousel';
 import ExpertiseSection from '@components/home/ExpertiseSection';
 import Hero from '@components/home/Hero';
 import KnowledgeCarousel from '@components/home/KnowledgeCarousel';
@@ -10,8 +11,9 @@ export default function Home() {
       <Hero />
       <RolesCarousel />
       <ExpertiseSection />
-      <KnowledgeCarousel />
+      <DiscussionCarousel />
       <Certifications />
+      <KnowledgeCarousel />
     </div>
   );
 }

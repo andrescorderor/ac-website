@@ -2,40 +2,26 @@
 /* eslint-disable react/no-array-index-key */
 import { useState, useEffect, useRef } from 'react';
 
-import {
-  knowledgeCarouselImage1,
-  knowledgeCarouselImage2,
-} from '@mocks/KnowledgeCarousel';
+import { knowledgeCarouselImage } from '@mocks/KnowledgeCarousel';
 
 import KnowledgeCarouselCard from '../common/KnowledgeCarouselCard';
 
 export default function KnowledgeCarousel() {
-  const [scrollPosition1, setScrollPosition1] = useState(0);
-  const [scrollPosition2, setScrollPosition2] = useState(0);
-  const carousel1Ref = useRef<HTMLDivElement>(null);
-  const carousel2Ref = useRef<HTMLDivElement>(null);
+  const [scrollPosition, setScrollPosition] = useState(0);
+  const carouselRef = useRef<HTMLDivElement>(null);
   const animationRef = useRef<number>();
 
   useEffect(() => {
-    const carousel1 = carousel1Ref.current;
-    const carousel2 = carousel2Ref.current;
-    if (!carousel1 || !carousel2) return;
-
-    const totalWidth1 = carousel1.scrollWidth / 2;
-    const totalWidth2 = carousel2.scrollWidth / 2;
-    const speed = 0.5;
+    const carousel = carouselRef.current;
+    if (!carousel) return;
+    const totalWidth = carousel.scrollWidth / 2;
+    const speed = 2;
 
     const animate = () => {
-      setScrollPosition1((prevPosition) => {
+      setScrollPosition((prevPosition) => {
         const newPosition = prevPosition + speed;
-        return newPosition >= totalWidth1 ? 0 : newPosition;
+        return newPosition >= totalWidth ? 0 : newPosition;
       });
-
-      setScrollPosition2((prevPosition) => {
-        const newPosition = prevPosition + speed;
-        return newPosition >= totalWidth2 ? 0 : newPosition;
-      });
-
       animationRef.current = requestAnimationFrame(animate);
     };
 
@@ -49,31 +35,16 @@ export default function KnowledgeCarousel() {
   }, []);
 
   return (
-    <div className="relative overflow-hidden px-36 py-20">
-      <div
-        ref={carousel1Ref}
-        className="flex"
-        style={{ transform: `translateX(-${scrollPosition1}px)` }}
-      >
-        {[...knowledgeCarouselImage1, ...knowledgeCarouselImage1].map(
-          (image, index) => (
-            <KnowledgeCarouselCard
-              key={`${image.alt}-${index}`}
-              alt={image.alt}
-              src={image.src}
-            />
-          ),
-        )}
-      </div>
-      <h3 className="font-syne py-16 text-center text-[4rem] font-bold text-black mix-blend-multiply">
+    <div className="relative flex items-center overflow-hidden bg-black py-8">
+      <h3 className="font-syne absolute left-1/2 top-1/2 z-10 -translate-x-1/2 -translate-y-1/2 text-center text-[4rem] font-bold text-[var(--white)] ">
         Knowledge
       </h3>
       <div
-        ref={carousel2Ref}
+        ref={carouselRef}
         className="flex"
-        style={{ transform: `translateX(-${scrollPosition2}px)` }}
+        style={{ transform: `translateX(-${scrollPosition}px)` }}
       >
-        {[...knowledgeCarouselImage2, ...knowledgeCarouselImage2].map(
+        {[...knowledgeCarouselImage, ...knowledgeCarouselImage].map(
           (image, index) => (
             <KnowledgeCarouselCard
               key={`${image.alt}-${index}`}

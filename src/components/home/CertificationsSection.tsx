@@ -1,7 +1,7 @@
+import CertificationsSectionCard from '@components/common/CertificationsSectionCard';
 import Slider from 'react-slick';
 import 'slick-carousel/slick/slick.css';
 import 'slick-carousel/slick/slick-theme.css';
-import CertificationsSectionCard from '@components/common/CertificationsSectionCard';
 
 export default function CertificationsSection() {
   const settings = {
@@ -34,7 +34,7 @@ export default function CertificationsSection() {
   ];
 
   return (
-    <section className="px-36 py-20">
+    <section className="p-36">
       <h2 className="font-dm-sans pb-16 text-center text-[6rem] font-bold leading-tight text-[var(--black)] hover:cursor-default">
         My Certifications
       </h2>
