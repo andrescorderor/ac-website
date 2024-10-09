@@ -44,7 +44,7 @@ function Image({ imageUrl, title }: { imageUrl: string; title: string }) {
   );
 }
 
-export function Card({
+export function ExpertiseSectionCard({
   title,
   subtitle,
   paragraph = '',
@@ -90,9 +90,7 @@ export function Card({
           <div
             className={`absolute flex size-12 items-center justify-center rounded-full ${buttonColor} text-[var(--white)] transition-transform duration-500`}
             style={{
-              transform: isExpanded
-                ? 'translate(0, 0)' // Posición final (bottom-4 right-4 equivalente)
-                : 'translate(0, -60px)', // Posición inicial (top-4 right-4 equivalente)
+              transform: isExpanded ? 'translate(0, 0)' : 'translate(0, -60px)',
               bottom: '1rem',
               right: '1rem',
             }}
@@ -105,6 +103,6 @@ export function Card({
   );
 }
 
-Card.defaultProps = {
+ExpertiseSectionCard.defaultProps = {
   paragraph: '',
 };

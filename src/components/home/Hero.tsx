@@ -4,7 +4,6 @@ import { heroParagraph } from '@mocks/HomeMocks';
 import { motion } from 'framer-motion';
 
 import HeroCircles from './HeroCircles';
-import RolesCarousel from './RolesCarousel';
 
 export default function Hero() {
   const phrases = useMemo(
@@ -121,7 +120,6 @@ export default function Hero() {
         </div>
         <HeroCircles />
       </div>
-      <RolesCarousel />
     </section>
   );
 }
