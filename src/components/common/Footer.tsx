@@ -1,5 +1,10 @@
 /* eslint-disable tailwindcss/no-custom-classname */
-import { FaGithub, FaLinkedinIn, FaTelegramPlane } from 'react-icons/fa';
+import {
+  FaGithub,
+  FaLinkedinIn,
+  FaTelegramPlane,
+  FaArrowRight,
+} from 'react-icons/fa';
 import { HiDocumentDownload } from 'react-icons/hi';
 import { IoLogoWhatsapp, IoMdMail } from 'react-icons/io';
 
@@ -8,31 +13,21 @@ import { Button } from './Button';
 export default function Footer() {
   const currentYear = new Date().getFullYear();
   return (
-    <footer className="mx-auto flex w-3/4 flex-col items-center rounded-t-3xl border-2 border-[var(--soft-light-gray)] text-[var(--black)] shadow-2xl backdrop-blur-lg">
-      <div className="p-8">
-        <div className="absolute inset-0 -z-10 overflow-hidden rounded-t-3xl">
-          <div className="circle animate-bounce-slow size-80 rounded-full bg-[var(--deep-navy-blue)] opacity-70 blur-3xl" />
-          <div className="circle animate-bounce-slow size-80 rounded-full bg-[var(--vibrant-sky-blue)] opacity-70 blur-3xl" />
-          <div className="circle animate-bounce-slow size-80 rounded-full bg-[var(--magenta-pink)] opacity-70 blur-3xl" />
-        </div>
-        <div className="flex flex-col items-center gap-16">
-          <div className="flex flex-col items-center gap-4">
-            <img
-              src="/assets/ac-website-icon.svg"
-              alt="Logo"
-              className="size-12"
-            />
-            <div className="pointer-events-none">
-              <p className="font-dm-sans mb-4 text-center text-4xl font-semibold italic leading-snug">
-                &quot;Make it happen. The best way to
-                <br />
-                predict the future is to create it.&quot;
-              </p>
-              <p className="text-start text-2xl">— Peter Drucker</p>
-            </div>
+    <footer>
+      <div className="flex justify-between p-36">
+        <div>
+          <div className="pointer-events-none flex flex-col">
+            <p className="font-dm-sans mb-4 text-4xl font-semibold leading-snug">
+              &quot;Make it happen. The best way to
+              <br />
+              predict the future is to create it.&quot;
+            </p>
+            <p className="font-syne text-start text-2xl font-bold text-[var(--gray)]">
+              Peter Drucker
+            </p>
           </div>
 
-          <div className="flex gap-6">
+          <div className="flex gap-6 pt-16">
             <Button
               type="full-dynamic"
               icon={FaGithub}
@@ -92,12 +87,20 @@ export default function Footer() {
             />
           </div>
         </div>
+        <div>
+          <div className="font-syne flex items-center justify-center gap-4 font-bold">
+            Lets get in contact
+            <Button
+              name="Become a client"
+              icon={FaArrowRight}
+              type="icon-only"
+            />
+          </div>
+        </div>
       </div>
-
-      <div className="animate-gradient-rotate mt-8 h-1 w-full bg-gradient-to-r from-[var(--deep-navy-blue)] via-[var(--vibrant-sky-blue)] to-[var(--magenta-pink)]" />
-
+      <div className="animate-gradient-rotate h-1 w-full bg-gradient-to-r from-[var(--deep-navy-blue)] via-[var(--vibrant-sky-blue)] to-[var(--magenta-pink)]" />
       <p className="font-dm-sans pointer-events-none my-4 text-center text-sm text-[var(--black)] ">
-        © {currentYear} Andrés Cordero. All rights reserved.
+        © Andrés Cordero {currentYear} • All rights reserved.
       </p>
     </footer>
   );
