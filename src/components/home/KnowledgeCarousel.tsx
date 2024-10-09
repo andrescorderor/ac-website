@@ -7,7 +7,7 @@ import {
   knowledgeCarouselImage2,
 } from '@mocks/KnowledgeCarousel';
 
-import KnowledgeCarouselCard from './KnowledgeCarouselCard';
+import KnowledgeCarouselCard from '../common/KnowledgeCarouselCard';
 
 export default function KnowledgeCarousel() {
   const [scrollPosition1, setScrollPosition1] = useState(0);
@@ -49,7 +49,7 @@ export default function KnowledgeCarousel() {
   }, []);
 
   return (
-    <div className="relative overflow-hidden p-36">
+    <div className="relative overflow-hidden px-36 py-20">
       <div
         ref={carousel1Ref}
         className="flex"

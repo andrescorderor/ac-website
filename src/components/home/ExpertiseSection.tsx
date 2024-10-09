@@ -3,7 +3,7 @@ import { expertiseCards } from '@mocks/HomeMocks';
 
 export default function ExpertiseSection() {
   return (
-    <section className="flex p-36">
+    <section className="flex px-36 py-20">
       <h2 className="font-dm-sans flex flex-col justify-end text-[6rem] font-bold leading-tight text-[var(--black)] hover:cursor-default">
         My Expertise
       </h2>
