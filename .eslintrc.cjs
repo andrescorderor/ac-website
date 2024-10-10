@@ -16,13 +16,7 @@ module.exports = {
       files: ['*.ts', '*.tsx', '*.js'],
       parser: '@typescript-eslint/parser',
       parserOptions: {
-        project:
-          'D:/MISC/Projects/aC_Firm/Development/ac-portfolio/tsconfig.json',
-        ecmaVersion: 'latest',
-        ecmaFeatures: {
-          jsx: true,
-        },
-        sourceType: 'module',
+        project: './tsconfig.json',
       },
     },
   ],
