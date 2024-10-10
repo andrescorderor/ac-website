@@ -7,7 +7,6 @@ interface CardProps {
   subtitle: string;
   paragraph?: string;
   imageUrl: string;
-  buttonColor: string;
 }
 
 function Title({ title }: { title: string }) {
@@ -49,7 +48,6 @@ export function ExpertiseSectionCard({
   subtitle,
   paragraph = '',
   imageUrl,
-  buttonColor,
 }: CardProps) {
   const [isExpanded, setIsExpanded] = useState(false);
   const contentRef = useRef<HTMLDivElement>(null);
@@ -88,7 +86,7 @@ export function ExpertiseSectionCard({
           </div>
 
           <div
-            className={`absolute flex size-12 items-center justify-center rounded-full ${buttonColor} text-[var(--white)] transition-transform duration-500`}
+            className="animate-gradient-random absolute flex size-12 items-center justify-center rounded-full bg-gradient-to-r from-[var(--deep-navy-blue)] via-[var(--vibrant-sky-blue)] to-[var(--magenta-pink)] text-[var(--white)] transition-transform duration-500"
             style={{
               transform: isExpanded ? 'translate(0, 0)' : 'translate(0, -60px)',
               bottom: '1rem',

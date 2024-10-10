@@ -1,18 +1,10 @@
 /* eslint-disable tailwindcss/migration-from-tailwind-2 */
+import { CertificationsSectionCardProps } from '@mocks/CertificationsSectionMocks';
 import { FaExternalLinkSquareAlt } from 'react-icons/fa';
 
 import { Button } from './Button';
 
-interface CertificationsSectionCardProps {
-  image: string;
-  alt: string;
-  link: string;
-  title: string;
-  subtitle: string;
-}
-
 export default function CertificationsSectionCard({
-  image,
   link,
   alt,
   title,
@@ -24,27 +16,33 @@ export default function CertificationsSectionCard({
 
   return (
     <div
-      className="relative rounded-2xl bg-cover bg-center shadow-lg"
-      style={{ backgroundImage: `url(${image})`, height: '66vh' }}
+      className="relative flex h-full flex-col justify-between rounded-2xl bg-[var(--soft-light-gray)] bg-cover bg-center p-6 text-[var(--black)]"
       aria-label={alt}
     >
-      <div className="absolute inset-x-0 top-0 p-4">
-        <p className="font-syne inline-block rounded-full bg-[var(--black)] bg-opacity-50 px-2 py-1 text-base font-semibold text-[var(--white)]">
+      <div className="">
+        <p className="animate-gradient-random font-syne inline-block rounded-full bg-[var(--soft-light-gray)] bg-opacity-50 bg-gradient-to-r from-[var(--deep-navy-blue)] via-[var(--vibrant-sky-blue)] to-[var(--magenta-pink)] p-1 px-4 text-base font-semibold text-[var(--white)]">
           CERTIFICATION
         </p>
       </div>
 
-      <div className="absolute inset-x-0 bottom-0 rounded-2xl bg-gradient-to-t from-[var(--black)] to-transparent p-6 ">
-        <h3 className="font-dm-sans pb-2 text-lg font-bold leading-tight text-[var(--white)]">
-          {title}
-        </h3>
-        <p className="mb-4 text-sm text-[var(--white)]">{subtitle}</p>
-        <Button
-          type="full-static"
-          icon={FaExternalLinkSquareAlt}
-          name="View Certification"
-          onClick={handleOpenLink}
-        />
+      <div className="flex items-stretch justify-between">
+        <div className="w-3/4 pt-6">
+          <h3 className="font-dm-sans pb-2 text-lg font-bold leading-tight">
+            {title}
+          </h3>
+          <p className="text-sm">{subtitle}</p>
+        </div>
+        <div className="flex w-1/2 flex-col items-end justify-end">
+          <div className="font-syne flex items-center gap-2 font-bold text-[var(--black)]">
+            View certification
+            <Button
+              type="icon-only"
+              icon={FaExternalLinkSquareAlt}
+              name="View Certification"
+              onClick={handleOpenLink}
+            />
+          </div>
+        </div>
       </div>
     </div>
   );
