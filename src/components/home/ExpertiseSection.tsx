@@ -14,21 +14,18 @@ export default function ExpertiseSection() {
           subtitle={expertiseCards[0].subtitle}
           paragraph={expertiseCards[0].paragraph}
           imageUrl={expertiseCards[0].image}
-          buttonColor="bg-[var(--vibrant-sky-blue)]"
         />
         <ExpertiseSectionCard
           title={expertiseCards[1].title}
           subtitle={expertiseCards[1].subtitle}
           paragraph={expertiseCards[1].paragraph}
           imageUrl={expertiseCards[1].image}
-          buttonColor="bg-[var(--deep-navy-blue)]"
         />
         <ExpertiseSectionCard
           title={expertiseCards[2].title}
           subtitle={expertiseCards[2].subtitle}
           paragraph={expertiseCards[2].paragraph}
           imageUrl={expertiseCards[2].image}
-          buttonColor="bg-[var(--magenta-pink)]"
         />
       </div>
     </section>

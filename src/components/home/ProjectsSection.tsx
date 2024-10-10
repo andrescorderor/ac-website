@@ -46,16 +46,16 @@ export default function ProjectsSection() {
           </div>
         ))}
       </div>
-      <div className="mt-16 flex justify-center space-x-2">
+      <div className="mt-8 flex justify-center gap-4">
         {certificationsSectionMocks.map((_, index2) => (
           <button
             key={index2}
             onClick={() => slider.current?.moveToIdx(index2)}
             className={`${
               currentSlide === index2
-                ? 'animate-gradient-random h-3  w-8 bg-gradient-to-r from-[var(--deep-navy-blue)] via-[var(--vibrant-sky-blue)] to-[var(--magenta-pink)]'
-                : 'size-3 bg-gray-300'
-            } rounded-full transition-all duration-300`}
+                ? 'animate-gradient-random h-4 w-36 bg-gradient-to-r from-[var(--deep-navy-blue)] via-[var(--vibrant-sky-blue)] to-[var(--magenta-pink)]'
+                : 'size-4 bg-gray-300'
+            } duration-400 rounded-full transition-all`}
           />
         ))}
       </div>

@@ -22,7 +22,8 @@
     "paths": {
       "@mocks/*": ["mocks/*"],
       "@interfaces/*": ["interfaces/*"],
-      "@components/*": ["components/*"]
+      "@components/*": ["components/*"],
+      "@pages/*": ["pages/*"]
     }
   },
   "include": [
