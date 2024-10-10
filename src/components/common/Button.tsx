@@ -7,7 +7,7 @@ type ButtonProps = {
 
 export function Button({ icon: Icon, name, type, onClick }: ButtonProps) {
   const baseClasses =
-    'font-dm-sans group relative hover:bg-[var(--soft-light-gray)] flex items-center justify-center rounded-full text-sm border border-[var(--soft-light-gray)] bg-[var(--white)] p-2 text-[var(--black)] transition-all duration-500 ease-in-out';
+    'font-dm-sans group relative hover:bg-[var(--soft-light-gray)] flex items-center justify-center rounded-full text-sm border hover:border-[var(--black)] border-[var(--soft-light-gray)] bg-[var(--white)] p-2 text-[var(--black)] transition-all duration-500 ease-in-out';
 
   const getButtonClasses = () => {
     switch (type) {

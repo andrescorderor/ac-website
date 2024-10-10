@@ -35,7 +35,7 @@ export default function KnowledgeCarousel() {
   }, []);
 
   return (
-    <div className="relative flex overflow-hidden bg-[var(--white)] py-16">
+    <section className="relative flex overflow-hidden bg-[var(--white)] py-16">
       {/* <h3 className="font-syne absolute right-0 top-1/2 z-10 -translate-x-1/2 -translate-y-1/2 text-end text-[4rem] font-bold text-[var(--black)] ">
         Knowledge
       </h3> */}
@@ -54,6 +54,6 @@ export default function KnowledgeCarousel() {
           ),
         )}
       </div>
-    </div>
+    </section>
   );
 }

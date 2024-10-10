@@ -33,7 +33,19 @@ export default function ProjectsSection() {
   });
 
   return (
-    <div className="w-full py-16">
+    <section className="w-full py-16">
+      <div className=" animate-gradient-random bg-[var(--soft-light-gray)] bg-gradient-to-r from-[var(--deep-navy-blue)] via-[var(--vibrant-sky-blue)] to-[var(--magenta-pink)] ">
+        <div className="bg-gradient-to-l from-[var(--black)] to-transparent p-2 text-[var(--white)] ">
+          <div className="flex rounded-2xl bg-gradient-to-r from-[var(--black)]  to-transparent p-16 px-36">
+            <h2 className="font-dm-sans flex flex-col justify-end  text-[6rem] font-bold leading-tight hover:cursor-default">
+              My portfolio
+            </h2>
+            <p className="font-dm-sans ml-auto flex w-1/4 flex-col justify-center gap-8 text-start text-2xl font-medium text-[var(--white)]">
+              Take a look at my portfolio
+            </p>
+          </div>
+        </div>
+      </div>
       <div ref={sliderRef} className="keen-slider">
         {certificationsSectionMocks.map((certificationsSectionMock, index) => (
           <div key={index} className="keen-slider__slide">
@@ -54,11 +66,11 @@ export default function ProjectsSection() {
             className={`${
               currentSlide === index2
                 ? 'animate-gradient-random h-4 w-36 bg-gradient-to-r from-[var(--deep-navy-blue)] via-[var(--vibrant-sky-blue)] to-[var(--magenta-pink)]'
-                : 'size-4 bg-gray-300'
+                : 'size-4 bg-[var(--light-gray)] '
             } duration-400 rounded-full transition-all`}
           />
         ))}
       </div>
-    </div>
+    </section>
   );
 }
