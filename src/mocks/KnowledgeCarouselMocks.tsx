@@ -3,7 +3,7 @@ interface KnowledgeCarouselImage {
   src: string;
 }
 
-export const knowledgeCarouselImage: KnowledgeCarouselImage[] = [
+export const knowledgeCarouselImageMocks: KnowledgeCarouselImage[] = [
   {
     alt: 'Android Studio logo',
     src: '/assets/knowledge-carousel/AndroidStudio.svg',

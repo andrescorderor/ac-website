@@ -2,7 +2,7 @@
 /* eslint-disable react/no-array-index-key */
 import { useState, useEffect, useRef } from 'react';
 
-import { knowledgeCarouselImage } from '@mocks/KnowledgeCarousel';
+import { knowledgeCarouselImageMocks } from '@mocks/KnowledgeCarouselMocks';
 
 import KnowledgeCarouselCard from '../common/KnowledgeCarouselCard';
 
@@ -44,7 +44,7 @@ export default function KnowledgeCarousel() {
         className="flex"
         style={{ transform: `translateX(-${scrollPosition}px)` }}
       >
-        {[...knowledgeCarouselImage, ...knowledgeCarouselImage].map(
+        {[...knowledgeCarouselImageMocks, ...knowledgeCarouselImageMocks].map(
           (image, index) => (
             <KnowledgeCarouselCard
               key={`${image.alt}-${index}`}

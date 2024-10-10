@@ -1,52 +1,65 @@
+/* eslint-disable react/no-array-index-key */
+/* eslint-disable react/button-has-type */
+/* eslint-disable jsx-a11y/control-has-associated-label */
+/* eslint-disable tailwindcss/no-custom-classname */
+/* eslint-disable react/jsx-props-no-spreading */
+import { useState } from 'react';
+
 import CertificationsSectionCard from '@components/common/CertificationsSectionCard';
-import Slider from 'react-slick';
-import 'slick-carousel/slick/slick.css';
-import 'slick-carousel/slick/slick-theme.css';
+import { certificationsSectionMocks } from '@mocks/CertificationsSectionMocks';
+import { useKeenSlider } from 'keen-slider/react';
+import 'keen-slider/keen-slider.min.css';
 
 export default function CertificationsSection() {
-  const settings = {
-    dots: true, // Activa los indicadores
-    infinite: true,
-    speed: 500, // Velocidad de la transición
-    slidesToShow: 4,
-    slidesToScroll: 2,
-    autoplay: true, // Activar el desplazamiento automático
-    autoplaySpeed: 3000, // Desplazar cada 3 segundos
-    arrows: false, // Oculta las flechas de navegación
-  };
-  const cards = [
-    {
-      image: '/assets/certifications-section/Project.jpg',
-      link: 'https://example1.com',
+  const [currentSlide, setCurrentSlide] = useState(0);
+  const [sliderRef, slider] = useKeenSlider({
+    loop: true,
+    mode: 'free',
+    slides: {
+      perView: 4,
+      spacing: 24,
     },
-    {
-      image: '/assets/certifications-section/Project.jpg',
-      link: 'https://example2.com',
+    breakpoints: {
+      '(max-width: 1024px)': {
+        slides: { perView: 2, spacing: 10 },
+      },
+      '(max-width: 640px)': {
+        slides: { perView: 1, spacing: 5 },
+      },
     },
-    {
-      image: '/assets/certifications-section/Project.jpg',
-      link: 'https://example3.com',
+    slideChanged(s) {
+      setCurrentSlide(s.track.details.rel);
     },
-    {
-      image: '/assets/certifications-section/Project.jpg',
-      link: 'https://example4.com',
-    },
-  ];
+  });
 
   return (
-    <section className="p-36">
-      <h2 className="font-dm-sans pb-16 text-center text-[6rem] font-bold leading-tight text-[var(--black)] hover:cursor-default">
-        My Certifications
-      </h2>
-      <div className="w-full">
-        <Slider {...settings}>
-          {cards.map((card, index) => (
-            <div key={index}>
-              <CertificationsSectionCard image={card.image} link={card.link} />
-            </div>
-          ))}
-        </Slider>
+    <div className="w-full">
+      <div ref={sliderRef} className="keen-slider">
+        {certificationsSectionMocks.map((certificationsSectionMock, index) => (
+          <div key={index} className="keen-slider__slide">
+            <CertificationsSectionCard
+              title={certificationsSectionMock.title}
+              subtitle={certificationsSectionMock.subtitle}
+              image={certificationsSectionMock.imageUrl}
+              alt={certificationsSectionMock.alt}
+              link={certificationsSectionMock.link}
+            />
+          </div>
+        ))}
       </div>
-    </section>
+      <div className="mt-4 flex justify-center space-x-2">
+        {certificationsSectionMocks.map((_, index2) => (
+          <button
+            key={index2}
+            onClick={() => slider.current?.moveToIdx(index2)}
+            className={`${
+              currentSlide === index2
+                ? 'animate-gradient-random h-3  w-8 bg-gradient-to-r from-[var(--deep-navy-blue)] via-[var(--vibrant-sky-blue)] to-[var(--magenta-pink)]'
+                : 'size-3 bg-gray-300'
+            } rounded-full transition-all duration-300`}
+          />
+        ))}
+      </div>
+    </div>
   );
 }

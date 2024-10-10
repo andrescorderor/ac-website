@@ -11,9 +11,9 @@ export default function Home() {
       <Hero />
       <RolesCarousel />
       <ExpertiseSection />
-      <DiscussionCarousel />
       <Certifications />
       <KnowledgeCarousel />
+      <DiscussionCarousel />
     </div>
   );
 }
