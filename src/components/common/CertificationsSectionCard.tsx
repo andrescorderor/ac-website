@@ -42,7 +42,7 @@ export default function CertificationsSectionCard({
         <Button
           type="full-static"
           icon={FaExternalLinkSquareAlt}
-          name="Open Link"
+          name="View Certification"
           onClick={handleOpenLink}
         />
       </div>
