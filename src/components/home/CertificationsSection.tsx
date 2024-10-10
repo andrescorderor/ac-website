@@ -1,3 +1,4 @@
+/* eslint-disable import/no-extraneous-dependencies */
 /* eslint-disable tailwindcss/no-custom-classname */
 /* eslint-disable react/no-array-index-key */
 import { useState } from 'react';

@@ -1,6 +1,6 @@
 /* eslint-disable tailwindcss/migration-from-tailwind-2 */
 import { CertificationsSectionCardProps } from '@mocks/CertificationsSectionMocks';
-import { FaExternalLinkSquareAlt } from 'react-icons/fa';
+import { HiOutlineExternalLink } from 'react-icons/hi';
 
 import { Button } from './Button';
 
@@ -33,15 +33,12 @@ export default function CertificationsSectionCard({
           <p className="text-sm">{subtitle}</p>
         </div>
         <div className="flex w-1/2 flex-col items-end justify-end">
-          <div className="font-syne flex items-center gap-2 font-bold text-[var(--black)]">
-            View certification
-            <Button
-              type="icon-only"
-              icon={FaExternalLinkSquareAlt}
-              name="View Certification"
-              onClick={handleOpenLink}
-            />
-          </div>
+          <Button
+            type="full-dynamic"
+            icon={HiOutlineExternalLink}
+            name="View Certification"
+            onClick={handleOpenLink}
+          />
         </div>
       </div>
     </div>
