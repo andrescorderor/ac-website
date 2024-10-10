@@ -22,7 +22,7 @@ export default function ProjectsSectionCard({
 
   return (
     <div
-      className="bg-cover bg-center p-24"
+      className="bg-cover bg-center p-24 "
       style={{ backgroundImage: `url(${image})`, height: '100vh' }}
       aria-label={alt}
     >

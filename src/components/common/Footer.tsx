@@ -17,7 +17,7 @@ export default function Footer() {
       <div className="flex justify-between p-36">
         <div>
           <div className="pointer-events-none flex flex-col">
-            <p className="font-dm-sans mb-4 text-4xl font-semibold leading-snug">
+            <p className="font-dm-sans font-regular mb-4 text-4xl leading-snug">
               &quot;Make it happen. The best way to
               <br />
               predict the future is to create it.&quot;

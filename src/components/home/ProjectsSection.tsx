@@ -33,7 +33,7 @@ export default function ProjectsSection() {
   });
 
   return (
-    <section className="w-full py-16">
+    <section className="pointer-events-none w-full py-16">
       <div className=" animate-gradient-random bg-[var(--soft-light-gray)] bg-gradient-to-r from-[var(--deep-navy-blue)] via-[var(--vibrant-sky-blue)] to-[var(--magenta-pink)] ">
         <div className="bg-gradient-to-l from-[var(--black)] to-transparent p-2 text-[var(--white)] ">
           <div className="flex rounded-2xl bg-gradient-to-r from-[var(--black)]  to-transparent p-16 px-36">
