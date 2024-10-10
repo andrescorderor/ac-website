@@ -3,9 +3,9 @@ import { expertiseCards } from '@mocks/HomeMocks';
 
 export default function ExpertiseSection() {
   return (
-    <section className="flex p-36">
+    <section className="flex px-36 pb-16 pt-36">
       <h2 className="font-dm-sans flex flex-col justify-end text-[6rem] font-bold leading-tight text-[var(--black)] hover:cursor-default">
-        My Expertise
+        My expertise
       </h2>
 
       <div className="ml-auto flex flex-col gap-8">

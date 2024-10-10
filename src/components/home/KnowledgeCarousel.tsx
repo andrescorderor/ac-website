@@ -35,10 +35,10 @@ export default function KnowledgeCarousel() {
   }, []);
 
   return (
-    <div className="relative flex items-center overflow-hidden bg-black py-8">
-      <h3 className="font-syne absolute left-1/2 top-1/2 z-10 -translate-x-1/2 -translate-y-1/2 text-center text-[4rem] font-bold text-[var(--white)] ">
+    <div className="relative flex overflow-hidden bg-[var(--white)] py-16">
+      {/* <h3 className="font-syne absolute right-0 top-1/2 z-10 -translate-x-1/2 -translate-y-1/2 text-end text-[4rem] font-bold text-[var(--black)] ">
         Knowledge
-      </h3>
+      </h3> */}
       <div
         ref={carouselRef}
         className="flex"

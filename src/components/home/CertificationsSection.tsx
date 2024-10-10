@@ -33,7 +33,7 @@ export default function CertificationsSection() {
   });
 
   return (
-    <div className="w-full">
+    <div className="w-full py-16">
       <div ref={sliderRef} className="keen-slider">
         {certificationsSectionMocks.map((certificationsSectionMock, index) => (
           <div key={index} className="keen-slider__slide">
@@ -47,7 +47,7 @@ export default function CertificationsSection() {
           </div>
         ))}
       </div>
-      <div className="mt-4 flex justify-center space-x-2">
+      <div className="mt-16 flex justify-center space-x-2">
         {certificationsSectionMocks.map((_, index2) => (
           <button
             key={index2}
