@@ -19,6 +19,7 @@
   "dependencies": {
     "framer-motion": "^11.11.0",
     "heroicons-react": "^1.4.1",
+    "keen-slider": "^6.8.6",
     "react": "^18.3.1",
     "react-animated-cursor": "^2.11.2",
     "react-cursor-follow": "^2.0.0",
