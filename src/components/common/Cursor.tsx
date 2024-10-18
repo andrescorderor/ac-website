@@ -7,6 +7,7 @@ export default function Cursor() {
   const [delayedPosition, setDelayedPosition] = useState({ x: 0, y: 0 });
   const [active, setActive] = useState(false);
   const [clickable, setClickable] = useState(false);
+  const [isInDiscussionCarousel, setIsInDiscussionCarousel] = useState(false);
 
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
@@ -18,21 +19,25 @@ export default function Cursor() {
 
     const handleMouseOver = (e: MouseEvent) => {
       const target = e.target as HTMLElement;
-      if (
+      setClickable(
         target.tagName === 'A' ||
-        target.tagName === 'BUTTON' ||
-        target.style.cursor === 'pointer'
-      ) {
-        setClickable(true);
-      } else {
-        setClickable(false);
-      }
+          target.tagName === 'BUTTON' ||
+          target.style.cursor === 'pointer',
+      );
+    };
+
+    const handleDiscussionCarouselHover = (e: CustomEvent) => {
+      setIsInDiscussionCarousel(e.detail.isHovered);
     };
 
     window.addEventListener('mousemove', handleMouseMove);
     window.addEventListener('mouseenter', handleMouseEnter);
     window.addEventListener('mouseleave', handleMouseLeave);
     window.addEventListener('mouseover', handleMouseOver);
+    window.addEventListener(
+      'discussionCarouselHover',
+      handleDiscussionCarouselHover as EventListener,
+    );
 
     let animationFrameId: number;
     const animateDelayedPosition = () => {
@@ -49,23 +54,39 @@ export default function Cursor() {
       window.removeEventListener('mouseenter', handleMouseEnter);
       window.removeEventListener('mouseleave', handleMouseLeave);
       window.removeEventListener('mouseover', handleMouseOver);
+      window.removeEventListener(
+        'discussionCarouselHover',
+        handleDiscussionCarouselHover as EventListener,
+      );
       cancelAnimationFrame(animationFrameId);
     };
   }, [position]);
 
   const getScale = () => {
+    if (isInDiscussionCarousel) return 1.5;
     if (clickable) return 1;
     if (active) return 0.6;
     return 0.6;
   };
 
+  const getCursorClassName = () => {
+    const baseClasses =
+      'fixed left-0 top-0 z-50 rounded-full transition-colors duration-200 ease-out pointer-events-none';
+
+    if (isInDiscussionCarousel) {
+      return `${baseClasses} flex items-center justify-center size-24 animate-gradient-random  bg-[var(--soft-light-gray)] bg-opacity-50 bg-gradient-to-r from-[var(--deep-navy-blue)] via-[var(--vibrant-sky-blue)] to-[var(--magenta-pink)] text-white`;
+    }
+
+    if (active) {
+      return `${baseClasses} size-12 bg-[var(--white)] mix-blend-difference`;
+    }
+
+    return `${baseClasses} size-12 bg-[var(--soft-light-gray)] mix-blend-difference`;
+  };
+
   return (
     <motion.div
-      className={`pointer-events-none fixed left-0 top-0 z-[9998] size-12 rounded-full transition-colors duration-200 ease-out ${
-        active
-          ? 'bg-[var(--white)] mix-blend-difference'
-          : 'bg-[var(--soft-light-gray)] mix-blend-difference'
-      }`}
+      className={getCursorClassName()}
       animate={{
         x: delayedPosition.x,
         y: delayedPosition.y,
@@ -73,10 +94,16 @@ export default function Cursor() {
       }}
       transition={{
         type: 'spring',
-        stiffness: 200,
+        stiffness: 400,
         damping: 20,
       }}
       style={{ transform: 'translate(-50%, -50%)' }}
-    />
+    >
+      {isInDiscussionCarousel && (
+        <span className="text-center text-sm font-bold leading-tight  ">
+          Let&apos;s get in touch
+        </span>
+      )}
+    </motion.div>
   );
 }

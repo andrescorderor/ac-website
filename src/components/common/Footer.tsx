@@ -59,7 +59,7 @@ export default function Footer() {
               type="full-dynamic"
               icon={HiDocumentDownload}
               name="Download Resume"
-              onClick={() => window.open('/assets/cv.pdf', '_blank')}
+              onClick={() => window.open('/assets/Resume.pdf', '_blank')}
             />
             <Button
               type="full-dynamic"
