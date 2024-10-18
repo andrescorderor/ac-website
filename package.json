@@ -12,8 +12,6 @@
     "format:check": "prettier --check .",
     "format:fix": "prettier --write .",
     "check-types": "tsc --noemit",
-    "sanity": "eslint . --ext .js,.jsx,.ts,.tsx && prettier --check \"**/*.{js,jsx,ts,tsx,json,css,md}\"",
-    "sanity:fix": "eslint . --ext .js,.jsx,.ts,.tsx --fix && prettier --write \"**/*.{js,jsx,ts,tsx,json,css,md}\"",
     "preview": "vite preview"
   },
   "dependencies": {

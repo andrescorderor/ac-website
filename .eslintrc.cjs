@@ -7,7 +7,6 @@ module.exports = {
     'airbnb-typescript',
     'plugin:react-hooks/recommended',
     'plugin:@typescript-eslint/recommended',
-    'plugin:react-hooks/recommended',
     'plugin:prettier/recommended',
     'plugin:tailwindcss/recommended',
   ],
@@ -20,7 +19,6 @@ module.exports = {
       },
     },
   ],
-  parser: '@typescript-eslint/parser',
   parserOptions: {
     ecmaVersion: 'latest',
     ecmaFeatures: {
@@ -94,7 +92,6 @@ module.exports = {
       },
     ],
     'no-param-reassign': 'error',
-    'import/no-cycle': 0,
   },
   ignorePatterns: ['postcss.config.js', 'tailwind.config.js', 'vite.config.ts'],
 };

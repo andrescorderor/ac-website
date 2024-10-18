@@ -23,15 +23,14 @@
       "@mocks/*": ["mocks/*"],
       "@interfaces/*": ["interfaces/*"],
       "@components/*": ["components/*"],
+      "@assets/*": ["assets/*"],
       "@pages/*": ["pages/*"]
-    }
+    },
+
+    "incremental": true,
+    "tsBuildInfoFile": "./.cache/tsbuildinfo",
+    "allowSyntheticDefaultImports": true
   },
-  "include": [
-    "src",
-    ".eslintrc.cjs",
-    "src/interfaces",
-    "src/mocks",
-    "vite.config.ts"
-  ],
-  "references": [{ "path": "./tsconfig.node.json" }]
+  "include": ["src", ".eslintrc.cjs", "vite.config.ts"],
+  "references": []
 }
