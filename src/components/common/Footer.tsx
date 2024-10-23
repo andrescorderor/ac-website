@@ -13,8 +13,8 @@ import { Button } from './Button';
 export default function Footer() {
   const currentYear = new Date().getFullYear();
   return (
-    <footer>
-      <div className="flex justify-between p-36">
+    <footer className="bg-[var(--white)] ">
+      <div className="flex justify-between  p-36 ">
         <div>
           <div className="pointer-events-none flex flex-col">
             <p className="font-dm-sans font-regular mb-4 text-4xl leading-snug">

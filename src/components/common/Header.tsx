@@ -25,7 +25,7 @@ export default function Header() {
 
   return (
     <nav
-      className={`fixed top-0 z-50 w-full bg-white bg-opacity-20 backdrop-blur-md transition-transform duration-300 ${
+      className={`fixed top-0 z-50 w-full  bg-opacity-20 backdrop-blur-xl transition-transform duration-300 ${
         showNavbar ? 'translate-y-0' : '-translate-y-full'
       }`}
     >
