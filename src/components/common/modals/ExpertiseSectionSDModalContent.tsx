@@ -1,7 +1,7 @@
 import { Button } from '../Button';
 import { FaArrowRight } from 'react-icons/fa';
 
-export default function ExpertiseSectionPMModalContent() {
+export default function ExpertiseSectionSDModalContent() {
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-6 cursor-default">
       <div className="col-span-1 flex flex-col h-full w-3/4">
@@ -21,59 +21,48 @@ export default function ExpertiseSectionPMModalContent() {
       <div className="col-span-2  text-base ">
         <div className="mb-6">
           <h3 className="font-dm-sans font-semibold text-[var(--black)] mb-2">
-            Highlighted Experience
+            Projects Developed
           </h3>
           <ul className="list-disc pl-6 text-[var(--dark-gray)] space-y-2">
             <li>
-              Coordinated cross-functional teams to ensure efficient workflows
-              and timely deliveries.
+              Developed interactive websites and mobile apps for diverse
+              sectors, focusing on user experience and performance.
             </li>
             <li>
-              Handled project negotiations with stakeholders and led the
-              implementation of continuous improvements.
-            </li>
-            <li>
-              Managed projects for both private and public sectors, including
-              database management and DevOps integrations.
+              Implemented scalable and maintainable code, adhering to industry
+              best practices and standards.
             </li>
           </ul>
         </div>
 
         <div className="mb-6">
           <h3 className="font-semibold font-dm-sans text-[var(--black)] mb-2">
-            Skills and Methodologies
+            Technical Skills
           </h3>
           <ul className="list-disc pl-6 text-[var(--dark-gray)] space-y-2">
             <li>
-              Proficient in Agile frameworks, particularly SCRUM, with
-              experience in organizing sprints and managing tasks.
+              Proficiency in JavaScript, React, TypeScript, HTML, CSS, and
+              modern front-end frameworks.
             </li>
             <li>
-              Expert in removing blockers and ensuring smooth team productivity.
-            </li>
-            <li>
-              Focused on quality control, risk management, and maintaining
-              strong client relationships.
+              Experience integrating RESTful APIs and optimizing application
+              performance.
             </li>
           </ul>
         </div>
 
         <div>
           <h3 className="font-semibold font-dm-sans text-[var(--black)] mb-2">
-            Key Results
+            Specific Achievements
           </h3>
           <ul className="list-disc pl-6 text-[var(--dark-gray)] space-y-2">
             <li>
-              Successfully managed the deployment of innovative solutions on
-              time and within budget.
+              Successfully launched multiple web projects, increasing user
+              engagement and client satisfaction.
             </li>
             <li>
-              Presented progress reports and project results to high-level
-              executives and government officials.
-            </li>
-            <li>
-              Ensured all projects met client expectations with a focus on
-              quality and compliance.
+              Delivered innovative solutions for government and private clients,
+              significantly improving their digital presence.
             </li>
           </ul>
         </div>

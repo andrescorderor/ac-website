@@ -4,6 +4,9 @@ import {
   expertiseSDImageMocks,
   ExpertiseSectionImage,
 } from './ExpertiseSectionMocks';
+import ExpertiseSectionPMModalContent from '@components/common/modals/ExpertiseSectionPMModalContent';
+import ExpertiseSectionSDModalContent from '@components/common/modals/ExpertiseSectionSDModalContent';
+import ExpertiseSectionQAModalContent from '@components/common/modals/ExpertiseSectionQAModalContent';
 
 interface HeroParagraph {
   profilePicture: string;
@@ -22,6 +25,7 @@ interface ExpertiseCards {
   headerTitle: string;
   headerParagraph: string;
   expertiseData: ExpertiseSectionImage[];
+  child: React.ReactNode;
 }
 
 export const heroParagraph: HeroParagraph = {
@@ -52,6 +56,7 @@ export const expertiseCards: ExpertiseCards[] = [
     headerParagraph:
       'As a Project Manager, I have successfully led multiple projects in both the private and public sectors. My approach focuses on aligning business goals with client needs, ensuring smooth project execution through agile methodologies.',
     expertiseData: expertisePMImageMocks,
+    child: <ExpertiseSectionPMModalContent />,
   },
   {
     title: 'SOFTWARE DEVELOPMENT',
@@ -63,6 +68,7 @@ export const expertiseCards: ExpertiseCards[] = [
     headerParagraph:
       'With a strong background in front-end development, I specialize in designing and developing user-centric interfaces and experiences. My work focuses on implementing responsive and visually appealing features that elevate the overall user journey.',
     expertiseData: expertiseSDImageMocks,
+    child: <ExpertiseSectionSDModalContent />,
   },
   {
     title: 'QUALITY ASSURANCE',
@@ -74,5 +80,6 @@ export const expertiseCards: ExpertiseCards[] = [
     headerParagraph:
       'As a QA Engineer, my focus is to ensure that every project meets the highest quality standards. I perform manual and automated testing to identify and resolve issues, guaranteeing a smooth and user-friendly experience.',
     expertiseData: expertiseQAImageMocks,
+    child: <ExpertiseSectionQAModalContent />,
   },
 ];

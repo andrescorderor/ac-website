@@ -1,7 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { FaPlus } from 'react-icons/fa';
 import ModalContact from '../modals/Modal';
-import ExpertiseSectionModalContent from '../modals/ExpertiseSectionPMModalContent';
 import { ExpertiseSectionImage } from '@mocks/ExpertiseSectionMocks';
 
 interface CardProps {
@@ -14,6 +13,7 @@ interface CardProps {
   expertiseData: {
     images: ExpertiseSectionImage[];
   };
+  child: React.ReactNode;
 }
 
 function Title({ title }: { title: string }) {
@@ -58,6 +58,7 @@ export default function ExpertiseSectionCard({
   headerTitle,
   headerParagraph,
   expertiseData,
+  child,
 }: CardProps) {
   const [isExpanded, setIsExpanded] = useState(false);
   const contentRef = useRef<HTMLDivElement>(null);
@@ -134,7 +135,7 @@ export default function ExpertiseSectionCard({
         paragraph={headerParagraph}
         expertiseData={expertiseData}
       >
-        <ExpertiseSectionModalContent />
+        {child}
       </ModalContact>
     </div>
   );

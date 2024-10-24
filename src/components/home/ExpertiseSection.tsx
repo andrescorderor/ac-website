@@ -21,6 +21,7 @@ export default function ExpertiseSection() {
             headerTitle={card.headerTitle}
             headerParagraph={card.headerParagraph}
             expertiseData={{ images: card.expertiseData }}
+            child={card.child}
           />
         ))}
       </div>
