@@ -49,7 +49,7 @@ export default function ModalContact({
     <AnimatePresence>
       {isOpen && (
         <motion.div
-          className="fixed inset-0 z-[9998] flex items-center justify-center bg-black rounded-2xl bg-opacity-50 backdrop-blur-md"
+          className="fixed inset-0 z-[9998] flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-md"
           onClick={onClose}
           initial="hidden"
           animate="visible"

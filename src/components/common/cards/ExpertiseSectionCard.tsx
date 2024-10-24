@@ -27,7 +27,7 @@ function Subtitle({ subtitle }: { subtitle: string }) {
 
 function Paragraph({ paragraph }: { paragraph: string }) {
   return (
-    <p className="font-inter pt-8 font-extralight text-[var(--black)] hover:cursor-default">
+    <p className="font-inter pt-8 text-justify font-extralight text-[var(--black)] hover:cursor-default">
       {paragraph}
     </p>
   );
@@ -43,7 +43,7 @@ function Image({ imageUrl, title }: { imageUrl: string; title: string }) {
   );
 }
 
-export function ExpertiseSectionCard({
+export default function ExpertiseSectionCard({
   title,
   subtitle,
   paragraph = '',
@@ -51,8 +51,18 @@ export function ExpertiseSectionCard({
 }: CardProps) {
   const [isExpanded, setIsExpanded] = useState(false);
   const contentRef = useRef<HTMLDivElement>(null);
+  const subtitleRef = useRef<HTMLParagraphElement>(null);
+  const [baseHeight, setBaseHeight] = useState('140px');
   const [contentHeight, setContentHeight] = useState('0px');
   const [isModalOpen, setIsModalOpen] = useState(false);
+
+  useEffect(() => {
+    if (subtitleRef.current) {
+      const subtitleHeight = subtitleRef.current.offsetHeight;
+      const calculatedBaseHeight = subtitleHeight + 80;
+      setBaseHeight(`${calculatedBaseHeight}px`);
+    }
+  }, [subtitle]);
 
   useEffect(() => {
     if (contentRef.current) {
@@ -75,19 +85,20 @@ export function ExpertiseSectionCard({
       onMouseLeave={() => setIsExpanded(false)}
       className="group relative flex overflow-hidden rounded-2xl bg-[var(--soft-light-gray)] transition-all duration-500 ease-in-out"
       style={{
-        height: isExpanded ? contentHeight : '140px',
+        height: isExpanded ? contentHeight : baseHeight,
       }}
     >
-      <div className="flex">
+      <div className="relative flex w-full">
         <div className="flex-1 p-6">
           <Title title={title} />
-          <Subtitle subtitle={subtitle} />
+          <div ref={subtitleRef}>
+            <Subtitle subtitle={subtitle} />
+          </div>
           <div className="opacity-0 transition-opacity duration-500 group-hover:opacity-100">
             <Paragraph paragraph={paragraph} />
           </div>
         </div>
-
-        <div className=" flex-1">
+        <div className="flex-1">
           <div
             ref={contentRef}
             className={`flex flex-col items-center justify-center transition-opacity duration-500 ${
@@ -96,15 +107,16 @@ export function ExpertiseSectionCard({
           >
             <Image imageUrl={imageUrl} title={title} />
           </div>
-
+        </div>
+        <div
+          className="absolute right-4 transition-all duration-500 ease-in-out"
+          style={{
+            top: isExpanded ? `calc(${contentHeight} - 4rem)` : '1rem',
+          }}
+        >
           <div
-            className="cursor-pointer animate-gradient-random hover:bg-[var(--soft-light-gray)] hover:border-[var(--black)]  absolute flex size-12 items-center justify-center rounded-full bg-gradient-to-r from-[var(--deep-navy-blue)] via-[var(--vibrant-sky-blue)] to-[var(--magenta-pink)] text-[var(--white)] transition-transform duration-500"
+            className="cursor-pointer animate-gradient-random hover:bg-[var(--soft-light-gray)] hover:border-[var(--black)] flex size-12 items-center justify-center rounded-full bg-gradient-to-r from-[var(--deep-navy-blue)] via-[var(--vibrant-sky-blue)] to-[var(--magenta-pink)] text-[var(--white)]"
             onClick={handleClick}
-            style={{
-              transform: isExpanded ? 'translate(0, 0)' : 'translate(0, -60px)',
-              bottom: '1rem',
-              right: '1rem',
-            }}
           >
             <FaPlus />
           </div>

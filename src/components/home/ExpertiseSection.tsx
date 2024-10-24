@@ -1,4 +1,4 @@
-import { ExpertiseSectionCard } from '@components/common/cards/ExpertiseSectionCard';
+import ExpertiseSectionCard from '@components/common/cards/ExpertiseSectionCard';
 import { expertiseCards } from '@mocks/HomeMocks';
 
 export default function ExpertiseSection() {
