@@ -16,7 +16,7 @@ interface ExpertiseCards {
 
 export const heroParagraph: HeroParagraph = {
   profilePicture: '/assets/Profile.png',
-  text: 'I am a developer and project manager with experience in software development, project coordination, and more.',
+  text: 'Experienced front-end developer and project manager specializing in innovative solutions, quality assurance, and team coordination.',
 };
 
 export const rolesCarousel: RolesCarouselParagraph[] = [
@@ -34,20 +34,23 @@ export const rolesCarousel: RolesCarouselParagraph[] = [
 export const expertiseCards: ExpertiseCards[] = [
   {
     title: 'PROJECT MANAGEMENT',
-    subtitle: 'Get expert advice on your project and optimize your workflow.',
-    paragraph: 'asfasf',
+    subtitle: 'Efficient planning and coordination to ensure project success.',
+    paragraph:
+      'With a background in leading teams using agile methodologies, I provide project management services focused on optimizing workflows, addressing blockers, and delivering high-quality results.',
     image: '/assets/ProjectManagement.svg',
   },
   {
     title: 'SOFTWARE DEVELOPMENT',
-    subtitle: 'We develop software solutions tailored to your specifications.',
-    paragraph: 'asfasf',
+    subtitle: 'Custom software solutions tailored to your business needs.',
+    paragraph:
+      'I offer front-end development services utilizing modern frameworks and design tools, ensuring a seamless user experience and robust software architecture.',
     image: '/assets/SoftwareDevelopment.svg',
   },
   {
     title: 'QUALITY ASSURANCE',
-    subtitle: 'Receive 24/7 support to keep your projects running smoothly.',
-    paragraph: 'asfasf',
+    subtitle: 'Comprehensive QA strategies to maintain software excellence.',
+    paragraph:
+      'Providing both manual and automated testing, I ensure the quality and reliability of your software products, leveraging tools and techniques to streamline testing processes.',
     image: '/assets/QualityAssurance.svg',
   },
 ];

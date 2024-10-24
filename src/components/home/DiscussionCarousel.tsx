@@ -4,7 +4,7 @@
 /* eslint-disable tailwindcss/no-custom-classname */
 import { useState, useEffect } from 'react';
 
-import Modal from '@components/common/modals/ModalContact';
+import ModalContact from '@components/common/modals/ModalContact';
 
 export default function DiscussionCarousel() {
   const [isHovered, setIsHovered] = useState(false);
@@ -22,7 +22,7 @@ export default function DiscussionCarousel() {
   };
 
   const closeModal = () => {
-    setIsModalOpen(false); // Cerrar el modal
+    setIsModalOpen(false);
   };
 
   return (
@@ -35,14 +35,14 @@ export default function DiscussionCarousel() {
       >
         <h3 className="discussion-carousel">Let&apos;s discuss your project</h3>
       </div>
-      <Modal
+      <ModalContact
         title="Let't talk"
         isOpen={isModalOpen}
         onClose={closeModal}
         paragraph="Test"
       >
         Test
-      </Modal>
+      </ModalContact>
     </section>
   );
 }

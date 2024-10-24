@@ -107,7 +107,7 @@ export default function Hero() {
               |
             </motion.div>
           </div>
-          <div className="mt-32 flex w-5/12 gap-4">
+          <div className="mt-32 flex w-7/12 gap-4">
             <img
               src={heroParagraph.profilePicture}
               alt="Profile"
