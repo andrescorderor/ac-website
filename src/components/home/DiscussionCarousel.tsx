@@ -1,7 +1,3 @@
-/* eslint-disable react/button-has-type */
-/* eslint-disable jsx-a11y/no-static-element-interactions */
-/* eslint-disable jsx-a11y/click-events-have-key-events */
-/* eslint-disable tailwindcss/no-custom-classname */
 import { useState, useEffect } from 'react';
 
 import ModalContact from '@components/common/modals/Modal';
@@ -31,9 +27,9 @@ export default function DiscussionCarousel() {
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
         onClick={handleClick}
-        className="discussion-carousel font-syne cursor-pointer border-y-2 bg-[var(--white)] py-4 text-center text-[8rem] font-bold text-[var(--black)]"
+        className="w-full discussion-carousel font-syne cursor-pointer border-y-2 bg-[var(--white)] py-4 text-center font-bold text-[var(--black)]"
       >
-        <h3 className="discussion-carousel">Let&apos;s discuss your project</h3>
+        <h3 className="w-full text-[7vw]">Let&apos;s discuss your project</h3>
       </div>
       <ModalContact
         title="Let't talk"
