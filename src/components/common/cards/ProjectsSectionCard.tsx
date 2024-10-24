@@ -32,6 +32,7 @@ export default function ProjectsSectionCard({
         </h3>
 
         <Button
+          style="WHITE"
           type="full-static"
           icon={FaExternalLinkSquareAlt}
           name="View Certification"

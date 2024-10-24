@@ -18,6 +18,9 @@ export default function ExpertiseSection() {
             subtitle={card.subtitle}
             paragraph={card.paragraph}
             imageUrl={card.image}
+            headerTitle={card.headerTitle}
+            headerParagraph={card.headerParagraph}
+            expertiseData={{ images: card.expertiseData }}
           />
         ))}
       </div>

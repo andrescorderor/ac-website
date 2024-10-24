@@ -2,17 +2,23 @@ import { useState, useRef, useEffect } from 'react';
 import { FaPlus } from 'react-icons/fa';
 import ModalContact from '../modals/Modal';
 import ExpertiseSectionModalContent from '../modals/ExpertiseSectionPMModalContent';
+import { ExpertiseSectionImage } from '@mocks/ExpertiseSectionMocks';
 
 interface CardProps {
   title: string;
   subtitle: string;
   paragraph?: string;
+  headerTitle: string;
+  headerParagraph: string;
   imageUrl: string;
+  expertiseData: {
+    images: ExpertiseSectionImage[];
+  };
 }
 
 function Title({ title }: { title: string }) {
   return (
-    <h3 className="font-syne mb-2 text-sm font-semibold tracking-widest text-[var(--black)] hover:cursor-default">
+    <h3 className="font-syne mb-2 text-sm font-semibold tracking-widest text-[var(--dark-gray)] hover:cursor-default">
       {title}
     </h3>
   );
@@ -28,7 +34,7 @@ function Subtitle({ subtitle }: { subtitle: string }) {
 
 function Paragraph({ paragraph }: { paragraph: string }) {
   return (
-    <p className="font-inter pt-8 text-justify font-extralight text-[var(--black)] hover:cursor-default">
+    <p className="font-inter pt-8 text-justify font-extralight text-[var(--dark-gray)] hover:cursor-default">
       {paragraph}
     </p>
   );
@@ -49,6 +55,9 @@ export default function ExpertiseSectionCard({
   subtitle,
   paragraph = '',
   imageUrl,
+  headerTitle,
+  headerParagraph,
+  expertiseData,
 }: CardProps) {
   const [isExpanded, setIsExpanded] = useState(false);
   const contentRef = useRef<HTMLDivElement>(null);
@@ -118,10 +127,12 @@ export default function ExpertiseSectionCard({
       </div>
 
       <ModalContact
-        title="Project Management"
+        knowledgeSection
+        title={headerTitle}
         isOpen={isModalOpen}
         onClose={closeModal}
-        paragraph="As a Project Manager, I have successfully led multiple projects in both the private and public sectors. My approach focuses on aligning business goals with client needs, ensuring smooth project execution through agile methodologies."
+        paragraph={headerParagraph}
+        expertiseData={expertiseData}
       >
         <ExpertiseSectionModalContent />
       </ModalContact>

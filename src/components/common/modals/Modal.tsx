@@ -3,15 +3,16 @@ import { ReactNode, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { IoCloseSharp } from 'react-icons/io5';
 import { Button } from '../Button';
-import { expertisePMImageMocks } from '@mocks/ExpertiseSectionMocks';
 import ExpertiseSectionModalHeader from './ExpertiseSectionModalHeader';
 
 interface ModalProps {
   isOpen: boolean;
+  knowledgeSection?: boolean;
   onClose: () => void;
   children: ReactNode;
   title: string;
   paragraph: string;
+  expertiseData?: any;
 }
 
 const backdropVariants = {
@@ -27,10 +28,12 @@ const modalVariants = {
 
 export default function ModalContact({
   isOpen,
+  knowledgeSection,
   onClose,
   children,
   title,
   paragraph,
+  expertiseData,
 }: ModalProps) {
   useEffect(() => {
     if (isOpen) {
@@ -57,7 +60,7 @@ export default function ModalContact({
           transition={{ duration: 0.3 }}
         >
           <motion.div
-            className="relative w-full max-w-7xl shadow-lg bg-[var(--white)] rounded-2xl "
+            className="relative w-[80%] shadow-lg bg-[var(--white)] rounded-2xl "
             onClick={(e) => e.stopPropagation()}
             variants={modalVariants}
             initial="hidden"
@@ -74,17 +77,15 @@ export default function ModalContact({
                   type="icon-only"
                 />
               </div>
-              <div className=" text-[var(--white)] font-semibold pb-8 font-dm-sans text-5xl  ">
+              <div className=" text-[var(--white)] font-semibold pb-8 font-dm-sans text-5xl  cursor-default">
                 {title}
               </div>
-              <p className="font-inter text-base font-extralight text-[var(--gray)] hover:cursor-default break-words">
+              <p className="font-inter text-base font-extralight text-[var(--gray)] break-words cursor-default">
                 {paragraph}
               </p>
-              <ExpertiseSectionModalHeader
-                expertiseData={{
-                  images: expertisePMImageMocks,
-                }}
-              />
+              {knowledgeSection && (
+                <ExpertiseSectionModalHeader expertiseData={expertiseData} />
+              )}
             </div>
             <div className="p-16">{children}</div>
           </motion.div>

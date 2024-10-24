@@ -1,3 +1,10 @@
+import {
+  expertisePMImageMocks,
+  expertiseQAImageMocks,
+  expertiseSDImageMocks,
+  ExpertiseSectionImage,
+} from './ExpertiseSectionMocks';
+
 interface HeroParagraph {
   profilePicture: string;
   text: string;
@@ -12,6 +19,9 @@ interface ExpertiseCards {
   subtitle: string;
   paragraph: string;
   image: string;
+  headerTitle: string;
+  headerParagraph: string;
+  expertiseData: ExpertiseSectionImage[];
 }
 
 export const heroParagraph: HeroParagraph = {
@@ -38,6 +48,10 @@ export const expertiseCards: ExpertiseCards[] = [
     paragraph:
       'With a background in leading teams using agile methodologies, I provide project management services focused on optimizing workflows, addressing blockers, and delivering high-quality results.',
     image: '/assets/ProjectManagement.svg',
+    headerTitle: 'Project Management',
+    headerParagraph:
+      'As a Project Manager, I have successfully led multiple projects in both the private and public sectors. My approach focuses on aligning business goals with client needs, ensuring smooth project execution through agile methodologies.',
+    expertiseData: expertisePMImageMocks,
   },
   {
     title: 'SOFTWARE DEVELOPMENT',
@@ -45,6 +59,10 @@ export const expertiseCards: ExpertiseCards[] = [
     paragraph:
       'I offer front-end development services utilizing modern frameworks and design tools, ensuring a seamless user experience and robust software architecture.',
     image: '/assets/SoftwareDevelopment.svg',
+    headerTitle: 'Software Development',
+    headerParagraph:
+      'With a strong background in front-end development, I specialize in designing and developing user-centric interfaces and experiences. My work focuses on implementing responsive and visually appealing features that elevate the overall user journey.',
+    expertiseData: expertiseSDImageMocks,
   },
   {
     title: 'QUALITY ASSURANCE',
@@ -52,5 +70,9 @@ export const expertiseCards: ExpertiseCards[] = [
     paragraph:
       'Providing both manual and automated testing, I ensure the quality and reliability of your software products, leveraging tools and techniques to streamline testing processes.',
     image: '/assets/QualityAssurance.svg',
+    headerTitle: 'Quality Assurance',
+    headerParagraph:
+      'As a QA Engineer, my focus is to ensure that every project meets the highest quality standards. I perform manual and automated testing to identify and resolve issues, guaranteeing a smooth and user-friendly experience.',
+    expertiseData: expertiseQAImageMocks,
   },
 ];

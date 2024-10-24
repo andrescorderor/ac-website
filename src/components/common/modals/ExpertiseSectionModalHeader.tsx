@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { ExpertiseSectionImage } from '@mocks/ExpertiseSectionMocks';
+import { IoMdArrowDropdown, IoMdArrowDropup } from 'react-icons/io';
 
 interface ExpertiseSectionModalHeaderProps {
   expertiseData: {
@@ -27,15 +28,21 @@ export default function ExpertiseSectionModalHeader({
   };
 
   return (
-    <div className="w-full rounded-2xl shadow-md">
+    <div className="w-full rounded-2xl shadow-md ">
       <div
-        className="text-white border-b border-[var(--gray)] py-4 cursor-pointer flex justify-between items-center"
+        className="text-[var(--white)] border-b border-[var(--gray)] py-4 cursor-pointer flex justify-between items-center"
         onClick={toggleExpand}
       >
         <h2 className="text-lg font-bold font-syne text-[var(--white)]">
           Knowledge
         </h2>
-        <span>{isExpanded ? '▲' : '▼'}</span>
+        <span>
+          {isExpanded ? (
+            <IoMdArrowDropup className="size-8" />
+          ) : (
+            <IoMdArrowDropdown className="size-8" />
+          )}
+        </span>
       </div>
 
       {isExpanded && (
