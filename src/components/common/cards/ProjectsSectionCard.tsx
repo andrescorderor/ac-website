@@ -1,7 +1,7 @@
 /* eslint-disable tailwindcss/migration-from-tailwind-2 */
 import { FaExternalLinkSquareAlt } from 'react-icons/fa';
 
-import { Button } from './Button';
+import { Button } from '../Button';
 
 interface ProjectsSectionCardProps {
   image: string;

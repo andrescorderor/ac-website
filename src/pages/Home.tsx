@@ -8,7 +8,7 @@ import RolesCarousel from '@components/home/RolesCarousel';
 
 export default function Home() {
   return (
-    <div className="bg-[var(--white)]">
+    <div className="overflow-y-hidden bg-[var(--white)]">
       <Hero />
       <RolesCarousel />
       <ExpertiseSection />

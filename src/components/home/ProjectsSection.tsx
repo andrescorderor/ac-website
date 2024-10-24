@@ -5,7 +5,7 @@
 /* eslint-disable import/no-extraneous-dependencies */
 import { useState } from 'react';
 
-import ProjectsSectionCard from '@components/common/ProjectsSectionCard';
+import ProjectsSectionCard from '@components/common/cards/ProjectsSectionCard';
 import { certificationsSectionMocks } from '@mocks/CertificationsSectionMocks';
 import { useKeenSlider } from 'keen-slider/react';
 import 'keen-slider/keen-slider.min.css';

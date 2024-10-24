@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 
 import { knowledgeCarouselImageMocks } from '@mocks/KnowledgeCarouselMocks';
 
-import KnowledgeCarouselCard from '../common/KnowledgeCarouselCard';
+import KnowledgeCarouselCard from '../common/cards/KnowledgeCarouselCard';
 
 export default function KnowledgeCarousel() {
   const [scrollPosition, setScrollPosition] = useState(0);
@@ -35,7 +35,7 @@ export default function KnowledgeCarousel() {
   }, []);
 
   return (
-    <section className="relative flex overflow-hidden bg-[var(--white)] py-16 ">
+    <section className="relative flex  overflow-hidden bg-[var(--white)] py-16 ">
       {/* <h3 className="font-syne absolute right-0 top-1/2 z-10 -translate-x-1/2 -translate-y-1/2 text-end text-[4rem] font-bold text-[var(--black)] ">
         Knowledge
       </h3> */}

@@ -2,7 +2,7 @@
 import { CertificationsSectionCardProps } from '@mocks/CertificationsSectionMocks';
 import { HiOutlineExternalLink } from 'react-icons/hi';
 
-import { Button } from './Button';
+import { Button } from '../Button';
 
 export default function CertificationsSectionCard({
   link,

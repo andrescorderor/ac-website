@@ -3,7 +3,7 @@
 /* eslint-disable react/no-array-index-key */
 import { useState } from 'react';
 
-import CertificationsSectionCard from '@components/common/CertificationsSectionCard';
+import CertificationsSectionCard from '@components/common/cards/CertificationsSectionCard';
 import { certificationsSectionMocks } from '@mocks/CertificationsSectionMocks';
 import { useKeenSlider } from 'keen-slider/react';
 import 'keen-slider/keen-slider.min.css';

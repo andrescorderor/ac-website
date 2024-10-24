@@ -4,7 +4,7 @@
 /* eslint-disable tailwindcss/no-custom-classname */
 import { useState, useEffect } from 'react';
 
-import Modal from '@components/common/ModalContact';
+import Modal from '@components/common/modals/ModalContact';
 
 export default function DiscussionCarousel() {
   const [isHovered, setIsHovered] = useState(false);
@@ -35,17 +35,13 @@ export default function DiscussionCarousel() {
       >
         <h3 className="discussion-carousel">Let&apos;s discuss your project</h3>
       </div>
-      <Modal isOpen={isModalOpen} onClose={closeModal}>
-        <h2 className="text-xl font-bold">Contact Me</h2>
-        <p className="mt-4 text-gray-600">
-          Let&apos;s discuss your project in detail!
-        </p>
-        <button
-          className="mt-6 w-full rounded-md bg-blue-500 py-2 text-white hover:bg-blue-600"
-          onClick={() => window.open('https://example.com', '_blank')}
-        >
-          Visit my site
-        </button>
+      <Modal
+        title="Let't talk"
+        isOpen={isModalOpen}
+        onClose={closeModal}
+        paragraph="Test"
+      >
+        Test
       </Modal>
     </section>
   );

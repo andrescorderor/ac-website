@@ -71,7 +71,7 @@ export default function Cursor() {
 
   const getCursorClassName = () => {
     const baseClasses =
-      'fixed left-0 top-0 z-50 rounded-full transition-colors duration-200 ease-out pointer-events-none';
+      'fixed left-0 top-0 z-50 rounded-full transition-colors duration-200 ease-out pointer-events-none  z-[9999] ';
 
     if (isInDiscussionCarousel) {
       return `${baseClasses} flex items-center justify-center size-24 animate-gradient-random  bg-[var(--soft-light-gray)] bg-opacity-50 bg-gradient-to-r from-[var(--deep-navy-blue)] via-[var(--vibrant-sky-blue)] to-[var(--magenta-pink)] text-white`;

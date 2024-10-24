@@ -28,6 +28,8 @@ module.exports = {
   },
   plugins: ['react-refresh', 'prettier'],
   rules: {
+    // Otras reglas que ya tienes
+    '@typescript-eslint/no-throw-literal': 'off', // Deshabilita la regla problematica
     'react/react-in-jsx-scope': 'off',
     'import/prefer-default-export': 'off',
     'import/order': [
