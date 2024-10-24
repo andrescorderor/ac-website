@@ -38,7 +38,7 @@ function Image({ imageUrl, title }: { imageUrl: string; title: string }) {
     <img
       src={imageUrl}
       alt={title}
-      className="mt-16 h-44 transition-transform duration-500 group-hover:scale-150"
+      className="mt-16 h-44 transition-transform duration-500 group-hover:scale-125"
     />
   );
 }
