@@ -34,6 +34,7 @@ export default function CertificationsSectionCard({
         </div>
         <div className="flex w-1/2 flex-col items-end justify-end">
           <Button
+            style="WHITE"
             type="full-dynamic"
             icon={HiOutlineExternalLink}
             name="View Certification"

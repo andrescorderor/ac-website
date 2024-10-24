@@ -2,15 +2,17 @@
 /* eslint-disable tailwindcss/no-custom-classname */
 /* eslint-disable react/no-array-index-key */
 import { useState } from 'react';
-
-import CertificationsSectionCard from '@components/common/cards/CertificationsSectionCard';
-import { certificationsSectionMocks } from '@mocks/CertificationsSectionMocks';
 import { useKeenSlider } from 'keen-slider/react';
 import 'keen-slider/keen-slider.min.css';
 
+import CertificationsSectionCard from '@components/common/cards/CertificationsSectionCard';
+import { certificationsSectionMocks } from '@mocks/CertificationsSectionMocks';
+import { Button } from '@components/common/Button';
+import { GrLinkNext, GrLinkPrevious } from 'react-icons/gr';
+
 export default function CertificationsSection() {
   const [, setCurrentSlide] = useState(0);
-  const [sliderRef] = useKeenSlider({
+  const [sliderRef, instanceRef] = useKeenSlider({
     loop: true,
     mode: 'free',
     slides: {
@@ -30,8 +32,20 @@ export default function CertificationsSection() {
     },
   });
 
+  const handlePrevClick = () => {
+    if (instanceRef.current) {
+      instanceRef.current.prev();
+    }
+  };
+
+  const handleNextClick = () => {
+    if (instanceRef.current) {
+      instanceRef.current.next();
+    }
+  };
+
   return (
-    <section className="w-full py-16">
+    <section className="relative w-full py-16">
       <div ref={sliderRef} className="keen-slider">
         {certificationsSectionMocks.map((certificationsSectionMock, index) => (
           <div key={index} className="keen-slider__slide">
@@ -43,6 +57,24 @@ export default function CertificationsSection() {
             />
           </div>
         ))}
+      </div>
+      <div className="absolute left-8 top-1/2 transform -translate-y-1/2  ">
+        <Button
+          style="BLACK"
+          type="icon-only"
+          name="NextButton"
+          onClick={handlePrevClick}
+          icon={GrLinkPrevious}
+        />
+      </div>
+      <div className="absolute right-8 top-1/2 transform -translate-y-1/2 ">
+        <Button
+          style="BLACK"
+          type="icon-only"
+          name="NextButton"
+          onClick={handleNextClick}
+          icon={GrLinkNext}
+        />
       </div>
     </section>
   );

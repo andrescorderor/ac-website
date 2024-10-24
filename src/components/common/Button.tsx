@@ -2,12 +2,24 @@ type ButtonProps = {
   icon?: React.ElementType;
   name: string;
   type: 'icon-only' | 'full-static' | 'full-dynamic' | 'text-only';
+  style: 'WHITE' | 'BLACK';
   onClick?: () => void;
 };
 
-export function Button({ icon: Icon, name, type, onClick }: ButtonProps) {
-  const baseClasses =
+export function Button({
+  icon: Icon,
+  name,
+  type,
+  style,
+  onClick,
+}: ButtonProps) {
+  const whiteBaseClasses =
     'font-dm-sans group relative hover:bg-[var(--soft-light-gray)] flex items-center justify-center rounded-full text-sm border hover:border-[var(--black)] border-[var(--soft-light-gray)] bg-[var(--white)] p-2 text-[var(--black)] transition-all duration-500 ease-in-out';
+
+  const blackBaseClasses =
+    'font-dm-sans group relative hover:bg-[var(--black)] flex items-center justify-center rounded-full text-sm border hover:border-[var(--black)] border-[var(--soft-light-gray)] bg-[var(--dark-gray)] p-2 text-[var(--white)] transition-all duration-500 ease-in-out';
+
+  const baseClasses = style === 'WHITE' ? whiteBaseClasses : blackBaseClasses;
 
   const getButtonClasses = () => {
     switch (type) {

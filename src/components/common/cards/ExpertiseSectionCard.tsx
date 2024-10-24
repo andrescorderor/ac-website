@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { FaPlus } from 'react-icons/fa';
-import ModalContact from '../modals/ModalContact';
+import ModalContact from '../modals/Modal';
+import ExpertiseSectionModalContent from '../modals/ExpertiseSectionPMModalContent';
 
 interface CardProps {
   title: string;
@@ -109,26 +110,20 @@ export default function ExpertiseSectionCard({
           </div>
         </div>
         <div
-          className="absolute right-4 transition-all duration-500 ease-in-out"
-          style={{
-            top: isExpanded ? `calc(${contentHeight} - 4rem)` : '1rem',
-          }}
+          className="absolute right-4  top-4 cursor-pointer animate-gradient-random hover:bg-[var(--soft-light-gray)] hover:border-[var(--black)] flex size-12 items-center justify-center rounded-full bg-gradient-to-r from-[var(--deep-navy-blue)] via-[var(--vibrant-sky-blue)] to-[var(--magenta-pink)] text-[var(--white)]"
+          onClick={handleClick}
         >
-          <div
-            className="cursor-pointer animate-gradient-random hover:bg-[var(--soft-light-gray)] hover:border-[var(--black)] flex size-12 items-center justify-center rounded-full bg-gradient-to-r from-[var(--deep-navy-blue)] via-[var(--vibrant-sky-blue)] to-[var(--magenta-pink)] text-[var(--white)]"
-            onClick={handleClick}
-          >
-            <FaPlus />
-          </div>
+          <FaPlus />
         </div>
       </div>
+
       <ModalContact
-        title="Let's talk"
+        title="Project Management"
         isOpen={isModalOpen}
         onClose={closeModal}
-        paragraph="Test"
+        paragraph="As a Project Manager, I have successfully led multiple projects in both the private and public sectors. My approach focuses on aligning business goals with client needs, ensuring smooth project execution through agile methodologies."
       >
-        Test
+        <ExpertiseSectionModalContent />
       </ModalContact>
     </div>
   );

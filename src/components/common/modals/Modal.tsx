@@ -1,11 +1,10 @@
-/* eslint-disable @typescript-eslint/lines-between-class-members */
-/* eslint-disable react/button-has-type */
-/* eslint-disable tailwindcss/migration-from-tailwind-2 */
 import { ReactNode, useEffect } from 'react';
 
 import { motion, AnimatePresence } from 'framer-motion';
 import { IoCloseSharp } from 'react-icons/io5';
 import { Button } from '../Button';
+import { expertisePMImageMocks } from '@mocks/ExpertiseSectionMocks';
+import ExpertiseSectionModalHeader from './ExpertiseSectionModalHeader';
 
 interface ModalProps {
   isOpen: boolean;
@@ -58,7 +57,7 @@ export default function ModalContact({
           transition={{ duration: 0.3 }}
         >
           <motion.div
-            className="relative w-full max-w-5xl shadow-lg bg-[var(--white)] rounded-2xl "
+            className="relative w-full max-w-7xl shadow-lg bg-[var(--white)] rounded-2xl "
             onClick={(e) => e.stopPropagation()}
             variants={modalVariants}
             initial="hidden"
@@ -66,23 +65,26 @@ export default function ModalContact({
             exit="exit"
             transition={{ type: 'spring', stiffness: 300, damping: 25 }}
           >
-            <div className="bg-[var(--black)] p-16 rounded-2xl">
-              <div
-                className="absolute text-4xl right-4 top-4 hover:text-gray-500 text-gray-700"
-                onClick={onClose}
-              >
+            <div className="bg-[var(--black)] px-16 py-12 rounded-2xl">
+              <div className="absolute right-4 top-4" onClick={onClose}>
                 <Button
+                  style="WHITE"
                   name="Become a client"
                   icon={IoCloseSharp}
                   type="icon-only"
                 />
               </div>
-              <div className=" text-[var(--white)] text-2xl font-semibold pb-8 font-dm-sans text-[4rem]  ">
+              <div className=" text-[var(--white)] font-semibold pb-8 font-dm-sans text-5xl  ">
                 {title}
               </div>
-              <p className="font-inter font-extralight text-[var(--gray)] hover:cursor-default  break-words">
+              <p className="font-inter text-base font-extralight text-[var(--gray)] hover:cursor-default break-words">
                 {paragraph}
               </p>
+              <ExpertiseSectionModalHeader
+                expertiseData={{
+                  images: expertisePMImageMocks,
+                }}
+              />
             </div>
             <div className="p-16">{children}</div>
           </motion.div>

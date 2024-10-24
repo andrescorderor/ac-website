@@ -14,7 +14,7 @@ export default function Footer() {
   const currentYear = new Date().getFullYear();
   return (
     <footer className="bg-[var(--white)] ">
-      <div className="flex justify-between  p-36 ">
+      <div className="flex justify-between p-36 ">
         <div>
           <div className="pointer-events-none flex flex-col">
             <p className="font-dm-sans font-regular mb-4 text-4xl leading-snug">
@@ -29,6 +29,7 @@ export default function Footer() {
 
           <div className="flex gap-6 pt-16">
             <Button
+              style="WHITE"
               type="full-dynamic"
               icon={FaGithub}
               name="Professional GitHub"
@@ -37,6 +38,7 @@ export default function Footer() {
               }
             />
             <Button
+              style="WHITE"
               type="full-dynamic"
               icon={FaGithub}
               name="Personal GitHub"
@@ -45,6 +47,7 @@ export default function Footer() {
               }
             />
             <Button
+              style="WHITE"
               type="full-dynamic"
               icon={FaLinkedinIn}
               name="LinkedIn"
@@ -56,12 +59,14 @@ export default function Footer() {
               }
             />
             <Button
+              style="WHITE"
               type="full-dynamic"
               icon={HiDocumentDownload}
               name="Download Resume"
               onClick={() => window.open('/assets/Resume.pdf', '_blank')}
             />
             <Button
+              style="WHITE"
               type="full-dynamic"
               icon={IoMdMail}
               name="Email"
@@ -70,6 +75,7 @@ export default function Footer() {
               }
             />
             <Button
+              style="WHITE"
               type="full-dynamic"
               icon={IoLogoWhatsapp}
               name="WhatsApp"
@@ -78,6 +84,7 @@ export default function Footer() {
               }
             />
             <Button
+              style="WHITE"
               type="full-dynamic"
               icon={FaTelegramPlane}
               name="Telegram"
@@ -91,6 +98,7 @@ export default function Footer() {
           <div className="font-syne flex items-center justify-center gap-4 font-bold">
             Lets get in contact
             <Button
+              style="WHITE"
               name="Become a client"
               icon={FaArrowRight}
               type="icon-only"

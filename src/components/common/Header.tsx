@@ -40,7 +40,7 @@ export default function Header() {
             andrés Cordero.
           </p>
         </div>
-        <Button type="full-static" name="Language" />
+        <Button type="full-static" name="Language" style="WHITE" />
       </div>
     </nav>
   );
