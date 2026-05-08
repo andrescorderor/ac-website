@@ -9,8 +9,7 @@ export default function CertificationsSectionCard({
   alt,
   title,
   subtitle,
-  id,
-}: CertificationsSectionCardProps & { id: string }) {
+}: CertificationsSectionCardProps) {
   const { t } = useTranslation();
   const [isGrabbing, setIsGrabbing] = useState(false);
 

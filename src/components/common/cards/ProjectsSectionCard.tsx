@@ -1,8 +1,5 @@
 /* eslint-disable tailwindcss/migration-from-tailwind-2 */
 import { useState } from 'react';
-import { FaExternalLinkSquareAlt } from 'react-icons/fa';
-
-import { DynamicButton } from '../buttons/DynamicButton';
 interface ProjectsSectionCardProps {
   image: string;
   title: string;

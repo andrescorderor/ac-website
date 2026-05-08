@@ -1,6 +1,4 @@
 import { useEffect, useState } from 'react';
-
-import { rolesCarousel } from '@mocks/HomeMocks';
 import { motion } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 

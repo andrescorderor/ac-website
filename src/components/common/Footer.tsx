@@ -1,9 +1,6 @@
 /* eslint-disable tailwindcss/no-custom-classname */
-import { FaGithub, FaLinkedinIn, FaTelegramPlane } from 'react-icons/fa';
-import { HiDocumentDownload } from 'react-icons/hi';
+import { FaGithub, FaLinkedinIn } from 'react-icons/fa';
 import { IoLogoWhatsapp, IoMdMail } from 'react-icons/io';
-
-import { DynamicButton } from './buttons/DynamicButton';
 import { ContactButton } from './buttons/ContactButton';
 import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';

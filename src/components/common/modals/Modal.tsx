@@ -1,4 +1,5 @@
 import { ReactNode, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 
 import { motion, AnimatePresence } from 'framer-motion';
 import { IoCloseSharp } from 'react-icons/io5';
@@ -47,11 +48,11 @@ export default function Modal({
     };
   }, [isOpen]);
 
-  return (
+  return createPortal(
     <AnimatePresence>
       {isOpen && (
         <motion.div
-          className="fixed inset-0 z-[9998] flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-md"
+          className="fixed inset-0 z-[10000] flex items-center justify-center bg-black/60 backdrop-blur-md"
           onClick={onClose}
           initial="hidden"
           animate="visible"
@@ -60,7 +61,7 @@ export default function Modal({
           transition={{ duration: 0.3 }}
         >
           <motion.div
-            className="relative w-[95%] md:w-[80%] lg:w-[65%] max-h-[90vh] overflow-y-auto overflow-x-hidden shadow-[0_32px_64px_-16px_rgba(0,0,0,0.3)] bg-white rounded-[2.5rem] border border-[var(--light-gray)]"
+            className="relative w-[95%] md:w-[80%] lg:w-[65%] max-h-[90vh] overflow-y-auto overflow-x-hidden shadow-[0_32px_64px_-16px_rgba(0,0,0,0.5)] bg-white rounded-[2.5rem] border border-[var(--light-gray)]"
             onClick={(e) => e.stopPropagation()}
             variants={modalVariants}
             initial="hidden"
@@ -103,6 +104,7 @@ export default function Modal({
           </motion.div>
         </motion.div>
       )}
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body
   );
 }
