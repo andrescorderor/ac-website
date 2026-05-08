@@ -9,7 +9,17 @@ import ProjectsSection from '@components/home/ProjectsSection';
 
 export default function Home() {
   return (
-    <div className="overflow-y-hidden bg-[var(--white)]">
+    <div className="relative overflow-y-hidden bg-[var(--white)] selection:bg-[var(--vibrant-sky-blue)] selection:text-white">
+      {/* Mesh Background */}
+      <div className="fixed inset-0 -z-20 pointer-events-none opacity-20">
+        <div className="absolute top-[20%] right-[10%] w-[600px] h-[600px] rounded-full bg-[var(--vibrant-sky-blue-light)] blur-[150px] animate-pulse" />
+        <div className="absolute bottom-[20%] left-[10%] w-[500px] h-[500px] rounded-full bg-[var(--magenta-pink-light)] blur-[150px] animate-pulse" style={{ animationDelay: '3s' }} />
+      </div>
+
+      {/* Noise Texture Overlay */}
+      <div className="fixed inset-0 -z-10 pointer-events-none opacity-[0.03] mix-blend-overlay" 
+           style={{ backgroundImage: 'url("https://grainy-gradients.vercel.app/noise.svg")' }} />
+
       <Hero />
       <div className="relative flex items-center justify-center">
         <div className="h-px w-full bg-gradient-to-r from-transparent via-[var(--gray)] to-transparent opacity-30" />

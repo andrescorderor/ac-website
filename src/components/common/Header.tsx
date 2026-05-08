@@ -27,23 +27,26 @@ export default function Header() {
 
   return (
     <nav
-      className={`fixed top-0 z-50 w-full bg-opacity-20 backdrop-blur-xl transition-transform duration-300 ${
-        showNavbar ? 'translate-y-0' : '-translate-y-full'
+      className={`fixed top-4 left-1/2 -translate-x-1/2 z-50 w-[90%] max-w-5xl glass rounded-full transition-all duration-500 ${
+        showNavbar ? 'translate-y-0 opacity-100' : '-translate-y-20 opacity-0'
       }`}
     >
-      <div className="flex items-center justify-center px-8 py-4">
-        <div className="flex items-center gap-4 text-xl font-bold">
+      <div className="flex items-center justify-between px-6 py-3">
+        <div className="flex items-center gap-4 cursor-pointer hover:scale-105 transition-transform duration-300">
           <img
             src="/assets/ac-website-icon.svg"
             alt="icon"
-            className="size-12"
+            className="size-10"
           />
-          {/* <p className="font-dm-sans flex items-center text-base font-extralight">
+          <p className="font-dm-sans hidden md:block text-sm font-medium tracking-tight text-[var(--black)]">
             Andrés Cordero.
-          </p> */}
+          </p>
         </div>
-        <div onClick={() => i18n.changeLanguage(i18n.language === 'es' ? 'en' : 'es')}>
-          <DynamicButton type="full-static" name={t('language.switch')} icon={MdLanguage} style="WHITE" />
+        <div 
+          className="cursor-pointer"
+          onClick={() => i18n.changeLanguage(i18n.language === 'es' ? 'en' : 'es')}
+        >
+          <DynamicButton type="full-static" name={t('language.switch')} icon={MdLanguage} style="BLACK" />
         </div>
       </div>
     </nav>
