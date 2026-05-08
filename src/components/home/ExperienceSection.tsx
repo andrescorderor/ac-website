@@ -31,7 +31,7 @@ export default function ExperienceSection() {
   ];
 
   return (
-    <section className="flex flex-col px-6 md:px-16 lg:px-36 py-16 bg-[var(--deep-navy-blue-light)]">
+    <section className="flex flex-col px-6 md:px-16 lg:px-36 pt-16 pb-0 bg-[var(--deep-navy-blue-light)]">
       <div className="mb-12">
         <h2 className="font-dm-sans text-5xl sm:text-7xl lg:text-[6rem] font-light tracking-tight leading-tight text-[var(--dark-gray)] hover:cursor-default">
           {t('experience.title', 'My Journey')}

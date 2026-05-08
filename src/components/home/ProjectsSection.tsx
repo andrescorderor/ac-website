@@ -35,7 +35,7 @@ export default function ProjectsSection() {
   });
 
   return (
-    <section id="portfolio-section" className=" w-full py-16">
+    <section id="portfolio-section" className=" w-full pt-0 pb-16">
       <div className="animate-gradient-random pointer-events-none bg-[var(--soft-light-gray)] bg-gradient-to-r from-[var(--deep-navy-blue)] via-[var(--vibrant-sky-blue)] to-[var(--magenta-pink)] ">
         <div className="bg-gradient-to-l from-[var(--black)] to-transparent text-[var(--white)] ">
           <div className="flex flex-col lg:flex-row bg-gradient-to-r from-[var(--black)]  to-transparent p-6 md:p-12 lg:p-16 lg:px-36 gap-6 lg:gap-0">
