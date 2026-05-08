@@ -64,6 +64,24 @@
     "rights": "All rights reserved.",
     "contact_button": "Let's get in contact"
   },
+  "discussion": {
+    "title": "Let's discuss your project"
+  },
+  "experience": {
+    "title": "My Journey",
+    "exp1_title": "Software Engineer & Project Manager",
+    "exp1_company": "Freelance / Projects",
+    "exp1_desc": "Developing custom software solutions, landing pages, and managing cloud infrastructure using AWS. Focused on delivering high-quality user experiences.",
+    "exp2_title": "Exhibitor & Developer",
+    "exp2_company": "Volkswagen (Hannover Messe)",
+    "exp2_desc": "Presented an innovative tech project for Volkswagen at the Hannover Messe Industrial Fair, showcasing technical and presentation skills.",
+    "exp3_title": "Hackathon Winner",
+    "exp3_company": "Mejora Regulatoria 2.0",
+    "exp3_desc": "Achieved 1st place competing against 30+ teams by building an efficient software solution under pressure. Also secured 2nd place at the VW GTO 2.0 Challenge.",
+    "exp4_title": "Systems and Software Engineering",
+    "exp4_company": "La Salle Bajío University",
+    "exp4_desc": "Comprehensive education in software architecture, algorithms, and project management. Graduated with honors."
+  },
   "language": {
     "switch": "Español"
   }

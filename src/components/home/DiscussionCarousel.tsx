@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react';
 
 import ContactModal from '@components/common/modals/ContactModal';
+import { useTranslation } from 'react-i18next';
 
 export default function DiscussionCarousel() {
+  const { t } = useTranslation();
   const [isHovered, setIsHovered] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -29,7 +31,9 @@ export default function DiscussionCarousel() {
         onClick={handleClick}
         className="w-full discussion-carousel font-syne cursor-pointer border-y-2 bg-[var(--white)] py-4 text-center font-bold text-[var(--black)]"
       >
-        <h3 className="w-full text-[7vw]">Let&apos;s discuss your project</h3>
+        <h3 className="w-full text-[7vw] hover:text-[var(--vibrant-sky-blue)] transition-colors duration-300">
+          {t('discussion.title')}
+        </h3>
       </div>
       <ContactModal isOpen={isModalOpen} onClose={closeModal} />
     </section>
