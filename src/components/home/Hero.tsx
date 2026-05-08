@@ -3,6 +3,9 @@ import { useTranslation } from 'react-i18next';
 
 import { heroParagraph } from '@mocks/HomeMocks';
 import { motion } from 'framer-motion';
+import { FaGithub, FaLinkedin } from 'react-icons/fa';
+import { HiOutlineDownload } from 'react-icons/hi';
+import { DynamicButton } from '../common/buttons/DynamicButton';
 
 import HeroCircles from './HeroCircles';
 
@@ -97,15 +100,43 @@ export default function Hero() {
               |
             </motion.div>
           </div>
-          <div className="mt-12 lg:mt-32 flex w-full lg:w-7/12 gap-4 items-start lg:items-center">
+          <div className="mt-12 lg:mt-32 flex flex-col md:flex-row w-full lg:w-9/12 gap-6 md:gap-12 items-start md:items-center">
             <img
               src={heroParagraph.profilePicture}
               alt="Profile"
-              className="size-16 rounded-full border border-[var(--light-gray)] shadow-sm"
+              className="size-16 rounded-full border border-[var(--light-gray)] shadow-sm flex-shrink-0"
             />
-            <p className="font-inter text-lg lg:text-2xl font-light tracking-wide text-[var(--dark-gray)] leading-relaxed">
-              {t('hero.paragraph')}
-            </p>
+            <div className="flex flex-col gap-6">
+              <p className="font-inter text-lg lg:text-2xl font-light tracking-wide text-[var(--dark-gray)] leading-relaxed">
+                {t('hero.paragraph')}
+              </p>
+              
+              {/* Primary Call to Action & Socials */}
+              <div className="flex flex-wrap items-center gap-4 mt-2">
+                <a href="#portfolio" onClick={(e) => {
+                  e.preventDefault();
+                  document.querySelector('#portfolio-section')?.scrollIntoView({ behavior: 'smooth' });
+                }}>
+                  <DynamicButton
+                    style="BLACK"
+                    type="full-dynamic"
+                    name={t('hero.cta_work', 'View My Work')}
+                  />
+                </a>
+                
+                <a href="/assets/CV_AndresCordero.pdf" target="_blank" rel="noreferrer" className="group flex items-center justify-center size-12 rounded-full border border-[var(--gray)] hover:border-[var(--vibrant-sky-blue)] transition-colors duration-300">
+                  <HiOutlineDownload className="text-[var(--gray)] group-hover:text-[var(--vibrant-sky-blue)] text-xl transition-colors duration-300" />
+                </a>
+
+                <a href="https://github.com/andrescorderor" target="_blank" rel="noreferrer" className="group flex items-center justify-center size-12 rounded-full border border-[var(--gray)] hover:border-[var(--vibrant-sky-blue)] transition-colors duration-300">
+                  <FaGithub className="text-[var(--gray)] group-hover:text-[var(--vibrant-sky-blue)] text-xl transition-colors duration-300" />
+                </a>
+
+                <a href="https://www.linkedin.com/in/andresmcorderor/" target="_blank" rel="noreferrer" className="group flex items-center justify-center size-12 rounded-full border border-[var(--gray)] hover:border-[var(--vibrant-sky-blue)] transition-colors duration-300">
+                  <FaLinkedin className="text-[var(--gray)] group-hover:text-[var(--vibrant-sky-blue)] text-xl transition-colors duration-300" />
+                </a>
+              </div>
+            </div>
           </div>
         </div>
         <HeroCircles />
