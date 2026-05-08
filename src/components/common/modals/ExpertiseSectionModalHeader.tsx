@@ -33,10 +33,10 @@ export default function ExpertiseSectionModalHeader({
     <div className="w-full rounded-2xl shadow-md">
       <div
         role="button"
-        className="text-[var(--white)] border-b border-[var(--gray)] py-4 cursor-pointer flex justify-between items-center"
+        className="text-[var(--black)] border-b border-[var(--light-gray)] py-6 cursor-pointer flex justify-between items-center group/header"
         onClick={toggleExpand}
       >
-        <h2 className="text-lg font-bold font-syne text-[var(--white)]">
+        <h2 className="text-lg font-bold font-syne text-[var(--black)]">
           {t('expertise.knowledge_title')}
         </h2>
         <span>

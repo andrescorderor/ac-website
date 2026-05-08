@@ -60,34 +60,46 @@ export default function Modal({
           transition={{ duration: 0.3 }}
         >
           <motion.div
-            className="relative w-[95%] md:w-[80%] max-h-[90vh] overflow-y-auto overflow-x-hidden shadow-2xl bg-[var(--white)] rounded-2xl border border-[var(--dark-gray)]"
+            className="relative w-[95%] md:w-[80%] lg:w-[65%] max-h-[90vh] overflow-y-auto overflow-x-hidden shadow-[0_32px_64px_-16px_rgba(0,0,0,0.3)] bg-white rounded-[2.5rem] border border-[var(--light-gray)]"
             onClick={(e) => e.stopPropagation()}
             variants={modalVariants}
             initial="hidden"
             animate="visible"
             exit="exit"
-            transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+            transition={{ type: 'spring', stiffness: 300, damping: 30 }}
           >
-            <div className="bg-[var(--black)] px-6 lg:px-16 py-8 lg:py-12 rounded-2xl">
-              <div className="absolute right-4 top-4" onClick={onClose}>
+            <div className="p-8 md:p-16">
+              <div className="absolute right-8 top-8 z-20" onClick={onClose}>
                 <DynamicButton
-                  style="WHITE"
+                  style="BLACK"
                   name="CloseButton"
                   icon={IoCloseSharp}
                   type="icon-only"
                 />
               </div>
-              <div className=" text-[var(--white)] font-light tracking-tight pb-4 lg:pb-8 font-dm-sans text-3xl lg:text-5xl cursor-default pr-12">
-                {title}
+              
+              <div className="max-w-4xl">
+                <span className="font-syne text-[var(--vibrant-sky-blue)] font-bold tracking-[0.3em] uppercase text-xs mb-6 block">
+                  Project Deep Dive
+                </span>
+                <h2 className="font-dm-sans text-4xl lg:text-6xl font-bold tracking-tight text-[var(--black)] leading-tight mb-8">
+                  {title}
+                </h2>
+                <p className="font-inter text-xl text-[var(--dark-gray)] font-light leading-relaxed mb-12">
+                  {paragraph}
+                </p>
+                
+                {knowledgeSection && (
+                  <div className="mt-12 pt-12 border-t border-[var(--light-gray)]">
+                    <ExpertiseSectionModalHeader expertiseData={expertiseData} />
+                  </div>
+                )}
               </div>
-              <p className="font-inter text-base font-extralight text-[var(--gray)] break-words cursor-default">
-                {paragraph}
-              </p>
-              {knowledgeSection && (
-                <ExpertiseSectionModalHeader expertiseData={expertiseData} />
-              )}
+
+              <div className="mt-12">
+                {children}
+              </div>
             </div>
-            <div className="p-6 lg:p-16">{children}</div>
           </motion.div>
         </motion.div>
       )}

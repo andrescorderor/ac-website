@@ -151,11 +151,14 @@ export default function Hero() {
               </div>
 
               <div className="flex flex-wrap items-center gap-8 mt-12">
-                <a href="#portfolio-section" onClick={(e) => {
-                  e.preventDefault();
-                  document.querySelector('#portfolio-section')?.scrollIntoView({ behavior: 'smooth' });
-                }} className="relative group overflow-hidden">
-                  <div className="absolute inset-0 bg-[var(--black)] translate-y-full group-hover:translate-y-0 transition-transform duration-500" />
+                <a 
+                  href="#portfolio-section" 
+                  onClick={(e) => {
+                    e.preventDefault();
+                    document.querySelector('#portfolio-section')?.scrollIntoView({ behavior: 'smooth' });
+                  }} 
+                  className="group"
+                >
                   <DynamicButton
                     style="BLACK"
                     type="full-static"

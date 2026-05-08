@@ -20,12 +20,12 @@ export default function ProjectsSectionCard({
 
   return (
     <div
-      className={`group relative overflow-hidden rounded-3xl mx-2 lg:mx-0 shadow-2xl transition-all duration-700 ease-in-out ${
-        isGrabbing ? 'cursor-grabbing scale-[0.98]' : 'cursor-grab hover:scale-[1.02]'
+      className={`group relative overflow-hidden rounded-[2.5rem] mx-2 lg:mx-0 shadow-2xl transition-all duration-700 ease-[0.16,1,0.3,1] ${
+        isGrabbing ? 'cursor-grabbing scale-[0.98]' : 'cursor-grab hover:shadow-[0_40px_80px_-15px_rgba(0,0,0,0.4)]'
       }`}
       style={{
-        height: '75vh',
-        minHeight: '500px',
+        height: '65vh',
+        minHeight: '450px',
       }}
       onMouseDown={() => setIsGrabbing(true)}
       onMouseUp={() => setIsGrabbing(false)}

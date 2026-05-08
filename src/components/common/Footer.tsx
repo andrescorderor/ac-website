@@ -34,8 +34,7 @@ export default function Footer() {
                 { icon: FaGithub, href: "https://github.com/andrescorderor", label: "GitHub" },
                 { icon: FaLinkedinIn, href: "https://www.linkedin.com/in/andresmcorderor/", label: "LinkedIn" },
                 { icon: IoMdMail, href: "mailto:andresmcorderor@gmail.com", label: "Email" },
-                { icon: IoLogoWhatsapp, href: "https://wa.me/524777037913", label: "WhatsApp" },
-                { icon: FaTelegramPlane, href: "https://t.me/corderoandres", label: "Telegram" }
+                { icon: IoLogoWhatsapp, href: "https://wa.me/524777037913", label: "WhatsApp" }
               ].map((social, i) => (
                 <a 
                   key={i}
