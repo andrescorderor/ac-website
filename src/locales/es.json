@@ -33,15 +33,33 @@
     "qa_subtitle": "Despliegues sin defectos mediante QA riguroso.",
     "qa_paragraph": "Garantizando la máxima confiabilidad a través de pipelines de pruebas automatizadas y protocolos avanzados de QA. Construyo confianza en cada línea de código.",
     "qa_header_title": "Ingeniería de Confiabilidad",
-    "qa_header_paragraph": "Implementación de pipelines CI/CD, pruebas unitarias y automatización E2E para garantizar la estabilidad del producto al 99.9% y experiencias de usuario fluidas."
+    "qa_header_paragraph": "Implementación de pipelines CI/CD, pruebas unitarias y automatización E2E para garantizar la estabilidad del producto al 99.9% y experiencias de usuario fluidas.",
+    "intro": "Sincronizando la visión empresarial con la maestría tecnológica para construir productos de alto rendimiento.",
+    "knowledge_title": "Tecnologías Principales"
   },
   "portfolio": {
-    "title": "Mi portafolio",
-    "subtitle": "Echa un vistazo a mi trabajo"
+    "title": "Portafolio de Impacto",
+    "subtitle": "Una selección curada de soluciones arquitectónicas y proyectos estratégicos."
   },
   "certifications": {
     "title": "Certificaciones",
-    "view": "Ver Certificación"
+    "view": "Verificar Credenciales"
+  },
+  "certifications_data": {
+    "cert1_title": "DevOps on AWS: Code, Build, and Test",
+    "cert1_subtitle": "edX • AWS",
+    "cert2_title": "IT Fundamentals for Business Professionals: Software Development",
+    "cert2_subtitle": "edX • Universitat Politècnica de València",
+    "cert3_title": "DevOps Basics for Everyone",
+    "cert3_subtitle": "edX • IBM",
+    "cert4_title": "Introducción al Desarrollo Web con HTML5, CSS3 y JavaScript",
+    "cert4_subtitle": "edX • IBM",
+    "cert5_title": "Introducción a Cloud Native, DevOps, Agile y NoSQL",
+    "cert5_subtitle": "edX • IBM",
+    "cert6_title": "Fundamentos de Agile y Scrum",
+    "cert6_subtitle": "edX • Universidad de Washington",
+    "cert7_title": "Aplicaciones Estratégicas de Gestión de Proyectos y Programas de TI",
+    "cert7_subtitle": "edX • Universidad de Washington"
   },
   "contact": {
     "title1": "¿Tienes ideas? Tengo las habilidades.",

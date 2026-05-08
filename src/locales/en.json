@@ -33,15 +33,33 @@
     "qa_subtitle": "Zero-defect deployments through rigorous QA.",
     "qa_paragraph": "Ensuring maximum reliability through automated testing pipelines and advanced QA protocols. I build trust into every line of code.",
     "qa_header_title": "Reliability Engineering",
-    "qa_header_paragraph": "Implementing CI/CD pipelines, unit testing, and E2E automation to guarantee 99.9% product stability and seamless user journeys."
+    "qa_header_paragraph": "Implementing CI/CD pipelines, unit testing, and E2E automation to guarantee 99.9% product stability and seamless user journeys.",
+    "intro": "Synchronizing business vision with technological mastery to build high-performance products.",
+    "knowledge_title": "Core Technologies"
   },
   "portfolio": {
-    "title": "My portfolio",
-    "subtitle": "Take a look at my portfolio"
+    "title": "Impact Portfolio",
+    "subtitle": "A curated selection of architectural solutions and strategic projects."
   },
   "certifications": {
     "title": "Certifications",
-    "view": "View Certification"
+    "view": "Verify Credentials"
+  },
+  "certifications_data": {
+    "cert1_title": "DevOps on AWS: Code, Build, and Test",
+    "cert1_subtitle": "edX • AWS",
+    "cert2_title": "IT Fundamentals for Business Professionals: Software Development",
+    "cert2_subtitle": "edX • Universitat Politècnica de València",
+    "cert3_title": "DevOps Basics for Everyone",
+    "cert3_subtitle": "edX • IBM",
+    "cert4_title": "Introduction to Web Development with HTML5, CSS3, and JavaScript",
+    "cert4_subtitle": "edX • IBM",
+    "cert5_title": "Introduction to Cloud Native, DevOps, Agile, and NoSQL",
+    "cert5_subtitle": "edX • IBM",
+    "cert6_title": "Agile and Scrum Fundamentals",
+    "cert6_subtitle": "edX • University of Washington",
+    "cert7_title": "Strategic Applications of IT Project & Program Management",
+    "cert7_subtitle": "edX • University of Washington"
   },
   "contact": {
     "title1": "Got ideas? I've got the skills.",

@@ -167,18 +167,18 @@ export default function ContactModal({ isOpen, onClose }: ModalProps) {
                   />
                 </div>
                 <ExpertiseContactSection
-                  title="Project Management"
-                  text="Efficient planning and coordination to ensure project success."
+                  title={t('expertise.pm_header_title')}
+                  text={t('expertise.pm_subtitle')}
                   icon={FaProjectDiagram}
                 />
                 <ExpertiseContactSection
-                  title="Software Development"
-                  text="Custom software solutions tailored to your business needs."
+                  title={t('expertise.sd_header_title')}
+                  text={t('expertise.sd_subtitle')}
                   icon={FaCode}
                 />
                 <ExpertiseContactSection
-                  title="Quality Assurance"
-                  text="Comprehensive QA strategies to maintain software excellence."
+                  title={t('expertise.qa_header_title')}
+                  text={t('expertise.qa_subtitle')}
                   icon={GrDocumentPerformance}
                 />
                 <div className=" flex items-center justify-start gap-4  mt-auto ">

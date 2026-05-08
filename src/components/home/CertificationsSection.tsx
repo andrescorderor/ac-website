@@ -9,8 +9,10 @@ import CertificationsSectionCard from '@components/common/cards/CertificationsSe
 import { certificationsSectionMocks } from '@mocks/CertificationsSectionMocks';
 import { DynamicButton } from '@components/common/buttons/DynamicButton';
 import { GrLinkNext, GrLinkPrevious } from 'react-icons/gr';
+import { useTranslation } from 'react-i18next';
 
 export default function CertificationsSection() {
+  const { t } = useTranslation();
   const [, setCurrentSlide] = useState(0);
   const [sliderRef, instanceRef] = useKeenSlider({
     loop: true,
@@ -47,13 +49,14 @@ export default function CertificationsSection() {
   return (
     <section className="relative w-full py-16">
       <div ref={sliderRef} className="keen-slider">
-        {certificationsSectionMocks.map((certificationsSectionMock, index) => (
+        {certificationsSectionMocks.map((cert, index) => (
           <div key={index} className="keen-slider__slide">
             <CertificationsSectionCard
-              title={certificationsSectionMock.title}
-              subtitle={certificationsSectionMock.subtitle}
-              alt={certificationsSectionMock.alt}
-              link={certificationsSectionMock.link}
+              id={cert.id}
+              title={t(`certifications_data.${cert.id}_title`)}
+              subtitle={t(`certifications_data.${cert.id}_subtitle`)}
+              alt={cert.alt}
+              link={cert.link}
             />
           </div>
         ))}

@@ -6,6 +6,7 @@ import { IoLogoWhatsapp, IoMdMail } from 'react-icons/io';
 import { DynamicButton } from './buttons/DynamicButton';
 import { ContactButton } from './buttons/ContactButton';
 import { useTranslation } from 'react-i18next';
+import { motion } from 'framer-motion';
 
 export default function Footer() {
   const { t } = useTranslation();

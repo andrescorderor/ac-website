@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useTranslation } from 'react-i18next';
 import { ExpertiseSectionImage } from '@mocks/ExpertiseSectionMocks';
 import { IoMdArrowDropdown, IoMdArrowDropup } from 'react-icons/io';
 
@@ -12,6 +13,7 @@ interface ExpertiseSectionModalHeaderProps {
 export default function ExpertiseSectionModalHeader({
   expertiseData,
 }: ExpertiseSectionModalHeaderProps) {
+  const { t } = useTranslation();
   const [isExpanded, setIsExpanded] = useState(false);
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
 
@@ -35,7 +37,7 @@ export default function ExpertiseSectionModalHeader({
         onClick={toggleExpand}
       >
         <h2 className="text-lg font-bold font-syne text-[var(--white)]">
-          Knowledge
+          {t('expertise.knowledge_title')}
         </h2>
         <span>
           {isExpanded ? (

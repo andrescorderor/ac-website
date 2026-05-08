@@ -1,6 +1,7 @@
 import ExpertiseSectionCard from '@components/common/cards/ExpertiseSectionCard';
 import { expertiseCards } from '@mocks/HomeMocks';
 import { useTranslation } from 'react-i18next';
+import { motion } from 'framer-motion';
 
 export default function ExpertiseSection() {
   const { t } = useTranslation();
@@ -26,7 +27,7 @@ export default function ExpertiseSection() {
             </h2>
             <div className="h-2 w-24 bg-gradient-to-r from-[var(--vibrant-sky-blue)] to-[var(--magenta-pink)] rounded-full mb-12" />
             <p className="font-inter text-xl text-[var(--dark-gray)] font-light leading-relaxed max-w-md">
-              Synchronizing business vision with technological mastery to build high-performance products.
+              {t('expertise.intro')}
             </p>
           </motion.div>
         </div>
