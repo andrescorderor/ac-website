@@ -94,26 +94,26 @@ export default function ExpertiseSectionCard({
     <div
       onMouseEnter={() => setIsExpanded(true)}
       onMouseLeave={() => setIsExpanded(false)}
-      className="group relative flex overflow-hidden rounded-2xl bg-[var(--soft-light-gray)] transition-all duration-500 ease-in-out"
+      className="group relative flex overflow-hidden rounded-3xl bg-white border border-[var(--light-gray)] hover:border-[var(--black)] transition-all duration-700 ease-[0.16,1,0.3,1] shadow-sm hover:shadow-2xl"
       style={{
         height: isExpanded ? contentHeight : baseHeight,
       }}
     >
       <div className="relative flex w-full">
-        <div className="flex-1 p-6">
+        <div className="flex-1 p-10">
           <Title title={title} />
           <div ref={subtitleRef}>
             <Subtitle subtitle={subtitle} />
           </div>
-          <div className="opacity-0 transition-opacity duration-500 group-hover:opacity-100">
+          <div className="opacity-0 translate-y-4 transition-all duration-700 group-hover:opacity-100 group-hover:translate-y-0">
             <Paragraph paragraph={paragraph} />
           </div>
         </div>
-        <div className="flex-1">
+        <div className="flex-1 hidden md:block">
           <div
             ref={contentRef}
-            className={`flex flex-col items-center justify-center transition-opacity duration-500 ${
-              isExpanded ? 'opacity-100' : 'opacity-0'
+            className={`flex flex-col items-center justify-center transition-all duration-700 ${
+              isExpanded ? 'opacity-100 scale-100' : 'opacity-0 scale-90'
             }`}
           >
             <Image imageUrl={imageUrl} title={title} />
@@ -122,10 +122,11 @@ export default function ExpertiseSectionCard({
         <div
           title="Open expertise detail modal"
           role="button"
-          className="absolute right-4  top-4 cursor-pointer animate-gradient-random hover:bg-[var(--soft-light-gray)] hover:border-[var(--black)] flex size-12 items-center justify-center rounded-full bg-gradient-to-r from-[var(--deep-navy-blue)] via-[var(--vibrant-sky-blue)] to-[var(--magenta-pink)] text-[var(--white)]"
+          className="absolute right-6 top-6 cursor-pointer flex size-14 items-center justify-center rounded-full bg-[var(--black)] text-[var(--white)] overflow-hidden group/btn"
           onClick={handleClick}
         >
-          <FaPlus />
+          <div className="absolute inset-0 bg-gradient-to-r from-[var(--vibrant-sky-blue)] to-[var(--magenta-pink)] opacity-0 group-hover/btn:opacity-100 transition-opacity duration-500" />
+          <FaPlus className="relative z-10 text-xl group-hover/btn:rotate-90 transition-transform duration-500" />
         </div>
       </div>
 

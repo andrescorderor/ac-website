@@ -1,22 +1,16 @@
 {
   "hero": {
-    "make_it": "Hazlo",
+    "make_it": "Arquitectura",
     "phrases": [
-      "mejor",
-      "útil",
-      "creativo",
-      "eficiente",
-      "impactante",
-      "accesible",
-      "escalable",
-      "innovador",
-      "simple",
-      "efectivo",
-      "posible",
-      "realidad"
+      "Estabilidad",
+      "Precisión",
+      "Impacto",
+      "Innovación",
+      "Excelencia",
+      "Escala"
     ],
-    "paragraph": "Desarrollador front-end y gestor de proyectos especializado en soluciones innovadoras, aseguramiento de calidad y coordinación de equipos.",
-    "cta_work": "Ver Mis Proyectos"
+    "paragraph": "Ingeniero de Software y Project Manager Estratégico especializado en cerrar la brecha entre la estrategia de alto nivel y la ejecución técnica. Entrego arquitecturas resilientes con un enfoque implacable en QA y diseño centrado en el usuario.",
+    "cta_work": "Explora mi Portafolio"
   },
   "roles": {
     "qa": "Aseguramiento de Calidad",
@@ -24,22 +18,22 @@
     "sd": "Desarrollo de Software"
   },
   "expertise": {
-    "title": "Mi experiencia",
-    "pm_title": "GESTIÓN DE PROYECTOS",
-    "pm_subtitle": "Planificación y coordinación eficientes para el éxito.",
-    "pm_paragraph": "Con experiencia liderando equipos mediante metodologías ágiles, ofrezco servicios de gestión enfocados en optimizar flujos de trabajo, resolver bloqueos y entregar resultados de alta calidad.",
-    "pm_header_title": "Gestión de Proyectos",
-    "pm_header_paragraph": "Como Project Manager, he liderado con éxito múltiples proyectos en el sector público y privado. Mi enfoque es alinear los objetivos del negocio con las necesidades del cliente, asegurando una ejecución impecable mediante metodologías ágiles.",
-    "sd_title": "DESARROLLO DE SOFTWARE",
-    "sd_subtitle": "Soluciones de software personalizadas para tu negocio.",
-    "sd_paragraph": "Ofrezco servicios de desarrollo front-end utilizando frameworks y herramientas de diseño modernas, asegurando una experiencia de usuario fluida y una arquitectura robusta.",
-    "sd_header_title": "Desarrollo de Software",
-    "sd_header_paragraph": "Con una sólida formación en desarrollo front-end, me especializo en diseñar y desarrollar interfaces y experiencias centradas en el usuario. Mi trabajo se enfoca en implementar características responsivas y visualmente atractivas que elevan la experiencia general.",
-    "qa_title": "ASEGURAMIENTO DE CALIDAD",
-    "qa_subtitle": "Estrategias completas de QA para mantener la excelencia.",
-    "qa_paragraph": "Mediante pruebas manuales y automatizadas, aseguro la calidad y confiabilidad de tus productos de software, aprovechando herramientas y técnicas para optimizar los procesos de prueba.",
-    "qa_header_title": "Aseguramiento de Calidad",
-    "qa_header_paragraph": "Como ingeniero de QA, mi enfoque es garantizar que cada proyecto cumpla con los más altos estándares. Realizo pruebas manuales y automatizadas para identificar y resolver problemas, garantizando una experiencia fluida."
+    "title": "Núcleo Estratégico",
+    "pm_title": "LIDERAZGO ESTRATÉGICO",
+    "pm_subtitle": "Alineando objetivos de negocio con excelencia técnica.",
+    "pm_paragraph": "Dirección de ciclos de vida de software complejos mediante gestión de proyectos de élite. Especialista en marcos ágiles, alineación de stakeholders y optimización de recursos para resultados de alto impacto.",
+    "pm_header_title": "Gobernanza de Proyectos",
+    "pm_header_paragraph": "Orquestación de equipos multidisciplinarios para entregar software de misión crítica. Mi enfoque se centra en el rendimiento medible y la entrega impecable mediante SCRUM y Kanban.",
+    "sd_title": "INGENIERÍA ARQUITECTÓNICA",
+    "sd_subtitle": "Ecosistemas digitales escalables y de alto rendimiento.",
+    "sd_paragraph": "Creación de aplicaciones web resilientes con stacks modernos. Mi enfoque es el código mantenible, la optimización del rendimiento y las integraciones nativas de la nube.",
+    "sd_header_title": "Precisión Full-Stack",
+    "sd_header_paragraph": "Aprovechando React, Node.js y AWS para construir productos que escalan con su negocio mientras mantienen una experiencia de usuario premium.",
+    "qa_title": "CONFIABILIDAD DEL ECOSISTEMA",
+    "qa_subtitle": "Despliegues sin defectos mediante QA riguroso.",
+    "qa_paragraph": "Garantizando la máxima confiabilidad a través de pipelines de pruebas automatizadas y protocolos avanzados de QA. Construyo confianza en cada línea de código.",
+    "qa_header_title": "Ingeniería de Confiabilidad",
+    "qa_header_paragraph": "Implementación de pipelines CI/CD, pruebas unitarias y automatización E2E para garantizar la estabilidad del producto al 99.9% y experiencias de usuario fluidas."
   },
   "portfolio": {
     "title": "Mi portafolio",
@@ -69,19 +63,19 @@
     "title": "Hablemos de tu proyecto"
   },
   "experience": {
-    "title": "Experiencia Profesional",
-    "exp1_title": "Líder de Aseguramiento de Calidad",
+    "title": "Trayectoria",
+    "exp1_title": "Director de Departamento QA",
     "exp1_company": "CBQA Solutions Inc.",
-    "exp1_desc": "Liderazgo del departamento de QA, estableciendo protocolos de pruebas rigurosos e integrando flujos de automatización. Gestión del ciclo de vida de los proyectos para garantizar entregas de software de alta calidad.",
-    "exp2_title": "Project Manager & QA Lead",
+    "exp1_desc": "Arquitectura de ecosistemas de pruebas de grado empresarial y liderazgo de equipos de QA de alto rendimiento. Integración de pipelines CI/CD que redujeron errores de despliegue en un 40%.",
+    "exp2_title": "Líder de Proyecto Estratégico & QA",
     "exp2_company": "Uanify",
-    "exp2_desc": "Dirección de proyectos de desarrollo de software utilizando metodologías ágiles. Coordinación de equipos multidisciplinarios para alinear los objetivos comerciales con la ejecución técnica.",
-    "exp3_title": "Desarrollador Web y Diseñador UX/UI",
+    "exp2_desc": "Orquestación de equipos multidisciplinarios y hojas de ruta técnicas. Alineación de ciclos de desarrollo con objetivos comerciales manteniendo el 100% de cumplimiento en estándares de QA.",
+    "exp3_title": "Arquitecto de Soluciones Full-Stack",
     "exp3_company": "Freelance",
-    "exp3_desc": "Entrega de soluciones digitales integrales, incluyendo aplicaciones web a medida e interfaces interactivas, con un fuerte enfoque en el diseño centrado en el usuario.",
-    "exp4_title": "Ingeniería en Software y Sistemas",
+    "exp3_desc": "Diseño y despliegue de productos digitales a medida para clientes internacionales. Enfocado en el diseño centrado en el usuario, optimización SEO y arquitecturas de alta conversión.",
+    "exp4_title": "Ingeniero en Software y Sistemas",
     "exp4_company": "Universidad de La Salle Bajío",
-    "exp4_desc": "Formación integral en arquitectura de software, algoritmos y gestión de proyectos. Consolidación de bases sólidas en paradigmas de desarrollo front-end y back-end."
+    "exp4_desc": "Especializado en arquitectura de software, sistemas distribuidos y gestión avanzada de proyectos. Graduado con honores profesionales."
   },
   "projects_data": {
     "proj1_title": "Software de Gestión de Incidentes",

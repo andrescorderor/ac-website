@@ -11,93 +11,62 @@ export default function Footer() {
   const { t } = useTranslation();
   const currentYear = new Date().getFullYear();
   return (
-    <footer className="bg-[var(--white)] ">
-      <div className="flex flex-col lg:flex-row justify-between p-6 md:p-16 lg:p-36 gap-12 lg:gap-0">
-        <div>
-          <div className="pointer-events-none flex flex-col">
-            <p className="font-dm-sans font-light tracking-tight mb-4 text-2xl lg:text-4xl leading-snug text-[var(--dark-gray)]">
-              {t('footer.quote1')}
-              <br />
-              {t('footer.quote2')}
-            </p>
-            <p className="font-syne text-start text-xl lg:text-2xl font-medium tracking-wide text-[var(--gray)]">
-              Peter Drucker
-            </p>
+    <footer className="bg-[var(--white)] pt-32 pb-10">
+      <div className="container mx-auto px-6 md:px-16 lg:px-36">
+        <div className="flex flex-col lg:flex-row justify-between items-start gap-20">
+          <div className="max-w-2xl">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+            >
+              <h2 className="font-dm-sans text-4xl lg:text-6xl font-bold tracking-tight text-[var(--black)] leading-tight mb-8">
+                {t('footer.quote1')} <span className="text-gradient">{t('footer.quote2').replace('"', '')}</span>
+              </h2>
+              <p className="font-syne text-xl font-bold text-[var(--vibrant-sky-blue)] tracking-[0.2em] uppercase">
+                — Peter Drucker
+              </p>
+            </motion.div>
+
+            <div className="flex flex-wrap gap-4 mt-16">
+              {[
+                { icon: FaGithub, href: "https://github.com/andrescorderor", label: "GitHub" },
+                { icon: FaLinkedinIn, href: "https://www.linkedin.com/in/andresmcorderor/", label: "LinkedIn" },
+                { icon: IoMdMail, href: "mailto:andresmcorderor@gmail.com", label: "Email" },
+                { icon: IoLogoWhatsapp, href: "https://wa.me/524777037913", label: "WhatsApp" },
+                { icon: FaTelegramPlane, href: "https://t.me/corderoandres", label: "Telegram" }
+              ].map((social, i) => (
+                <a 
+                  key={i}
+                  href={social.href}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="flex items-center gap-3 px-6 py-3 rounded-2xl border border-[var(--light-gray)] hover:border-[var(--black)] hover:bg-[var(--soft-light-gray)] transition-all duration-300 font-syne text-xs font-bold uppercase tracking-widest text-[var(--dark-gray)] hover:text-[var(--black)]"
+                >
+                  <social.icon className="text-lg" />
+                  {social.label}
+                </a>
+              ))}
+            </div>
           </div>
 
-          <div className="flex flex-wrap gap-4 lg:gap-6 pt-8 lg:pt-16">
-            <DynamicButton
-              style="WHITE"
-              type="full-dynamic"
-              icon={FaGithub}
-              name="Professional GitHub"
-              onClick={() =>
-                window.open('https://github.com/andrescordero-cbqa', '_blank')
-              }
-            />
-            <DynamicButton
-              style="WHITE"
-              type="full-dynamic"
-              icon={FaGithub}
-              name="Personal GitHub"
-              onClick={() =>
-                window.open('https://github.com/andrescorderor', '_blank')
-              }
-            />
-            <DynamicButton
-              style="WHITE"
-              type="full-dynamic"
-              icon={FaLinkedinIn}
-              name="LinkedIn"
-              onClick={() =>
-                window.open(
-                  'https://www.linkedin.com/in/andresmcorderor/',
-                  '_blank',
-                )
-              }
-            />
-            <DynamicButton
-              style="WHITE"
-              type="full-dynamic"
-              icon={HiDocumentDownload}
-              name="Download Resume"
-              onClick={() => window.open('/assets/Resume.pdf', '_blank')}
-            />
-            <DynamicButton
-              style="WHITE"
-              type="full-dynamic"
-              icon={IoMdMail}
-              name="Email"
-              onClick={() =>
-                window.open('mailto:andresmcorderor@gmail.com', '_blank')
-              }
-            />
-            <DynamicButton
-              style="WHITE"
-              type="full-dynamic"
-              icon={IoLogoWhatsapp}
-              name="WhatsApp"
-              onClick={() =>
-                window.open('https://wa.me/524777037913', '_blank')
-              }
-            />
-            <DynamicButton
-              style="WHITE"
-              type="full-dynamic"
-              icon={FaTelegramPlane}
-              name="Telegram"
-              onClick={() =>
-                window.open('https://t.me/corderoandres', '_blank')
-              }
-            />
+          <div className="w-full lg:w-auto">
+            <ContactButton />
           </div>
         </div>
-        <ContactButton />
+
+        <div className="mt-32 pt-10 border-t border-[var(--light-gray)] flex flex-col md:flex-row justify-between items-center gap-6">
+          <p className="font-dm-sans text-sm text-[var(--gray)]">
+            © {currentYear} Andrés Cordero • {t('footer.rights')}
+          </p>
+          <div className="flex items-center gap-8">
+            <span className="font-syne text-[10px] font-bold tracking-[0.4em] uppercase text-[var(--gray)]">
+              Crafted with Precision
+            </span>
+            <div className="h-1 w-20 bg-gradient-to-r from-[var(--vibrant-sky-blue)] to-[var(--magenta-pink)] rounded-full" />
+          </div>
+        </div>
       </div>
-      <div className="animate-gradient-rotate h-1 w-full bg-gradient-to-r from-[var(--deep-navy-blue)] via-[var(--vibrant-sky-blue)] to-[var(--magenta-pink)]" />
-      <p className="font-dm-sans pointer-events-none my-4 text-center text-sm text-[var(--black)] ">
-        © Andrés Cordero {currentYear} • {t('footer.rights')}
-      </p>
     </footer>
   );
 }
