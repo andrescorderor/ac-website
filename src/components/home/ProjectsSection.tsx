@@ -36,11 +36,11 @@ export default function ProjectsSection() {
     <section className=" w-full py-16">
       <div className="animate-gradient-random pointer-events-none bg-[var(--soft-light-gray)] bg-gradient-to-r from-[var(--deep-navy-blue)] via-[var(--vibrant-sky-blue)] to-[var(--magenta-pink)] ">
         <div className="bg-gradient-to-l from-[var(--black)] to-transparent text-[var(--white)] ">
-          <div className="flex bg-gradient-to-r from-[var(--black)]  to-transparent p-16 px-36">
-            <h2 className="font-dm-sans flex flex-col justify-end  text-[6rem] font-bold leading-tight hover:cursor-default">
+          <div className="flex flex-col lg:flex-row bg-gradient-to-r from-[var(--black)]  to-transparent p-6 md:p-12 lg:p-16 lg:px-36 gap-6 lg:gap-0">
+            <h2 className="font-dm-sans flex flex-col justify-end text-5xl sm:text-7xl lg:text-[6rem] font-light tracking-tight leading-tight hover:cursor-default">
               My portfolio
             </h2>
-            <p className="font-dm-sans ml-auto flex w-1/4 flex-col justify-center gap-8 text-start text-2xl font-medium text-[var(--white)]">
+            <p className="font-dm-sans lg:ml-auto flex w-full lg:w-1/4 flex-col justify-center gap-4 lg:gap-8 text-start text-lg lg:text-xl font-light tracking-wide text-[var(--light-gray)]">
               Take a look at my portfolio
             </p>
           </div>
@@ -65,9 +65,9 @@ export default function ProjectsSection() {
             onClick={() => slider.current?.moveToIdx(index2)}
             className={`${
               currentSlide === index2
-                ? 'animate-gradient-random h-4 w-36 bg-gradient-to-r from-[var(--deep-navy-blue)] via-[var(--vibrant-sky-blue)] to-[var(--magenta-pink)]'
-                : 'size-4 bg-[var(--light-gray)] '
-            } duration-400 rounded-full transition-all`}
+                ? 'animate-gradient-random h-3 w-12 bg-gradient-to-r from-[var(--deep-navy-blue)] via-[var(--vibrant-sky-blue)] to-[var(--magenta-pink)]'
+                : 'h-3 w-3 bg-[var(--light-gray)] '
+            } duration-400 rounded-full transition-all cursor-pointer hover:bg-[var(--dark-gray)]`}
           />
         ))}
       </div>

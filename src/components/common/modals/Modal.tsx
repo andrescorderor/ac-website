@@ -60,7 +60,7 @@ export default function Modal({
           transition={{ duration: 0.3 }}
         >
           <motion.div
-            className="relative w-[80%] shadow-lg bg-[var(--white)] rounded-2xl"
+            className="relative w-[95%] md:w-[80%] max-h-[90vh] overflow-y-auto overflow-x-hidden shadow-2xl bg-[var(--white)] rounded-2xl border border-[var(--dark-gray)]"
             onClick={(e) => e.stopPropagation()}
             variants={modalVariants}
             initial="hidden"
@@ -68,7 +68,7 @@ export default function Modal({
             exit="exit"
             transition={{ type: 'spring', stiffness: 300, damping: 25 }}
           >
-            <div className="bg-[var(--black)] px-16 py-12 rounded-2xl">
+            <div className="bg-[var(--black)] px-6 lg:px-16 py-8 lg:py-12 rounded-2xl">
               <div className="absolute right-4 top-4" onClick={onClose}>
                 <DynamicButton
                   style="WHITE"
@@ -77,7 +77,7 @@ export default function Modal({
                   type="icon-only"
                 />
               </div>
-              <div className=" text-[var(--white)] font-semibold pb-8 font-dm-sans text-5xl  cursor-default">
+              <div className=" text-[var(--white)] font-light tracking-tight pb-4 lg:pb-8 font-dm-sans text-3xl lg:text-5xl cursor-default pr-12">
                 {title}
               </div>
               <p className="font-inter text-base font-extralight text-[var(--gray)] break-words cursor-default">
@@ -87,7 +87,7 @@ export default function Modal({
                 <ExpertiseSectionModalHeader expertiseData={expertiseData} />
               )}
             </div>
-            <div className="p-16">{children}</div>
+            <div className="p-6 lg:p-16">{children}</div>
           </motion.div>
         </motion.div>
       )}

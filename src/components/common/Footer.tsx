@@ -10,20 +10,20 @@ export default function Footer() {
   const currentYear = new Date().getFullYear();
   return (
     <footer className="bg-[var(--white)] ">
-      <div className="flex justify-between p-36 ">
+      <div className="flex flex-col lg:flex-row justify-between p-6 md:p-16 lg:p-36 gap-12 lg:gap-0">
         <div>
           <div className="pointer-events-none flex flex-col">
-            <p className="font-dm-sans font-regular mb-4 text-4xl leading-snug">
+            <p className="font-dm-sans font-light tracking-tight mb-4 text-2xl lg:text-4xl leading-snug text-[var(--dark-gray)]">
               &quot;Make it happen. The best way to
               <br />
               predict the future is to create it.&quot;
             </p>
-            <p className="font-syne text-start text-2xl font-bold text-[var(--gray)]">
+            <p className="font-syne text-start text-xl lg:text-2xl font-medium tracking-wide text-[var(--gray)]">
               Peter Drucker
             </p>
           </div>
 
-          <div className="flex gap-6 pt-16">
+          <div className="flex flex-wrap gap-4 lg:gap-6 pt-8 lg:pt-16">
             <DynamicButton
               style="WHITE"
               type="full-dynamic"

@@ -1,91 +1,101 @@
-# Andrés Cordero's Landing Page
+<div align="center">
+  <img src="public/assets/ac-website-icon.svg" alt="Logo" width="100" />
+  
+  # Andrés Cordero - Portafolio Profesional ✨
+  
+  **Bienvenido a mi sitio web personal y portafolio interactivo.**  
+  Construido con las mejores prácticas de UX/UI, diseño moderno y tecnología de punta.
 
-This repository contains the source code for the personal landing page of **Andrés Cordero**, a Software Engineer specializing in Front-end Development and Project Management. This page showcases his professional background, skills, and contact information.
+  [![React](https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)](https://reactjs.org/)
+  [![Vite](https://img.shields.io/badge/Vite-B73BFE?style=for-the-badge&logo=vite&logoColor=FFD62E)](https://vitejs.dev/)
+  [![TailwindCSS](https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white)](https://tailwindcss.com/)
+  [![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 
-## Technologies Used
+</div>
 
-This landing page was developed using the following technologies:
+---
 
-- **React**: A JavaScript library for building user interfaces.
-- **Vite**: A fast build tool and development server for modern web projects.
-- **CSS**: Styling the components and page layout.
-- **JavaScript**: Used for logic and interactions on the page.
+## 🚀 Sobre este proyecto
 
-## About the Developer
+Este repositorio contiene el código fuente de mi *landing page* profesional. El objetivo principal de este proyecto es mostrar mi experiencia, habilidades tecnológicas y trayectoria como **Ingeniero de Software especializado en Desarrollo Frontend y Gestión de Proyectos**. 
 
-**Andrés Cordero** is a front-end developer and project manager with experience in web development, UI/UX design, and quality assurance. He has worked on a variety of projects involving:
+La interfaz fue rediseñada para ser completamente **Responsiva (Mobile-First)**, garantizando una experiencia de usuario (UX) fluida, moderna y atractiva en cualquier tipo de pantalla.
 
-- Developing websites and **landing** pages.
-- Implementing front-end frameworks to enhance user interfaces.
-- Managing databases and leveraging cloud services like AWS.
-- Applying agile methodologies for efficient project management.
+---
 
-### Education:
+## 👨‍💻 Sobre mí
 
-- **Systems and Software Engineering**, La Salle Bajío University (2020-2024)
+Soy un apasionado de la tecnología con experiencia en desarrollo web, diseño de interfaces y aseguramiento de calidad (QA). Mi enfoque principal es crear soluciones escalables e interfaces que los usuarios amen utilizar.
 
-### Certifications:
+🌟 **Puntos Destacados:**
+- 🛠️ Desarrollo de aplicaciones web complejas y *landing pages* interactivas.
+- 🎨 Implementación de interfaces atractivas con enfoque total en UI/UX.
+- ☁️ Gestión de bases de datos y servicios en la nube como AWS.
+- 📈 Liderazgo y metodologías ágiles para una entrega de proyectos eficiente.
 
-- Strategic Applications of IT Project & Program Management, University of Washington (edX)
-- DevOps on AWS: Code, Build, and Test (edX)
-- Introduction to Web Development with HTML5, CSS3, and JavaScript (edX)
+### 🎓 Formación y Logros
 
-### Notable Achievements:
+- 🎓 **Ingeniería en Sistemas y Software** | Universidad La Salle Bajío (2020-2024)
+- 🏆 **1er Lugar** | Hackathon Mejora Regulatoria 2.0 (Compitiendo contra 30+ equipos).
+- 🥈 **2do Lugar** | Reto VW GTO 2.0.
+- 🌍 **Expositor** | Proyecto para Volkswagen en la Feria Industrial Hannover Messe.
 
-- Presented a project for Volkswagen at the Hannover Messe Industrial Fair.
-- Achieved 2nd place at the VW GTO 2.0 Challenge.
-- Won the Hackathon Mejora Regulatoria 2.0, competing against 30 teams.
+---
 
-You can learn more about Andrés's professional journey on his [LinkedIn](https://www.linkedin.com/in/andresmcorderor/) and explore his projects on [GitHub](https://github.com/andrescorderor).
+## 🛠️ Stack Tecnológico
 
-## Setup and Installation
+El proyecto ha sido desarrollado utilizando las siguientes tecnologías:
 
-To run this project locally, follow these steps:
+* ⚛️ **React + TypeScript**: Para una estructura de componentes sólida, escalable y libre de errores.
+* ⚡ **Vite**: Como entorno de desarrollo ultra rápido.
+* 🎨 **Tailwind CSS**: Para el diseño visual, estilos flexibles y adaptabilidad responsiva (100% Mobile-Friendly).
+* 🎞️ **Framer Motion**: Para las animaciones fluidas y transiciones atractivas a lo largo del sitio.
 
-1. **Clone the repository:**
+---
 
+## ⚙️ Instalación y Uso Local
+
+¿Quieres probar el proyecto en tu máquina local? Sigue estos sencillos pasos:
+
+1. **Clona el repositorio:**
    ```bash
    git clone https://github.com/andresxordero/ac-website.git
    ```
 
-2. **Navigate to the project directory:**
-
+2. **Entra al directorio del proyecto:**
    ```bash
    cd ac-website
    ```
 
-3. **Install dependencies:**
-   If you are using npm:
-
+3. **Instala las dependencias:**
+   Usando Yarn (recomendado):
+   ```bash
+   yarn install
+   ```
+   *O si prefieres NPM:*
    ```bash
    npm install
    ```
 
-   Or using Yarn:
-
+4. **Inicia el servidor de desarrollo:**
    ```bash
-   yarn
-   ```
-
-4. **Run the development server:**
-
-   ```bash
-   npm run dev
-   ```
-
-   Or with Yarn:
-
-   ````bash
    yarn dev
-   ```****
-
-   ````
-
-5. **Build the project for production:**
-   ```bash
-   npm run build
    ```
 
-## License
+5. **Abre tu navegador:**  
+   Dirígete a `http://localhost:5173/` y explora el portafolio en vivo.
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+---
+
+## 📬 Contacto
+
+Si te gusta lo que ves o tienes alguna propuesta de proyecto, no dudes en contactarme:
+
+- 💼 **LinkedIn**: [andresmcorderor](https://www.linkedin.com/in/andresmcorderor/)
+- 💻 **GitHub**: [andrescorderor](https://github.com/andrescorderor)
+
+---
+
+<div align="center">
+  <sub>Hecho con ❤️ y código limpio.</sub>
+</div>

@@ -22,19 +22,20 @@ export default function ProjectsSectionCard({
 
   return (
     <div
-      className={`relative bg-cover bg-center p-24 ${
+      className={`relative bg-cover bg-center p-6 lg:p-24 overflow-hidden rounded-lg mx-2 lg:mx-0 ${
         isGrabbing ? 'cursor-grabbing' : 'cursor-grab'
       }`}
       style={{
-        backgroundImage: `linear-gradient(to top, var(--black), transparent), url(${image})`,
-        height: '100vh',
+        backgroundImage: `url(${image})`,
+        height: '70vh',
+        minHeight: '400px',
       }}
       onMouseDown={() => setIsGrabbing(true)}
       onMouseUp={() => setIsGrabbing(false)}
       onMouseLeave={() => setIsGrabbing(false)}
     >
-      <div className="absolute inset-x-0 bottom-0 px-24 py-12">
-        <h3 className="font-dm-sans w-3/4 text-[3rem] font-bold leading-tight text-[var(--white)]">
+      <div className="absolute inset-x-0 bottom-0 p-6 lg:px-24 lg:py-12 bg-gradient-to-t from-black via-black/80 to-transparent pt-32">
+        <h3 className="font-dm-sans w-full lg:w-3/4 text-2xl sm:text-3xl lg:text-5xl pb-4 lg:pb-8 font-light tracking-tight leading-tight text-[var(--white)] drop-shadow-md">
           {title}
         </h3>
 

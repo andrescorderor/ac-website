@@ -79,16 +79,16 @@ export default function Hero() {
   }, [charIndex, isDeleting, currentPhraseIndex, previousPhraseIndex, phrases]);
 
   return (
-    <section className="hover:cursor-default ">
-      <div className="flex items-center px-36 pb-36 pt-28">
+    <section className="hover:cursor-default overflow-hidden">
+      <div className="flex flex-col lg:flex-row items-center px-6 md:px-16 lg:px-36 pb-16 lg:pb-36 pt-24 lg:pt-28 gap-12 lg:gap-0">
         <div>
-          <h1 className="font-dm-sans text-[10rem] font-medium leading-none">
+          <h1 className="font-dm-sans text-5xl sm:text-7xl lg:text-[8rem] font-medium leading-none tracking-tight text-[var(--dark-gray)]">
             Make it
           </h1>
           <div className="flex">
             <motion.h1
               key={currentPhraseIndex}
-              className="font-dm-sans animate-gradient-random bg-clip-text text-[10rem] font-bold leading-none text-transparent"
+              className="font-dm-sans animate-gradient-random bg-clip-text text-5xl sm:text-7xl lg:text-[8rem] font-bold leading-none text-transparent tracking-tight"
               style={{
                 backgroundImage:
                   'linear-gradient(to right, var(--deep-navy-blue), var(--vibrant-sky-blue), var(--magenta-pink))',
@@ -98,7 +98,7 @@ export default function Hero() {
             </motion.h1>
 
             <motion.div
-              className="font-dm-sans text-[10rem] leading-none text-[var(--black)]"
+              className="font-dm-sans text-5xl sm:text-7xl lg:text-[8rem] leading-none text-[var(--gray)] font-light"
               animate={{
                 opacity: [1, 0],
                 transition: { repeat: Infinity, duration: 1 },
@@ -107,13 +107,13 @@ export default function Hero() {
               |
             </motion.div>
           </div>
-          <div className="mt-32 flex w-7/12 gap-4">
+          <div className="mt-12 lg:mt-32 flex w-full lg:w-7/12 gap-4 items-start lg:items-center">
             <img
               src={heroParagraph.profilePicture}
               alt="Profile"
-              className="size-14 rounded-full"
+              className="size-16 rounded-full border border-[var(--light-gray)] shadow-sm"
             />
-            <p className="font-inter text-3xl font-medium tracking-tight text-[var(--black)]">
+            <p className="font-inter text-lg lg:text-2xl font-light tracking-wide text-[var(--dark-gray)] leading-relaxed">
               {heroParagraph.text}
             </p>
           </div>

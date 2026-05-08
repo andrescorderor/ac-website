@@ -25,7 +25,7 @@ export default function RolesCarousel() {
 
   return (
     <div className="relative w-full cursor-default overflow-hidden">
-      <div className="font-syne whitespace-nowrap bg-[var(--black)] text-[6rem] font-bold text-[var(--white)]">
+      <div className="font-syne whitespace-nowrap bg-[var(--black)] text-5xl sm:text-7xl lg:text-[6rem] font-medium tracking-wide text-[var(--white)] py-8 lg:py-0">
         <div className="flex">
           <motion.h3
             className="text-[var(--white)]"

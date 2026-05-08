@@ -58,7 +58,7 @@ export default function CertificationsSection() {
           </div>
         ))}
       </div>
-      <div className="absolute left-8 top-1/2 transform -translate-y-1/2  ">
+      <div className="absolute left-8 top-1/2 transform -translate-y-1/2 hidden md:block">
         <DynamicButton
           style="BLACK"
           type="icon-only"
@@ -67,7 +67,7 @@ export default function CertificationsSection() {
           icon={GrLinkPrevious}
         />
       </div>
-      <div className="absolute right-8 top-1/2 transform -translate-y-1/2 ">
+      <div className="absolute right-8 top-1/2 transform -translate-y-1/2 hidden md:block">
         <DynamicButton
           style="BLACK"
           type="icon-only"

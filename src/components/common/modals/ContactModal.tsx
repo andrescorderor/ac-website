@@ -139,7 +139,7 @@ export default function ContactModal({ isOpen, onClose }: ModalProps) {
           transition={{ duration: 0.3 }}
         >
           <motion.div
-            className="relative flex w-[70%] shadow-lg bg-[var(--white)] rounded-2xl overflow-hidden"
+            className="relative flex flex-col lg:flex-row w-[95%] lg:w-[80%] max-h-[90vh] overflow-y-auto shadow-2xl bg-[var(--white)] rounded-2xl overflow-hidden border border-[var(--dark-gray)]"
             onClick={(e) => e.stopPropagation()}
             variants={modalVariants}
             initial="hidden"
@@ -147,7 +147,7 @@ export default function ContactModal({ isOpen, onClose }: ModalProps) {
             exit="exit"
             transition={{ type: 'spring', stiffness: 300, damping: 25 }}
           >
-            <div className="flex-1 p-12">
+            <div className="flex-1 p-6 lg:p-12 order-2 lg:order-1">
               <div className="col-span-1 flex flex-col h-full">
                 <div className="absolute right-4 top-4" onClick={onClose}>
                   <DynamicButton
@@ -157,7 +157,7 @@ export default function ContactModal({ isOpen, onClose }: ModalProps) {
                     type="icon-only"
                   />
                 </div>
-                <div className="flex items-center gap-0 pb-8">
+                <div className="flex items-center gap-0 pb-4 lg:pb-8">
                   <img
                     src="/assets/ac-website-icon-alt.svg"
                     alt="icon"
@@ -180,7 +180,7 @@ export default function ContactModal({ isOpen, onClose }: ModalProps) {
                   icon={GrDocumentPerformance}
                 />
                 <div className=" flex items-center justify-start gap-4  mt-auto ">
-                  <div className="flex gap-6 pt-16">
+                  <div className="flex flex-wrap gap-4 lg:gap-6 pt-8 lg:pt-16">
                     <DynamicButton
                       style="WHITE"
                       type="icon-only"
@@ -228,7 +228,7 @@ export default function ContactModal({ isOpen, onClose }: ModalProps) {
               </div>
             </div>
 
-            <div className="flex flex-col bg-[var(--black)] px-16 py-12 text-white w-[65%]">
+            <div className="flex flex-col bg-[var(--black)] px-6 lg:px-16 py-8 lg:py-12 text-white w-full lg:w-[65%] order-1 lg:order-2">
               <div className="absolute right-4 top-4" onClick={onClose}>
                 <DynamicButton
                   style="WHITE"
@@ -237,11 +237,11 @@ export default function ContactModal({ isOpen, onClose }: ModalProps) {
                   type="icon-only"
                 />
               </div>
-              <div className="leading-tight text-[var(--white)] font-medium pb-4 font-dm-sans text-5xl cursor-default">
+              <div className="leading-tight text-[var(--white)] font-light tracking-tight pb-4 font-dm-sans text-3xl lg:text-5xl cursor-default pr-12">
                 <p>Got ideas? I&apos;ve got the skills.</p>
                 <p>Let&apos;s team Up!</p>
               </div>
-              <p className="font-inter pb-8 text-xl font-extralight text-[var(--gray)] break-words cursor-default">
+              <p className="font-inter pb-8 text-lg lg:text-xl font-extralight text-[var(--gray)] break-words cursor-default">
                 Tell me more about yourself and what&apos;s on your mind
               </p>
               <div>

@@ -31,14 +31,14 @@ export default function CertificationsSectionCard({
         </p>
       </div>
 
-      <div className="flex items-stretch justify-between">
-        <div className="w-3/4 pt-6">
+      <div className="flex flex-col xl:flex-row items-start xl:items-end justify-between gap-4 mt-6">
+        <div className="w-full xl:w-3/4">
           <h3 className="font-dm-sans pb-2 text-lg font-bold leading-tight">
             {title}
           </h3>
           <p className="text-sm">{subtitle}</p>
         </div>
-        <div className="flex w-1/2 flex-col items-end justify-end">
+        <div className="flex w-full xl:w-1/2 flex-col items-start xl:items-end justify-end">
           <DynamicButton
             style="WHITE"
             type="full-dynamic"

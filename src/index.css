@@ -8,18 +8,18 @@
 
 /* Color Variables */
 :root {
-  --black: #0d0d0d;
+  --black: #0a0a0a;
   --white: #ffffff;
-  --deep-navy-blue: #01218c;
-  --deep-navy-blue-light: #f0f3ff;
-  --vibrant-sky-blue: #0487b9;
-  --vibrant-sky-blue-light: #effaff;
-  --magenta-pink: #ce0c98;
-  --magenta-pink-light: #fff3fb;
-  --soft-light-gray: #ececec;
-  --light-gray: #bcbcbc;
-  --gray: #8d8d8d;
-  --dark-gray: #3b3b3b;
+  --deep-navy-blue: #111827;
+  --deep-navy-blue-light: #f3f4f6;
+  --vibrant-sky-blue: #4b5563;
+  --vibrant-sky-blue-light: #f9fafb;
+  --magenta-pink: #9ca3af;
+  --magenta-pink-light: #ffffff;
+  --soft-light-gray: #f4f4f5;
+  --light-gray: #e4e4e7;
+  --gray: #a1a1aa;
+  --dark-gray: #52525b;
 }
 
 .font-inter {

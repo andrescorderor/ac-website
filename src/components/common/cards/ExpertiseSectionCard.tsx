@@ -143,6 +143,3 @@ export default function ExpertiseSectionCard({
   );
 }
 
-ExpertiseSectionCard.defaultProps = {
-  paragraph: '',
-};
