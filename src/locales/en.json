@@ -83,6 +83,23 @@
     "exp4_company": "Universidad de La Salle Bajío",
     "exp4_desc": "Comprehensive education in software architecture, algorithms, and project management. Solidified foundation in both front-end and back-end paradigms."
   },
+  "projects_data": {
+    "proj1_title": "Incident Management Software",
+    "proj1_desc": "A robust internal system designed for Volkswagen to streamline incident reporting, tracking, and resolution across manufacturing plants.",
+    "proj1_tags": ["React", "Node.js", "AWS", "Jira"],
+    "proj2_title": "GovTech Integration Platform",
+    "proj2_desc": "A centralized digital hub for citizens to process government procedures, significantly reducing wait times and bureaucratic overhead.",
+    "proj2_tags": ["Vue.js", "Python", "PostgreSQL", "Docker"],
+    "proj3_title": "Entrepreneurship Ecosystem",
+    "proj3_desc": "A statewide platform connecting startups, investors, and mentors. Features include matchmaking algorithms and resource directories.",
+    "proj3_tags": ["Next.js", "TypeScript", "Tailwind CSS"],
+    "proj4_title": "Industrial Trade Platform",
+    "proj4_desc": "B2B e-commerce software specialized in the pipe sector, managing complex inventory systems and large-scale transactions.",
+    "proj4_tags": ["React", "Express", "MySQL", "Stripe"],
+    "proj5_title": "Medical Imaging Service",
+    "proj5_desc": "A secure, HIPAA-compliant service for clinics to instantly share and analyze ultrasound images with patients and specialists.",
+    "proj5_tags": ["React Native", "Firebase", "AWS S3"]
+  },
   "language": {
     "switch": "Español"
   }

@@ -1,32 +1,26 @@
 export interface ProjectsSectionCardProps {
-  link: string;
-  title: string;
+  id: string;
   image: string;
 }
 export const projectsSectionMocks: ProjectsSectionCardProps[] = [
   {
-    title: 'Incident Management Software for Volkswagen',
-    link: '/ ',
+    id: 'proj1',
     image: '/assets/projects-section/Project1.jpg',
   },
   {
-    title: 'Digitization and integration of government procedures software',
-    link: '/',
+    id: 'proj2',
     image: '/assets/projects-section/Project2.jpg',
   },
   {
-    title: 'Platform for state entrepreneurship ecosystem',
-    link: '/',
+    id: 'proj3',
     image: '/assets/projects-section/Project3.jpg',
   },
   {
-    title: 'Software for buying and selling in the pipe sector',
-    link: '/',
+    id: 'proj4',
     image: '/assets/projects-section/Project4.jpg',
   },
   {
-    title: 'Ultrasound Image Sharing Service',
-    link: '/asfa',
+    id: 'proj5',
     image: '/assets/projects-section/Project5.jpg',
   },
 ];

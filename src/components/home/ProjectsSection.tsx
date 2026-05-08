@@ -49,12 +49,13 @@ export default function ProjectsSection() {
         </div>
       </div>
       <div ref={sliderRef} className="keen-slider">
-        {projectsSectionMocks.map((projectsSectionMocks, index) => (
+        {projectsSectionMocks.map((project, index) => (
           <div key={index} className="keen-slider__slide">
             <ProjectsSectionCard
-              title={projectsSectionMocks.title}
-              image={projectsSectionMocks.image}
-              link={projectsSectionMocks.link}
+              image={project.image}
+              title={t(`projects_data.${project.id}_title`)}
+              description={t(`projects_data.${project.id}_desc`)}
+              tags={t(`projects_data.${project.id}_tags`, { returnObjects: true }) as string[]}
             />
           </div>
         ))}

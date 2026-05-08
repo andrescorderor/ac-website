@@ -83,6 +83,23 @@
     "exp4_company": "Universidad de La Salle Bajío",
     "exp4_desc": "Formación integral en arquitectura de software, algoritmos y gestión de proyectos. Consolidación de bases sólidas en paradigmas de desarrollo front-end y back-end."
   },
+  "projects_data": {
+    "proj1_title": "Software de Gestión de Incidentes",
+    "proj1_desc": "Un robusto sistema interno diseñado para Volkswagen para optimizar el reporte, seguimiento y resolución de incidentes en plantas de manufactura.",
+    "proj1_tags": ["React", "Node.js", "AWS", "Jira"],
+    "proj2_title": "Plataforma de Integración GovTech",
+    "proj2_desc": "Centro digital para que los ciudadanos procesen trámites gubernamentales, reduciendo drásticamente los tiempos de espera y la carga burocrática.",
+    "proj2_tags": ["Vue.js", "Python", "PostgreSQL", "Docker"],
+    "proj3_title": "Ecosistema de Emprendimiento",
+    "proj3_desc": "Plataforma estatal que conecta startups, inversores y mentores. Incluye algoritmos de coincidencia y directorios de recursos.",
+    "proj3_tags": ["Next.js", "TypeScript", "Tailwind CSS"],
+    "proj4_title": "Plataforma Comercial Industrial",
+    "proj4_desc": "Software de e-commerce B2B especializado en el sector de tuberías, gestionando sistemas complejos de inventario y transacciones a gran escala.",
+    "proj4_tags": ["React", "Express", "MySQL", "Stripe"],
+    "proj5_title": "Servicio de Imágenes Médicas",
+    "proj5_desc": "Un servicio seguro y conforme a regulaciones para que clínicas compartan y analicen imágenes de ultrasonido al instante con pacientes y especialistas.",
+    "proj5_tags": ["React Native", "Firebase", "AWS S3"]
+  },
   "language": {
     "switch": "English"
   }

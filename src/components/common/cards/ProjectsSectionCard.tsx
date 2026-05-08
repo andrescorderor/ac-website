@@ -3,26 +3,24 @@ import { useState } from 'react';
 import { FaExternalLinkSquareAlt } from 'react-icons/fa';
 
 import { DynamicButton } from '../buttons/DynamicButton';
-import { ProjectsSectionCardProps } from '@mocks/ProjectsSectionMocks';
-
-interface ProjectsSectionCardImage extends ProjectsSectionCardProps {
+interface ProjectsSectionCardProps {
   image: string;
+  title: string;
+  description: string;
+  tags: string[];
 }
 
 export default function ProjectsSectionCard({
   image,
-  link,
   title,
-}: ProjectsSectionCardImage) {
+  description,
+  tags,
+}: ProjectsSectionCardProps) {
   const [isGrabbing, setIsGrabbing] = useState(false);
-
-  const handleOpenLink = () => {
-    window.open(link, '_blank');
-  };
 
   return (
     <div
-      className={`relative bg-cover bg-center p-6 lg:p-24 overflow-hidden rounded-lg mx-2 lg:mx-0 ${
+      className={`group relative bg-cover bg-center p-6 lg:p-24 overflow-hidden rounded-lg mx-2 lg:mx-0 ${
         isGrabbing ? 'cursor-grabbing' : 'cursor-grab'
       }`}
       style={{
@@ -34,18 +32,22 @@ export default function ProjectsSectionCard({
       onMouseUp={() => setIsGrabbing(false)}
       onMouseLeave={() => setIsGrabbing(false)}
     >
-      <div className="absolute inset-x-0 bottom-0 p-6 lg:px-24 lg:py-12 bg-gradient-to-t from-black via-black/80 to-transparent pt-32">
-        <h3 className="font-dm-sans w-full lg:w-3/4 text-2xl sm:text-3xl lg:text-5xl pb-4 lg:pb-8 font-light tracking-tight leading-tight text-[var(--white)] drop-shadow-md">
+      <div className="absolute inset-x-0 bottom-0 p-6 lg:px-24 lg:py-12 bg-gradient-to-t from-black via-black/90 to-transparent pt-32 translate-y-8 group-hover:translate-y-0 transition-transform duration-500 ease-out">
+        <h3 className="font-dm-sans w-full lg:w-3/4 text-2xl sm:text-3xl lg:text-4xl pb-2 font-medium tracking-tight leading-tight text-[var(--white)] drop-shadow-md">
           {title}
         </h3>
+        
+        <p className="font-inter text-sm lg:text-base text-[var(--light-gray)] font-light leading-relaxed mb-6 opacity-0 group-hover:opacity-100 transition-opacity duration-500 delay-100 line-clamp-3">
+          {description}
+        </p>
 
-        <DynamicButton
-          style="WHITE"
-          type="full-static"
-          icon={FaExternalLinkSquareAlt}
-          name="View Project"
-          onClick={handleOpenLink}
-        />
+        <div className="flex flex-wrap gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-500 delay-200">
+          {tags && tags.map((tag, i) => (
+            <span key={i} className="px-3 py-1 bg-[var(--deep-navy-blue)] text-[var(--white)] text-xs font-syne font-medium rounded-full border border-[var(--vibrant-sky-blue)]/30 backdrop-blur-sm">
+              {tag}
+            </span>
+          ))}
+        </div>
       </div>
     </div>
   );
