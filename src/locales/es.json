@@ -69,19 +69,19 @@
     "title": "Hablemos de tu proyecto"
   },
   "experience": {
-    "title": "Mi Trayectoria",
-    "exp1_title": "Ingeniero de Software y Gestor de Proyectos",
-    "exp1_company": "Proyectos Freelance",
-    "exp1_desc": "Desarrollo de soluciones de software a medida, páginas de aterrizaje y gestión de infraestructura en la nube con AWS. Enfocado en ofrecer experiencias de usuario de alta calidad.",
-    "exp2_title": "Expositor y Desarrollador",
-    "exp2_company": "Volkswagen (Hannover Messe)",
-    "exp2_desc": "Presenté un proyecto tecnológico innovador para Volkswagen en la feria industrial Hannover Messe, demostrando habilidades técnicas y de presentación.",
-    "exp3_title": "Ganador de Hackathon",
-    "exp3_company": "Mejora Regulatoria 2.0",
-    "exp3_desc": "Obtuve el 1er lugar compitiendo contra más de 30 equipos mediante el desarrollo de una solución eficiente bajo presión. También logré el 2do lugar en el VW GTO 2.0 Challenge.",
+    "title": "Experiencia Profesional",
+    "exp1_title": "Líder de Aseguramiento de Calidad",
+    "exp1_company": "CBQA Solutions Inc.",
+    "exp1_desc": "Liderazgo del departamento de QA, estableciendo protocolos de pruebas rigurosos e integrando flujos de automatización. Gestión del ciclo de vida de los proyectos para garantizar entregas de software de alta calidad.",
+    "exp2_title": "Project Manager & QA Lead",
+    "exp2_company": "Uanify",
+    "exp2_desc": "Dirección de proyectos de desarrollo de software utilizando metodologías ágiles. Coordinación de equipos multidisciplinarios para alinear los objetivos comerciales con la ejecución técnica.",
+    "exp3_title": "Desarrollador Web y Diseñador UX/UI",
+    "exp3_company": "Freelance",
+    "exp3_desc": "Entrega de soluciones digitales integrales, incluyendo aplicaciones web a medida e interfaces interactivas, con un fuerte enfoque en el diseño centrado en el usuario.",
     "exp4_title": "Ingeniería en Software y Sistemas",
-    "exp4_company": "Universidad La Salle Bajío",
-    "exp4_desc": "Educación integral en arquitectura de software, algoritmos y gestión de proyectos. Graduado con honores."
+    "exp4_company": "Universidad de La Salle Bajío",
+    "exp4_desc": "Formación integral en arquitectura de software, algoritmos y gestión de proyectos. Consolidación de bases sólidas en paradigmas de desarrollo front-end y back-end."
   },
   "language": {
     "switch": "English"

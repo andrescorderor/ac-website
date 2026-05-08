@@ -69,19 +69,19 @@
     "title": "Let's discuss your project"
   },
   "experience": {
-    "title": "My Journey",
-    "exp1_title": "Software Engineer & Project Manager",
-    "exp1_company": "Freelance / Projects",
-    "exp1_desc": "Developing custom software solutions, landing pages, and managing cloud infrastructure using AWS. Focused on delivering high-quality user experiences.",
-    "exp2_title": "Exhibitor & Developer",
-    "exp2_company": "Volkswagen (Hannover Messe)",
-    "exp2_desc": "Presented an innovative tech project for Volkswagen at the Hannover Messe Industrial Fair, showcasing technical and presentation skills.",
-    "exp3_title": "Hackathon Winner",
-    "exp3_company": "Mejora Regulatoria 2.0",
-    "exp3_desc": "Achieved 1st place competing against 30+ teams by building an efficient software solution under pressure. Also secured 2nd place at the VW GTO 2.0 Challenge.",
-    "exp4_title": "Systems and Software Engineering",
-    "exp4_company": "La Salle Bajío University",
-    "exp4_desc": "Comprehensive education in software architecture, algorithms, and project management. Graduated with honors."
+    "title": "Professional Experience",
+    "exp1_title": "Quality Assurance Team Lead",
+    "exp1_company": "CBQA Solutions Inc.",
+    "exp1_desc": "Led the QA department, establishing robust testing protocols and integrating automated testing pipelines. Managed project lifecycles to ensure high-quality software delivery.",
+    "exp2_title": "Project Manager & QA Lead",
+    "exp2_company": "Uanify",
+    "exp2_desc": "Directed software development projects utilizing agile methodologies. Coordinated cross-functional teams to align business goals with technical execution while maintaining rigorous QA standards.",
+    "exp3_title": "Web Developer & UX/UI Designer",
+    "exp3_company": "Freelance",
+    "exp3_desc": "Delivered comprehensive digital solutions including custom web applications and interactive interfaces, focusing on user-centered design and seamless performance.",
+    "exp4_title": "Software Engineering Degree",
+    "exp4_company": "Universidad de La Salle Bajío",
+    "exp4_desc": "Comprehensive education in software architecture, algorithms, and project management. Solidified foundation in both front-end and back-end paradigms."
   },
   "language": {
     "switch": "Español"

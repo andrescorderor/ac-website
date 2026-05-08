@@ -5,28 +5,28 @@ export default function ExperienceSection() {
 
   const experiences = [
     {
-      year: '2024',
-      title: t('experience.exp1_title', 'Software Engineer & Project Manager'),
-      company: t('experience.exp1_company', 'Freelance / Projects'),
-      description: t('experience.exp1_desc', 'Developing custom software solutions, landing pages, and managing cloud infrastructure using AWS. Focused on delivering high-quality user experiences.'),
+      year: '2023 - Present',
+      title: t('experience.exp1_title', 'Quality Assurance Team Lead'),
+      company: t('experience.exp1_company', 'CBQA Solutions Inc.'),
+      description: t('experience.exp1_desc', 'Led the QA department, establishing robust testing protocols and integrating automated testing pipelines. Managed project lifecycles to ensure high-quality software delivery.'),
     },
     {
-      year: '2023',
-      title: t('experience.exp2_title', 'Exhibitor & Developer'),
-      company: t('experience.exp2_company', 'Volkswagen (Hannover Messe)'),
-      description: t('experience.exp2_desc', 'Presented an innovative tech project for Volkswagen at the Hannover Messe Industrial Fair, showcasing technical and presentation skills.'),
+      year: '2023 - Present',
+      title: t('experience.exp2_title', 'Project Manager & QA Lead'),
+      company: t('experience.exp2_company', 'Uanify'),
+      description: t('experience.exp2_desc', 'Directed software development projects utilizing agile methodologies. Coordinated cross-functional teams to align business goals with technical execution while maintaining rigorous QA standards.'),
     },
     {
-      year: '2022',
-      title: t('experience.exp3_title', 'Hackathon Winner'),
-      company: t('experience.exp3_company', 'Mejora Regulatoria 2.0'),
-      description: t('experience.exp3_desc', 'Achieved 1st place competing against 30+ teams by building an efficient software solution under pressure. Also secured 2nd place at the VW GTO 2.0 Challenge.'),
+      year: '2023 - 2024',
+      title: t('experience.exp3_title', 'Web Developer & UX/UI Designer'),
+      company: t('experience.exp3_company', 'Freelance'),
+      description: t('experience.exp3_desc', 'Delivered comprehensive digital solutions including custom web applications and interactive interfaces, focusing on user-centered design and seamless performance.'),
     },
     {
       year: '2020 - 2024',
-      title: t('experience.exp4_title', 'Systems and Software Engineering'),
-      company: t('experience.exp4_company', 'La Salle Bajío University'),
-      description: t('experience.exp4_desc', 'Comprehensive education in software architecture, algorithms, and project management. Graduated with honors.'),
+      title: t('experience.exp4_title', 'Software Engineering Degree'),
+      company: t('experience.exp4_company', 'Universidad de La Salle Bajío'),
+      description: t('experience.exp4_desc', 'Comprehensive education in software architecture, algorithms, and project management.'),
     },
   ];
 
