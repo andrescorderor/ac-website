@@ -9,8 +9,10 @@ import ProjectsSectionCard from '@components/common/cards/ProjectsSectionCard';
 import { useKeenSlider } from 'keen-slider/react';
 import 'keen-slider/keen-slider.min.css';
 import { projectsSectionMocks } from '@mocks/ProjectsSectionMocks';
+import { useTranslation } from 'react-i18next';
 
 export default function ProjectsSection() {
+  const { t } = useTranslation();
   const [currentSlide, setCurrentSlide] = useState(0);
   const [sliderRef, slider] = useKeenSlider({
     loop: true,
@@ -38,10 +40,10 @@ export default function ProjectsSection() {
         <div className="bg-gradient-to-l from-[var(--black)] to-transparent text-[var(--white)] ">
           <div className="flex flex-col lg:flex-row bg-gradient-to-r from-[var(--black)]  to-transparent p-6 md:p-12 lg:p-16 lg:px-36 gap-6 lg:gap-0">
             <h2 className="font-dm-sans flex flex-col justify-end text-5xl sm:text-7xl lg:text-[6rem] font-light tracking-tight leading-tight hover:cursor-default">
-              My portfolio
+              {t('portfolio.title')}
             </h2>
             <p className="font-dm-sans lg:ml-auto flex w-full lg:w-1/4 flex-col justify-center gap-4 lg:gap-8 text-start text-lg lg:text-xl font-light tracking-wide text-[var(--light-gray)]">
-              Take a look at my portfolio
+              {t('portfolio.subtitle')}
             </p>
           </div>
         </div>

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { CertificationsSectionCardProps } from '@mocks/CertificationsSectionMocks';
-import { HiOutlineExternalLink } from 'react-icons/hi';
 import { DynamicButton } from '../buttons/DynamicButton';
+import { useTranslation } from 'react-i18next';
 
 export default function CertificationsSectionCard({
   link,
@@ -9,6 +9,7 @@ export default function CertificationsSectionCard({
   title,
   subtitle,
 }: CertificationsSectionCardProps) {
+  const { t } = useTranslation();
   const [isGrabbing, setIsGrabbing] = useState(false);
 
   const handleOpenLink = () => {
@@ -27,7 +28,7 @@ export default function CertificationsSectionCard({
     >
       <div className="">
         <p className="animate-gradient-random font-syne inline-block rounded-full bg-[var(--soft-light-gray)] bg-opacity-50 bg-gradient-to-r from-[var(--deep-navy-blue)] via-[var(--vibrant-sky-blue)] to-[var(--magenta-pink)] p-1 px-4 text-base font-semibold text-[var(--white)]">
-          CERTIFICATION
+          {t('certifications.title').toUpperCase()}
         </p>
       </div>
 
@@ -42,8 +43,8 @@ export default function CertificationsSectionCard({
           <DynamicButton
             style="WHITE"
             type="full-dynamic"
-            icon={HiOutlineExternalLink}
-            name="View Certification"
+            icon={undefined}
+            name={t('certifications.view')}
             onClick={handleOpenLink}
           />
         </div>

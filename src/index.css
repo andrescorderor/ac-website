@@ -10,12 +10,12 @@
 :root {
   --black: #0a0a0a;
   --white: #ffffff;
-  --deep-navy-blue: #111827;
-  --deep-navy-blue-light: #f3f4f6;
-  --vibrant-sky-blue: #4b5563;
-  --vibrant-sky-blue-light: #f9fafb;
-  --magenta-pink: #9ca3af;
-  --magenta-pink-light: #ffffff;
+  --deep-navy-blue: #0f172a; /* Slate 900 */
+  --deep-navy-blue-light: #f8fafc;
+  --vibrant-sky-blue: #2563eb; /* Blue 600 */
+  --vibrant-sky-blue-light: #eff6ff;
+  --magenta-pink: #0ea5e9; /* Sky 500 */
+  --magenta-pink-light: #e0f2fe;
   --soft-light-gray: #f4f4f5;
   --light-gray: #e4e4e7;
   --gray: #a1a1aa;

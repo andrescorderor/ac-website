@@ -1,8 +1,12 @@
 /* eslint-disable tailwindcss/no-custom-classname */
 /* eslint-disable tailwindcss/migration-from-tailwind-2 */
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import { DynamicButton } from './buttons/DynamicButton';
+import { MdLanguage } from 'react-icons/md';
 
 export default function Header() {
+  const { t, i18n } = useTranslation();
   const [showNavbar, setShowNavbar] = useState(true);
 
   useEffect(() => {
@@ -38,7 +42,9 @@ export default function Header() {
             Andrés Cordero.
           </p> */}
         </div>
-        {/* <DynamicButton type="full-static" name="Language" style="WHITE" /> */}
+        <div onClick={() => i18n.changeLanguage(i18n.language === 'es' ? 'en' : 'es')}>
+          <DynamicButton type="full-static" name={t('language.switch')} icon={MdLanguage} style="WHITE" />
+        </div>
       </div>
     </nav>
   );

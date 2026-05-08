@@ -1,6 +1,7 @@
 import { StrictMode } from 'react';
 
 import './index.css';
+import './i18n';
 import Cursor from '@components/common/Cursor';
 import Layout from '@components/common/Layout';
 import Home from '@pages/Home';

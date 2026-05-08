@@ -1,4 +1,5 @@
 import { useEffect, useState, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 
 import { heroParagraph } from '@mocks/HomeMocks';
 import { motion } from 'framer-motion';
@@ -6,22 +7,11 @@ import { motion } from 'framer-motion';
 import HeroCircles from './HeroCircles';
 
 export default function Hero() {
+  const { t } = useTranslation();
+  
   const phrases = useMemo(
-    () => [
-      'better',
-      'useful',
-      'creative',
-      'efficient',
-      'impactful',
-      'accessible',
-      'scalable',
-      'innovative',
-      'simple',
-      'effective',
-      'possible',
-      'happen',
-    ],
-    [],
+    () => t('hero.phrases', { returnObjects: true }) as string[],
+    [t],
   );
 
   const [currentPhraseIndex, setCurrentPhraseIndex] = useState(0);
@@ -83,7 +73,7 @@ export default function Hero() {
       <div className="flex flex-col lg:flex-row items-center px-6 md:px-16 lg:px-36 pb-16 lg:pb-36 pt-24 lg:pt-28 gap-12 lg:gap-0">
         <div>
           <h1 className="font-dm-sans text-5xl sm:text-7xl lg:text-[8rem] font-medium leading-none tracking-tight text-[var(--dark-gray)]">
-            Make it
+            {t('hero.make_it')}
           </h1>
           <div className="flex">
             <motion.h1
@@ -114,7 +104,7 @@ export default function Hero() {
               className="size-16 rounded-full border border-[var(--light-gray)] shadow-sm"
             />
             <p className="font-inter text-lg lg:text-2xl font-light tracking-wide text-[var(--dark-gray)] leading-relaxed">
-              {heroParagraph.text}
+              {t('hero.paragraph')}
             </p>
           </div>
         </div>

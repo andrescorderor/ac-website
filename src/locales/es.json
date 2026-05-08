@@ -1,0 +1,70 @@
+{
+  "hero": {
+    "make_it": "Hazlo",
+    "phrases": [
+      "mejor",
+      "útil",
+      "creativo",
+      "eficiente",
+      "impactante",
+      "accesible",
+      "escalable",
+      "innovador",
+      "simple",
+      "efectivo",
+      "posible",
+      "realidad"
+    ],
+    "paragraph": "Desarrollador front-end y gestor de proyectos especializado en soluciones innovadoras, aseguramiento de calidad y coordinación de equipos."
+  },
+  "roles": {
+    "qa": "Aseguramiento de Calidad",
+    "pm": "Gestión de Proyectos",
+    "sd": "Desarrollo de Software"
+  },
+  "expertise": {
+    "title": "Mi experiencia",
+    "pm_title": "GESTIÓN DE PROYECTOS",
+    "pm_subtitle": "Planificación y coordinación eficientes para el éxito.",
+    "pm_paragraph": "Con experiencia liderando equipos mediante metodologías ágiles, ofrezco servicios de gestión enfocados en optimizar flujos de trabajo, resolver bloqueos y entregar resultados de alta calidad.",
+    "pm_header_title": "Gestión de Proyectos",
+    "pm_header_paragraph": "Como Project Manager, he liderado con éxito múltiples proyectos en el sector público y privado. Mi enfoque es alinear los objetivos del negocio con las necesidades del cliente, asegurando una ejecución impecable mediante metodologías ágiles.",
+    "sd_title": "DESARROLLO DE SOFTWARE",
+    "sd_subtitle": "Soluciones de software personalizadas para tu negocio.",
+    "sd_paragraph": "Ofrezco servicios de desarrollo front-end utilizando frameworks y herramientas de diseño modernas, asegurando una experiencia de usuario fluida y una arquitectura robusta.",
+    "sd_header_title": "Desarrollo de Software",
+    "sd_header_paragraph": "Con una sólida formación en desarrollo front-end, me especializo en diseñar y desarrollar interfaces y experiencias centradas en el usuario. Mi trabajo se enfoca en implementar características responsivas y visualmente atractivas que elevan la experiencia general.",
+    "qa_title": "ASEGURAMIENTO DE CALIDAD",
+    "qa_subtitle": "Estrategias completas de QA para mantener la excelencia.",
+    "qa_paragraph": "Mediante pruebas manuales y automatizadas, aseguro la calidad y confiabilidad de tus productos de software, aprovechando herramientas y técnicas para optimizar los procesos de prueba.",
+    "qa_header_title": "Aseguramiento de Calidad",
+    "qa_header_paragraph": "Como ingeniero de QA, mi enfoque es garantizar que cada proyecto cumpla con los más altos estándares. Realizo pruebas manuales y automatizadas para identificar y resolver problemas, garantizando una experiencia fluida."
+  },
+  "portfolio": {
+    "title": "Mi portafolio",
+    "subtitle": "Echa un vistazo a mi trabajo"
+  },
+  "certifications": {
+    "title": "Certificaciones",
+    "view": "Ver Certificación"
+  },
+  "contact": {
+    "title1": "¿Tienes ideas? Tengo las habilidades.",
+    "title2": "¡Hagamos equipo!",
+    "subtitle": "Cuéntame un poco más sobre ti y tu proyecto",
+    "name_placeholder": "Tu nombre",
+    "email_placeholder": "tu@correo.com",
+    "project_label": "Cuéntame sobre tu proyecto",
+    "project_placeholder": "Explica un poco...",
+    "submit": "¡Comencemos!"
+  },
+  "footer": {
+    "quote1": "\"Haz que suceda. La mejor forma de",
+    "quote2": "predecir el futuro es creándolo.\"",
+    "rights": "Todos los derechos reservados.",
+    "contact_button": "Ponte en contacto"
+  },
+  "language": {
+    "switch": "English"
+  }
+}

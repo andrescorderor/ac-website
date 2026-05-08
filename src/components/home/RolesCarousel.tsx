@@ -2,8 +2,10 @@ import { useEffect, useState } from 'react';
 
 import { rolesCarousel } from '@mocks/HomeMocks';
 import { motion } from 'framer-motion';
+import { useTranslation } from 'react-i18next';
 
 export default function RolesCarousel() {
+  const { t } = useTranslation();
   const [scrollY, setScrollY] = useState(0);
 
   useEffect(() => {
@@ -36,7 +38,7 @@ export default function RolesCarousel() {
               duration: 2.5,
             }}
           >
-            {rolesCarousel[0].role}
+            {t('roles.qa')}
           </motion.h3>
           <motion.h3
             className="text-[var(--white)]"
@@ -47,7 +49,7 @@ export default function RolesCarousel() {
               duration: 2.5,
             }}
           >
-            {rolesCarousel[1].role}
+            {t('roles.pm')}
           </motion.h3>
           <motion.h3
             className="text-[var(--white)]"
@@ -58,7 +60,7 @@ export default function RolesCarousel() {
               duration: 2.5,
             }}
           >
-            {rolesCarousel[2].role}
+            {t('roles.sd')}
           </motion.h3>
         </div>
       </div>

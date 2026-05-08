@@ -5,8 +5,10 @@ import { IoLogoWhatsapp, IoMdMail } from 'react-icons/io';
 
 import { DynamicButton } from './buttons/DynamicButton';
 import { ContactButton } from './buttons/ContactButton';
+import { useTranslation } from 'react-i18next';
 
 export default function Footer() {
+  const { t } = useTranslation();
   const currentYear = new Date().getFullYear();
   return (
     <footer className="bg-[var(--white)] ">
@@ -14,9 +16,9 @@ export default function Footer() {
         <div>
           <div className="pointer-events-none flex flex-col">
             <p className="font-dm-sans font-light tracking-tight mb-4 text-2xl lg:text-4xl leading-snug text-[var(--dark-gray)]">
-              &quot;Make it happen. The best way to
+              {t('footer.quote1')}
               <br />
-              predict the future is to create it.&quot;
+              {t('footer.quote2')}
             </p>
             <p className="font-syne text-start text-xl lg:text-2xl font-medium tracking-wide text-[var(--gray)]">
               Peter Drucker
@@ -94,7 +96,7 @@ export default function Footer() {
       </div>
       <div className="animate-gradient-rotate h-1 w-full bg-gradient-to-r from-[var(--deep-navy-blue)] via-[var(--vibrant-sky-blue)] to-[var(--magenta-pink)]" />
       <p className="font-dm-sans pointer-events-none my-4 text-center text-sm text-[var(--black)] ">
-        © Andrés Cordero {currentYear} • All rights reserved.
+        © Andrés Cordero {currentYear} • {t('footer.rights')}
       </p>
     </footer>
   );

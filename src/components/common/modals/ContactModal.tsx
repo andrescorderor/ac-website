@@ -11,6 +11,7 @@ import emailjs from 'emailjs-com';
 import { useForm } from 'react-hook-form';
 import { Bounce, toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import { useTranslation } from 'react-i18next';
 
 interface ModalProps {
   isOpen: boolean;
@@ -29,6 +30,7 @@ const modalVariants = {
 };
 
 export default function ContactModal({ isOpen, onClose }: ModalProps) {
+  const { t } = useTranslation();
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = 'hidden';
@@ -238,11 +240,11 @@ export default function ContactModal({ isOpen, onClose }: ModalProps) {
                 />
               </div>
               <div className="leading-tight text-[var(--white)] font-light tracking-tight pb-4 font-dm-sans text-3xl lg:text-5xl cursor-default pr-12">
-                <p>Got ideas? I&apos;ve got the skills.</p>
-                <p>Let&apos;s team Up!</p>
+                <p>{t('contact.title1')}</p>
+                <p>{t('contact.title2')}</p>
               </div>
               <p className="font-inter pb-8 text-lg lg:text-xl font-extralight text-[var(--gray)] break-words cursor-default">
-                Tell me more about yourself and what&apos;s on your mind
+                {t('contact.subtitle')}
               </p>
               <div>
                 <ToastContainer />
@@ -251,7 +253,7 @@ export default function ContactModal({ isOpen, onClose }: ModalProps) {
                     <input
                       id="fullName"
                       type="text"
-                      placeholder="Your name"
+                      placeholder={t('contact.name_placeholder')}
                       className="font-dm-sans w-full border-b bg-none px-3 py-2 bg-[var(--black)] focus:outline-none"
                       {...register('fullName', {
                         required: 'This field is required',
@@ -268,7 +270,7 @@ export default function ContactModal({ isOpen, onClose }: ModalProps) {
                     <input
                       id="mailAddress"
                       type="email"
-                      placeholder="you@mail.com"
+                      placeholder={t('contact.email_placeholder')}
                       className="font-dm-sans w-full border-b bg-none px-3 py-2 bg-[var(--black)] focus:outline-none"
                       {...register('mailAddress', {
                         required: 'Email is mandatory',
@@ -288,11 +290,11 @@ export default function ContactModal({ isOpen, onClose }: ModalProps) {
 
                   <div className="mb-6">
                     <p className="font-syne text-var[--white]">
-                      Tell me a little about your project
+                      {t('contact.project_label')}
                     </p>
                     <textarea
                       id="message"
-                      placeholder="Explain a little..."
+                      placeholder={t('contact.project_placeholder')}
                       className="font-dm-sans w-full border rounded-lg bg-none px-3 py-2 bg-[var(--black)] focus:outline-none"
                       rows={3}
                       {...register('message')}
@@ -343,7 +345,7 @@ export default function ContactModal({ isOpen, onClose }: ModalProps) {
                     type="submit"
                     className="w-full animate-gradient-random font-syne inline-block rounded-full bg-[var(--soft-light-gray)] bg-opacity-50 bg-gradient-to-r from-[var(--deep-navy-blue)] via-[var(--vibrant-sky-blue)] to-[var(--magenta-pink)] p-4 px-4 text-base font-semibold text-[var(--white)]"
                   >
-                    Let&apos;s get started!
+                    {t('contact.submit')}
                   </button>
                 </form>
               </div>

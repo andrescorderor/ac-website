@@ -1,10 +1,10 @@
 <div align="center">
   <img src="public/assets/ac-website-icon.svg" alt="Logo" width="100" />
   
-  # Andrés Cordero - Portafolio Profesional ✨
+  # Andrés Cordero - Professional Portfolio ✨
   
-  **Bienvenido a mi sitio web personal y portafolio interactivo.**  
-  Construido con las mejores prácticas de UX/UI, diseño moderno y tecnología de punta.
+  **Welcome to my personal website and interactive portfolio.**  
+  Built with UX/UI best practices, modern design, and cutting-edge technology.
 
   [![React](https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)](https://reactjs.org/)
   [![Vite](https://img.shields.io/badge/Vite-B73BFE?style=for-the-badge&logo=vite&logoColor=FFD62E)](https://vitejs.dev/)
@@ -15,81 +15,81 @@
 
 ---
 
-## 🚀 Sobre este proyecto
+## 🚀 About This Project
 
-Este repositorio contiene el código fuente de mi *landing page* profesional. El objetivo principal de este proyecto es mostrar mi experiencia, habilidades tecnológicas y trayectoria como **Ingeniero de Software especializado en Desarrollo Frontend y Gestión de Proyectos**. 
+This repository contains the source code for my professional *landing page*. The main goal of this project is to showcase my experience, technical skills, and background as a **Software Engineer specializing in Frontend Development and Project Management**.
 
-La interfaz fue rediseñada para ser completamente **Responsiva (Mobile-First)**, garantizando una experiencia de usuario (UX) fluida, moderna y atractiva en cualquier tipo de pantalla.
-
----
-
-## 👨‍💻 Sobre mí
-
-Soy un apasionado de la tecnología con experiencia en desarrollo web, diseño de interfaces y aseguramiento de calidad (QA). Mi enfoque principal es crear soluciones escalables e interfaces que los usuarios amen utilizar.
-
-🌟 **Puntos Destacados:**
-- 🛠️ Desarrollo de aplicaciones web complejas y *landing pages* interactivas.
-- 🎨 Implementación de interfaces atractivas con enfoque total en UI/UX.
-- ☁️ Gestión de bases de datos y servicios en la nube como AWS.
-- 📈 Liderazgo y metodologías ágiles para una entrega de proyectos eficiente.
-
-### 🎓 Formación y Logros
-
-- 🎓 **Ingeniería en Sistemas y Software** | Universidad La Salle Bajío (2020-2024)
-- 🏆 **1er Lugar** | Hackathon Mejora Regulatoria 2.0 (Compitiendo contra 30+ equipos).
-- 🥈 **2do Lugar** | Reto VW GTO 2.0.
-- 🌍 **Expositor** | Proyecto para Volkswagen en la Feria Industrial Hannover Messe.
+The interface was redesigned to be completely **Responsive (Mobile-First)**, ensuring a fluid, modern, and engaging user experience (UX) across all screen sizes.
 
 ---
 
-## 🛠️ Stack Tecnológico
+## 👨‍💻 About Me
 
-El proyecto ha sido desarrollado utilizando las siguientes tecnologías:
+I am a technology enthusiast with experience in web development, interface design, and quality assurance (QA). My main focus is on creating scalable solutions and interfaces that users love to interact with.
 
-* ⚛️ **React + TypeScript**: Para una estructura de componentes sólida, escalable y libre de errores.
-* ⚡ **Vite**: Como entorno de desarrollo ultra rápido.
-* 🎨 **Tailwind CSS**: Para el diseño visual, estilos flexibles y adaptabilidad responsiva (100% Mobile-Friendly).
-* 🎞️ **Framer Motion**: Para las animaciones fluidas y transiciones atractivas a lo largo del sitio.
+🌟 **Highlights:**
+- 🛠️ Development of complex web applications and interactive *landing pages*.
+- 🎨 Implementation of attractive interfaces with a strong focus on UI/UX.
+- ☁️ Database management and cloud services like AWS.
+- 📈 Leadership and agile methodologies for efficient project delivery.
+
+### 🎓 Education and Achievements
+
+- 🎓 **Software and Systems Engineering** | Universidad La Salle Bajío (2020-2024)
+- 🏆 **1st Place** | Hackathon Mejora Regulatoria 2.0 (Competing against 30+ teams).
+- 🥈 **2nd Place** | VW GTO 2.0 Challenge.
+- 🌍 **Exhibitor** | Project for Volkswagen at the Hannover Messe Industrial Fair.
 
 ---
 
-## ⚙️ Instalación y Uso Local
+## 🛠️ Tech Stack
 
-¿Quieres probar el proyecto en tu máquina local? Sigue estos sencillos pasos:
+This project was built using the following technologies:
 
-1. **Clona el repositorio:**
+* ⚛️ **React + TypeScript**: For a solid, scalable, and bug-free component architecture.
+* ⚡ **Vite**: As an ultra-fast development environment.
+* 🎨 **Tailwind CSS**: For visual design, flexible styling, and responsive layout (100% Mobile-Friendly).
+* 🎞️ **Framer Motion**: For fluid animations and engaging transitions throughout the site.
+
+---
+
+## ⚙️ Local Setup
+
+Want to try out the project on your local machine? Follow these simple steps:
+
+1. **Clone the repository:**
    ```bash
    git clone https://github.com/andresxordero/ac-website.git
    ```
 
-2. **Entra al directorio del proyecto:**
+2. **Navigate to the project directory:**
    ```bash
    cd ac-website
    ```
 
-3. **Instala las dependencias:**
-   Usando Yarn (recomendado):
+3. **Install dependencies:**
+   Using Yarn (recommended):
    ```bash
    yarn install
    ```
-   *O si prefieres NPM:*
+   *Or if you prefer NPM:*
    ```bash
    npm install
    ```
 
-4. **Inicia el servidor de desarrollo:**
+4. **Start the development server:**
    ```bash
    yarn dev
    ```
 
-5. **Abre tu navegador:**  
-   Dirígete a `http://localhost:5173/` y explora el portafolio en vivo.
+5. **Open your browser:**  
+   Go to `http://localhost:5173/` and explore the live portfolio.
 
 ---
 
-## 📬 Contacto
+## 📬 Contact
 
-Si te gusta lo que ves o tienes alguna propuesta de proyecto, no dudes en contactarme:
+If you like what you see or have a project proposal, feel free to reach out:
 
 - 💼 **LinkedIn**: [andresmcorderor](https://www.linkedin.com/in/andresmcorderor/)
 - 💻 **GitHub**: [andrescorderor](https://github.com/andrescorderor)
@@ -97,5 +97,5 @@ Si te gusta lo que ves o tienes alguna propuesta de proyecto, no dudes en contac
 ---
 
 <div align="center">
-  <sub>Hecho con ❤️ y código limpio.</sub>
+  <sub>Made with ❤️ and clean code.</sub>
 </div>

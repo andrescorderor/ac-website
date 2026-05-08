@@ -1,9 +1,11 @@
 import { useState } from 'react';
 import { DynamicButton } from './DynamicButton';
-import { FaArrowRight } from 'react-icons/fa';
 import ContactModal from '../modals/ContactModal';
+import { FaArrowRight } from 'react-icons/fa';
+import { useTranslation } from 'react-i18next';
 
 export function ContactButton() {
+  const { t } = useTranslation();
   const [, setIsExpanded] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -18,8 +20,8 @@ export function ContactButton() {
 
   return (
     <div>
-      <div className="font-syne flex items-center gap-4 font-bold">
-        Let&apos;s get in contact
+      <div className="font-syne flex items-center gap-4 font-bold text-[var(--dark-gray)]">
+        {t('footer.contact_button')}
         <DynamicButton
           style="WHITE"
           name="Become a client"
