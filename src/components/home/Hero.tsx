@@ -119,7 +119,7 @@ export default function Hero() {
                 }}>
                   <DynamicButton
                     style="BLACK"
-                    type="full-dynamic"
+                    type="full-static"
                     name={t('hero.cta_work', 'View My Work')}
                   />
                 </a>

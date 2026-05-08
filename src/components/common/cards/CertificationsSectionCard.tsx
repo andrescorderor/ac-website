@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { CertificationsSectionCardProps } from '@mocks/CertificationsSectionMocks';
 import { DynamicButton } from '../buttons/DynamicButton';
 import { useTranslation } from 'react-i18next';
+import { HiOutlineExternalLink } from 'react-icons/hi';
 
 export default function CertificationsSectionCard({
   link,
@@ -43,7 +44,7 @@ export default function CertificationsSectionCard({
           <DynamicButton
             style="WHITE"
             type="full-dynamic"
-            icon={undefined}
+            icon={HiOutlineExternalLink}
             name={t('certifications.view')}
             onClick={handleOpenLink}
           />
