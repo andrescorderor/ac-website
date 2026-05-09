@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
-import { motion } from 'framer-motion';
-import { HiOutlinePlus, HiOutlineTrash, HiOutlineCheck } from 'react-icons/hi';
+import { HiOutlineTrash } from 'react-icons/hi';
 
 type Debt = {
   id: string;
