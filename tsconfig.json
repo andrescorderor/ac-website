@@ -24,7 +24,8 @@
       "@interfaces/*": ["interfaces/*"],
       "@components/*": ["components/*"],
       "@assets/*": ["assets/*"],
-      "@pages/*": ["pages/*"]
+      "@pages/*": ["pages/*"],
+      "@/*": ["*"]
     },
 
     "incremental": true,

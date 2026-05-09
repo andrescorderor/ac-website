@@ -7,6 +7,16 @@ import Layout from '@components/common/Layout';
 import Home from '@pages/Home';
 import { createRoot } from 'react-dom/client';
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
+import { registerSW } from 'virtual:pwa-register';
+
+import Login from '@pages/admin/Login';
+import DashboardLayout from '@components/admin/DashboardLayout';
+import DashboardHome from '@pages/admin/DashboardHome';
+import Finanzas from '@pages/admin/Finanzas';
+import Pendientes from '@pages/admin/Pendientes';
+import Deudas from '@pages/admin/Deudas';
+
+registerSW({ immediate: true });
 
 const router = createBrowserRouter([
   {
@@ -16,6 +26,32 @@ const router = createBrowserRouter([
       {
         path: '/',
         element: <Home />,
+      },
+    ],
+  },
+  {
+    path: '/admin',
+    element: <Login />,
+  },
+  {
+    path: '/admin/panel',
+    element: <DashboardLayout />,
+    children: [
+      {
+        index: true,
+        element: <DashboardHome />,
+      },
+      {
+        path: 'finanzas',
+        element: <Finanzas />,
+      },
+      {
+        path: 'pendientes',
+        element: <Pendientes />,
+      },
+      {
+        path: 'deudas',
+        element: <Deudas />,
       },
     ],
   },

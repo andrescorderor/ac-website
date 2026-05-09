@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { DynamicButton } from './buttons/DynamicButton';
 import { MdLanguage } from 'react-icons/md';
+import { HiOutlineShieldCheck } from 'react-icons/hi';
 
 export default function Header() {
   const { t, i18n } = useTranslation();
@@ -42,11 +43,20 @@ export default function Header() {
             Andrés Cordero.
           </p>
         </div>
-        <div 
-          className="cursor-pointer"
-          onClick={() => i18n.changeLanguage(i18n.language === 'es' ? 'en' : 'es')}
-        >
-          <DynamicButton type="full-static" name={t('language.switch')} icon={MdLanguage} style="BLACK" />
+        <div className="flex items-center gap-2">
+          <div 
+            className="cursor-pointer"
+            onClick={() => i18n.changeLanguage(i18n.language === 'es' ? 'en' : 'es')}
+          >
+            <DynamicButton type="full-static" name={t('language.switch')} icon={MdLanguage} style="BLACK" />
+          </div>
+          <div 
+            className="cursor-pointer"
+            title="Admin Access"
+            onClick={() => window.location.href = '/admin'}
+          >
+            <DynamicButton type="icon-only" name="Admin" icon={HiOutlineShieldCheck} style="WHITE" />
+          </div>
         </div>
       </div>
     </nav>
