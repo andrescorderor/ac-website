@@ -16,10 +16,10 @@ export default function ExpertiseSection() {
             transition={{ duration: 0.8 }}
           >
             <span className="font-syne text-[var(--vibrant-sky-blue)] font-bold tracking-[0.3em] uppercase text-xs mb-6 block">
-              {t('expertise.title')} — CORE COMPETENCIES
+              {t('expertise.title')} — {t('expertise.competencies')}
             </span>
             <h2 className="font-dm-sans text-6xl sm:text-7xl lg:text-8xl font-bold tracking-tight leading-[0.9] text-[var(--black)] mb-10">
-              Strategic <span className="text-gradient">Core</span>
+              {t('expertise.core_title')} <span className="text-gradient">{t('expertise.core_title_bold')}</span>
             </h2>
             <div className="h-2 w-24 bg-gradient-to-r from-[var(--vibrant-sky-blue)] to-[var(--magenta-pink)] rounded-full mb-12" />
             <p className="font-inter text-xl text-[var(--dark-gray)] font-light leading-relaxed max-w-md">

@@ -14,73 +14,60 @@ export default function ExpertiseSectionModalHeader({
   expertiseData,
 }: ExpertiseSectionModalHeaderProps) {
   const { t } = useTranslation();
-  const [isExpanded, setIsExpanded] = useState(false);
-  const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
+  const [isExpanded, setIsExpanded] = useState(true);
 
   const toggleExpand = () => {
     setIsExpanded(!isExpanded);
   };
 
-  const handleMouseEnter = (index: number) => {
-    setHoveredIndex(index);
-  };
-
-  const handleMouseLeave = () => {
-    setHoveredIndex(null);
-  };
-
   return (
-    <div className="w-full rounded-2xl shadow-md">
+    <div className="w-full">
       <div
         role="button"
-        className="text-[var(--black)] border-b border-[var(--light-gray)] py-6 cursor-pointer flex justify-between items-center group/header"
+        className="text-[var(--black)] border-b border-[var(--light-gray)] py-6 cursor-pointer flex justify-between items-center group/header hover:bg-[var(--soft-light-gray)]/30 px-4 -mx-4 transition-colors rounded-t-xl"
         onClick={toggleExpand}
       >
-        <h2 className="text-lg font-bold font-syne text-[var(--black)]">
+        <h2 className="text-xl font-bold font-syne text-[var(--black)] tracking-tight">
           {t('expertise.knowledge_title')}
         </h2>
-        <span>
+        <div className="size-10 flex items-center justify-center rounded-full border border-[var(--light-gray)] group-hover/header:border-[var(--black)] transition-colors">
           {isExpanded ? (
-            <IoMdArrowDropup className="size-8" />
+            <IoMdArrowDropup className="size-6" />
           ) : (
-            <IoMdArrowDropdown className="size-8" />
+            <IoMdArrowDropdown className="size-6" />
           )}
-        </span>
+        </div>
       </div>
 
-      <AnimatePresence initial={false}>
+      <AnimatePresence initial={true}>
         {isExpanded && (
           <motion.div
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: 'auto', opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.4, ease: 'easeInOut' }}
+            transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
             className="overflow-hidden"
           >
-            <div className="flex justify-around items-center pt-8">
+            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-6 py-10 px-2">
               {expertiseData.images.map((image, index) => (
-                <div
+                <motion.div
                   key={index}
-                  className="relative"
-                  onMouseEnter={() => handleMouseEnter(index)}
-                  onMouseLeave={handleMouseLeave}
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ delay: index * 0.03 }}
+                  className="group flex flex-col items-center gap-3"
                 >
-                  <img src={image.src} alt={image.alt} className="size-16" />
-
-                  <AnimatePresence>
-                    {hoveredIndex === index && (
-                      <motion.div
-                        className="absolute top-0 left-0 cursor-default transform -translate-x-1/2 -translate-y-full bg-[var(--white)] border border-[var(--gray)] text-[var(--black)] text-base font-syne font-bold rounded-full px-2 py-1"
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: 10 }}
-                        transition={{ duration: 0.3 }}
-                      >
-                        {image.alt}
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                </div>
+                  <div className="relative size-16 sm:size-20 flex items-center justify-center rounded-2xl bg-[var(--soft-light-gray)] border border-transparent group-hover:border-[var(--vibrant-sky-blue)] group-hover:bg-white group-hover:shadow-xl group-hover:-translate-y-1 transition-all duration-300">
+                    <img 
+                      src={image.src} 
+                      alt={image.alt} 
+                      className="size-10 sm:size-12 object-contain filter grayscale group-hover:grayscale-0 transition-all duration-300" 
+                    />
+                  </div>
+                  <span className="font-syne text-[10px] sm:text-xs font-bold uppercase tracking-widest text-[var(--dark-gray)] group-hover:text-[var(--black)] text-center transition-colors">
+                    {image.alt}
+                  </span>
+                </motion.div>
               ))}
             </div>
           </motion.div>

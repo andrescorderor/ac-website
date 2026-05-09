@@ -6,10 +6,11 @@
       "Precision",
       "Impact",
       "Innovation",
+      "AI Synergy",
       "Excellence",
       "Scale"
     ],
-    "paragraph": "Strategic Software Engineer & Project Manager specialized in bridging the gap between high-level strategy and technical execution. Delivering resilient architectures with a relentless focus on Quality Assurance and user-centric design.",
+    "paragraph": "Strategic Software Engineer & Project Manager specializing in AI-integrated architectures. I bridge the gap between high-level strategy and technical execution, leveraging AI-driven workflows to deliver resilient, high-impact digital solutions.",
     "cta_work": "Explore My Portfolio"
   },
   "roles": {
@@ -21,21 +22,25 @@
     "title": "Strategic Core",
     "pm_title": "STRATEGIC LEADERSHIP",
     "pm_subtitle": "Bridging business goals with technical excellence.",
+    "core_title": "Strategic",
+    "core_title_bold": "Core",
+    "competencies": "CORE COMPETENCIES",
     "pm_paragraph": "Driving complex software lifecycles through elite project management. Specialized in Agile frameworks, stakeholder alignment, and optimizing resource allocation for high-impact results.",
     "pm_header_title": "Project Governance",
-    "pm_header_paragraph": "Orchestrating cross-functional teams to deliver mission-critical software. My approach focuses on measurable performance and flawless delivery through SCRUM and Kanban.",
+    "pm_header_paragraph": "Orchestrating cross-functional teams to deliver mission-critical software. My approach focuses on measurable performance and flawless delivery through AI-optimized SCRUM.",
     "sd_title": "ARCHITECTURAL ENGINEERING",
     "sd_subtitle": "Scalable, high-performance digital ecosystems.",
     "sd_paragraph": "Crafting resilient web applications with modern stacks. My focus is on maintainable codebases, performance optimization, and seamless cloud-native integrations.",
     "sd_header_title": "Full-Stack Precision",
-    "sd_header_paragraph": "Leveraging React, Node.js, and AWS to build products that scale with your business while maintaining a premium user experience.",
-    "qa_title": "ECOSYSTEM RELIABILITY",
-    "qa_subtitle": "Zero-defect deployments through rigorous QA.",
-    "qa_paragraph": "Ensuring maximum reliability through automated testing pipelines and advanced QA protocols. I build trust into every line of code.",
-    "qa_header_title": "Reliability Engineering",
-    "qa_header_paragraph": "Implementing CI/CD pipelines, unit testing, and E2E automation to guarantee 99.9% product stability and seamless user journeys.",
-    "intro": "Synchronizing business vision with technological mastery to build high-performance products.",
-    "knowledge_title": "Core Technologies"
+    "sd_header_paragraph": "Leveraging React, Node.js, and AI-first architectures to build products that scale with your business while maintaining a premium user experience.",
+    "qa_title": "AI-ASSISTED RELIABILITY",
+    "qa_subtitle": "Intelligent testing for zero-defect deployments.",
+    "qa_paragraph": "Ensuring maximum reliability through AI-enhanced automated testing pipelines and advanced QA protocols. I build trust into every line of code.",
+    "qa_header_title": "Next-Gen Reliability",
+    "qa_header_paragraph": "Implementing CI/CD pipelines and AI-driven E2E automation to guarantee 99.9% product stability and seamless user journeys.",
+    "intro": "Synchronizing business vision with AI-powered technological mastery to build high-performance products.",
+    "knowledge_title": "Core Technologies",
+    "modal_eyebrow": "Strategic Deep Dive"
   },
   "portfolio": {
     "title": "Impact Portfolio",
@@ -69,13 +74,19 @@
     "email_placeholder": "you@mail.com",
     "project_label": "Tell me a little about your project",
     "project_placeholder": "Explain a little...",
-    "submit": "Let's get started!"
+    "submit": "Let's get started!",
+    "error_required": "This field is required",
+    "error_email": "Email is mandatory",
+    "error_email_invalid": "Enter a valid email address",
+    "success_message": "Mail sent successfully!",
+    "error_message": "Error sending mail. Please try again."
   },
   "footer": {
     "quote1": "\"Make it happen. The best way to",
     "quote2": "predict the future is to create it.\"",
     "rights": "All rights reserved.",
-    "contact_button": "Let's get in contact"
+    "contact_button": "Let's get in contact",
+    "crafted": "Crafted with Precision"
   },
   "discussion": {
     "title": "Let's discuss your project"
@@ -96,9 +107,9 @@
     "exp4_desc": "Specialized in software architecture, distributed systems, and advanced project management. Graduated with professional honors."
   },
   "projects_data": {
-    "proj1_title": "Incident Management Software",
-    "proj1_desc": "A robust internal system designed for Volkswagen to streamline incident reporting, tracking, and resolution across manufacturing plants.",
-    "proj1_tags": ["React", "Node.js", "AWS", "Jira"],
+    "proj1_title": "AI-Enhanced Incident Management",
+    "proj1_desc": "A robust internal system designed for Volkswagen, now optimized with AI-driven predictive analytics for faster incident resolution.",
+    "proj1_tags": ["React", "Node.js", "AWS", "AI"],
     "proj2_title": "GovTech Integration Platform",
     "proj2_desc": "A centralized digital hub for citizens to process government procedures, significantly reducing wait times and bureaucratic overhead.",
     "proj2_tags": ["Vue.js", "Python", "PostgreSQL", "Docker"],
@@ -108,11 +119,15 @@
     "proj4_title": "Industrial Trade Platform",
     "proj4_desc": "B2B e-commerce software specialized in the pipe sector, managing complex inventory systems and large-scale transactions.",
     "proj4_tags": ["React", "Express", "MySQL", "Stripe"],
-    "proj5_title": "Medical Imaging Service",
-    "proj5_desc": "A secure, HIPAA-compliant service for clinics to instantly share and analyze ultrasound images with patients and specialists.",
-    "proj5_tags": ["React Native", "Firebase", "AWS S3"]
+    "proj5_title": "Medical Imaging AI Service",
+    "proj5_desc": "Secure, HIPAA-compliant service for clinics to analyze ultrasound images with patient-facing AI diagnostics.",
+    "proj5_tags": ["React Native", "Firebase", "AI", "AWS S3"]
   },
   "language": {
     "switch": "Español"
+  },
+  "common": {
+    "close": "Close",
+    "view_more": "View More"
   }
 }

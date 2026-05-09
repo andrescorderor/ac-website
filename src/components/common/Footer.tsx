@@ -58,7 +58,7 @@ export default function Footer() {
           </p>
           <div className="flex items-center gap-8">
             <span className="font-syne text-[10px] font-bold tracking-[0.4em] uppercase text-[var(--gray)]">
-              Crafted with Precision
+              {t('footer.crafted')}
             </span>
             <div className="h-1 w-20 bg-gradient-to-r from-[var(--vibrant-sky-blue)] to-[var(--magenta-pink)] rounded-full" />
           </div>

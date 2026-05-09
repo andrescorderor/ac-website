@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 
 import { motion, AnimatePresence } from 'framer-motion';
 import { IoCloseSharp } from 'react-icons/io5';
+import { useTranslation } from 'react-i18next';
 import ExpertiseSectionModalHeader from './ExpertiseSectionModalHeader';
 import { DynamicButton } from '../buttons/DynamicButton';
 
@@ -36,6 +37,7 @@ export default function Modal({
   paragraph,
   expertiseData,
 }: ModalProps) {
+  const { t } = useTranslation();
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = 'hidden';
@@ -73,7 +75,7 @@ export default function Modal({
               <div className="absolute right-8 top-8 z-20" onClick={onClose}>
                 <DynamicButton
                   style="BLACK"
-                  name="CloseButton"
+                  name={t('common.close')}
                   icon={IoCloseSharp}
                   type="icon-only"
                 />
@@ -81,7 +83,7 @@ export default function Modal({
               
               <div className="max-w-4xl">
                 <span className="font-syne text-[var(--vibrant-sky-blue)] font-bold tracking-[0.3em] uppercase text-xs mb-6 block">
-                  Project Deep Dive
+                  {t('expertise.modal_eyebrow')}
                 </span>
                 <h2 className="font-dm-sans text-4xl lg:text-6xl font-bold tracking-tight text-[var(--black)] leading-tight mb-8">
                   {title}

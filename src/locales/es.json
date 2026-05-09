@@ -6,10 +6,11 @@
       "Precisión",
       "Impacto",
       "Innovación",
+      "Sinergia de IA",
       "Excelencia",
       "Escala"
     ],
-    "paragraph": "Ingeniero de Software y Project Manager Estratégico especializado en cerrar la brecha entre la estrategia de alto nivel y la ejecución técnica. Entrego arquitecturas resilientes con un enfoque implacable en QA y diseño centrado en el usuario.",
+    "paragraph": "Ingeniero de Software y Project Manager Estratégico especializado en arquitecturas integradas con IA. Cierro la brecha entre la estrategia y la ejecución técnica, aprovechando flujos de trabajo impulsados por IA para entregar soluciones digitales resilientes y de alto impacto.",
     "cta_work": "Explora mi Portafolio"
   },
   "roles": {
@@ -21,21 +22,25 @@
     "title": "Núcleo Estratégico",
     "pm_title": "LIDERAZGO ESTRATÉGICO",
     "pm_subtitle": "Alineando objetivos de negocio con excelencia técnica.",
+    "core_title": "Núcleo",
+    "core_title_bold": "Estratégico",
+    "competencies": "COMPETENCIAS PRINCIPALES",
     "pm_paragraph": "Dirección de ciclos de vida de software complejos mediante gestión de proyectos de élite. Especialista en marcos ágiles, alineación de stakeholders y optimización de recursos para resultados de alto impacto.",
     "pm_header_title": "Gobernanza de Proyectos",
-    "pm_header_paragraph": "Orquestación de equipos multidisciplinarios para entregar software de misión crítica. Mi enfoque se centra en el rendimiento medible y la entrega impecable mediante SCRUM y Kanban.",
+    "pm_header_paragraph": "Orquestación de equipos multidisciplinarios para entregar software de misión crítica. Mi enfoque se centra en la entrega impecable mediante SCRUM optimizado con IA.",
     "sd_title": "INGENIERÍA ARQUITECTÓNICA",
     "sd_subtitle": "Ecosistemas digitales escalables y de alto rendimiento.",
     "sd_paragraph": "Creación de aplicaciones web resilientes con stacks modernos. Mi enfoque es el código mantenible, la optimización del rendimiento y las integraciones nativas de la nube.",
     "sd_header_title": "Precisión Full-Stack",
-    "sd_header_paragraph": "Aprovechando React, Node.js y AWS para construir productos que escalan con su negocio mientras mantienen una experiencia de usuario premium.",
-    "qa_title": "CONFIABILIDAD DEL ECOSISTEMA",
-    "qa_subtitle": "Despliegues sin defectos mediante QA riguroso.",
-    "qa_paragraph": "Garantizando la máxima confiabilidad a través de pipelines de pruebas automatizadas y protocolos avanzados de QA. Construyo confianza en cada línea de código.",
-    "qa_header_title": "Ingeniería de Confiabilidad",
-    "qa_header_paragraph": "Implementación de pipelines CI/CD, pruebas unitarias y automatización E2E para garantizar la estabilidad del producto al 99.9% y experiencias de usuario fluidas.",
-    "intro": "Sincronizando la visión empresarial con la maestría tecnológica para construir productos de alto rendimiento.",
-    "knowledge_title": "Tecnologías Principales"
+    "sd_header_paragraph": "Aprovechando React, Node.js y arquitecturas AI-first para construir productos que escalan con su negocio mientras mantienen una experiencia de usuario premium.",
+    "qa_title": "CONFIABILIDAD IMPULSADA POR IA",
+    "qa_subtitle": "Pruebas inteligentes para despliegues sin defectos.",
+    "qa_paragraph": "Garantizando la máxima confiabilidad a través de pipelines de pruebas aumentadas con IA y protocolos avanzados de QA. Construyo confianza en cada línea de código.",
+    "qa_header_title": "Confiabilidad de Próxima Generación",
+    "qa_header_paragraph": "Implementación de pipelines CI/CD y automatización E2E impulsada por IA para garantizar la estabilidad del producto al 99.9% y experiencias de usuario fluidas.",
+    "intro": "Sincronizando la visión empresarial con maestría tecnológica potenciada por IA para construir productos de alto rendimiento.",
+    "knowledge_title": "Tecnologías Principales",
+    "modal_eyebrow": "Inmersión Estratégica"
   },
   "portfolio": {
     "title": "Portafolio de Impacto",
@@ -69,13 +74,19 @@
     "email_placeholder": "tu@correo.com",
     "project_label": "Cuéntame sobre tu proyecto",
     "project_placeholder": "Explica un poco...",
-    "submit": "¡Comencemos!"
+    "submit": "¡Comencemos!",
+    "error_required": "Este campo es obligatorio",
+    "error_email": "El correo es obligatorio",
+    "error_email_invalid": "Ingresa un correo válido",
+    "success_message": "¡Mensaje enviado con éxito!",
+    "error_message": "Error al enviar el mensaje. Inténtalo de nuevo."
   },
   "footer": {
     "quote1": "\"Haz que suceda. La mejor forma de",
     "quote2": "predecir el futuro es creándolo.\"",
     "rights": "Todos los derechos reservados.",
-    "contact_button": "Ponte en contacto"
+    "contact_button": "Ponte en contacto",
+    "crafted": "Creado con Precisión"
   },
   "discussion": {
     "title": "Hablemos de tu proyecto"
@@ -96,9 +107,9 @@
     "exp4_desc": "Especializado en arquitectura de software, sistemas distribuidos y gestión avanzada de proyectos. Graduado con honores profesionales."
   },
   "projects_data": {
-    "proj1_title": "Software de Gestión de Incidentes",
-    "proj1_desc": "Un robusto sistema interno diseñado para Volkswagen para optimizar el reporte, seguimiento y resolución de incidentes en plantas de manufactura.",
-    "proj1_tags": ["React", "Node.js", "AWS", "Jira"],
+    "proj1_title": "Gestión de Incidentes con IA",
+    "proj1_desc": "Sistema robusto para Volkswagen, optimizado con analítica predictiva impulsada por IA para una resolución de incidentes más rápida.",
+    "proj1_tags": ["React", "Node.js", "AWS", "IA"],
     "proj2_title": "Plataforma de Integración GovTech",
     "proj2_desc": "Centro digital para que los ciudadanos procesen trámites gubernamentales, reduciendo drásticamente los tiempos de espera y la carga burocrática.",
     "proj2_tags": ["Vue.js", "Python", "PostgreSQL", "Docker"],
@@ -108,11 +119,15 @@
     "proj4_title": "Plataforma Comercial Industrial",
     "proj4_desc": "Software de e-commerce B2B especializado en el sector de tuberías, gestionando sistemas complejos de inventario y transacciones a gran escala.",
     "proj4_tags": ["React", "Express", "MySQL", "Stripe"],
-    "proj5_title": "Servicio de Imágenes Médicas",
-    "proj5_desc": "Un servicio seguro y conforme a regulaciones para que clínicas compartan y analicen imágenes de ultrasonido al instante con pacientes y especialistas.",
-    "proj5_tags": ["React Native", "Firebase", "AWS S3"]
+    "proj5_title": "Servicio de Imágenes Médicas con IA",
+    "proj5_desc": "Servicio seguro y conforme a HIPAA para clínicas, analizando imágenes de ultrasonido con diagnósticos asistidos por IA.",
+    "proj5_tags": ["React Native", "Firebase", "IA", "AWS S3"]
   },
   "language": {
     "switch": "English"
+  },
+  "common": {
+    "close": "Cerrar",
+    "view_more": "Ver Más"
   }
 }

@@ -65,7 +65,7 @@ export default function ContactModal({ isOpen, onClose }: ModalProps) {
     emailjs.send(serviceId, templateId, emailData, userId).then(
       () => {
         reset();
-        toast.success('Mail sent:', {
+        toast.success(t('contact.success_message'), {
           position: 'top-center',
           autoClose: 5000,
           hideProgressBar: false,
@@ -78,7 +78,7 @@ export default function ContactModal({ isOpen, onClose }: ModalProps) {
         });
       },
       () => {
-        toast.error('Error sending mail:', {
+        toast.error(t('contact.error_message'), {
           position: 'bottom-left',
           autoClose: 5000,
           hideProgressBar: false,
@@ -119,7 +119,7 @@ export default function ContactModal({ isOpen, onClose }: ModalProps) {
                 <div className="absolute right-4 top-4" onClick={onClose}>
                   <DynamicButton
                     style="WHITE"
-                    name="Close"
+                    name={t('common.close')}
                     icon={IoCloseSharp}
                     type="icon-only"
                   />
@@ -212,7 +212,7 @@ export default function ContactModal({ isOpen, onClose }: ModalProps) {
                       placeholder={t('contact.name_placeholder')}
                       className="font-dm-sans w-full border-b bg-none px-3 py-2 bg-[var(--black)] focus:outline-none"
                       {...register('fullName', {
-                        required: 'This field is required',
+                        required: t('contact.error_required'),
                       })}
                     />
                     {errors.fullName && (
@@ -229,11 +229,11 @@ export default function ContactModal({ isOpen, onClose }: ModalProps) {
                       placeholder={t('contact.email_placeholder')}
                       className="font-dm-sans w-full border-b bg-none px-3 py-2 bg-[var(--black)] focus:outline-none"
                       {...register('mailAddress', {
-                        required: 'Email is mandatory',
+                        required: t('contact.error_email'),
                         pattern: {
                           value:
                             /^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$/,
-                          message: 'Enter a valid email address',
+                          message: t('contact.error_email_invalid'),
                         },
                       })}
                     />
