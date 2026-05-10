@@ -7,6 +7,7 @@ import {
   HiOutlineCurrencyDollar, 
   HiOutlineClipboardList, 
   HiOutlineUserGroup,
+  HiOutlineLockClosed,
   HiOutlineLogout,
   HiMenuAlt2,
   HiX
@@ -17,6 +18,7 @@ const menuItems = [
   { icon: HiOutlineCurrencyDollar, label: 'Finanzas', path: '/admin/panel/finanzas' },
   { icon: HiOutlineClipboardList, label: 'Pendientes', path: '/admin/panel/pendientes' },
   { icon: HiOutlineUserGroup, label: 'Deudas', path: '/admin/panel/deudas' },
+  { icon: HiOutlineLockClosed, label: 'Bóveda', path: '/admin/panel/vault' },
 ];
 
 export default function DashboardLayout() {

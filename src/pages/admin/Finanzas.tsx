@@ -28,7 +28,7 @@ export default function Finanzas() {
       .from('finance_expenses')
       .select('*')
       .order('created_at', { ascending: false });
-    
+
     // Fetch salary
     const { data: constData } = await supabase
       .from('finance_constants')
@@ -77,7 +77,7 @@ export default function Finanzas() {
     if (!error) alert('Salario actualizado');
   };
 
-  const getCategoryTotal = (cat: string) => 
+  const getCategoryTotal = (cat: string) =>
     expenses.filter(e => e.category === cat).reduce((acc, curr) => acc + curr.amount, 0);
 
   const globalTotal = expenses.reduce((acc, curr) => acc + curr.amount, 0);
@@ -100,9 +100,9 @@ export default function Finanzas() {
             <p className="font-syne text-[10px] font-bold uppercase tracking-[0.2em] text-[var(--gray)]">Salario Mensual</p>
             <div className="flex items-center gap-2">
               <span className="text-gray-400 font-dm-sans">$</span>
-              <input 
-                type="number" 
-                value={salary} 
+              <input
+                type="number"
+                value={salary}
                 onChange={(e) => setSalary(parseFloat(e.target.value))}
                 className="font-dm-sans font-bold text-xl outline-none w-32"
               />
@@ -158,7 +158,7 @@ export default function Finanzas() {
                         <td className="px-6 py-4 font-inter text-sm text-gray-600">{exp.concept}</td>
                         <td className="px-6 py-4 font-dm-sans text-sm font-semibold text-right">${exp.amount.toLocaleString()}</td>
                         <td className="px-4 py-4 text-right">
-                          <button 
+                          <button
                             onClick={() => handleDeleteExpense(exp.id)}
                             className="p-2 text-red-400 hover:bg-red-50 rounded-full transition-all lg:opacity-0 lg:group-hover:opacity-100"
                           >
@@ -173,20 +173,20 @@ export default function Finanzas() {
 
               <div className="p-4 bg-gray-50/30 border-t border-gray-50">
                 <div className="flex gap-2">
-                  <input 
+                  <input
                     placeholder="Concepto"
                     value={newExpense.category === cat ? newExpense.concept : ''}
                     onChange={(e) => setNewExpense({ ...newExpense, concept: e.target.value, category: cat })}
                     className="flex-1 px-4 py-2 bg-white border border-gray-100 rounded-xl text-xs outline-none focus:border-gray-300"
                   />
-                  <input 
+                  <input
                     type="number"
                     placeholder="$$"
                     value={newExpense.category === cat ? newExpense.amount : ''}
                     onChange={(e) => setNewExpense({ ...newExpense, amount: e.target.value, category: cat })}
                     className="w-20 px-4 py-2 bg-white border border-gray-100 rounded-xl text-xs outline-none focus:border-gray-300 text-right"
                   />
-                  <button 
+                  <button
                     onClick={() => handleAddExpense(cat)}
                     className="p-2 bg-black text-white rounded-xl hover:scale-105 active:scale-95 transition-all"
                   >

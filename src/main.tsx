@@ -15,6 +15,7 @@ import DashboardHome from '@pages/admin/DashboardHome';
 import Finanzas from '@pages/admin/Finanzas';
 import Pendientes from '@pages/admin/Pendientes';
 import Deudas from '@pages/admin/Deudas';
+import Vault from '@pages/admin/Vault';
 
 registerSW({ immediate: true });
 
@@ -52,6 +53,10 @@ const router = createBrowserRouter([
       {
         path: 'deudas',
         element: <Deudas />,
+      },
+      {
+        path: 'vault',
+        element: <Vault />,
       },
     ],
   },
