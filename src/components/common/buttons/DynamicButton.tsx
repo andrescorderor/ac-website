@@ -7,11 +7,11 @@ type DynamicButtonProps = {
 };
 
 export function DynamicButton({
-  icon: Icon,
+  icon: Icon = null,
   name,
   type,
   style,
-  onClick,
+  onClick = () => null,
 }: DynamicButtonProps) {
   const whiteBaseClasses =
     'font-dm-sans group relative hover:bg-[var(--soft-light-gray)] flex items-center justify-center rounded-full text-sm border hover:border-[var(--black)] border-[var(--soft-light-gray)] bg-[var(--white)] p-2 text-[var(--black)] transition-all duration-500 ease-in-out';
@@ -77,8 +77,3 @@ export function DynamicButton({
     </button>
   );
 }
-
-DynamicButton.defaultProps = {
-  icon: null,
-  onClick: () => null,
-};

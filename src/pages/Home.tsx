@@ -18,7 +18,7 @@ export default function Home() {
 
       {/* Noise Texture Overlay */}
       <div className="fixed inset-0 -z-10 pointer-events-none opacity-[0.03] mix-blend-overlay" 
-           style={{ backgroundImage: 'url("https://grainy-gradients.vercel.app/noise.svg")' }} />
+           style={{ backgroundImage: 'url("/assets/noise.svg")' }} />
 
       <Hero />
       <div className="relative flex items-center justify-center">
