@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Outlet, useNavigate, Link, useLocation } from 'react-router-dom';
 import { supabase } from '@/lib/supabase';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -30,11 +30,33 @@ const menuItems = [
 export default function DashboardLayout() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [mobileHeaderVisible, setMobileHeaderVisible] = useState(true);
   const navigate = useNavigate();
   const location = useLocation();
+  const lastScrollY = useRef(0);
+  const mainRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     checkUser();
+  }, []);
+
+  // Auto-hide mobile header on scroll down, show on scroll up
+  useEffect(() => {
+    const el = mainRef.current;
+    if (!el) return;
+
+    const handleScroll = () => {
+      const currentY = el.scrollTop;
+      if (currentY > lastScrollY.current && currentY > 60) {
+        setMobileHeaderVisible(false);
+      } else {
+        setMobileHeaderVisible(true);
+      }
+      lastScrollY.current = currentY;
+    };
+
+    el.addEventListener('scroll', handleScroll, { passive: true });
+    return () => el.removeEventListener('scroll', handleScroll);
   }, []);
 
   const checkUser = async () => {
@@ -53,14 +75,14 @@ export default function DashboardLayout() {
   if (loading) return null;
 
   return (
-    <div className="min-h-screen bg-[#F8F9FA] flex overflow-hidden">
-      {/* Sidebar - Desktop */}
+    <div className="h-screen bg-[#F8F9FA] flex overflow-hidden">
+      {/* ═══ Desktop Sidebar ═══ */}
       <aside 
-        className={`hidden lg:flex flex-col bg-white border-r border-gray-100 transition-all duration-500 ease-[0.16,1,0.3,1] ${
+        className={`hidden lg:flex flex-col h-screen sticky top-0 bg-white border-r border-gray-100 transition-all duration-500 ease-[0.16,1,0.3,1] ${
           isSidebarOpen ? 'w-72' : 'w-24'
         }`}
       >
-        <div className="p-8 flex items-center gap-4">
+        <div className="p-6 flex items-center gap-4 shrink-0">
           <div className="size-10 shrink-0 bg-black rounded-xl flex items-center justify-center text-white font-bold">AC</div>
           <AnimatePresence>
             {isSidebarOpen && (
@@ -76,12 +98,12 @@ export default function DashboardLayout() {
           </AnimatePresence>
         </div>
 
-        <nav className="flex-1 px-4 space-y-2 mt-8">
+        <nav className="flex-1 px-3 space-y-1 overflow-y-auto scrollbar-thin">
           {menuItems.map((item) => (
             <Link
               key={item.path}
               to={item.path}
-              className={`flex items-center gap-4 px-4 py-4 rounded-2xl transition-all duration-300 ${
+              className={`flex items-center gap-4 px-4 py-3.5 rounded-2xl transition-all duration-300 ${
                 location.pathname === item.path 
                   ? 'bg-[var(--black)] text-white shadow-lg' 
                   : 'text-[var(--dark-gray)] hover:bg-[var(--soft-light-gray)]'
@@ -94,7 +116,7 @@ export default function DashboardLayout() {
                     initial={{ opacity: 0, width: 0 }}
                     animate={{ opacity: 1, width: 'auto' }}
                     exit={{ opacity: 0, width: 0 }}
-                    className="font-syne text-xs font-bold uppercase tracking-widest overflow-hidden"
+                    className="font-syne text-xs font-bold uppercase tracking-widest overflow-hidden whitespace-nowrap"
                   >
                     {item.label}
                   </motion.span>
@@ -104,10 +126,10 @@ export default function DashboardLayout() {
           ))}
         </nav>
 
-        <div className="p-4 border-t border-gray-50">
+        <div className="p-3 border-t border-gray-50 shrink-0">
           <button
             onClick={handleLogout}
-            className="w-full flex items-center gap-4 px-4 py-4 rounded-2xl text-red-500 hover:bg-red-50 transition-all duration-300"
+            className="w-full flex items-center gap-4 px-4 py-3.5 rounded-2xl text-red-500 hover:bg-red-50 transition-all duration-300"
           >
             <HiOutlineLogout className="text-2xl shrink-0" />
             {isSidebarOpen && <span className="font-syne text-xs font-bold uppercase tracking-widest">Salir</span>}
@@ -115,21 +137,25 @@ export default function DashboardLayout() {
         </div>
       </aside>
 
-      {/* Mobile Header */}
-      <div className="lg:hidden fixed top-0 left-0 right-0 h-20 bg-white/80 backdrop-blur-xl border-b border-gray-100 flex items-center justify-between px-6 z-50">
+      {/* ═══ Mobile Header (auto-hide on scroll) ═══ */}
+      <div 
+        className={`lg:hidden fixed top-0 left-0 right-0 h-16 bg-white/90 backdrop-blur-xl border-b border-gray-100 flex items-center justify-between px-5 z-50 transition-transform duration-300 ${
+          mobileHeaderVisible ? 'translate-y-0' : '-translate-y-full'
+        }`}
+      >
         <div className="flex items-center gap-3">
-          <div className="size-10 bg-black rounded-xl flex items-center justify-center text-white font-bold shadow-lg">AC</div>
-          <span className="font-dm-sans font-bold text-lg tracking-tight">Panel</span>
+          <div className="size-9 bg-black rounded-xl flex items-center justify-center text-white text-sm font-bold shadow-lg">AC</div>
+          <span className="font-dm-sans font-bold text-base tracking-tight">Navaja Suiza</span>
         </div>
         <button 
           onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-          className="p-3 bg-gray-50 rounded-2xl hover:bg-gray-100 transition-colors"
+          className="p-2.5 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors active:scale-95"
         >
-          {isSidebarOpen ? <HiX className="text-2xl" /> : <HiMenuAlt2 className="text-2xl" />}
+          {isSidebarOpen ? <HiX className="text-xl" /> : <HiMenuAlt2 className="text-xl" />}
         </button>
       </div>
 
-      {/* Sidebar - Mobile Overlay */}
+      {/* ═══ Mobile Sidebar Overlay ═══ */}
       <AnimatePresence>
         {isSidebarOpen && (
           <motion.div
@@ -137,72 +163,77 @@ export default function DashboardLayout() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={() => setIsSidebarOpen(false)}
-            className="lg:hidden fixed inset-0 bg-black/40 backdrop-blur-md z-40"
+            className="lg:hidden fixed inset-0 bg-black/40 backdrop-blur-sm z-40"
           />
         )}
       </AnimatePresence>
 
+      {/* ═══ Mobile Sidebar Panel ═══ */}
       <motion.aside
         initial={{ x: '-100%' }}
         animate={{ x: isSidebarOpen ? 0 : '-100%' }}
-        transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-        className="lg:hidden fixed top-0 left-0 bottom-0 w-[85%] max-w-sm bg-white z-50 p-8 flex flex-col shadow-2xl"
+        transition={{ type: 'spring', damping: 28, stiffness: 280 }}
+        className="lg:hidden fixed top-0 left-0 bottom-0 w-[80%] max-w-xs bg-white z-50 flex flex-col shadow-2xl"
       >
-        <div className="flex items-center gap-4 mb-8">
-          <div className="size-12 bg-black rounded-2xl flex items-center justify-center text-white font-bold text-xl shadow-xl">AC</div>
+        <div className="flex items-center gap-4 p-6 pb-4 shrink-0">
+          <div className="size-11 bg-black rounded-2xl flex items-center justify-center text-white font-bold text-lg shadow-xl">AC</div>
           <div className="flex flex-col">
-            <span className="font-dm-sans font-bold text-xl tracking-tight">Navaja Suiza</span>
-            <span className="font-syne text-[10px] font-bold uppercase tracking-widest text-gray-400">Panel de Control</span>
+            <span className="font-dm-sans font-bold text-lg tracking-tight">Navaja Suiza</span>
+            <span className="font-syne text-[9px] font-bold uppercase tracking-widest text-gray-400">Panel de Control</span>
           </div>
         </div>
-        <nav className="flex-1 space-y-1 overflow-y-auto">
+
+        <nav className="flex-1 px-3 space-y-0.5 overflow-y-auto py-2">
           {menuItems.map((item) => (
             <Link
               key={item.path}
               to={item.path}
               onClick={() => setIsSidebarOpen(false)}
-              className={`flex items-center gap-4 px-5 py-3 rounded-2xl transition-all ${
+              className={`flex items-center gap-4 px-4 py-3 rounded-xl transition-all ${
                 location.pathname === item.path 
                   ? 'bg-[var(--black)] text-white shadow-lg' 
-                  : 'text-[var(--dark-gray)] hover:bg-[var(--soft-light-gray)]'
+                  : 'text-[var(--dark-gray)] hover:bg-[var(--soft-light-gray)] active:scale-[0.98]'
               }`}
             >
-              <item.icon className="text-2xl" />
-              <span className="font-syne text-xs font-bold uppercase tracking-widest">{item.label}</span>
+              <item.icon className="text-xl shrink-0" />
+              <span className="font-syne text-[11px] font-bold uppercase tracking-widest">{item.label}</span>
             </Link>
           ))}
         </nav>
-        <div className="mt-auto pt-6 border-t border-gray-100">
+
+        <div className="p-3 border-t border-gray-100 shrink-0">
           <button
             onClick={handleLogout}
-            className="w-full flex items-center gap-4 px-5 py-3 rounded-2xl text-red-500 hover:bg-red-50 transition-all"
+            className="w-full flex items-center gap-4 px-4 py-3 rounded-xl text-red-500 hover:bg-red-50 transition-all active:scale-[0.98]"
           >
-            <HiOutlineLogout className="text-2xl" />
-            <span className="font-syne text-xs font-bold uppercase tracking-widest">Salir</span>
+            <HiOutlineLogout className="text-xl" />
+            <span className="font-syne text-[11px] font-bold uppercase tracking-widest">Cerrar Sesión</span>
           </button>
         </div>
       </motion.aside>
 
-      {/* Main Content Area */}
-      <main className="flex-1 relative overflow-y-auto pt-20 lg:pt-0">
-        <header className="hidden lg:flex h-20 items-center justify-between px-12 bg-white/50 backdrop-blur-md sticky top-0 z-30">
+      {/* ═══ Main Content ═══ */}
+      <main ref={mainRef} className="flex-1 overflow-y-auto">
+        {/* Desktop Top Bar */}
+        <header className="hidden lg:flex h-16 items-center justify-between px-12 bg-white/60 backdrop-blur-xl border-b border-gray-100 sticky top-0 z-30">
           <button 
             onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-            className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+            className="p-2 hover:bg-gray-100 rounded-xl transition-colors"
           >
-            <HiMenuAlt2 className="text-2xl" />
+            <HiMenuAlt2 className="text-xl" />
           </button>
           <div className="flex items-center gap-4">
-             <div className="size-10 rounded-full bg-gradient-to-tr from-[var(--vibrant-sky-blue)] to-[var(--magenta-pink)] p-[2px]">
+             <div className="size-9 rounded-full bg-gradient-to-tr from-[var(--vibrant-sky-blue)] to-[var(--magenta-pink)] p-[2px]">
                 <div className="size-full rounded-full bg-white flex items-center justify-center font-bold text-xs text-black">AC</div>
              </div>
           </div>
         </header>
 
-        <div className="p-6 lg:p-12 max-w-7xl mx-auto">
+        <div className="p-5 md:p-8 lg:p-12 pt-20 lg:pt-8 max-w-7xl mx-auto">
           <Outlet />
         </div>
       </main>
     </div>
   );
 }
+
