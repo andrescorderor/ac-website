@@ -30,6 +30,7 @@ export default function Compras() {
     price: '', 
     priority: 'Media' as const 
   });
+  const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
     fetchItems();
@@ -39,7 +40,6 @@ export default function Compras() {
     const { data } = await supabase
       .from('shopping_list')
       .select('*')
-      .order('priority', { ascending: false }) // This is tricky with text, but we'll manage
       .order('created_at', { ascending: false });
     
     if (data) {
@@ -84,17 +84,20 @@ export default function Compras() {
   };
 
   const filteredItems = items.filter(item => {
-    if (filter === 'pending') return !item.bought;
-    if (filter === 'bought') return item.bought;
-    return true;
+    const matchesSearch = item.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                         (item.location?.toLowerCase().includes(searchTerm.toLowerCase()) || false);
+    const matchesFilter = filter === 'all' || 
+                         (filter === 'pending' && !item.bought) || 
+                         (filter === 'bought' && item.bought);
+    return matchesSearch && matchesFilter;
   });
 
   if (loading) return <div className="text-gray-400 font-syne uppercase tracking-widest text-xs">Cargando...</div>;
 
   return (
     <div className="max-w-5xl mx-auto space-y-12 pb-20">
-      <header className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-        <div>
+      <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-8">
+        <div className="flex-1">
           <h1 className="font-dm-sans text-4xl font-bold tracking-tight text-[var(--black)]">
             Lista de <span className="text-gradient">Compras</span>
           </h1>
@@ -102,7 +105,23 @@ export default function Compras() {
             Organiza lo que necesitas comprar y dónde encontrarlo.
           </p>
         </div>
-        <div className="flex items-center gap-3">
+
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4">
+          <div className="relative flex-1 sm:w-64">
+            <input 
+              type="text"
+              placeholder="Buscar artículo..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full pl-12 pr-6 py-4 bg-white border border-gray-100 rounded-2xl outline-none focus:ring-2 ring-gray-100 font-inter text-sm shadow-sm transition-all"
+            />
+            <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">
+              <svg xmlns="http://www.w3.org/2000/svg" className="size-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+            </div>
+          </div>
+          
           <div className="flex bg-white p-1 rounded-2xl border border-gray-100 shadow-sm">
             {(['all', 'pending', 'bought'] as const).map((f) => (
               <button
@@ -112,13 +131,13 @@ export default function Compras() {
                   filter === f ? 'bg-black text-white' : 'text-gray-400 hover:text-black'
                 }`}
               >
-                {f === 'all' ? 'Todo' : f === 'pending' ? 'Pendiente' : 'Comprado'}
+                {f === 'all' ? 'Todo' : f === 'pending' ? 'Pend' : 'Compr'}
               </button>
             ))}
           </div>
           <button 
             onClick={() => setShowAddForm(!showAddForm)}
-            className="p-4 bg-black text-white rounded-2xl hover:scale-105 active:scale-95 transition-all shadow-lg"
+            className="p-4 bg-black text-white rounded-2xl hover:scale-105 active:scale-95 transition-all shadow-lg flex items-center justify-center"
           >
             <HiOutlinePlus className="text-2xl" />
           </button>

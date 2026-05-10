@@ -15,6 +15,7 @@ export default function Vault() {
   const [showAddForm, setShowAddForm] = useState(false);
   const [newItem, setNewItem] = useState({ title: '', content: '' });
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
     fetchItems();
@@ -60,12 +61,17 @@ export default function Vault() {
     setTimeout(() => setCopiedId(null), 2000);
   };
 
+  const filteredItems = items.filter(item => 
+    item.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    item.content.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
   if (loading) return <div className="text-gray-400 font-syne uppercase tracking-widest text-xs">Cargando...</div>;
 
   return (
     <div className="max-w-5xl mx-auto space-y-12 pb-20">
-      <header className="flex items-center justify-between">
-        <div>
+      <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-8">
+        <div className="flex-1">
           <h1 className="font-dm-sans text-4xl font-bold tracking-tight text-[var(--black)]">
             Textos <span className="text-gradient">Importantes</span>
           </h1>
@@ -73,12 +79,30 @@ export default function Vault() {
             Guarda CURP, RFC, tarjetas y más para copiar rápido.
           </p>
         </div>
-        <button 
-          onClick={() => setShowAddForm(!showAddForm)}
-          className="p-4 bg-black text-white rounded-2xl hover:scale-105 active:scale-95 transition-all shadow-lg"
-        >
-          <HiOutlinePlus className="text-2xl" />
-        </button>
+        
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4">
+          <div className="relative flex-1 sm:w-64">
+            <input 
+              type="text"
+              placeholder="Buscar texto..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full pl-12 pr-6 py-4 bg-white border border-gray-100 rounded-2xl outline-none focus:ring-2 ring-gray-100 font-inter text-sm shadow-sm transition-all"
+            />
+            <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">
+              <svg xmlns="http://www.w3.org/2000/svg" className="size-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+            </div>
+          </div>
+          <button 
+            onClick={() => setShowAddForm(!showAddForm)}
+            className="p-4 bg-black text-white rounded-2xl hover:scale-105 active:scale-95 transition-all shadow-lg flex items-center justify-center gap-2"
+          >
+            <HiOutlinePlus className="text-2xl" />
+            <span className="font-syne text-[10px] font-bold uppercase tracking-widest sm:hidden">Nuevo Registro</span>
+          </button>
+        </div>
       </header>
 
       <AnimatePresence>
@@ -124,12 +148,12 @@ export default function Vault() {
       </AnimatePresence>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {items.length === 0 ? (
+        {filteredItems.length === 0 ? (
           <div className="col-span-full text-center py-20 text-gray-400 font-inter font-light italic">
-            No has guardado ningún texto importante todavía.
+            No se encontraron textos que coincidan con tu búsqueda.
           </div>
         ) : (
-          items.map((item) => (
+          filteredItems.map((item) => (
             <motion.div 
               key={item.id}
               layout

@@ -17,6 +17,7 @@ export default function Pendientes() {
   const [loading, setLoading] = useState(true);
   const [showAddForm, setShowAddForm] = useState(false);
   const [newTask, setNewTask] = useState({ title: '', description: '', due_date: '' });
+  const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
     fetchTasks();
@@ -34,12 +35,12 @@ export default function Pendientes() {
   const handleAddTask = async (e: React.FormEvent) => {
     e.preventDefault();
     const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
+    if (!user || !newTask.title) return;
 
     const { error } = await supabase.from('tasks').insert([
       {
         user_id: user.id,
-        title: newTask.title || null,
+        title: newTask.title,
         description: newTask.description || null,
         due_date: newTask.due_date || null,
       },
@@ -62,25 +63,47 @@ export default function Pendientes() {
     if (!error) fetchTasks();
   };
 
+  const filteredTasks = tasks.filter(task => 
+    task.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (task.description?.toLowerCase().includes(searchTerm.toLowerCase()) || false)
+  );
+
   if (loading) return <div className="text-gray-400 font-syne uppercase tracking-widest text-xs">Cargando...</div>;
 
   return (
-    <div className="max-w-3xl mx-auto space-y-12">
-      <header className="flex items-center justify-between">
-        <div>
+    <div className="max-w-4xl mx-auto space-y-12 pb-20">
+      <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-8">
+        <div className="flex-1">
           <h1 className="font-dm-sans text-4xl font-bold tracking-tight text-[var(--black)]">
             Tareas <span className="text-gradient">Pendientes</span>
           </h1>
           <p className="font-inter mt-2 text-[var(--dark-gray)] font-light">
-            Organiza tu día a día con simplicidad.
+            Organiza tu día y mantén el enfoque en lo importante.
           </p>
         </div>
-        <button 
-          onClick={() => setShowAddForm(!showAddForm)}
-          className="p-4 bg-black text-white rounded-2xl hover:scale-105 active:scale-95 transition-all shadow-lg"
-        >
-          <HiOutlinePlus className="text-2xl" />
-        </button>
+
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4">
+          <div className="relative flex-1 sm:w-64">
+            <input 
+              type="text"
+              placeholder="Buscar tarea..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full pl-12 pr-6 py-4 bg-white border border-gray-100 rounded-2xl outline-none focus:ring-2 ring-gray-100 font-inter text-sm shadow-sm transition-all"
+            />
+            <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">
+              <svg xmlns="http://www.w3.org/2000/svg" className="size-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+            </div>
+          </div>
+          <button 
+            onClick={() => setShowAddForm(!showAddForm)}
+            className="p-4 bg-black text-white rounded-2xl hover:scale-105 active:scale-95 transition-all shadow-lg flex items-center justify-center"
+          >
+            <HiOutlinePlus className="text-2xl" />
+          </button>
+        </div>
       </header>
 
       <AnimatePresence>
@@ -131,13 +154,13 @@ export default function Pendientes() {
         )}
       </AnimatePresence>
 
-      <div className="space-y-4">
-        {tasks.length === 0 ? (
+      <div className="grid grid-cols-1 gap-4">
+        {filteredTasks.length === 0 ? (
           <div className="text-center py-20 text-gray-400 font-inter font-light italic">
-            No hay tareas pendientes. ¡Disfruta tu día!
+            No se encontraron tareas que coincidan con tu búsqueda.
           </div>
         ) : (
-          tasks.map((task) => (
+          filteredTasks.map((task) => (
             <motion.div 
               key={task.id}
               layout
