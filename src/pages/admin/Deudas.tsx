@@ -63,8 +63,8 @@ export default function Deudas() {
   if (loading) return <div className="text-gray-400 font-syne uppercase tracking-widest text-xs">Cargando...</div>;
 
   return (
-    <div className="max-w-4xl mx-auto space-y-12">
-      <header className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+    <div className="max-w-4xl mx-auto space-y-12 pb-20">
+      <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
         <div>
           <h1 className="font-dm-sans text-4xl font-bold tracking-tight text-[var(--black)]">
             Cuentas por <span className="text-gradient">Cobrar</span>
