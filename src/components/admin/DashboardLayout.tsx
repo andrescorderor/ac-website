@@ -9,6 +9,8 @@ import {
   HiOutlineUserGroup,
   HiOutlineLockClosed,
   HiOutlineShoppingBag,
+  HiOutlineCalendar,
+  HiOutlineLink,
   HiOutlineLogout,
   HiMenuAlt2,
   HiX
@@ -21,6 +23,8 @@ const menuItems = [
   { icon: HiOutlineUserGroup, label: 'Deudas', path: '/admin/panel/deudas' },
   { icon: HiOutlineLockClosed, label: 'Bóveda', path: '/admin/panel/vault' },
   { icon: HiOutlineShoppingBag, label: 'Compras', path: '/admin/panel/compras' },
+  { icon: HiOutlineCalendar, label: 'Fechas', path: '/admin/panel/recordatorios' },
+  { icon: HiOutlineLink, label: 'Enlaces', path: '/admin/panel/enlaces' },
 ];
 
 export default function DashboardLayout() {

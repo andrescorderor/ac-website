@@ -7,6 +7,8 @@ import {
   HiOutlineLockClosed,
   HiOutlineUserGroup,
   HiOutlineShoppingBag,
+  HiOutlineCalendar,
+  HiOutlineLink,
   HiOutlineArrowSmRight
 } from 'react-icons/hi';
 import { Link } from 'react-router-dom';
@@ -17,7 +19,9 @@ export default function DashboardHome() {
     tasks: 0,
     vault: 0,
     debts: 0,
-    shopping: 0
+    shopping: 0,
+    reminders: 0,
+    bookmarks: 0
   });
   const [loading, setLoading] = useState(true);
 
@@ -29,12 +33,14 @@ export default function DashboardHome() {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
 
-    const [exp, tsk, vlt, dbt, shp] = await Promise.all([
+    const [exp, tsk, vlt, dbt, shp, rem, bkm] = await Promise.all([
       supabase.from('finance_expenses').select('amount'),
       supabase.from('tasks').select('id').eq('completed', false),
       supabase.from('vault_items').select('id'),
       supabase.from('debts').select('amount').eq('settled', false),
-      supabase.from('shopping_list').select('id').eq('bought', false)
+      supabase.from('shopping_list').select('id').eq('bought', false),
+      supabase.from('reminders').select('id'),
+      supabase.from('bookmarks').select('id')
     ]);
 
     setStats({
@@ -42,7 +48,9 @@ export default function DashboardHome() {
       tasks: tsk.data?.length || 0,
       vault: vlt.data?.length || 0,
       debts: dbt.data?.reduce((acc, curr) => acc + curr.amount, 0) || 0,
-      shopping: shp.data?.length || 0
+      shopping: shp.data?.length || 0,
+      reminders: rem.data?.length || 0,
+      bookmarks: bkm.data?.length || 0
     });
     setLoading(false);
   };
@@ -83,6 +91,20 @@ export default function DashboardHome() {
       color: 'bg-green-500', 
       path: '/admin/panel/compras' 
     },
+    { 
+      label: 'Recordatorios', 
+      value: stats.reminders, 
+      icon: HiOutlineCalendar, 
+      color: 'bg-pink-500', 
+      path: '/admin/panel/recordatorios' 
+    },
+    { 
+      label: 'Enlaces Guardados', 
+      value: stats.bookmarks, 
+      icon: HiOutlineLink, 
+      color: 'bg-cyan-500', 
+      path: '/admin/panel/enlaces' 
+    },
   ];
 
   if (loading) return <div className="text-gray-400 font-syne uppercase tracking-widest text-xs">Cargando...</div>;
@@ -98,7 +120,7 @@ export default function DashboardHome() {
         </p>
       </header>
 
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 md:gap-6">
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
         {cards.map((card, idx) => (
           <motion.div
             key={card.label}

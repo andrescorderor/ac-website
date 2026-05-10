@@ -17,6 +17,8 @@ import Pendientes from '@pages/admin/Pendientes';
 import Deudas from '@pages/admin/Deudas';
 import Vault from '@pages/admin/Vault';
 import Compras from '@pages/admin/Compras';
+import Recordatorios from '@pages/admin/Recordatorios';
+import Enlaces from '@pages/admin/Enlaces';
 
 registerSW({ immediate: true });
 
@@ -62,6 +64,14 @@ const router = createBrowserRouter([
       {
         path: 'compras',
         element: <Compras />,
+      },
+      {
+        path: 'recordatorios',
+        element: <Recordatorios />,
+      },
+      {
+        path: 'enlaces',
+        element: <Enlaces />,
       },
     ],
   },
