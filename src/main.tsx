@@ -16,6 +16,7 @@ import Finanzas from '@pages/admin/Finanzas';
 import Pendientes from '@pages/admin/Pendientes';
 import Deudas from '@pages/admin/Deudas';
 import Vault from '@pages/admin/Vault';
+import Compras from '@pages/admin/Compras';
 
 registerSW({ immediate: true });
 
@@ -57,6 +58,10 @@ const router = createBrowserRouter([
       {
         path: 'vault',
         element: <Vault />,
+      },
+      {
+        path: 'compras',
+        element: <Compras />,
       },
     ],
   },

@@ -15,7 +15,8 @@ export default function DashboardHome() {
     expenses: 0,
     tasks: 0,
     vault: 0,
-    debts: 0
+    debts: 0,
+    shopping: 0
   });
   const [loading, setLoading] = useState(true);
 
@@ -27,18 +28,20 @@ export default function DashboardHome() {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
 
-    const [exp, tsk, vlt, dbt] = await Promise.all([
+    const [exp, tsk, vlt, dbt, shp] = await Promise.all([
       supabase.from('finance_expenses').select('amount'),
       supabase.from('tasks').select('id').eq('completed', false),
       supabase.from('vault_items').select('id'),
-      supabase.from('debts').select('amount').eq('settled', false)
+      supabase.from('debts').select('amount').eq('settled', false),
+      supabase.from('shopping_list').select('id').eq('bought', false)
     ]);
 
     setStats({
       expenses: exp.data?.reduce((acc, curr) => acc + curr.amount, 0) || 0,
       tasks: tsk.data?.length || 0,
       vault: vlt.data?.length || 0,
-      debts: dbt.data?.reduce((acc, curr) => acc + curr.amount, 0) || 0
+      debts: dbt.data?.reduce((acc, curr) => acc + curr.amount, 0) || 0,
+      shopping: shp.data?.length || 0
     });
     setLoading(false);
   };
@@ -72,6 +75,13 @@ export default function DashboardHome() {
       color: 'bg-purple-500', 
       path: '/admin/panel/vault' 
     },
+    { 
+      label: 'Lista de Compras', 
+      value: stats.shopping, 
+      icon: HiOutlineShoppingBag, 
+      color: 'bg-green-500', 
+      path: '/admin/panel/compras' 
+    },
   ];
 
   if (loading) return <div className="text-gray-400 font-syne uppercase tracking-widest text-xs">Cargando...</div>;
@@ -87,7 +97,7 @@ export default function DashboardHome() {
         </p>
       </header>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
         {cards.map((card, idx) => (
           <motion.div
             key={card.label}
