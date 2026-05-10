@@ -172,13 +172,15 @@ export default function DashboardLayout() {
             </Link>
           ))}
         </nav>
-        <button
-          onClick={handleLogout}
-          className="flex items-center gap-4 px-6 py-4 rounded-2xl text-red-500 hover:bg-red-50"
-        >
-          <HiOutlineLogout className="text-2xl" />
-          <span className="font-syne text-xs font-bold uppercase tracking-widest">Salir</span>
-        </button>
+        <div className="mt-auto pt-6 border-t border-gray-100">
+          <button
+            onClick={handleLogout}
+            className="w-full flex items-center gap-4 px-5 py-3 rounded-2xl text-red-500 hover:bg-red-50 transition-all"
+          >
+            <HiOutlineLogout className="text-2xl" />
+            <span className="font-syne text-xs font-bold uppercase tracking-widest">Salir</span>
+          </button>
+        </div>
       </motion.aside>
 
       {/* Main Content Area */}
