@@ -1,95 +1,96 @@
 <div align="center">
   <img src="public/assets/ac-website-icon.svg" alt="Logo" width="100" />
   
-  # Andrés Cordero - Professional Portfolio ✨
+  # Andrés Cordero - Professional Portfolio & Navaja Suiza PWA ✨
   
-  **Welcome to my personal website and interactive portfolio.**  
-  Built with UX/UI best practices, modern design, and cutting-edge technology.
+  **Welcome to my personal ecosystem: a professional portfolio and a custom productivity hub.**  
+  Built with UX/UI best practices, premium design, and a focus on mobile-first efficiency.
 
   [![React](https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)](https://reactjs.org/)
   [![Vite](https://img.shields.io/badge/Vite-B73BFE?style=for-the-badge&logo=vite&logoColor=FFD62E)](https://vitejs.dev/)
   [![TailwindCSS](https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white)](https://tailwindcss.com/)
-  [![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+  [![Supabase](https://img.shields.io/badge/Supabase-3ECF8E?style=for-the-badge&logo=supabase&logoColor=white)](https://supabase.com/)
+  [![PWA](https://img.shields.io/badge/PWA-5A0FC8?style=for-the-badge&logo=pwa&logoColor=white)](https://web.dev/progressive-web-apps/)
 
 </div>
 
 ---
 
-## 🚀 About This Project
+## 🚀 Overview
 
-This repository contains the source code for my professional *landing page*. The main goal of this project is to showcase my experience, technical skills, and background as a **Software Engineer specializing in Frontend Development and Project Management**.
+This repository hosts a dual-purpose platform:
+1.  **Professional Portfolio:** A high-end landing page showcasing my engineering background, skills, and achievements.
+2.  **Navaja Suiza PWA:** A private, secure productivity suite designed as a "Swiss Army Knife" for daily life management.
 
-The interface was redesigned to be completely **Responsive (Mobile-First)**, ensuring a fluid, modern, and engaging user experience (UX) across all screen sizes.
+---
+
+## 🛠️ Navaja Suiza PWA - Features
+
+The productivity hub is a mobile-optimized private dashboard with specialized modules:
+
+*   📊 **Finance Manager:** Track monthly expenses, manage salary, and visualize category spending.
+*   ✅ **Task Management (Pendientes):** Simple and effective task list with real-time search.
+*   🔐 **Secure Vault:** Encrypted-access storage for sensitive texts (IDs, cards) with quick copy-to-clipboard functionality.
+*   🛒 **Smart Shopping List:** Manage items with priority, location tracking, and price estimates.
+*   📅 **Important Reminders:** Categorized dates (Birthdays, Documents, Payments) with proximity alerts and recurring support.
+*   🔗 **Quick Links:** Private bookmark manager with automatic favicon detection for fast access.
+*   💸 **Debt Tracker:** Monitor pending payments and collections.
+
+### ✨ Premium UX Design
+*   **Auto-Hide Navigation:** Mobile header hides on scroll to maximize screen real estate.
+*   **Sticky Architecture:** Persistent sidebar on desktop with independent scrolling.
+*   **Haptic Feedback:** Micro-animations and subtle scale effects for touch interactions.
+*   **Real-Time Search:** Integrated search bars across all data-heavy modules.
 
 ---
 
 ## 👨‍💻 About Me
 
-I am a technology enthusiast with experience in web development, interface design, and quality assurance (QA). My main focus is on creating scalable solutions and interfaces that users love to interact with.
+Software Engineer specializing in Frontend Development and Project Management, focusing on creating scalable solutions and interfaces that users love.
 
 🌟 **Highlights:**
-- 🛠️ Development of complex web applications and interactive *landing pages*.
-- 🎨 Implementation of attractive interfaces with a strong focus on UI/UX.
-- ☁️ Database management and cloud services like AWS.
-- 📈 Leadership and agile methodologies for efficient project delivery.
-
-### 🎓 Education and Achievements
-
-- 🎓 **Software and Systems Engineering** | Universidad La Salle Bajío (2020-2024)
-- 🏆 **1st Place** | Hackathon Mejora Regulatoria 2.0 (Competing against 30+ teams).
-- 🥈 **2nd Place** | VW GTO 2.0 Challenge.
-- 🌍 **Exhibitor** | Project for Volkswagen at the Hannover Messe Industrial Fair.
+- 🛠️ Development of complex web applications and interactive PWAs.
+- 🎨 UI/UX Expert with a focus on "Premium & Alive" interfaces.
+- 🎓 Software Engineering Graduate | Universidad La Salle Bajío.
+- 🏆 1st Place | Hackathon Mejora Regulatoria 2.0.
 
 ---
 
 ## 🛠️ Tech Stack
 
-This project was built using the following technologies:
-
-* ⚛️ **React + TypeScript**: For a solid, scalable, and bug-free component architecture.
-* ⚡ **Vite**: As an ultra-fast development environment.
-* 🎨 **Tailwind CSS**: For visual design, flexible styling, and responsive layout (100% Mobile-Friendly).
-* 🎞️ **Framer Motion**: For fluid animations and engaging transitions throughout the site.
+*   ⚛️ **React + TypeScript**: Solid, scalable component architecture.
+*   ⚡ **Vite**: Ultra-fast development and build environment.
+*   🎨 **Tailwind CSS**: Modern utility-first styling with custom glassmorphism and gradients.
+*   🔥 **Supabase**: Real-time database, authentication, and secure RLS policies.
+*   🎞️ **Framer Motion**: Premium fluid animations and transitions.
+*   📲 **Vite PWA Plugin**: For offline support and "Add to Home Screen" capability.
 
 ---
 
 ## ⚙️ Local Setup
 
-Want to try out the project on your local machine? Follow these simple steps:
-
 1. **Clone the repository:**
    ```bash
-   git clone https://github.com/andresxordero/ac-website.git
+   git clone https://github.com/andrescorderor/ac-website.git
    ```
-
-2. **Navigate to the project directory:**
-   ```bash
-   cd ac-website
-   ```
-
-3. **Install dependencies:**
-   Using Yarn (recommended):
+2. **Install dependencies:**
    ```bash
    yarn install
    ```
-   *Or if you prefer NPM:*
-   ```bash
-   npm install
+3. **Environment Variables:**
+   Create a `.env` file with your Supabase credentials:
+   ```env
+   VITE_SUPABASE_URL=your_url
+   VITE_SUPABASE_ANON_KEY=your_key
    ```
-
 4. **Start the development server:**
    ```bash
    yarn dev
    ```
 
-5. **Open your browser:**  
-   Go to `http://localhost:5173/` and explore the live portfolio.
-
 ---
 
 ## 📬 Contact
-
-If you like what you see or have a project proposal, feel free to reach out:
 
 - 💼 **LinkedIn**: [andresmcorderor](https://www.linkedin.com/in/andresmcorderor/)
 - 💻 **GitHub**: [andrescorderor](https://github.com/andrescorderor)
@@ -97,5 +98,5 @@ If you like what you see or have a project proposal, feel free to reach out:
 ---
 
 <div align="center">
-  <sub>Made with ❤️ and clean code.</sub>
+  <sub>Made with ❤️, precision, and clean code.</sub>
 </div>
