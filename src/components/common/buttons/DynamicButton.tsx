@@ -7,7 +7,7 @@ type DynamicButtonProps = {
 };
 
 export function DynamicButton({
-  icon: Icon = null,
+  icon: Icon,
   name,
   type,
   style,
