@@ -6,6 +6,7 @@ import {
   HiOutlineClipboardList, 
   HiOutlineLockClosed,
   HiOutlineUserGroup,
+  HiOutlineShoppingBag,
   HiOutlineArrowSmRight
 } from 'react-icons/hi';
 import { Link } from 'react-router-dom';

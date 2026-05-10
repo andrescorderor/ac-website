@@ -4,10 +4,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { 
   HiOutlinePlus, 
   HiOutlineTrash, 
-  HiOutlineShoppingBag, 
   HiOutlineLocationMarker,
   HiOutlineTag,
-  HiOutlineFilter,
   HiOutlineCheckCircle
 } from 'react-icons/hi';
 import { MdOutlineCircle } from 'react-icons/md';
