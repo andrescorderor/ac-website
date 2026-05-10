@@ -108,9 +108,15 @@ export default function DashboardLayout() {
       </aside>
 
       {/* Mobile Header */}
-      <div className="lg:hidden fixed top-0 left-0 right-0 h-16 bg-white border-b border-gray-100 flex items-center justify-between px-6 z-50">
-        <div className="size-8 bg-black rounded-lg flex items-center justify-center text-white font-bold text-xs">AC</div>
-        <button onClick={() => setIsSidebarOpen(!isSidebarOpen)}>
+      <div className="lg:hidden fixed top-0 left-0 right-0 h-20 bg-white/80 backdrop-blur-xl border-b border-gray-100 flex items-center justify-between px-6 z-50">
+        <div className="flex items-center gap-3">
+          <div className="size-10 bg-black rounded-xl flex items-center justify-center text-white font-bold shadow-lg">AC</div>
+          <span className="font-dm-sans font-bold text-lg tracking-tight">Panel</span>
+        </div>
+        <button 
+          onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+          className="p-3 bg-gray-50 rounded-2xl hover:bg-gray-100 transition-colors"
+        >
           {isSidebarOpen ? <HiX className="text-2xl" /> : <HiMenuAlt2 className="text-2xl" />}
         </button>
       </div>
@@ -123,18 +129,23 @@ export default function DashboardLayout() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={() => setIsSidebarOpen(false)}
-            className="lg:hidden fixed inset-0 bg-black/20 backdrop-blur-sm z-40"
+            className="lg:hidden fixed inset-0 bg-black/40 backdrop-blur-md z-40"
           />
         )}
       </AnimatePresence>
 
       <motion.aside
+        initial={{ x: '-100%' }}
         animate={{ x: isSidebarOpen ? 0 : '-100%' }}
-        className="lg:hidden fixed top-0 left-0 bottom-0 w-72 bg-white z-50 p-8 flex flex-col"
+        transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+        className="lg:hidden fixed top-0 left-0 bottom-0 w-[85%] max-w-sm bg-white z-50 p-8 flex flex-col shadow-2xl"
       >
         <div className="flex items-center gap-4 mb-12">
-          <div className="size-10 bg-black rounded-xl flex items-center justify-center text-white font-bold">AC</div>
-          <span className="font-dm-sans font-bold text-xl tracking-tight">Panel Privado</span>
+          <div className="size-12 bg-black rounded-2xl flex items-center justify-center text-white font-bold text-xl shadow-xl">AC</div>
+          <div className="flex flex-col">
+            <span className="font-dm-sans font-bold text-xl tracking-tight">Navaja Suiza</span>
+            <span className="font-syne text-[10px] font-bold uppercase tracking-widest text-gray-400">Panel de Control</span>
+          </div>
         </div>
         <nav className="flex-1 space-y-4">
           {menuItems.map((item) => (

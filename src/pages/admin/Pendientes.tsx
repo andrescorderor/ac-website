@@ -141,11 +141,11 @@ export default function Pendientes() {
             <motion.div 
               key={task.id}
               layout
-              className={`flex items-start gap-6 p-6 rounded-3xl bg-white border border-gray-50 shadow-sm transition-all ${task.completed ? 'opacity-60' : ''}`}
+              className={`flex items-start gap-4 md:gap-6 p-5 md:p-6 rounded-[2rem] bg-white border border-gray-50 shadow-sm transition-all ${task.completed ? 'opacity-60' : ''}`}
             >
               <button 
                 onClick={() => toggleTask(task.id, task.completed)}
-                className="mt-1 text-2xl transition-colors"
+                className="mt-1 text-3xl md:text-2xl transition-all active:scale-90 shrink-0"
               >
                 {task.completed ? (
                   <HiOutlineCheckCircle className="text-green-500" />
@@ -154,18 +154,18 @@ export default function Pendientes() {
                 )}
               </button>
               
-              <div className="flex-1 space-y-1">
-                <h3 className={`font-dm-sans text-lg font-bold ${task.completed ? 'line-through text-gray-400' : 'text-black'}`}>
+              <div className="flex-1 min-w-0 space-y-1">
+                <h3 className={`font-dm-sans text-base md:text-lg font-bold truncate-2-lines ${task.completed ? 'line-through text-gray-400' : 'text-black'}`}>
                   {task.title || 'Tarea sin título'}
                 </h3>
                 {task.description && (
-                  <p className="font-inter text-sm text-gray-500 font-light leading-relaxed">
+                  <p className="font-inter text-xs md:text-sm text-gray-500 font-light leading-relaxed break-words">
                     {task.description}
                   </p>
                 )}
                 {task.due_date && (
                   <div className="pt-2">
-                    <span className="font-syne text-[10px] font-bold uppercase tracking-widest px-3 py-1 bg-gray-100 rounded-full text-gray-500">
+                    <span className="inline-flex items-center font-syne text-[9px] md:text-[10px] font-bold uppercase tracking-widest px-3 py-1 bg-gray-100 rounded-full text-gray-500">
                       Vence: {task.due_date}
                     </span>
                   </div>
@@ -174,9 +174,9 @@ export default function Pendientes() {
 
               <button 
                 onClick={() => deleteTask(task.id)}
-                className="p-2 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-full transition-all"
+                className="p-3 md:p-2 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-2xl transition-all shrink-0"
               >
-                <HiOutlineTrash />
+                <HiOutlineTrash className="text-xl md:text-lg" />
               </button>
             </motion.div>
           ))

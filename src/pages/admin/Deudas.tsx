@@ -121,8 +121,47 @@ export default function Deudas() {
         </form>
       </div>
 
-      {/* Debts List */}
-      <div className="bg-white rounded-[2.5rem] border border-gray-100 overflow-hidden shadow-sm">
+      {/* Debts List - Mobile Card View */}
+      <div className="grid grid-cols-1 gap-4 md:hidden">
+        {debts.length === 0 ? (
+          <div className="bg-white p-12 text-center rounded-[2.5rem] text-gray-400 font-inter font-light italic border border-gray-100">
+            Nadie te debe nada actualmente.
+          </div>
+        ) : (
+          debts.map((debt) => (
+            <div key={debt.id} className={`bg-white p-6 rounded-[2rem] border border-gray-100 shadow-sm space-y-4 ${debt.settled ? 'opacity-50' : ''}`}>
+              <div className="flex justify-between items-start">
+                <div>
+                  <h3 className="font-dm-sans font-bold text-lg text-black">{debt.debtor_name}</h3>
+                  <p className="font-inter text-xs text-gray-500 mt-1">{debt.concept || 'Sin concepto'}</p>
+                </div>
+                <p className="font-dm-sans font-bold text-xl text-black">${debt.amount.toLocaleString()}</p>
+              </div>
+              <div className="flex items-center justify-between pt-2">
+                <button 
+                  onClick={() => toggleSettled(debt.id, debt.settled)}
+                  className={`px-6 py-2 rounded-full font-syne text-[10px] font-bold uppercase tracking-widest transition-all ${
+                    debt.settled 
+                    ? 'bg-green-100 text-green-600' 
+                    : 'bg-orange-100 text-orange-600'
+                  }`}
+                >
+                  {debt.settled ? 'Saldada' : 'Pendiente'}
+                </button>
+                <button 
+                  onClick={() => deleteDebt(debt.id)}
+                  className="p-3 text-red-400 bg-red-50 rounded-2xl transition-all"
+                >
+                  <HiOutlineTrash className="text-xl" />
+                </button>
+              </div>
+            </div>
+          ))
+        )}
+      </div>
+
+      {/* Debts List - Desktop Table View */}
+      <div className="hidden md:block bg-white rounded-[2.5rem] border border-gray-100 overflow-hidden shadow-sm">
         <table className="w-full border-collapse">
           <thead>
             <tr className="bg-gray-50/50">

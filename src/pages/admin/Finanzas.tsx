@@ -142,32 +142,34 @@ export default function Finanzas() {
               </span>
             </div>
 
-            <div className="bg-white rounded-3xl border border-gray-100 overflow-hidden shadow-sm">
-              <table className="w-full text-left border-collapse">
-                <thead className="bg-gray-50/50">
-                  <tr>
-                    <th className="px-6 py-4 font-syne text-[10px] font-bold uppercase tracking-widest text-[var(--gray)]">Concepto</th>
-                    <th className="px-6 py-4 font-syne text-[10px] font-bold uppercase tracking-widest text-[var(--gray)] text-right">Monto</th>
-                    <th className="px-4 py-4"></th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-50">
-                  {expenses.filter(e => e.category === cat).map((exp) => (
-                    <tr key={exp.id} className="group hover:bg-gray-50/50 transition-colors">
-                      <td className="px-6 py-4 font-inter text-sm text-gray-600">{exp.concept}</td>
-                      <td className="px-6 py-4 font-dm-sans text-sm font-semibold text-right">${exp.amount.toLocaleString()}</td>
-                      <td className="px-4 py-4 text-right">
-                        <button 
-                          onClick={() => handleDeleteExpense(exp.id)}
-                          className="opacity-0 group-hover:opacity-100 p-2 text-red-400 hover:bg-red-50 rounded-full transition-all"
-                        >
-                          <HiOutlineTrash />
-                        </button>
-                      </td>
+            <div className="bg-white rounded-[2rem] border border-gray-100 overflow-hidden shadow-sm">
+              <div className="overflow-x-auto">
+                <table className="w-full text-left border-collapse min-w-[300px]">
+                  <thead className="bg-gray-50/50">
+                    <tr>
+                      <th className="px-6 py-4 font-syne text-[10px] font-bold uppercase tracking-widest text-[var(--gray)]">Concepto</th>
+                      <th className="px-6 py-4 font-syne text-[10px] font-bold uppercase tracking-widest text-[var(--gray)] text-right">Monto</th>
+                      <th className="px-4 py-4"></th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody className="divide-y divide-gray-50">
+                    {expenses.filter(e => e.category === cat).map((exp) => (
+                      <tr key={exp.id} className="group hover:bg-gray-50/50 transition-colors">
+                        <td className="px-6 py-4 font-inter text-sm text-gray-600">{exp.concept}</td>
+                        <td className="px-6 py-4 font-dm-sans text-sm font-semibold text-right">${exp.amount.toLocaleString()}</td>
+                        <td className="px-4 py-4 text-right">
+                          <button 
+                            onClick={() => handleDeleteExpense(exp.id)}
+                            className="p-2 text-red-400 hover:bg-red-50 rounded-full transition-all lg:opacity-0 lg:group-hover:opacity-100"
+                          >
+                            <HiOutlineTrash />
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
 
               <div className="p-4 bg-gray-50/30 border-t border-gray-50">
                 <div className="flex gap-2">
