@@ -28,7 +28,7 @@ const menuItems = [
 ];
 
 export default function DashboardLayout() {
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
   const location = useLocation();
@@ -148,20 +148,20 @@ export default function DashboardLayout() {
         transition={{ type: 'spring', damping: 25, stiffness: 200 }}
         className="lg:hidden fixed top-0 left-0 bottom-0 w-[85%] max-w-sm bg-white z-50 p-8 flex flex-col shadow-2xl"
       >
-        <div className="flex items-center gap-4 mb-12">
+        <div className="flex items-center gap-4 mb-8">
           <div className="size-12 bg-black rounded-2xl flex items-center justify-center text-white font-bold text-xl shadow-xl">AC</div>
           <div className="flex flex-col">
             <span className="font-dm-sans font-bold text-xl tracking-tight">Navaja Suiza</span>
             <span className="font-syne text-[10px] font-bold uppercase tracking-widest text-gray-400">Panel de Control</span>
           </div>
         </div>
-        <nav className="flex-1 space-y-4">
+        <nav className="flex-1 space-y-1 overflow-y-auto">
           {menuItems.map((item) => (
             <Link
               key={item.path}
               to={item.path}
               onClick={() => setIsSidebarOpen(false)}
-              className={`flex items-center gap-4 px-6 py-4 rounded-2xl ${
+              className={`flex items-center gap-4 px-5 py-3 rounded-2xl transition-all ${
                 location.pathname === item.path 
                   ? 'bg-[var(--black)] text-white shadow-lg' 
                   : 'text-[var(--dark-gray)] hover:bg-[var(--soft-light-gray)]'

@@ -130,7 +130,7 @@ export default function DashboardHome() {
           >
             <Link 
               to={card.path}
-              className="group block bg-white p-8 rounded-[2.5rem] border border-gray-100 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-500"
+              className="group block bg-white p-5 md:p-8 rounded-[2rem] md:rounded-[2.5rem] border border-gray-100 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-500"
             >
               <div className="flex justify-between items-start">
                 <div className={`p-4 rounded-2xl ${card.color} text-white shadow-lg`}>
@@ -138,9 +138,9 @@ export default function DashboardHome() {
                 </div>
                 <HiOutlineArrowSmRight className="text-2xl text-gray-300 group-hover:text-black group-hover:translate-x-1 transition-all" />
               </div>
-              <div className="mt-8">
-                <p className="font-syne text-[10px] font-bold uppercase tracking-widest text-gray-400">{card.label}</p>
-                <h3 className="font-dm-sans text-3xl font-bold mt-1 text-black">{card.value}</h3>
+              <div className="mt-4 md:mt-8">
+                <p className="font-syne text-[9px] md:text-[10px] font-bold uppercase tracking-widest text-gray-400">{card.label}</p>
+                <h3 className="font-dm-sans text-xl md:text-3xl font-bold mt-1 text-black">{card.value}</h3>
               </div>
             </Link>
           </motion.div>
@@ -148,18 +148,18 @@ export default function DashboardHome() {
       </div>
 
       <section className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <div className="lg:col-span-2 bg-black rounded-[3rem] p-10 text-white relative overflow-hidden group">
+        <div className="lg:col-span-2 bg-black rounded-[2rem] md:rounded-[3rem] p-6 md:p-10 text-white relative overflow-hidden group">
           <div className="relative z-10 space-y-6">
-            <h2 className="font-dm-sans text-3xl font-bold">Tu Navaja Suiza Personal</h2>
-            <p className="font-inter text-gray-400 font-light leading-relaxed max-w-md">
+            <h2 className="font-dm-sans text-2xl md:text-3xl font-bold">Tu Navaja Suiza Personal</h2>
+            <p className="font-inter text-gray-400 font-light leading-relaxed max-w-md text-sm md:text-base">
               Gestiona tus finanzas, tareas y documentos importantes desde un solo lugar seguro y privado.
             </p>
-            <div className="flex gap-4">
-              <div className="px-6 py-3 bg-white/10 backdrop-blur-md rounded-2xl border border-white/10 text-xs font-syne font-bold uppercase tracking-widest">
-                AI Powered
+            <div className="flex flex-wrap gap-3 md:gap-4">
+              <div className="px-4 md:px-6 py-2 md:py-3 bg-white/10 backdrop-blur-md rounded-2xl border border-white/10 text-[10px] md:text-xs font-syne font-bold uppercase tracking-widest">
+                8 Módulos
               </div>
-              <div className="px-6 py-3 bg-white/10 backdrop-blur-md rounded-2xl border border-white/10 text-xs font-syne font-bold uppercase tracking-widest">
-                Secure Vault
+              <div className="px-4 md:px-6 py-2 md:py-3 bg-white/10 backdrop-blur-md rounded-2xl border border-white/10 text-[10px] md:text-xs font-syne font-bold uppercase tracking-widest">
+                Bóveda Segura
               </div>
             </div>
           </div>
