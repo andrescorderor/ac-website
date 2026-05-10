@@ -112,10 +112,10 @@ export default function DashboardHome() {
   return (
     <div className="space-y-12">
       <header>
-        <h1 className="font-dm-sans text-4xl font-bold tracking-tight text-[var(--black)]">
+        <h1 className="font-dm-sans text-3xl md:text-4xl font-bold tracking-tight text-[var(--black)]">
           Hola, <span className="text-gradient">Andrés</span>
         </h1>
-        <p className="font-inter mt-2 text-[var(--dark-gray)] font-light">
+        <p className="font-inter mt-2 text-[var(--dark-gray)] font-light text-sm">
           Aquí tienes un resumen de tu actividad actual.
         </p>
       </header>
@@ -133,10 +133,10 @@ export default function DashboardHome() {
               className="group block bg-white p-5 md:p-8 rounded-[2rem] md:rounded-[2.5rem] border border-gray-100 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-500"
             >
               <div className="flex justify-between items-start">
-                <div className={`p-4 rounded-2xl ${card.color} text-white shadow-lg`}>
-                  <card.icon className="text-2xl" />
+                <div className={`p-3 md:p-4 rounded-xl md:rounded-2xl ${card.color} text-white shadow-lg`}>
+                  <card.icon className="text-xl md:text-2xl" />
                 </div>
-                <HiOutlineArrowSmRight className="text-2xl text-gray-300 group-hover:text-black group-hover:translate-x-1 transition-all" />
+                <HiOutlineArrowSmRight className="text-xl md:text-2xl text-gray-300 group-hover:text-black group-hover:translate-x-1 transition-all" />
               </div>
               <div className="mt-4 md:mt-8">
                 <p className="font-syne text-[9px] md:text-[10px] font-bold uppercase tracking-widest text-gray-400">{card.label}</p>
@@ -166,19 +166,19 @@ export default function DashboardHome() {
           <div className="absolute -right-20 -bottom-20 size-80 bg-gradient-to-tr from-blue-500/20 to-purple-500/20 blur-3xl group-hover:scale-110 transition-transform duration-1000" />
         </div>
 
-        <div className="bg-white rounded-[3rem] p-10 border border-gray-100 flex flex-col justify-center items-center text-center space-y-6 shadow-sm">
-           <div className="size-20 rounded-full bg-gray-50 flex items-center justify-center">
-             <HiOutlineClipboardList className="text-4xl text-black" />
+        <div className="bg-white rounded-[2rem] md:rounded-[3rem] p-6 md:p-10 border border-gray-100 flex flex-col justify-center items-center text-center space-y-5 md:space-y-6 shadow-sm">
+           <div className="size-16 md:size-20 rounded-full bg-gray-50 flex items-center justify-center">
+             <HiOutlineClipboardList className="text-3xl md:text-4xl text-black" />
            </div>
            <div className="space-y-2">
-             <h3 className="font-dm-sans text-xl font-bold">¿Qué sigue?</h3>
+             <h3 className="font-dm-sans text-lg md:text-xl font-bold">¿Qué sigue?</h3>
              <p className="font-inter text-sm text-gray-500 font-light">
                Tienes {stats.tasks} tareas pendientes por completar hoy.
              </p>
            </div>
            <Link 
             to="/admin/panel/pendientes"
-            className="px-8 py-4 bg-black text-white rounded-2xl font-syne text-[10px] font-bold uppercase tracking-widest hover:scale-105 transition-all shadow-lg"
+            className="px-6 md:px-8 py-3 md:py-4 bg-black text-white rounded-2xl font-syne text-[10px] font-bold uppercase tracking-widest hover:scale-105 active:scale-95 transition-all shadow-lg"
            >
              Ver Tareas
            </Link>

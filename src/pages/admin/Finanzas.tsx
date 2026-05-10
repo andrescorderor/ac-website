@@ -86,12 +86,12 @@ export default function Finanzas() {
 
   return (
     <div className="space-y-12 pb-20">
-      <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+      <header className="flex flex-col gap-6">
         <div>
-          <h1 className="font-dm-sans text-4xl font-bold tracking-tight text-[var(--black)]">
+          <h1 className="font-dm-sans text-3xl md:text-4xl font-bold tracking-tight text-[var(--black)]">
             Control de <span className="text-gradient">Finanzas</span>
           </h1>
-          <p className="font-inter mt-2 text-[var(--dark-gray)] font-light">
+          <p className="font-inter mt-2 text-[var(--dark-gray)] font-light text-sm">
             Gestiona tus gastos fijos y presupuesto mensual.
           </p>
         </div>
@@ -123,9 +123,9 @@ export default function Finanzas() {
           { label: 'Servicios', value: getCategoryTotal('servicios'), color: 'text-purple-500' },
           { label: 'Total Gastos', value: globalTotal, color: 'text-red-500', highlight: true },
         ].map((item) => (
-          <div key={item.label} className={`p-6 bg-white rounded-3xl border ${item.highlight ? 'border-red-100 bg-red-50/30' : 'border-gray-50'} shadow-sm`}>
-            <p className="font-syne text-[10px] font-bold uppercase tracking-widest text-[var(--gray)] mb-2">{item.label}</p>
-            <h3 className={`font-dm-sans text-2xl font-bold ${item.color}`}>
+          <div key={item.label} className={`p-4 md:p-6 bg-white rounded-2xl md:rounded-3xl border ${item.highlight ? 'border-red-100 bg-red-50/30' : 'border-gray-50'} shadow-sm`}>
+            <p className="font-syne text-[9px] md:text-[10px] font-bold uppercase tracking-widest text-[var(--gray)] mb-1 md:mb-2">{item.label}</p>
+            <h3 className={`font-dm-sans text-lg md:text-2xl font-bold ${item.color}`}>
               ${item.value.toLocaleString()}
             </h3>
           </div>
@@ -171,27 +171,29 @@ export default function Finanzas() {
                 </table>
               </div>
 
-              <div className="p-4 bg-gray-50/30 border-t border-gray-50">
-                <div className="flex gap-2">
+              <div className="p-3 md:p-4 bg-gray-50/30 border-t border-gray-50">
+                <div className="flex flex-col sm:flex-row gap-2">
                   <input
                     placeholder="Concepto"
                     value={newExpense.category === cat ? newExpense.concept : ''}
                     onChange={(e) => setNewExpense({ ...newExpense, concept: e.target.value, category: cat })}
-                    className="flex-1 px-4 py-2 bg-white border border-gray-100 rounded-xl text-xs outline-none focus:border-gray-300"
+                    className="flex-1 px-4 py-3 bg-white border border-gray-100 rounded-xl text-sm outline-none focus:border-gray-300 font-inter"
                   />
-                  <input
-                    type="number"
-                    placeholder="$$"
-                    value={newExpense.category === cat ? newExpense.amount : ''}
-                    onChange={(e) => setNewExpense({ ...newExpense, amount: e.target.value, category: cat })}
-                    className="w-20 px-4 py-2 bg-white border border-gray-100 rounded-xl text-xs outline-none focus:border-gray-300 text-right"
-                  />
-                  <button
-                    onClick={() => handleAddExpense(cat)}
-                    className="p-2 bg-black text-white rounded-xl hover:scale-105 active:scale-95 transition-all"
-                  >
-                    <HiOutlinePlus />
-                  </button>
+                  <div className="flex gap-2">
+                    <input
+                      type="number"
+                      placeholder="$0"
+                      value={newExpense.category === cat ? newExpense.amount : ''}
+                      onChange={(e) => setNewExpense({ ...newExpense, amount: e.target.value, category: cat })}
+                      className="flex-1 sm:w-24 px-4 py-3 bg-white border border-gray-100 rounded-xl text-sm outline-none focus:border-gray-300 text-right font-dm-sans font-bold"
+                    />
+                    <button
+                      onClick={() => handleAddExpense(cat)}
+                      className="p-3 bg-black text-white rounded-xl hover:scale-105 active:scale-95 transition-all shrink-0"
+                    >
+                      <HiOutlinePlus />
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>

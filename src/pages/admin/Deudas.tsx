@@ -64,23 +64,23 @@ export default function Deudas() {
 
   return (
     <div className="max-w-4xl mx-auto space-y-12 pb-20">
-      <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+      <header className="flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div>
-          <h1 className="font-dm-sans text-4xl font-bold tracking-tight text-[var(--black)]">
+          <h1 className="font-dm-sans text-3xl md:text-4xl font-bold tracking-tight text-[var(--black)]">
             Cuentas por <span className="text-gradient">Cobrar</span>
           </h1>
-          <p className="font-inter mt-2 text-[var(--dark-gray)] font-light">
+          <p className="font-inter mt-2 text-[var(--dark-gray)] font-light text-sm">
             Lleva el control de quién te debe dinero y por qué.
           </p>
         </div>
-        <div className="bg-white px-8 py-4 rounded-3xl border border-gray-100 shadow-sm flex flex-col items-end">
+        <div className="bg-white px-6 md:px-8 py-4 rounded-2xl md:rounded-3xl border border-gray-100 shadow-sm flex flex-col items-start md:items-end">
           <p className="font-syne text-[10px] font-bold uppercase tracking-widest text-gray-400">Total Pendiente</p>
-          <p className="font-dm-sans text-3xl font-bold text-red-500">${totalPending.toLocaleString()}</p>
+          <p className="font-dm-sans text-2xl md:text-3xl font-bold text-red-500">${totalPending.toLocaleString()}</p>
         </div>
       </header>
 
       {/* Add Form */}
-      <div className="bg-white p-8 rounded-[2.5rem] border border-gray-100 shadow-sm">
+      <div className="bg-white p-5 md:p-8 rounded-[2rem] md:rounded-[2.5rem] border border-gray-100 shadow-sm">
         <form onSubmit={handleAddDebt} className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
           <div className="space-y-2 md:col-span-1">
             <label className="font-syne text-[10px] font-bold uppercase tracking-widest text-gray-400">Deudor</label>
