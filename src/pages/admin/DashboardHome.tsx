@@ -150,7 +150,7 @@ export default function DashboardHome() {
       <section className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2 bg-black rounded-[2rem] md:rounded-[3rem] p-6 md:p-10 text-white relative overflow-hidden group">
           <div className="relative z-10 space-y-6">
-            <h2 className="font-dm-sans text-2xl md:text-3xl font-bold">Tu Navaja Suiza Personal</h2>
+            <h2 className="font-dm-sans text-2xl md:text-3xl font-bold">Tu Panel Personal</h2>
             <p className="font-inter text-gray-400 font-light leading-relaxed max-w-md text-sm md:text-base">
               Gestiona tus finanzas, tareas y documentos importantes desde un solo lugar seguro y privado.
             </p>

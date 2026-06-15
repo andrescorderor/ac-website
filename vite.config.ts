@@ -9,8 +9,8 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'masked-icon.svg'],
       manifest: {
-        name: 'Andrés Cordero - Swiss Army',
-        short_name: 'SwissArmy',
+        name: 'Andrés Cordero - Panel Personal',
+        short_name: 'PanelPersonal',
         description: 'Strategic Dashboard & Personal Productivity Hub',
         theme_color: '#000000',
         icons: [

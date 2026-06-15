@@ -1,7 +1,7 @@
 <div align="center">
   <img src="public/assets/ac-website-icon.svg" alt="Logo" width="100" />
   
-  # Andrés Cordero - Professional Portfolio & Navaja Suiza PWA ✨
+  # Andrés Cordero - Professional Portfolio & Personal Panel PWA ✨
   
   **Welcome to my personal ecosystem: a professional portfolio and a custom productivity hub.**  
   Built with UX/UI best practices, premium design, and a focus on mobile-first efficiency.
@@ -20,11 +20,11 @@
 
 This repository hosts a dual-purpose platform:
 1.  **Professional Portfolio:** A high-end landing page showcasing my engineering background, skills, and achievements.
-2.  **Navaja Suiza PWA:** A private, secure productivity suite designed as a "Swiss Army Knife" for daily life management.
+2.  **Personal Panel PWA:** A private, secure productivity suite designed for daily life management.
 
 ---
 
-## 🛠️ Navaja Suiza PWA - Features
+## 🛠️ Personal Panel PWA - Features
 
 The productivity hub is a mobile-optimized private dashboard with specialized modules:
 

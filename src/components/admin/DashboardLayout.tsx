@@ -145,7 +145,7 @@ export default function DashboardLayout() {
       >
         <div className="flex items-center gap-3">
           <div className="size-9 bg-black rounded-xl flex items-center justify-center text-white text-sm font-bold shadow-lg">AC</div>
-          <span className="font-dm-sans font-bold text-base tracking-tight">Navaja Suiza</span>
+          <span className="font-dm-sans font-bold text-base tracking-tight">Panel Personal</span>
         </div>
         <button 
           onClick={() => setIsSidebarOpen(!isSidebarOpen)}
@@ -178,7 +178,7 @@ export default function DashboardLayout() {
         <div className="flex items-center gap-4 p-6 pb-4 shrink-0">
           <div className="size-11 bg-black rounded-2xl flex items-center justify-center text-white font-bold text-lg shadow-xl">AC</div>
           <div className="flex flex-col">
-            <span className="font-dm-sans font-bold text-lg tracking-tight">Navaja Suiza</span>
+            <span className="font-dm-sans font-bold text-lg tracking-tight">Panel Personal</span>
             <span className="font-syne text-[9px] font-bold uppercase tracking-widest text-gray-400">Panel de Control</span>
           </div>
         </div>
