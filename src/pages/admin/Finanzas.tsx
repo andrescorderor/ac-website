@@ -172,7 +172,7 @@ export default function Finanzas() {
               </div>
 
               <div className="p-3 md:p-4 bg-gray-50/30 border-t border-gray-50">
-                <div className="flex flex-col sm:flex-row gap-2">
+                <div className="flex flex-col gap-2">
                   <input
                     placeholder="Concepto"
                     value={newExpense.category === cat ? newExpense.concept : ''}

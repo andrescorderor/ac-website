@@ -103,7 +103,11 @@ export default function DashboardLayout() {
             <Link
               key={item.path}
               to={item.path}
-              className={`flex items-center gap-4 px-4 py-3.5 rounded-2xl transition-all duration-300 ${
+              className={`flex items-center transition-all duration-300 ${
+                isSidebarOpen 
+                  ? 'gap-4 px-4 py-3.5 rounded-2xl' 
+                  : 'justify-center w-12 h-12 mx-auto rounded-2xl'
+              } ${
                 location.pathname === item.path 
                   ? 'bg-[var(--black)] text-white shadow-lg' 
                   : 'text-[var(--dark-gray)] hover:bg-[var(--soft-light-gray)]'
@@ -129,7 +133,11 @@ export default function DashboardLayout() {
         <div className="p-3 border-t border-gray-50 shrink-0">
           <button
             onClick={handleLogout}
-            className="w-full flex items-center gap-4 px-4 py-3.5 rounded-2xl text-red-500 hover:bg-red-50 transition-all duration-300"
+            className={`flex items-center transition-all duration-300 text-red-500 hover:bg-red-50 ${
+              isSidebarOpen 
+                ? 'w-full gap-4 px-4 py-3.5 rounded-2xl' 
+                : 'justify-center w-12 h-12 mx-auto rounded-2xl'
+            }`}
           >
             <HiOutlineLogout className="text-2xl shrink-0" />
             {isSidebarOpen && <span className="font-syne text-xs font-bold uppercase tracking-widest">Salir</span>}
