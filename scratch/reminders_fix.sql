@@ -4,6 +4,7 @@ create table if not exists reminders (
   user_id uuid references auth.users on delete cascade not null,
   title text not null,
   date date not null,
+  time text,
   category text check (category in ('Cumpleaños', 'Documento', 'Pago', 'Otro')) default 'Otro',
   recurring boolean default false,
   notes text,
@@ -12,6 +13,7 @@ create table if not exists reminders (
 
 -- Ensure columns exist if table was already created without them
 alter table reminders add column if not exists date date;
+alter table reminders add column if not exists time text;
 alter table reminders add column if not exists title text;
 alter table reminders add column if not exists category text default 'Otro';
 alter table reminders add column if not exists recurring boolean default false;

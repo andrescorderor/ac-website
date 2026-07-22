@@ -16,6 +16,7 @@ type Reminder = {
   id: string;
   title: string;
   date: string;
+  time: string | null;
   category: 'Cumpleaños' | 'Documento' | 'Pago' | 'Otro';
   recurring: boolean;
   notes: string | null;
@@ -36,9 +37,13 @@ function getDaysUntil(dateStr: string): number {
   return Math.ceil(diff / (1000 * 60 * 60 * 24));
 }
 
-function formatDate(dateStr: string): string {
+function formatDate(dateStr: string, timeStr?: string | null): string {
   const d = new Date(dateStr + 'T00:00:00');
-  return d.toLocaleDateString('es-MX', { day: 'numeric', month: 'long', year: 'numeric' });
+  const formattedDate = d.toLocaleDateString('es-MX', { day: 'numeric', month: 'long', year: 'numeric' });
+  if (timeStr) {
+    return `${formattedDate} • ${timeStr} hrs`;
+  }
+  return formattedDate;
 }
 
 export default function Recordatorios() {
@@ -49,7 +54,7 @@ export default function Recordatorios() {
   const [filterCat, setFilterCat] = useState<string>('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [newReminder, setNewReminder] = useState({
-    title: '', date: '', category: 'Otro' as const, recurring: false, notes: ''
+    title: '', date: '', time: '', category: 'Otro' as const, recurring: false, notes: ''
   });
   const { toast } = useToast();
 
@@ -91,6 +96,7 @@ export default function Recordatorios() {
         user_id: user.id,
         title: newReminder.title.trim(),
         date: newReminder.date,
+        time: newReminder.time || null,
         category: newReminder.category,
         recurring: newReminder.recurring,
         notes: newReminder.notes?.trim() || null,
@@ -99,7 +105,7 @@ export default function Recordatorios() {
       if (error) throw error;
 
       toast.success('Fecha importante registrada');
-      setNewReminder({ title: '', date: '', category: 'Otro', recurring: false, notes: '' });
+      setNewReminder({ title: '', date: '', time: '', category: 'Otro', recurring: false, notes: '' });
       setShowAddForm(false);
       fetchReminders();
     } catch (err: any) {
@@ -197,8 +203,8 @@ export default function Recordatorios() {
           >
             <h3 className="font-dm-sans text-xl font-bold text-[var(--black)]">Registrar Nueva Fecha Importante</h3>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="md:col-span-2">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="md:col-span-3">
                 <label className="block font-syne text-[10px] font-bold uppercase tracking-widest text-[var(--gray)] mb-2">
                   Título del Evento *
                 </label>
@@ -227,6 +233,18 @@ export default function Recordatorios() {
 
               <div>
                 <label className="block font-syne text-[10px] font-bold uppercase tracking-widest text-[var(--gray)] mb-2">
+                  Hora (Opcional)
+                </label>
+                <input
+                  type="time"
+                  value={newReminder.time}
+                  onChange={(e) => setNewReminder({ ...newReminder, time: e.target.value })}
+                  className="w-full px-5 py-3.5 bg-gray-50/50 border border-gray-100 rounded-xl outline-none focus:border-gray-300 font-inter text-sm"
+                />
+              </div>
+
+              <div>
+                <label className="block font-syne text-[10px] font-bold uppercase tracking-widest text-[var(--gray)] mb-2">
                   Categoría
                 </label>
                 <select
@@ -241,7 +259,7 @@ export default function Recordatorios() {
                 </select>
               </div>
 
-              <div className="md:col-span-2">
+              <div className="md:col-span-3">
                 <label className="block font-syne text-[10px] font-bold uppercase tracking-widest text-[var(--gray)] mb-2">
                   Notas Adicionales (Opcional)
                 </label>
@@ -254,7 +272,7 @@ export default function Recordatorios() {
                 />
               </div>
 
-              <div className="md:col-span-2 flex items-center gap-3">
+              <div className="md:col-span-3 flex items-center gap-3">
                 <input
                   type="checkbox"
                   id="recurring"
@@ -365,7 +383,9 @@ function ReminderCard({ r, onDelete }: { r: Reminder; onDelete: (id: string) => 
               {r.category}
             </span>
           </div>
-          <p className="font-inter text-sm text-gray-500 font-light">{formatDate(r.date)}</p>
+          <p className="font-inter text-sm text-gray-500 font-light flex items-center gap-1.5">
+            <span>{formatDate(r.date, r.time)}</span>
+          </p>
           {r.notes && <p className="font-inter text-xs text-gray-400 pt-1">{r.notes}</p>}
         </div>
       </div>
