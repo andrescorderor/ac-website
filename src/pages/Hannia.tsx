@@ -2,61 +2,108 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '@/lib/supabase';
 
-type Flower = {
-  slot: number;
+type Dress = {
+  id: string;
   name: string;
-  stage: number; // 1: Semilla, 2: Brote, 3: Botón, 4: Florecida
-  waterCount: number;
+  reqThread: number;
+  reqLace: number;
+  reqPollen: number;
+  crafted: boolean;
+  icon: string;
 };
 
-const INITIAL_FLOWERS: Flower[] = [
-  { slot: 1, name: 'Lili Ébano Victoriano', stage: 1, waterCount: 0 },
-  { slot: 2, name: 'Seda Rosa Magenta', stage: 1, waterCount: 0 },
-  { slot: 3, name: 'Encaje Gótico Nocturno', stage: 1, waterCount: 0 },
-  { slot: 4, name: 'Pibo Haute Couture', stage: 1, waterCount: 0 },
-  { slot: 5, name: 'Flor de Terciopelo', stage: 1, waterCount: 0 },
+type Lily = {
+  id: number;
+  name: string;
+  stage: number; // 1: Semilla, 2: Brote, 3: Botón, 4: Florecida
+  water: number;
+};
+
+const INITIAL_DRESSES: Dress[] = [
+  { id: 'corset', name: 'Corsé Ébano Victoriano', reqThread: 3, reqLace: 2, reqPollen: 1, crafted: false, icon: '👗' },
+  { id: 'gown', name: 'Vestido Lili de Noche', reqThread: 5, reqLace: 4, reqPollen: 3, crafted: false, icon: '👑' },
+  { id: 'cloak', name: 'Túnica de Seda y Plata', reqThread: 4, reqLace: 3, reqPollen: 2, crafted: false, icon: '🧥' },
+];
+
+const INITIAL_LILIES: Lily[] = [
+  { id: 1, name: 'Lili Ébano Victoriano', stage: 1, water: 0 },
+  { id: 2, name: 'Seda Rosa Magenta', stage: 1, water: 0 },
+  { id: 3, name: 'Encaje Gótico Nocturno', stage: 1, water: 0 },
+  { id: 4, name: 'Pibo Haute Couture', stage: 1, water: 0 },
 ];
 
 export default function Hannia() {
-  const [flowers, setFlowers] = useState<Flower[]>(INITIAL_FLOWERS);
-  const [piboTalking, setPiboTalking] = useState<string | null>(
-    'Pibo en guardia. Cultivemos el atelier secreto de lilis.'
-  );
-  const [piboBouncing, setPiboBouncing] = useState(false);
-  const [showPoem, setShowPoem] = useState(false);
+  // Game State
+  const [level, setLevel] = useState(1);
+  const [xp, setXp] = useState(0);
+  const [thread, setThread] = useState(6);
+  const [lace, setLace] = useState(4);
+  const [pollen, setPollen] = useState(3);
+  const [dresses, setDresses] = useState<Dress[]>(INITIAL_DRESSES);
+  const [lilies, setLilies] = useState<Lily[]>(INITIAL_LILIES);
+  
+  // Pibo Character Position & Dialog
+  const [piboPos, setPiboPos] = useState({ x: 50, y: 50 }); // percentage
+  const [piboDialog, setPiboDialog] = useState<string>('¡Bzz! Pibo listo para confeccionar y cuidar el jardín.');
+  const [piboAction, setPiboAction] = useState<string | null>(null);
+
+  // Active Mini-Game & Modals
+  const [activeTab, setActiveTab] = useState<'room' | 'craft' | 'garden'>('room');
+  const [craftingTarget, setCraftingTarget] = useState<Dress | null>(null);
+  const [stitchingRhythm, setStitchingRhythm] = useState(0); // 0..100
+  const [isStitching, setIsStitching] = useState(false);
+  const [showPoemRelic, setShowPoemRelic] = useState(false);
 
   useEffect(() => {
-    fetchGardenState();
+    loadGameSave();
   }, []);
 
-  const fetchGardenState = async () => {
+  const loadGameSave = async () => {
     try {
       const { data, error } = await supabase
-        .from('hannia_garden')
+        .from('hannia_game_save')
         .select('*')
-        .order('flower_slot', { ascending: true });
+        .eq('user_tag', 'hannia_main')
+        .single();
 
-      if (!error && data && data.length > 0) {
-        const loaded: Flower[] = data.map((d) => ({
-          slot: d.flower_slot,
-          name: d.flower_name,
-          stage: d.growth_stage || 1,
-          waterCount: d.water_count || 0,
-        }));
-        setFlowers(loaded);
+      if (!error && data) {
+        setLevel(data.atelier_level || 1);
+        setXp(data.xp || 0);
+        setThread(data.thread_count ?? 6);
+        setLace(data.lace_count ?? 4);
+        setPollen(data.pollen_count ?? 3);
+        if (data.crafted_dresses && Array.isArray(data.crafted_dresses)) {
+          setDresses((prev) =>
+            prev.map((d) => ({
+              ...d,
+              crafted: data.crafted_dresses.includes(d.id),
+            }))
+          );
+        }
       }
     } catch {
-      // Fallback local state
+      // Fallback to local default state
     }
   };
 
-  const syncFlowerToSupabase = async (updated: Flower) => {
+  const saveGameToSupabase = async (
+    newLevel = level,
+    newXp = xp,
+    newThread = thread,
+    newLace = lace,
+    newPollen = pollen,
+    updatedDresses = dresses
+  ) => {
     try {
-      await supabase.from('hannia_garden').upsert({
-        flower_slot: updated.slot,
-        flower_name: updated.name,
-        growth_stage: updated.stage,
-        water_count: updated.waterCount,
+      const craftedIds = updatedDresses.filter((d) => d.crafted).map((d) => d.id);
+      await supabase.from('hannia_game_save').upsert({
+        user_tag: 'hannia_main',
+        atelier_level: newLevel,
+        xp: newXp,
+        thread_count: newThread,
+        lace_count: newLace,
+        pollen_count: newPollen,
+        crafted_dresses: craftedIds,
         updated_at: new Date().toISOString(),
       });
     } catch {
@@ -64,197 +111,456 @@ export default function Hannia() {
     }
   };
 
-  const handleWaterFlower = (slot: number) => {
-    setFlowers((prev) =>
-      prev.map((f) => {
-        if (f.slot === slot) {
-          const nextWater = f.waterCount + 1;
-          let nextStage = f.stage;
-          if (nextWater >= 3 && f.stage < 4) {
-            nextStage = f.stage + 1;
+  const addXp = (amount: number) => {
+    const nextXp = xp + amount;
+    if (nextXp >= 100) {
+      const nextLvl = level + 1;
+      const remXp = nextXp - 100;
+      setLevel(nextLvl);
+      setXp(remXp);
+      setPiboDialog(`🌟 ¡NIVEL DE ATELIER SUBIÓ A LVL ${nextLvl}! Se desbloquearon nuevos patrones.`);
+      saveGameToSupabase(nextLvl, remXp);
+    } else {
+      setXp(nextXp);
+      saveGameToSupabase(level, nextXp);
+    }
+  };
+
+  // Move Pibo in Room
+  const handleRoomClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const xPct = Math.min(90, Math.max(10, Math.round(((e.clientX - rect.left) / rect.width) * 100)));
+    const yPct = Math.min(85, Math.max(15, Math.round(((e.clientY - rect.top) / rect.height) * 100)));
+    
+    setPiboPos({ x: xPct, y: yPct });
+    setPiboAction('fly');
+    setTimeout(() => setPiboAction(null), 600);
+  };
+
+  // Collect Materials in Room
+  const collectResource = (type: 'thread' | 'lace' | 'pollen') => {
+    if (type === 'thread') {
+      const n = thread + 2;
+      setThread(n);
+      setPiboDialog('🧵 +2 Hilos de seda victoriana recolectados.');
+      saveGameToSupabase(level, xp, n, lace, pollen);
+    } else if (type === 'lace') {
+      const n = lace + 2;
+      setLace(n);
+      setPiboDialog('🕸️ +2 Encajes góticos recolectados.');
+      saveGameToSupabase(level, xp, thread, n, pollen);
+    } else {
+      const n = pollen + 2;
+      setPollen(n);
+      setPiboDialog('🌸 +2 Polen de Lili marianas recolectados.');
+      saveGameToSupabase(level, xp, thread, lace, n);
+    }
+    addXp(15);
+  };
+
+  // Stitching Mini-Game Logic
+  const startCrafting = (dress: Dress) => {
+    if (thread < dress.reqThread || lace < dress.reqLace || pollen < dress.reqPollen) {
+      setPiboDialog('⚠️ Faltan materiales. Cose o recolecta más hilos, encajes o polen.');
+      return;
+    }
+    setCraftingTarget(dress);
+    setStitchingRhythm(10);
+    setIsStitching(true);
+  };
+
+  const handleStitchTap = () => {
+    const nextRhythm = stitchingRhythm + 25;
+    if (nextRhythm >= 100) {
+      // Craft complete!
+      setIsStitching(false);
+      if (craftingTarget) {
+        const nextThread = thread - craftingTarget.reqThread;
+        const nextLace = lace - craftingTarget.reqLace;
+        const nextPollen = pollen - craftingTarget.reqPollen;
+        
+        setThread(nextThread);
+        setLace(nextLace);
+        setPollen(nextPollen);
+
+        const updatedDresses = dresses.map((d) =>
+          d.id === craftingTarget.id ? { ...d, crafted: true } : d
+        );
+        setDresses(updatedDresses);
+        setPiboDialog(`✨ ¡CONFECCIONADO CON ÉXITO! ${craftingTarget.name}`);
+        addXp(40);
+        saveGameToSupabase(level, xp, nextThread, nextLace, nextPollen, updatedDresses);
+      }
+      setCraftingTarget(null);
+    } else {
+      setStitchingRhythm(nextRhythm);
+    }
+  };
+
+  // Water Lily in Garden
+  const waterLily = (id: number) => {
+    setLilies((prev) =>
+      prev.map((l) => {
+        if (l.id === id) {
+          const nextW = l.water + 1;
+          let nextS = l.stage;
+          if (nextW >= 3 && l.stage < 4) {
+            nextS = l.stage + 1;
+            setPollen((p) => p + 3);
+            setPiboDialog('🌸 ¡Lili floreció! Cosechaste +3 Polen de Lili.');
+            addXp(25);
           }
-          const updated = { ...f, waterCount: nextWater >= 3 ? 0 : nextWater, stage: nextStage };
-          syncFlowerToSupabase(updated);
-          return updated;
+          return { ...l, water: nextW >= 3 ? 0 : nextW, stage: nextS };
         }
-        return f;
+        return l;
       })
     );
-
-    triggerPiboAction();
   };
 
-  const triggerPiboAction = () => {
-    setPiboBouncing(true);
-    setTimeout(() => setPiboBouncing(false), 600);
-
-    const quotes = [
-      'Alta costura gótica en proceso... 🖤',
-      'Pibo vigilando el corte de seda y encaje.',
-      'Sinfonía victoriana en el atelier.',
-      'Las lilis de ébano responden al diseño.',
-      'Elegancia oscura e inconfundible.',
-    ];
-    const randomQuote = quotes[Math.floor(Math.random() * quotes.length)];
-    setPiboTalking(randomQuote);
-  };
-
-  const bloomedCount = flowers.filter((f) => f.stage === 4).length;
+  const totalCrafted = dresses.filter((d) => d.crafted).length;
 
   return (
-    <div className="min-h-screen bg-[#050508] text-[#E2DCE7] flex flex-col items-center justify-between p-4 sm:p-6 relative overflow-hidden font-serif selection:bg-[#FF2E93] selection:text-white">
-      {/* 🖤 Subtle Dark Victorian Ambient Glow */}
+    <div className="min-h-screen bg-[#050508] text-[#E2DCE7] flex flex-col items-center justify-between p-3 sm:p-5 relative overflow-hidden font-serif selection:bg-[#FF2E93] selection:text-white">
+      {/* 🖤 Ambient Gothic Mesh Glow */}
       <div className="fixed inset-0 pointer-events-none z-0">
         <div className="absolute top-[-10%] right-[-10%] w-[380px] h-[380px] rounded-full bg-[#FF2E93]/10 blur-[140px]" />
-        <div className="absolute bottom-[-10%] left-[-10%] w-[320px] h-[320px] rounded-full bg-[#4A0028]/15 blur-[120px]" />
-        <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: 'radial-gradient(#FF85C0 1px, transparent 1px)', backgroundSize: '28px 28px' }} />
+        <div className="absolute bottom-[-10%] left-[-10%] w-[320px] h-[320px] rounded-full bg-[#3B001F]/20 blur-[120px]" />
+        <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: 'radial-gradient(#FF85C0 1px, transparent 1px)', backgroundSize: '24px 24px' }} />
       </div>
 
-      {/* 👑 Minimalist Victorian Top Bar */}
-      <header className="w-full max-w-md text-center pt-4 pb-2 z-10 space-y-2">
-        <div className="inline-flex items-center gap-2 px-4 py-1 rounded-full bg-[#0D0E16] border border-[#FF85C0]/20 shadow-md">
-          <span className="font-sans text-[9px] font-bold uppercase tracking-[0.25em] text-[#FF85C0]">Hannia • Atelier Gótico</span>
-        </div>
-
-        <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-white font-serif">
-          Jardín de <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#FF85C0] via-[#FF2E93] to-[#C026D3]">Lilis</span>
-        </h1>
-        <p className="font-sans text-[11px] text-gray-400 tracking-wider">
-          Diseño • Victoriano • Alta Costura
-        </p>
-      </header>
-
-      {/* 🐝 Pibo Mascot (Cerdo Abeja Victoriano Chic) */}
-      <motion.section 
-        initial={{ opacity: 0, y: 15 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="w-full max-w-md z-10 my-3"
-      >
-        <div className="bg-[#0A0C14]/90 rounded-3xl p-5 border border-white/10 shadow-2xl backdrop-blur-xl flex items-center gap-4 relative overflow-hidden">
-          <motion.div 
-            animate={piboBouncing ? { y: [-4, 0, -4], scale: [1, 1.05, 1] } : {}}
-            onClick={triggerPiboAction}
-            className="relative cursor-pointer shrink-0"
-          >
-            <div className="size-20 rounded-2xl bg-gradient-to-br from-[#FF85C0]/15 to-[#FF2E93]/25 border border-[#FF85C0]/30 flex items-center justify-center text-4xl shadow-lg relative overflow-hidden">
-              <span className="filter drop-shadow-[0_4px_6px_rgba(0,0,0,0.6)]">🐷🐝</span>
-              <div className="absolute bottom-0 inset-x-0 bg-black/70 py-0.5 text-[8px] font-sans font-bold uppercase tracking-widest text-center text-[#FF85C0]">
-                Pibo
+      {/* 🎮 RPG Top HUD Status Bar */}
+      <header className="w-full max-w-md z-10 space-y-2">
+        <div className="bg-[#0D0E16]/90 p-3 rounded-2xl border border-white/10 shadow-xl backdrop-blur-md flex items-center justify-between text-xs font-sans">
+          {/* Level & XP */}
+          <div className="flex items-center gap-3">
+            <div className="size-9 rounded-xl bg-gradient-to-br from-[#FF2E93] to-[#8B0046] text-white flex items-center justify-center font-bold text-xs shadow-md">
+              Lvl {level}
+            </div>
+            <div>
+              <div className="flex items-center justify-between text-[10px] font-bold uppercase tracking-wider text-[#FF85C0]">
+                <span>Atelier XP</span>
+                <span>{xp}/100</span>
+              </div>
+              <div className="w-24 sm:w-28 h-2 bg-gray-800 rounded-full overflow-hidden mt-1 border border-white/5">
+                <div 
+                  className="h-full bg-gradient-to-r from-[#FF85C0] to-[#FF2E93] transition-all duration-300" 
+                  style={{ width: `${xp}%` }} 
+                />
               </div>
             </div>
-          </motion.div>
+          </div>
 
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center justify-between mb-1">
-              <span className="font-sans text-[9px] font-bold uppercase tracking-[0.2em] text-[#FF85C0]">
-                Guardian Pibo
-              </span>
-              <span className="text-[9px] font-sans text-gray-500">Toca para interactuar</span>
-            </div>
-            <p className="font-serif italic text-xs text-gray-300 leading-snug">
-              "{piboTalking}"
-            </p>
+          {/* Inventory Quick Bar */}
+          <div className="flex items-center gap-2 text-[11px] font-bold text-gray-300">
+            <span className="flex items-center gap-1 bg-white/5 px-2 py-1 rounded-lg">🧵 {thread}</span>
+            <span className="flex items-center gap-1 bg-white/5 px-2 py-1 rounded-lg">🕸️ {lace}</span>
+            <span className="flex items-center gap-1 bg-white/5 px-2 py-1 rounded-lg">🌸 {pollen}</span>
           </div>
         </div>
-      </motion.section>
 
-      {/* 🌸 Digital Lily Botanical Grid */}
-      <main className="w-full max-w-md z-10 my-2 space-y-3">
-        <div className="flex items-center justify-between px-1">
-          <h2 className="font-sans text-[10px] font-bold uppercase tracking-[0.2em] text-gray-400 flex items-center gap-2">
-            <span>🥀</span>
-            <span>Especímenes Botanical ({bloomedCount}/5 Florecidas)</span>
-          </h2>
-          <span className="font-sans text-[9px] text-gray-500">Regar x3 para florecer</span>
+        {/* Navigation Tabs */}
+        <div className="grid grid-cols-3 gap-2 font-sans text-xs font-bold uppercase tracking-wider">
+          <button
+            onClick={() => setActiveTab('room')}
+            className={`py-2.5 rounded-xl border transition-all ${
+              activeTab === 'room'
+                ? 'bg-[#FF2E93] text-white border-[#FF85C0] shadow-[0_0_15px_rgba(255,46,147,0.4)]'
+                : 'bg-[#0D0E16] text-gray-400 border-white/5 hover:bg-white/5'
+            }`}
+          >
+            🏛️ Atelier
+          </button>
+          <button
+            onClick={() => setActiveTab('craft')}
+            className={`py-2.5 rounded-xl border transition-all ${
+              activeTab === 'craft'
+                ? 'bg-[#FF2E93] text-white border-[#FF85C0] shadow-[0_0_15px_rgba(255,46,147,0.4)]'
+                : 'bg-[#0D0E16] text-gray-400 border-white/5 hover:bg-white/5'
+            }`}
+          >
+            ✂️ Costura ({totalCrafted}/3)
+          </button>
+          <button
+            onClick={() => setActiveTab('garden')}
+            className={`py-2.5 rounded-xl border transition-all ${
+              activeTab === 'garden'
+                ? 'bg-[#FF2E93] text-white border-[#FF85C0] shadow-[0_0_15px_rgba(255,46,147,0.4)]'
+                : 'bg-[#0D0E16] text-gray-400 border-white/5 hover:bg-white/5'
+            }`}
+          >
+            🥀 Jardín
+          </button>
         </div>
+      </header>
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-          {flowers.map((f) => (
-            <motion.div
-              key={f.slot}
-              whileTap={{ scale: 0.96 }}
-              onClick={() => handleWaterFlower(f.slot)}
-              className={`p-4 rounded-3xl border transition-all cursor-pointer relative overflow-hidden flex flex-col items-center justify-between min-h-[140px] shadow-md ${
-                f.stage === 4
-                  ? 'bg-gradient-to-b from-[#181024] to-[#0A0C14] border-[#FF2E93]/50 shadow-[0_0_15px_rgba(255,46,147,0.15)]'
-                  : 'bg-[#0A0C14] border-white/5 hover:border-[#FF85C0]/30'
-              }`}
+      {/* 💬 Pibo Live Dialog */}
+      <section className="w-full max-w-md z-10 my-2">
+        <div className="bg-[#0A0C14]/90 p-3 rounded-2xl border border-[#FF85C0]/20 flex items-center gap-3 backdrop-blur-md shadow-lg">
+          <span className="text-2xl animate-bounce shrink-0">🐷🐝</span>
+          <p className="font-serif italic text-xs text-gray-200 truncate">
+            "{piboDialog}"
+          </p>
+        </div>
+      </section>
+
+      {/* 🏛️ TAB 1: INTERACTIVE ROOM CANVAS */}
+      {activeTab === 'room' && (
+        <main className="w-full max-w-md z-10 my-2 flex-1 flex flex-col">
+          <div 
+            onClick={handleRoomClick}
+            className="w-full h-72 sm:h-80 bg-[#0A0C14] rounded-3xl border border-white/10 relative overflow-hidden shadow-2xl cursor-pointer select-none group"
+            style={{
+              backgroundImage: 'radial-gradient(circle at center, #161224 0%, #050508 100%)',
+            }}
+          >
+            {/* Victorian Room Decorative Elements */}
+            <div className="absolute top-3 left-4 font-serif text-[10px] text-gray-500 uppercase tracking-widest">
+              Toca la habitación para mover a Pibo
+            </div>
+
+            {/* Station 1: Crafting Table Node */}
+            <motion.div 
+              whileHover={{ scale: 1.1 }}
+              onClick={(e) => { e.stopPropagation(); setActiveTab('craft'); }}
+              className="absolute top-10 left-8 bg-[#181024] p-3 rounded-2xl border border-[#FF85C0]/40 text-center shadow-lg cursor-pointer"
             >
-              <div className="w-full flex items-center justify-between text-[9px] font-sans text-gray-500">
-                <span className="font-bold text-[#FF85C0]">0{f.slot}</span>
-                <span>💧 {f.waterCount}/3</span>
-              </div>
+              <span className="text-2xl block">🧵</span>
+              <span className="font-sans text-[8px] font-bold text-[#FF85C0] uppercase tracking-wider">Mesa Costura</span>
+            </motion.div>
 
-              <div className="my-2 text-3xl transition-all">
-                {f.stage === 1 && '🌱'}
-                {f.stage === 2 && '🌿'}
-                {f.stage === 3 && '🌷'}
-                {f.stage === 4 && (
-                  <motion.span 
-                    animate={{ scale: [1, 1.1, 1] }}
-                    transition={{ repeat: Infinity, duration: 3 }}
-                    className="inline-block"
+            {/* Station 2: Garden Node */}
+            <motion.div 
+              whileHover={{ scale: 1.1 }}
+              onClick={(e) => { e.stopPropagation(); setActiveTab('garden'); }}
+              className="absolute top-10 right-8 bg-[#181024] p-3 rounded-2xl border border-[#FF85C0]/40 text-center shadow-lg cursor-pointer"
+            >
+              <span className="text-2xl block">🥀</span>
+              <span className="font-sans text-[8px] font-bold text-[#FF85C0] uppercase tracking-wider">Lilis</span>
+            </motion.div>
+
+            {/* Station 3: Relic Chest Node */}
+            <motion.div 
+              whileHover={{ scale: 1.1 }}
+              onClick={(e) => { e.stopPropagation(); setShowPoemRelic(true); }}
+              className="absolute bottom-6 right-8 bg-[#181024] p-3 rounded-2xl border border-amber-500/40 text-center shadow-lg cursor-pointer"
+            >
+              <span className="text-2xl block animate-pulse">📜</span>
+              <span className="font-sans text-[8px] font-bold text-amber-400 uppercase tracking-wider">Manuscrito</span>
+            </motion.div>
+
+            {/* Interactive Collectible Items spawning in Room */}
+            <motion.button
+              whileTap={{ scale: 0.8 }}
+              onClick={(e) => { e.stopPropagation(); collectResource('thread'); }}
+              className="absolute top-36 left-12 bg-black/60 p-2 rounded-xl border border-white/20 text-xs shadow-md animate-bounce"
+            >
+              🧵 +Hilo
+            </motion.button>
+
+            <motion.button
+              whileTap={{ scale: 0.8 }}
+              onClick={(e) => { e.stopPropagation(); collectResource('lace'); }}
+              className="absolute bottom-16 left-16 bg-black/60 p-2 rounded-xl border border-white/20 text-xs shadow-md animate-bounce"
+              style={{ animationDelay: '1s' }}
+            >
+              🕸️ +Encaje
+            </motion.button>
+
+            <motion.button
+              whileTap={{ scale: 0.8 }}
+              onClick={(e) => { e.stopPropagation(); collectResource('pollen'); }}
+              className="absolute top-32 right-14 bg-black/60 p-2 rounded-xl border border-white/20 text-xs shadow-md animate-bounce"
+              style={{ animationDelay: '1.5s' }}
+            >
+              🌸 +Polen
+            </motion.button>
+
+            {/* Playable Character: Pibo Bee-Pig */}
+            <motion.div
+              animate={{ 
+                left: `${piboPos.x}%`, 
+                top: `${piboPos.y}%`,
+                scale: piboAction === 'fly' ? [1, 1.2, 1] : 1 
+              }}
+              transition={{ type: 'spring', damping: 20, stiffness: 200 }}
+              className="absolute -translate-x-1/2 -translate-y-1/2 size-12 bg-[#FF2E93]/20 border border-[#FF85C0] rounded-2xl flex items-center justify-center text-2xl shadow-[0_0_20px_rgba(255,46,147,0.6)] pointer-events-none"
+            >
+              🐷🐝
+            </motion.div>
+          </div>
+        </main>
+      )}
+
+      {/* ✂️ TAB 2: HAUTE-COUTURE CRAFTING SYSTEM */}
+      {activeTab === 'craft' && (
+        <main className="w-full max-w-md z-10 my-2 space-y-3 flex-1">
+          <div className="flex items-center justify-between px-1">
+            <h2 className="font-sans text-xs font-bold uppercase tracking-widest text-[#FF85C0]">
+              Atelier de Alta Costura Gótica
+            </h2>
+            <span className="font-sans text-[10px] text-gray-400">Patrones disponibles</span>
+          </div>
+
+          <div className="space-y-3">
+            {dresses.map((d) => (
+              <div
+                key={d.id}
+                className="bg-[#0A0C14] p-4 rounded-2xl border border-white/10 flex items-center justify-between gap-4 shadow-lg"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="size-12 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-2xl shrink-0">
+                    {d.icon}
+                  </div>
+                  <div>
+                    <h4 className="font-serif font-bold text-sm text-white">{d.name}</h4>
+                    <div className="flex items-center gap-2 text-[10px] font-sans text-gray-400 mt-1">
+                      <span>🧵 {d.reqThread}</span>
+                      <span>🕸️ {d.reqLace}</span>
+                      <span>🌸 {d.reqPollen}</span>
+                    </div>
+                  </div>
+                </div>
+
+                {d.crafted ? (
+                  <span className="px-3 py-1.5 rounded-xl bg-emerald-950/60 border border-emerald-500/40 text-emerald-300 font-sans text-[10px] font-bold uppercase tracking-wider">
+                    ✨ Confeccionado
+                  </span>
+                ) : (
+                  <button
+                    onClick={() => startCrafting(d)}
+                    className="px-4 py-2 bg-[#FF2E93] hover:bg-[#FF85C0] text-white font-sans text-xs font-bold uppercase tracking-wider rounded-xl transition-all shadow-md active:scale-95"
                   >
-                    🌺
-                  </motion.span>
+                    Cosere
+                  </button>
                 )}
               </div>
+            ))}
+          </div>
+        </main>
+      )}
 
-              <div className="text-center w-full">
-                <p className="font-serif font-bold text-xs text-gray-200 truncate">{f.name}</p>
-                <p className="font-sans text-[8px] text-[#FF85C0] tracking-wider uppercase mt-0.5">
-                  {f.stage === 1 && 'Semilla'}
-                  {f.stage === 2 && 'Brote'}
-                  {f.stage === 3 && 'Capullo'}
-                  {f.stage === 4 && 'Florecida'}
-                </p>
+      {/* 🥀 TAB 3: BOTANICAL LILY GARDEN */}
+      {activeTab === 'garden' && (
+        <main className="w-full max-w-md z-10 my-2 space-y-3 flex-1">
+          <div className="flex items-center justify-between px-1">
+            <h2 className="font-sans text-xs font-bold uppercase tracking-widest text-[#FF85C0]">
+              Cultivo de Lilis Marianas
+            </h2>
+            <span className="font-sans text-[10px] text-gray-400">Riega 3 veces para cosechar polen</span>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            {lilies.map((l) => (
+              <div
+                key={l.id}
+                onClick={() => waterLily(l.id)}
+                className="bg-[#0A0C14] p-4 rounded-2xl border border-white/10 flex flex-col items-center justify-between min-h-[130px] shadow-lg cursor-pointer hover:border-[#FF85C0]/40 transition-all"
+              >
+                <div className="w-full flex items-center justify-between text-[9px] font-sans text-gray-400">
+                  <span className="font-bold text-[#FF85C0]">Lili 0{l.id}</span>
+                  <span>💧 {l.water}/3</span>
+                </div>
+
+                <div className="my-2 text-3xl">
+                  {l.stage === 1 && '🌱'}
+                  {l.stage === 2 && '🌿'}
+                  {l.stage === 3 && '🌷'}
+                  {l.stage === 4 && '🌺'}
+                </div>
+
+                <div className="text-center w-full">
+                  <p className="font-serif font-bold text-xs text-white truncate">{l.name}</p>
+                  <p className="font-sans text-[8px] text-[#FF85C0] uppercase mt-0.5">
+                    {l.stage === 4 ? '✨ Florecida (+3 Polen)' : `Riegos: ${l.water}/3`}
+                  </p>
+                </div>
               </div>
-            </motion.div>
-          ))}
-        </div>
-      </main>
+            ))}
+          </div>
+        </main>
+      )}
 
-      {/* 📜 Secret Poem Seal Trigger */}
-      <footer className="w-full max-w-md z-10 mt-4 mb-2 text-center">
-        <motion.button
-          whileHover={{ scale: 1.02 }}
-          whileTap={{ scale: 0.98 }}
-          onClick={() => setShowPoem(true)}
-          className="w-full py-4 px-6 rounded-2xl bg-gradient-to-r from-[#12141F] via-[#241026] to-[#12141F] text-white font-sans text-xs font-bold uppercase tracking-[0.2em] border border-[#FF85C0]/30 shadow-xl flex items-center justify-center gap-3"
-        >
-          <span>📜</span>
-          <span>Desplegar Manuscrito Secreto</span>
-        </motion.button>
-      </footer>
-
-      {/* 📜 Secret Gothic Poem Modal / Parchment */}
+      {/* 🪡 STITCHING RHYTHM MINI-GAME MODAL */}
       <AnimatePresence>
-        {showPoem && (
+        {isStitching && craftingTarget && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <div className="fixed inset-0 bg-black/85 backdrop-blur-md" />
+
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.9 }}
+              className="relative w-full max-w-sm bg-[#0E0F17] border border-[#FF85C0]/40 rounded-3xl p-6 shadow-2xl z-10 text-center space-y-6"
+            >
+              <div className="space-y-1">
+                <span className="font-sans text-[9px] uppercase tracking-[0.2em] text-[#FF85C0]">
+                  Mini-Juego de Costura
+                </span>
+                <h3 className="font-serif font-bold text-xl text-white">
+                  Confeccionando {craftingTarget.name}
+                </h3>
+              </div>
+
+              {/* Progress Needle Bar */}
+              <div className="space-y-2">
+                <div className="flex justify-between font-sans text-xs font-bold text-gray-300">
+                  <span>Progreso de Puntada</span>
+                  <span>{stitchingRhythm}%</span>
+                </div>
+                <div className="w-full h-4 bg-gray-800 rounded-full overflow-hidden border border-white/10 p-0.5">
+                  <div 
+                    className="h-full bg-gradient-to-r from-[#FF85C0] via-[#FF2E93] to-[#C026D3] rounded-full transition-all duration-200" 
+                    style={{ width: `${stitchingRhythm}%` }} 
+                  />
+                </div>
+              </div>
+
+              <motion.button
+                whileTap={{ scale: 0.9 }}
+                onClick={handleStitchTap}
+                className="w-full py-5 bg-[#FF2E93] hover:bg-[#FF85C0] text-white font-sans text-xs font-bold uppercase tracking-widest rounded-2xl shadow-[0_0_20px_rgba(255,46,147,0.5)] border border-[#FF85C0]/50"
+              >
+                🪡 ¡Dar Puntada Perfecta!
+              </motion.button>
+
+              <button
+                onClick={() => setIsStitching(false)}
+                className="text-xs font-sans text-gray-500 hover:text-gray-300 underline"
+              >
+                Cancelar costura
+              </button>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* 📜 SECRET POEM RELIC MODAL */}
+      <AnimatePresence>
+        {showPoemRelic && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              onClick={() => setShowPoem(false)}
+              onClick={() => setShowPoemRelic(false)}
               className="fixed inset-0 bg-black/85 backdrop-blur-md"
             />
 
             <motion.div
-              initial={{ opacity: 0, scale: 0.9, y: 10 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.9, y: 10 }}
-              className="relative w-full max-w-sm bg-[#0E0F17] border border-[#FF85C0]/40 rounded-3xl p-6 sm:p-8 shadow-2xl z-10 text-center space-y-6 overflow-hidden"
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.9 }}
+              className="relative w-full max-w-sm bg-[#0E0F17] border border-[#FF85C0]/40 rounded-3xl p-6 sm:p-8 shadow-2xl z-10 text-center space-y-6"
             >
               <div className="space-y-1">
                 <span className="font-sans text-[9px] uppercase tracking-[0.3em] text-[#FF85C0]">
-                  Manuscrito Victoriano
+                  Manuscrito Victoriano Secreto
                 </span>
                 <h3 className="font-serif font-bold text-2xl text-white">
                   Para Hannia
                 </h3>
               </div>
 
-              {/* 4-Line Refined Sophisticated Gothic Poem */}
               <div className="bg-[#050508] p-6 rounded-2xl border border-white/5 space-y-3 font-serif italic text-sm text-[#E2DCE7] leading-relaxed text-left shadow-inner">
                 <p>"Entre agujas de plata y seda victoriana,</p>
                 <p>florecen lirios negros en tu oscuro jardín,</p>
@@ -268,7 +574,7 @@ export default function Hannia() {
               </div>
 
               <button
-                onClick={() => setShowPoem(false)}
+                onClick={() => setShowPoemRelic(false)}
                 className="w-full py-3 bg-[#FF2E93] text-white rounded-xl font-sans text-xs font-bold uppercase tracking-wider hover:bg-[#FF85C0] transition-colors"
               >
                 Cerrar Manuscrito
