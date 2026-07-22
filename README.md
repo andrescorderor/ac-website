@@ -28,19 +28,20 @@ This repository hosts a dual-purpose platform:
 
 The productivity hub is a mobile-optimized private dashboard with specialized modules:
 
-*   📊 **Finance Manager:** Track monthly expenses, manage salary, and visualize category spending.
-*   ✅ **Task Management (Pendientes):** Simple and effective task list with real-time search.
+*   📊 **Finance Manager:** Track monthly expenses, manage salary, and toggle **Privacy Mode** to mask sensitive monetary values.
+*   ✅ **Task Management (Pendientes):** Effective task list with default pending filter, status tabs, and real-time search.
+*   📝 **Important Notes (Notas Importantes):** Create and edit rich notes with optional bullet formatting, categories, and reference links.
 *   🔐 **Secure Vault:** Encrypted-access storage for sensitive texts (IDs, cards) with quick copy-to-clipboard functionality.
-*   🛒 **Smart Shopping List:** Manage items with priority, location tracking, and price estimates.
-*   📅 **Important Reminders:** Categorized dates (Birthdays, Documents, Payments) with proximity alerts and recurring support.
-*   🔗 **Quick Links:** Private bookmark manager with automatic favicon detection for fast access.
-*   💸 **Debt Tracker:** Monitor pending payments and collections.
+*   🛒 **Smart Shopping List:** Manage unbought items with priority, location tracking, and price estimates.
+*   📅 **Important Reminders:** Categorized dates & optional times (Birthdays, Documents, Payments) with proximity alerts and recurring support.
+*   💸 **Debt Tracker:** Monitor pending payments and collections with default pending filters.
 
 ### ✨ Premium UX Design
-*   **Auto-Hide Navigation:** Mobile header hides on scroll to maximize screen real estate.
-*   **Sticky Architecture:** Persistent sidebar on desktop with independent scrolling.
-*   **Haptic Feedback:** Micro-animations and subtle scale effects for touch interactions.
-*   **Real-Time Search:** Integrated search bars across all data-heavy modules.
+*   👁️ **Global Privacy Mode:** One-click toggle to mask or show financial values across the dashboard.
+*   🔔 **Toast Alert System:** Real-time feedback notifications for creation, edit, and deletion actions.
+*   ⏳ **Submit Protection:** Loading indicators and button locking during async operations to prevent duplicate submissions.
+*   📱 **Auto-Hide Navigation & Responsive Layouts:** Mobile-optimized headers and square responsive sidebar navigation.
+*   🚀 **Database Keep-Alive:** Automated GitHub Actions workflow to prevent free-tier database inactivity pauses.
 
 ---
 
