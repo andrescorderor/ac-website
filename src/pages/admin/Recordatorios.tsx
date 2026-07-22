@@ -7,8 +7,10 @@ import {
   HiOutlineCake,
   HiOutlineDocumentText,
   HiOutlineCreditCard,
-  HiOutlineDotsCircleHorizontal
+  HiOutlineDotsCircleHorizontal,
+  HiOutlineSearch
 } from 'react-icons/hi';
+import { useToast } from '@/components/common/ToastContext';
 
 type Reminder = {
   id: string;
@@ -42,48 +44,81 @@ function formatDate(dateStr: string): string {
 export default function Recordatorios() {
   const [reminders, setReminders] = useState<Reminder[]>([]);
   const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
   const [showAddForm, setShowAddForm] = useState(false);
   const [filterCat, setFilterCat] = useState<string>('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [newReminder, setNewReminder] = useState({
     title: '', date: '', category: 'Otro' as const, recurring: false, notes: ''
   });
+  const { toast } = useToast();
 
   useEffect(() => { fetchReminders(); }, []);
 
   const fetchReminders = async () => {
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from('reminders')
       .select('*')
       .order('date', { ascending: true });
-    if (data) setReminders(data);
+    
+    if (error) {
+      toast.error('Error al cargar fechas importantes: ' + error.message);
+    } else if (data) {
+      setReminders(data);
+    }
     setLoading(false);
   };
 
   const handleAdd = async (e: React.FormEvent) => {
     e.preventDefault();
     const { data: { user } } = await supabase.auth.getUser();
-    if (!user || !newReminder.title || !newReminder.date) return;
+    if (!user) {
+      toast.error('Sesión no válida');
+      return;
+    }
+    if (!newReminder.title.trim()) {
+      toast.error('El título es obligatorio');
+      return;
+    }
+    if (!newReminder.date) {
+      toast.error('Selecciona una fecha');
+      return;
+    }
 
-    const { error } = await supabase.from('reminders').insert([{
-      user_id: user.id,
-      title: newReminder.title,
-      date: newReminder.date,
-      category: newReminder.category,
-      recurring: newReminder.recurring,
-      notes: newReminder.notes || null,
-    }]);
+    setSubmitting(true);
+    try {
+      const { error } = await supabase.from('reminders').insert([{
+        user_id: user.id,
+        title: newReminder.title.trim(),
+        date: newReminder.date,
+        category: newReminder.category,
+        recurring: newReminder.recurring,
+        notes: newReminder.notes?.trim() || null,
+      }]);
 
-    if (!error) {
+      if (error) throw error;
+
+      toast.success('Fecha importante registrada');
       setNewReminder({ title: '', date: '', category: 'Otro', recurring: false, notes: '' });
       setShowAddForm(false);
       fetchReminders();
+    } catch (err: any) {
+      console.error('Error al registrar recordatorio:', err);
+      toast.error(err.message || 'Error al guardar el recordatorio');
+    } finally {
+      setSubmitting(false);
     }
   };
 
   const deleteReminder = async (id: string) => {
-    const { error } = await supabase.from('reminders').delete().eq('id', id);
-    if (!error) fetchReminders();
+    try {
+      const { error } = await supabase.from('reminders').delete().eq('id', id);
+      if (error) throw error;
+      toast.success('Recordatorio eliminado');
+      fetchReminders();
+    } catch (err: any) {
+      toast.error(err.message || 'Error al eliminar');
+    }
   };
 
   const filtered = reminders.filter(r => {
@@ -93,231 +128,262 @@ export default function Recordatorios() {
     return matchesCat && matchesSearch;
   });
 
-  // Separate upcoming (next 30 days) from the rest
   const upcoming = filtered.filter(r => { const d = getDaysUntil(r.date); return d >= 0 && d <= 30; });
   const later = filtered.filter(r => getDaysUntil(r.date) > 30);
   const past = filtered.filter(r => getDaysUntil(r.date) < 0);
 
-  if (loading) return <div className="text-gray-400 font-syne uppercase tracking-widest text-xs">Cargando...</div>;
-
-  const ReminderCard = ({ reminder }: { reminder: Reminder }) => {
-    const days = getDaysUntil(reminder.date);
-    const config = categoryConfig[reminder.category];
-    const IconComp = config.icon;
-    const isToday = days === 0;
-    const isSoon = days > 0 && days <= 7;
-
-    return (
-      <motion.div
-        layout
-        className={`group bg-white p-6 rounded-[2rem] border shadow-sm hover:shadow-xl transition-all duration-500 ${
-          isToday ? 'border-red-200 ring-2 ring-red-100' : isSoon ? 'border-orange-100' : 'border-gray-100'
-        }`}
-      >
-        <div className="flex justify-between items-start mb-5">
-          <div className={`p-3 rounded-2xl ${config.color}`}>
-            <IconComp className="text-2xl" />
-          </div>
-          <div className="flex items-center gap-2">
-            {reminder.recurring && (
-              <span className="font-syne text-[9px] font-bold uppercase tracking-widest px-3 py-1 bg-purple-50 text-purple-500 rounded-full">Anual</span>
-            )}
-            <span className={`font-syne text-[9px] font-bold uppercase tracking-widest px-3 py-1 rounded-full ${config.badge}`}>
-              {reminder.category}
-            </span>
-          </div>
-        </div>
-
-        <h3 className="font-dm-sans text-xl font-bold text-black mb-1">{reminder.title}</h3>
-        <p className="font-inter text-sm text-gray-500 mb-4">{formatDate(reminder.date)}</p>
-
-        {reminder.notes && (
-          <p className="font-inter text-xs text-gray-400 mb-4 leading-relaxed">{reminder.notes}</p>
-        )}
-
-        <div className="flex justify-between items-center pt-4 border-t border-gray-50">
-          <span className={`font-dm-sans text-sm font-bold ${
-            isToday ? 'text-red-500' : isSoon ? 'text-orange-500' : days < 0 ? 'text-gray-400' : 'text-black'
-          }`}>
-            {isToday ? '🔴 ¡Hoy!' : days === 1 ? '⚠️ Mañana' : isSoon ? `⏰ En ${days} días` : days < 0 ? `Hace ${Math.abs(days)} días` : `En ${days} días`}
-          </span>
-          <button
-            onClick={() => deleteReminder(reminder.id)}
-            className="p-3 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-2xl transition-all"
-          >
-            <HiOutlineTrash className="text-lg" />
-          </button>
-        </div>
-      </motion.div>
-    );
-  };
+  if (loading) return <div className="text-gray-400 font-syne uppercase tracking-widest text-xs">Cargando fechas...</div>;
 
   return (
     <div className="max-w-5xl mx-auto space-y-12 pb-20">
       <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-8">
         <div className="flex-1">
-          <h1 className="font-dm-sans text-4xl font-bold tracking-tight text-[var(--black)]">
+          <h1 className="font-dm-sans text-3xl md:text-4xl font-bold tracking-tight text-[var(--black)]">
             Fechas <span className="text-gradient">Importantes</span>
           </h1>
-          <p className="font-inter mt-2 text-[var(--dark-gray)] font-light">
-            No olvides cumpleaños, vencimientos ni pagos.
+          <p className="font-inter mt-2 text-[var(--dark-gray)] font-light text-sm">
+            Cumpleaños, pagos, vencimiento de documentos y eventos clave.
           </p>
         </div>
+
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4">
           <div className="relative flex-1 sm:w-64">
-            <input
+            <input 
               type="text"
-              placeholder="Buscar..."
+              placeholder="Buscar evento..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-12 pr-6 py-4 bg-white border border-gray-100 rounded-2xl outline-none focus:ring-2 ring-gray-100 font-inter text-sm shadow-sm"
+              className="w-full pl-12 pr-6 py-3.5 bg-white border border-gray-100 rounded-2xl outline-none focus:ring-2 ring-gray-100 font-inter text-sm shadow-sm transition-all"
             />
-            <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">
-              <svg xmlns="http://www.w3.org/2000/svg" className="size-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-              </svg>
-            </div>
+            <HiOutlineSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-lg" />
           </div>
-          <button
+
+          <button 
             onClick={() => setShowAddForm(!showAddForm)}
-            className="p-4 bg-black text-white rounded-2xl hover:scale-105 active:scale-95 transition-all shadow-lg"
+            className="px-6 py-3.5 bg-black text-white font-syne text-xs font-bold uppercase tracking-wider rounded-2xl hover:scale-105 active:scale-95 transition-all shadow-md flex items-center justify-center gap-2"
           >
-            <HiOutlinePlus className="text-2xl" />
+            <HiOutlinePlus className="text-lg" />
+            <span>Nueva Fecha</span>
           </button>
         </div>
       </header>
 
-      {/* Category Filters */}
-      <div className="flex flex-wrap gap-2">
-        {['all', 'Cumpleaños', 'Documento', 'Pago', 'Otro'].map(cat => (
+      {/* Category Filter Pills */}
+      <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
+        {['all', 'Cumpleaños', 'Documento', 'Pago', 'Otro'].map((cat) => (
           <button
             key={cat}
             onClick={() => setFilterCat(cat)}
-            className={`px-5 py-2.5 rounded-2xl font-syne text-[10px] font-bold uppercase tracking-widest transition-all ${
-              filterCat === cat ? 'bg-black text-white shadow-lg' : 'bg-white text-gray-400 border border-gray-100 hover:text-black'
+            className={`px-5 py-2.5 rounded-2xl text-xs font-syne font-bold uppercase tracking-wider transition-all whitespace-nowrap ${
+              filterCat === cat 
+                ? 'bg-black text-white shadow-md' 
+                : 'bg-white text-gray-500 border border-gray-100 hover:bg-gray-50'
             }`}
           >
-            {cat === 'all' ? 'Todos' : cat}
+            {cat === 'all' ? 'Todas' : cat}
           </button>
         ))}
       </div>
 
+      {/* Add Form */}
       <AnimatePresence>
         {showAddForm && (
-          <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            exit={{ opacity: 0, height: 0 }}
-            className="overflow-hidden"
+          <motion.form
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            onSubmit={handleAdd}
+            className="bg-white p-6 md:p-8 rounded-[2rem] border border-gray-100 shadow-xl space-y-6"
           >
-            <div className="bg-white p-8 rounded-[2.5rem] border border-gray-100 shadow-xl mb-8">
-              <form onSubmit={handleAdd} className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-2">
-                  <label className="font-syne text-[10px] font-bold uppercase tracking-widest text-gray-400">Título</label>
-                  <input
-                    value={newReminder.title}
-                    onChange={(e) => setNewReminder({...newReminder, title: e.target.value})}
-                    placeholder="Ej: Cumpleaños de Mamá"
-                    className="w-full px-6 py-4 rounded-2xl bg-gray-50 border-none outline-none focus:ring-2 ring-gray-100 font-inter"
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <label className="font-syne text-[10px] font-bold uppercase tracking-widest text-gray-400">Fecha</label>
-                  <input
-                    type="date"
-                    value={newReminder.date}
-                    onChange={(e) => setNewReminder({...newReminder, date: e.target.value})}
-                    className="w-full px-6 py-4 rounded-2xl bg-gray-50 border-none outline-none focus:ring-2 ring-gray-100 font-inter"
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <label className="font-syne text-[10px] font-bold uppercase tracking-widest text-gray-400">Categoría</label>
-                  <select
-                    value={newReminder.category}
-                    onChange={(e) => setNewReminder({...newReminder, category: e.target.value as any})}
-                    className="w-full px-6 py-4 rounded-2xl bg-gray-50 border-none outline-none focus:ring-2 ring-gray-100 font-inter appearance-none cursor-pointer"
-                  >
-                    <option value="Cumpleaños">🎂 Cumpleaños</option>
-                    <option value="Documento">📄 Documento</option>
-                    <option value="Pago">💳 Pago</option>
-                    <option value="Otro">📌 Otro</option>
-                  </select>
-                </div>
-                <div className="space-y-2">
-                  <label className="font-syne text-[10px] font-bold uppercase tracking-widest text-gray-400">Notas (Opcional)</label>
-                  <input
-                    value={newReminder.notes}
-                    onChange={(e) => setNewReminder({...newReminder, notes: e.target.value})}
-                    placeholder="Detalles adicionales..."
-                    className="w-full px-6 py-4 rounded-2xl bg-gray-50 border-none outline-none focus:ring-2 ring-gray-100 font-inter"
-                  />
-                </div>
-                <div className="flex items-center gap-4 md:col-span-2">
-                  <label className="flex items-center gap-3 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={newReminder.recurring}
-                      onChange={(e) => setNewReminder({...newReminder, recurring: e.target.checked})}
-                      className="size-5 rounded-lg accent-black cursor-pointer"
-                    />
-                    <span className="font-inter text-sm text-gray-600">Se repite cada año</span>
-                  </label>
-                </div>
-                <button
-                  type="submit"
-                  className="md:col-span-2 py-4 bg-black text-white rounded-2xl font-syne font-bold uppercase tracking-widest hover:bg-gray-800 transition-all shadow-lg"
+            <h3 className="font-dm-sans text-xl font-bold text-[var(--black)]">Registrar Nueva Fecha Importante</h3>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="md:col-span-2">
+                <label className="block font-syne text-[10px] font-bold uppercase tracking-widest text-[var(--gray)] mb-2">
+                  Título del Evento *
+                </label>
+                <input
+                  type="text"
+                  required
+                  placeholder="Ej. Cumpleaños de Mamá, Renovación de Licencia..."
+                  value={newReminder.title}
+                  onChange={(e) => setNewReminder({ ...newReminder, title: e.target.value })}
+                  className="w-full px-5 py-3.5 bg-gray-50/50 border border-gray-100 rounded-xl outline-none focus:border-gray-300 font-inter text-sm"
+                />
+              </div>
+
+              <div>
+                <label className="block font-syne text-[10px] font-bold uppercase tracking-widest text-[var(--gray)] mb-2">
+                  Fecha *
+                </label>
+                <input
+                  type="date"
+                  required
+                  value={newReminder.date}
+                  onChange={(e) => setNewReminder({ ...newReminder, date: e.target.value })}
+                  className="w-full px-5 py-3.5 bg-gray-50/50 border border-gray-100 rounded-xl outline-none focus:border-gray-300 font-inter text-sm"
+                />
+              </div>
+
+              <div>
+                <label className="block font-syne text-[10px] font-bold uppercase tracking-widest text-[var(--gray)] mb-2">
+                  Categoría
+                </label>
+                <select
+                  value={newReminder.category}
+                  onChange={(e) => setNewReminder({ ...newReminder, category: e.target.value as any })}
+                  className="w-full px-5 py-3.5 bg-gray-50/50 border border-gray-100 rounded-xl outline-none focus:border-gray-300 font-inter text-sm"
                 >
-                  Guardar Recordatorio
-                </button>
-              </form>
+                  <option value="Cumpleaños">Cumpleaños 🎂</option>
+                  <option value="Documento">Documento 📄</option>
+                  <option value="Pago">Pago 💳</option>
+                  <option value="Otro">Otro 📌</option>
+                </select>
+              </div>
+
+              <div className="md:col-span-2">
+                <label className="block font-syne text-[10px] font-bold uppercase tracking-widest text-[var(--gray)] mb-2">
+                  Notas Adicionales (Opcional)
+                </label>
+                <textarea
+                  rows={2}
+                  placeholder="Añade detalles o recordatorios extra..."
+                  value={newReminder.notes}
+                  onChange={(e) => setNewReminder({ ...newReminder, notes: e.target.value })}
+                  className="w-full px-5 py-3.5 bg-gray-50/50 border border-gray-100 rounded-xl outline-none focus:border-gray-300 font-inter text-sm resize-none"
+                />
+              </div>
+
+              <div className="md:col-span-2 flex items-center gap-3">
+                <input
+                  type="checkbox"
+                  id="recurring"
+                  checked={newReminder.recurring}
+                  onChange={(e) => setNewReminder({ ...newReminder, recurring: e.target.checked })}
+                  className="size-5 rounded border-gray-300 text-black focus:ring-black"
+                />
+                <label htmlFor="recurring" className="font-inter text-sm text-gray-700 select-none">
+                  Evento Recurrente Anualmente (ej. cumpleaños, aniversario)
+                </label>
+              </div>
             </div>
-          </motion.div>
+
+            <div className="flex justify-end gap-3 pt-4">
+              <button
+                type="button"
+                onClick={() => setShowAddForm(false)}
+                className="px-6 py-3 font-syne text-xs font-bold uppercase tracking-wider text-gray-500 hover:bg-gray-100 rounded-xl transition-all"
+              >
+                Cancelar
+              </button>
+              <button
+                type="submit"
+                disabled={submitting}
+                className="px-8 py-3 bg-black text-white font-syne text-xs font-bold uppercase tracking-wider rounded-xl hover:scale-105 active:scale-95 transition-all shadow-md disabled:opacity-50 flex items-center gap-2"
+              >
+                {submitting ? (
+                  <>
+                    <div className="size-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    <span>Guardando...</span>
+                  </>
+                ) : (
+                  <span>Guardar Fecha</span>
+                )}
+              </button>
+            </div>
+          </motion.form>
         )}
       </AnimatePresence>
 
-      {/* Upcoming Section */}
-      {upcoming.length > 0 && (
-        <section className="space-y-6">
-          <h2 className="font-syne text-xs font-bold uppercase tracking-widest text-gray-400">
-            📅 Próximos 30 Días ({upcoming.length})
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {upcoming.map(r => <ReminderCard key={r.id} reminder={r} />)}
+      {/* Sections: Próximos (Next 30 days), Futuros, Pasados */}
+      <div className="space-y-10">
+        {/* Próximos (Próximos 30 días) */}
+        {upcoming.length > 0 && (
+          <div className="space-y-4">
+            <h3 className="font-syne text-xs font-bold uppercase tracking-widest text-emerald-600 flex items-center gap-2">
+              <span className="size-2 rounded-full bg-emerald-500 animate-pulse" />
+              Próximos 30 Días
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {upcoming.map(r => <ReminderCard key={r.id} r={r} onDelete={deleteReminder} />)}
+            </div>
           </div>
-        </section>
-      )}
+        )}
 
-      {/* Later Section */}
-      {later.length > 0 && (
-        <section className="space-y-6">
-          <h2 className="font-syne text-xs font-bold uppercase tracking-widest text-gray-400">
-            🗓️ Más Adelante ({later.length})
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {later.map(r => <ReminderCard key={r.id} reminder={r} />)}
+        {/* Más adelante */}
+        {later.length > 0 && (
+          <div className="space-y-4">
+            <h3 className="font-syne text-xs font-bold uppercase tracking-widest text-gray-400">
+              Más Adelante
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {later.map(r => <ReminderCard key={r.id} r={r} onDelete={deleteReminder} />)}
+            </div>
           </div>
-        </section>
-      )}
+        )}
 
-      {/* Past Section */}
-      {past.length > 0 && (
-        <section className="space-y-6">
-          <h2 className="font-syne text-xs font-bold uppercase tracking-widest text-gray-400">
-            ⏳ Pasados ({past.length})
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {past.map(r => <ReminderCard key={r.id} reminder={r} />)}
+        {/* Pasados */}
+        {past.length > 0 && (
+          <div className="space-y-4">
+            <h3 className="font-syne text-xs font-bold uppercase tracking-widest text-gray-400">
+              Fechas Pasadas
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 opacity-60">
+              {past.map(r => <ReminderCard key={r.id} r={r} onDelete={deleteReminder} />)}
+            </div>
           </div>
-        </section>
-      )}
+        )}
 
-      {filtered.length === 0 && (
-        <div className="text-center py-20 text-gray-400 font-inter font-light italic">
-          No hay recordatorios registrados.
+        {filtered.length === 0 && (
+          <div className="bg-white rounded-[2rem] p-12 text-center border border-gray-100 shadow-sm space-y-3">
+            <p className="font-dm-sans text-lg font-bold text-gray-700">No hay fechas registradas</p>
+            <p className="font-inter text-sm text-gray-400">
+              Agrega eventos importantes para estar siempre al día.
+            </p>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function ReminderCard({ r, onDelete }: { r: Reminder; onDelete: (id: string) => void }) {
+  const days = getDaysUntil(r.date);
+  const cfg = categoryConfig[r.category] || categoryConfig['Otro'];
+  const Icon = cfg.icon;
+
+  return (
+    <div className="p-6 bg-white rounded-3xl border border-gray-100 shadow-sm flex items-start justify-between gap-4 group hover:border-gray-200 transition-all">
+      <div className="flex items-start gap-4">
+        <div className={`p-3 rounded-2xl ${cfg.color} text-xl shrink-0`}>
+          <Icon />
         </div>
-      )}
+        <div className="space-y-1">
+          <div className="flex items-center gap-2">
+            <h4 className="font-dm-sans font-bold text-lg text-black">{r.title}</h4>
+            <span className={`px-2.5 py-0.5 rounded-full text-[9px] font-syne font-bold uppercase tracking-wider ${cfg.badge}`}>
+              {r.category}
+            </span>
+          </div>
+          <p className="font-inter text-sm text-gray-500 font-light">{formatDate(r.date)}</p>
+          {r.notes && <p className="font-inter text-xs text-gray-400 pt-1">{r.notes}</p>}
+        </div>
+      </div>
+
+      <div className="flex flex-col items-end gap-2 shrink-0">
+        <span className={`font-syne text-[10px] font-bold uppercase tracking-wider px-3 py-1 rounded-full ${
+          days < 0 ? 'bg-gray-100 text-gray-400' : days <= 7 ? 'bg-red-100 text-red-600' : 'bg-emerald-100 text-emerald-600'
+        }`}>
+          {days === 0 ? '¡Hoy!' : days < 0 ? `Hace ${Math.abs(days)}d` : `En ${days}d`}
+        </span>
+        <button
+          onClick={() => onDelete(r.id)}
+          className="p-1.5 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all"
+          title="Eliminar fecha"
+        >
+          <HiOutlineTrash className="text-base" />
+        </button>
+      </div>
     </div>
   );
 }

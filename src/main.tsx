@@ -19,6 +19,7 @@ import Vault from '@pages/admin/Vault';
 import Compras from '@pages/admin/Compras';
 import Recordatorios from '@pages/admin/Recordatorios';
 import Enlaces from '@pages/admin/Enlaces';
+import Notas from '@pages/admin/Notas';
 
 registerSW({ immediate: true });
 
@@ -72,6 +73,10 @@ const router = createBrowserRouter([
       {
         path: 'enlaces',
         element: <Enlaces />,
+      },
+      {
+        path: 'notas',
+        element: <Notas />,
       },
     ],
   },

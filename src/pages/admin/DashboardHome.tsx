@@ -9,6 +9,7 @@ import {
   HiOutlineShoppingBag,
   HiOutlineCalendar,
   HiOutlineLink,
+  HiOutlineDocumentText,
   HiOutlineArrowSmRight
 } from 'react-icons/hi';
 import { Link } from 'react-router-dom';
@@ -21,7 +22,8 @@ export default function DashboardHome() {
     debts: 0,
     shopping: 0,
     reminders: 0,
-    bookmarks: 0
+    bookmarks: 0,
+    notes: 0
   });
   const [loading, setLoading] = useState(true);
 
@@ -33,14 +35,15 @@ export default function DashboardHome() {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
 
-    const [exp, tsk, vlt, dbt, shp, rem, bkm] = await Promise.all([
+    const [exp, tsk, vlt, dbt, shp, rem, bkm, nts] = await Promise.all([
       supabase.from('finance_expenses').select('amount'),
       supabase.from('tasks').select('id').eq('completed', false),
       supabase.from('vault_items').select('id'),
       supabase.from('debts').select('amount').eq('settled', false),
       supabase.from('shopping_list').select('id').eq('bought', false),
       supabase.from('reminders').select('id'),
-      supabase.from('bookmarks').select('id')
+      supabase.from('bookmarks').select('id'),
+      supabase.from('notes').select('id')
     ]);
 
     setStats({
@@ -50,7 +53,8 @@ export default function DashboardHome() {
       debts: dbt.data?.reduce((acc, curr) => acc + curr.amount, 0) || 0,
       shopping: shp.data?.length || 0,
       reminders: rem.data?.length || 0,
-      bookmarks: bkm.data?.length || 0
+      bookmarks: bkm.data?.length || 0,
+      notes: nts.data?.length || 0
     });
     setLoading(false);
   };
@@ -104,6 +108,13 @@ export default function DashboardHome() {
       icon: HiOutlineLink, 
       color: 'bg-cyan-500', 
       path: '/admin/panel/enlaces' 
+    },
+    { 
+      label: 'Notas Importantes', 
+      value: stats.notes, 
+      icon: HiOutlineDocumentText, 
+      color: 'bg-emerald-500', 
+      path: '/admin/panel/notas' 
     },
   ];
 
