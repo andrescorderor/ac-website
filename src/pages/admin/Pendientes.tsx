@@ -8,8 +8,8 @@ import { useToast } from '@/components/common/ToastContext';
 type Task = {
   id: string;
   title: string;
-  description: string;
-  due_date: string;
+  description: string | null;
+  due_date: string | null;
   completed: boolean;
 };
 
@@ -21,8 +21,8 @@ export default function Pendientes() {
   const [submitting, setSubmitting] = useState(false);
   const [showAddForm, setShowAddForm] = useState(false);
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('pending');
-  const [newTask, setNewTask] = useState({ title: '', description: '', due_date: '' });
   const [searchTerm, setSearchTerm] = useState('');
+  const [newTask, setNewTask] = useState({ title: '', description: '', due_date: '' });
   const { toast } = useToast();
 
   useEffect(() => {
@@ -35,58 +35,60 @@ export default function Pendientes() {
       .select('*')
       .order('created_at', { ascending: false });
 
-    if (error) {
-      toast.error('Error al cargar las tareas');
-    } else if (data) {
-      setTasks(data);
-    }
+    if (error) toast.error('Error al cargar tareas: ' + error.message);
+    else if (data) setTasks(data);
     setLoading(false);
   };
 
   const handleAddTask = async (e: React.FormEvent) => {
     e.preventDefault();
     const { data: { user } } = await supabase.auth.getUser();
-    if (!user) {
-      toast.error('Sesión no válida');
-      return;
-    }
+    if (!user) return;
+
     if (!newTask.title.trim()) {
-      toast.error('El título de la tarea es obligatorio');
+      toast.error('El título es obligatorio');
       return;
     }
 
     setSubmitting(true);
     try {
-      const { error } = await supabase.from('tasks').insert([
-        {
-          user_id: user.id,
-          title: newTask.title.trim(),
-          description: newTask.description?.trim() || null,
-          due_date: newTask.due_date || null,
-        },
-      ]);
+      const { data, error } = await supabase
+        .from('tasks')
+        .insert([
+          {
+            user_id: user.id,
+            title: newTask.title.trim(),
+            description: newTask.description.trim() || null,
+            due_date: newTask.due_date || null,
+            completed: false,
+          },
+        ])
+        .select();
 
       if (error) throw error;
 
-      toast.success('Tarea creada exitosamente');
-      setNewTask({ title: '', description: '', due_date: '' });
-      setShowAddForm(false);
-      fetchTasks();
+      if (data) {
+        setTasks([data[0], ...tasks]);
+        setNewTask({ title: '', description: '', due_date: '' });
+        setShowAddForm(false);
+        toast.success('Tarea agregada');
+      }
     } catch (err: any) {
-      toast.error(err.message || 'Error al crear la tarea');
+      toast.error('Error al crear tarea: ' + err.message);
     } finally {
       setSubmitting(false);
     }
   };
 
-  const toggleTask = async (id: string, completed: boolean) => {
+  const toggleTask = async (id: string, currentStatus: boolean) => {
     try {
-      const { error } = await supabase.from('tasks').update({ completed: !completed }).eq('id', id);
+      const { error } = await supabase.from('tasks').update({ completed: !currentStatus }).eq('id', id);
       if (error) throw error;
-      toast.info(completed ? 'Tarea marcada como pendiente' : 'Tarea completada 🎉');
-      fetchTasks();
+
+      setTasks(tasks.map((t) => (t.id === id ? { ...t, completed: !currentStatus } : t)));
+      toast.info(!currentStatus ? 'Tarea completada 🎉' : 'Tarea reabierta');
     } catch (err: any) {
-      toast.error(err.message || 'Error al actualizar estado');
+      toast.error('Error al actualizar tarea: ' + err.message);
     }
   };
 
@@ -94,26 +96,27 @@ export default function Pendientes() {
     try {
       const { error } = await supabase.from('tasks').delete().eq('id', id);
       if (error) throw error;
+
+      setTasks(tasks.filter((t) => t.id !== id));
       toast.success('Tarea eliminada');
-      fetchTasks();
     } catch (err: any) {
-      toast.error(err.message || 'Error al eliminar');
+      toast.error('Error al eliminar tarea: ' + err.message);
     }
   };
 
-  const filteredTasks = tasks.filter((task) => {
-    const matchesSearch =
-      task.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (task.description?.toLowerCase().includes(searchTerm.toLowerCase()) || false);
-
+  const filteredTasks = tasks.filter((t) => {
     const matchesStatus =
       statusFilter === 'all'
         ? true
         : statusFilter === 'pending'
-        ? !task.completed
-        : task.completed;
+        ? !t.completed
+        : t.completed;
 
-    return matchesSearch && matchesStatus;
+    const matchesSearch =
+      t.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (t.description && t.description.toLowerCase().includes(searchTerm.toLowerCase()));
+
+    return matchesStatus && matchesSearch;
   });
 
   if (loading) return <div className="text-gray-400 font-syne uppercase tracking-widest text-xs">Cargando tareas...</div>;
@@ -122,10 +125,10 @@ export default function Pendientes() {
     <div className="max-w-4xl mx-auto space-y-12 pb-20">
       <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-8">
         <div className="flex-1">
-          <h1 className="font-dm-sans text-3xl md:text-4xl font-bold tracking-tight text-[var(--black)]">
+          <h1 className="font-dm-sans text-3xl md:text-4xl font-bold tracking-tight text-[var(--black)] dark:text-white">
             Tareas <span className="text-gradient">Pendientes</span>
           </h1>
-          <p className="font-inter mt-2 text-[var(--dark-gray)] font-light text-sm">
+          <p className="font-inter mt-2 text-[var(--dark-gray)] dark:text-gray-400 font-light text-sm">
             Organiza tu día y mantén el enfoque en lo importante.
           </p>
         </div>
@@ -137,7 +140,7 @@ export default function Pendientes() {
               placeholder="Buscar tarea..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-12 pr-6 py-3.5 bg-white border border-gray-100 rounded-2xl outline-none focus:ring-2 ring-gray-100 font-inter text-sm shadow-sm transition-all"
+              className="w-full pl-12 pr-6 py-3.5 bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl outline-none focus:ring-2 ring-gray-100 dark:ring-gray-700 font-inter text-sm shadow-sm transition-all text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500"
             />
             <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">
               <HiOutlineSearch className="size-5" />
@@ -146,7 +149,7 @@ export default function Pendientes() {
 
           <button
             onClick={() => setShowAddForm(!showAddForm)}
-            className="px-6 py-3.5 bg-black text-white font-syne text-xs font-bold uppercase tracking-wider rounded-2xl hover:scale-105 active:scale-95 transition-all shadow-md flex items-center justify-center gap-2"
+            className="px-6 py-3.5 bg-black dark:bg-white text-white dark:text-black font-syne text-xs font-bold uppercase tracking-wider rounded-2xl hover:scale-105 active:scale-95 transition-all shadow-md flex items-center justify-center gap-2"
           >
             <HiOutlinePlus className="text-lg" />
             <span>Nueva Tarea</span>
@@ -166,8 +169,8 @@ export default function Pendientes() {
             onClick={() => setStatusFilter(tab.id as StatusFilter)}
             className={`px-5 py-2.5 rounded-2xl text-xs font-syne font-bold uppercase tracking-wider transition-all whitespace-nowrap ${
               statusFilter === tab.id
-                ? 'bg-black text-white shadow-md'
-                : 'bg-white text-gray-500 border border-gray-100 hover:bg-gray-50'
+                ? 'bg-black dark:bg-white text-white dark:text-black shadow-md'
+                : 'bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-300 border border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700'
             }`}
           >
             {tab.label}
@@ -183,13 +186,13 @@ export default function Pendientes() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
             onSubmit={handleAddTask}
-            className="bg-white p-6 md:p-8 rounded-[2rem] border border-gray-100 shadow-xl space-y-6"
+            className="bg-white dark:bg-gray-900 p-6 md:p-8 rounded-[2rem] border border-gray-100 dark:border-gray-800 shadow-xl space-y-6"
           >
-            <h3 className="font-dm-sans text-xl font-bold text-[var(--black)]">Agregar Nueva Tarea</h3>
+            <h3 className="font-dm-sans text-xl font-bold text-[var(--black)] dark:text-white">Agregar Nueva Tarea</h3>
 
             <div className="space-y-4">
               <div>
-                <label className="block font-syne text-[10px] font-bold uppercase tracking-widest text-[var(--gray)] mb-2">
+                <label className="block font-syne text-[10px] font-bold uppercase tracking-widest text-[var(--gray)] dark:text-gray-400 mb-2">
                   Título
                 </label>
                 <input
@@ -198,12 +201,12 @@ export default function Pendientes() {
                   placeholder="Ej. Revisar cotización de cliente"
                   value={newTask.title}
                   onChange={(e) => setNewTask({ ...newTask, title: e.target.value })}
-                  className="w-full px-5 py-3.5 bg-gray-50/50 border border-gray-100 rounded-xl outline-none focus:border-gray-300 font-inter text-sm"
+                  className="w-full px-5 py-3.5 bg-gray-50/50 dark:bg-gray-800/80 border border-gray-100 dark:border-gray-700 rounded-xl outline-none focus:border-gray-300 dark:focus:border-gray-500 font-inter text-sm text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500"
                 />
               </div>
 
               <div>
-                <label className="block font-syne text-[10px] font-bold uppercase tracking-widest text-[var(--gray)] mb-2">
+                <label className="block font-syne text-[10px] font-bold uppercase tracking-widest text-[var(--gray)] dark:text-gray-400 mb-2">
                   Descripción (Opcional)
                 </label>
                 <textarea
@@ -211,19 +214,19 @@ export default function Pendientes() {
                   placeholder="Añade detalles o notas adicionales..."
                   value={newTask.description}
                   onChange={(e) => setNewTask({ ...newTask, description: e.target.value })}
-                  className="w-full px-5 py-3.5 bg-gray-50/50 border border-gray-100 rounded-xl outline-none focus:border-gray-300 font-inter text-sm resize-none"
+                  className="w-full px-5 py-3.5 bg-gray-50/50 dark:bg-gray-800/80 border border-gray-100 dark:border-gray-700 rounded-xl outline-none focus:border-gray-300 dark:focus:border-gray-500 font-inter text-sm text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 resize-none"
                 />
               </div>
 
               <div>
-                <label className="block font-syne text-[10px] font-bold uppercase tracking-widest text-[var(--gray)] mb-2">
+                <label className="block font-syne text-[10px] font-bold uppercase tracking-widest text-[var(--gray)] dark:text-gray-400 mb-2">
                   Fecha Límite (Opcional)
                 </label>
                 <input
                   type="date"
                   value={newTask.due_date}
                   onChange={(e) => setNewTask({ ...newTask, due_date: e.target.value })}
-                  className="w-full px-5 py-3.5 bg-gray-50/50 border border-gray-100 rounded-xl outline-none focus:border-gray-300 font-inter text-sm"
+                  className="w-full px-5 py-3.5 bg-gray-50/50 dark:bg-gray-800/80 border border-gray-100 dark:border-gray-700 rounded-xl outline-none focus:border-gray-300 dark:focus:border-gray-500 font-inter text-sm text-gray-900 dark:text-gray-100"
                 />
               </div>
             </div>
@@ -232,18 +235,18 @@ export default function Pendientes() {
               <button
                 type="button"
                 onClick={() => setShowAddForm(false)}
-                className="px-6 py-3 font-syne text-xs font-bold uppercase tracking-wider text-gray-500 hover:bg-gray-100 rounded-xl transition-all"
+                className="px-6 py-3 font-syne text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl transition-all"
               >
                 Cancelar
               </button>
               <button
                 type="submit"
                 disabled={submitting}
-                className="px-8 py-3 bg-black text-white font-syne text-xs font-bold uppercase tracking-wider rounded-xl hover:scale-105 active:scale-95 transition-all shadow-md disabled:opacity-50 flex items-center gap-2"
+                className="px-8 py-3 bg-black dark:bg-white text-white dark:text-black font-syne text-xs font-bold uppercase tracking-wider rounded-xl hover:scale-105 active:scale-95 transition-all shadow-md disabled:opacity-50 flex items-center gap-2"
               >
                 {submitting ? (
                   <>
-                    <div className="size-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    <div className="size-4 border-2 border-white/30 dark:border-black/30 border-t-white dark:border-t-black rounded-full animate-spin" />
                     <span>Guardando...</span>
                   </>
                 ) : (
@@ -258,9 +261,9 @@ export default function Pendientes() {
       {/* Task List */}
       <div className="space-y-4">
         {filteredTasks.length === 0 ? (
-          <div className="bg-white rounded-[2rem] p-12 text-center border border-gray-100 shadow-sm space-y-3">
-            <p className="font-dm-sans text-lg font-bold text-gray-700">No hay tareas aquí</p>
-            <p className="font-inter text-sm text-gray-400">
+          <div className="bg-white dark:bg-gray-900 rounded-[2rem] p-12 text-center border border-gray-100 dark:border-gray-800 shadow-sm space-y-3">
+            <p className="font-dm-sans text-lg font-bold text-gray-700 dark:text-gray-200">No hay tareas aquí</p>
+            <p className="font-inter text-sm text-gray-400 dark:text-gray-500">
               {statusFilter === 'pending'
                 ? '¡Excelente! No tienes tareas pendientes.'
                 : 'No se encontraron registros con este filtro.'}
@@ -274,8 +277,8 @@ export default function Pendientes() {
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95 }}
-              className={`p-6 bg-white rounded-2xl border transition-all flex items-start gap-4 shadow-sm ${
-                task.completed ? 'border-gray-100 bg-gray-50/50 opacity-60' : 'border-gray-100 hover:border-gray-200'
+              className={`p-6 bg-white dark:bg-gray-900 rounded-2xl border transition-all flex items-start gap-4 shadow-sm ${
+                task.completed ? 'border-gray-100 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-800/40 opacity-60' : 'border-gray-100 dark:border-gray-800 hover:border-gray-200 dark:hover:border-gray-700'
               }`}
             >
               <button
@@ -285,25 +288,25 @@ export default function Pendientes() {
                 {task.completed ? (
                   <HiOutlineCheckCircle className="text-emerald-500" />
                 ) : (
-                  <MdOutlineCircle className="text-gray-300 hover:text-gray-400" />
+                  <MdOutlineCircle className="text-gray-300 dark:text-gray-600 hover:text-gray-400" />
                 )}
               </button>
 
               <div className="flex-1 space-y-1">
                 <h4
                   className={`font-dm-sans font-bold text-base md:text-lg ${
-                    task.completed ? 'line-through text-gray-400' : 'text-black'
+                    task.completed ? 'line-through text-gray-400 dark:text-gray-500' : 'text-black dark:text-white'
                   }`}
                 >
                   {task.title}
                 </h4>
 
                 {task.description && (
-                  <p className="font-inter text-sm text-gray-500 font-light leading-relaxed">{task.description}</p>
+                  <p className="font-inter text-sm text-gray-500 dark:text-gray-400 font-light leading-relaxed">{task.description}</p>
                 )}
 
                 {task.due_date && (
-                  <span className="inline-block font-syne text-[10px] font-bold uppercase tracking-wider text-gray-400 pt-1">
+                  <span className="inline-block font-syne text-[10px] font-bold uppercase tracking-wider text-gray-400 dark:text-gray-500 pt-1">
                     Fecha límite: {task.due_date}
                   </span>
                 )}
@@ -311,7 +314,7 @@ export default function Pendientes() {
 
               <button
                 onClick={() => deleteTask(task.id)}
-                className="p-2 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all"
+                className="p-2 text-gray-300 dark:text-gray-600 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-xl transition-all"
                 title="Eliminar tarea"
               >
                 <HiOutlineTrash className="text-lg" />

@@ -4,9 +4,9 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { 
   HiOutlinePlus, 
   HiOutlineTrash, 
+  HiOutlineCheckCircle, 
   HiOutlineLocationMarker,
   HiOutlineTag,
-  HiOutlineCheckCircle,
   HiOutlineSearch
 } from 'react-icons/hi';
 import { MdOutlineCircle } from 'react-icons/md';
@@ -17,7 +17,7 @@ type ShoppingItem = {
   name: string;
   location: string | null;
   price: number | null;
-  priority: 'Alta' | 'Media' | 'Baja';
+  priority: 'Baja' | 'Media' | 'Alta';
   bought: boolean;
 };
 
@@ -26,19 +26,14 @@ export default function Compras() {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [showAddForm, setShowAddForm] = useState(false);
-  const [filter, setFilter] = useState<'pending' | 'bought' | 'all'>('pending');
-  const [newItem, setNewItem] = useState<{
-    name: string;
-    location: string;
-    price: string;
-    priority: 'Alta' | 'Media' | 'Baja';
-  }>({ 
-    name: '', 
-    location: '', 
-    price: '', 
-    priority: 'Media' 
-  });
+  const [filter, setFilter] = useState<'all' | 'pending' | 'bought'>('pending');
   const [searchTerm, setSearchTerm] = useState('');
+  const [newItem, setNewItem] = useState({
+    name: '',
+    location: '',
+    price: '',
+    priority: 'Media' as 'Baja' | 'Media' | 'Alta',
+  });
   const { toast } = useToast();
 
   useEffect(() => {
@@ -50,62 +45,59 @@ export default function Compras() {
       .from('shopping_list')
       .select('*')
       .order('created_at', { ascending: false });
-    
-    if (error) {
-      toast.error('Error al cargar la lista de compras');
-    } else if (data) {
-      const priorityOrder = { 'Alta': 0, 'Media': 1, 'Baja': 2 };
-      const sorted = [...data].sort((a, b) => priorityOrder[a.priority as keyof typeof priorityOrder] - priorityOrder[b.priority as keyof typeof priorityOrder]);
-      setItems(sorted);
-    }
+
+    if (error) toast.error('Error al cargar lista de compras: ' + error.message);
+    else if (data) setItems(data);
     setLoading(false);
   };
 
   const handleAddItem = async (e: React.FormEvent) => {
     e.preventDefault();
     const { data: { user } } = await supabase.auth.getUser();
-    if (!user) {
-      toast.error('Sesión no válida');
-      return;
-    }
+    if (!user) return;
+
     if (!newItem.name.trim()) {
-      toast.error('Escribe el nombre del artículo');
+      toast.error('El nombre del artículo es obligatorio');
       return;
     }
 
     setSubmitting(true);
     try {
-      const { error } = await supabase.from('shopping_list').insert([
+      const { data, error } = await supabase.from('shopping_list').insert([
         {
           user_id: user.id,
           name: newItem.name.trim(),
-          location: newItem.location?.trim() || null,
+          location: newItem.location.trim() || null,
           price: newItem.price ? parseFloat(newItem.price) : null,
           priority: newItem.priority,
+          bought: false,
         },
-      ]);
+      ]).select();
 
       if (error) throw error;
 
-      toast.success('Artículo agregado a la lista');
-      setNewItem({ name: '', location: '', price: '', priority: 'Media' });
-      setShowAddForm(false);
-      fetchItems();
+      if (data) {
+        setItems([data[0], ...items]);
+        setNewItem({ name: '', location: '', price: '', priority: 'Media' });
+        setShowAddForm(false);
+        toast.success('Artículo agregado');
+      }
     } catch (err: any) {
-      toast.error(err.message || 'Error al agregar artículo');
+      toast.error('Error al agregar artículo: ' + err.message);
     } finally {
       setSubmitting(false);
     }
   };
 
-  const toggleBought = async (id: string, bought: boolean) => {
+  const toggleBought = async (id: string, currentStatus: boolean) => {
     try {
-      const { error } = await supabase.from('shopping_list').update({ bought: !bought }).eq('id', id);
+      const { error } = await supabase.from('shopping_list').update({ bought: !currentStatus }).eq('id', id);
       if (error) throw error;
-      toast.info(bought ? 'Artículo marcado como pendiente' : 'Artículo marcado como comprado 🛒');
-      fetchItems();
+
+      setItems(items.map((i) => (i.id === id ? { ...i, bought: !currentStatus } : i)));
+      toast.info(!currentStatus ? 'Artículo comprado 🛒' : 'Artículo marcado como pendiente');
     } catch (err: any) {
-      toast.error(err.message || 'Error al actualizar estado');
+      toast.error('Error al actualizar estado: ' + err.message);
     }
   };
 
@@ -113,42 +105,45 @@ export default function Compras() {
     try {
       const { error } = await supabase.from('shopping_list').delete().eq('id', id);
       if (error) throw error;
+
+      setItems(items.filter((i) => i.id !== id));
       toast.success('Artículo eliminado');
-      fetchItems();
     } catch (err: any) {
-      toast.error(err.message || 'Error al eliminar');
+      toast.error('Error al eliminar: ' + err.message);
     }
   };
 
-  const filteredItems = items.filter(item => {
-    const matchesSearch = item.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                         (item.location?.toLowerCase().includes(searchTerm.toLowerCase()) || false);
-    const matchesFilter = filter === 'all' || 
-                         (filter === 'pending' && !item.bought) || 
-                         (filter === 'bought' && item.bought);
-    return matchesSearch && matchesFilter;
+  const filteredItems = items.filter((i) => {
+    const matchesFilter =
+      filter === 'all' ? true : filter === 'pending' ? !i.bought : i.bought;
+    const matchesSearch =
+      i.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (i.location && i.location.toLowerCase().includes(searchTerm.toLowerCase()));
+    return matchesFilter && matchesSearch;
   });
 
   const getPriorityBadge = (p: string) => {
     switch (p) {
-      case 'Alta': return 'bg-red-50 text-red-600 border-red-100';
-      case 'Media': return 'bg-orange-50 text-orange-600 border-orange-100';
-      case 'Baja': return 'bg-gray-50 text-gray-500 border-gray-100';
-      default: return 'bg-gray-50 text-gray-500 border-gray-100';
+      case 'Alta':
+        return 'bg-red-50 dark:bg-red-950/40 text-red-600 dark:text-red-300 border-red-100 dark:border-red-900/40';
+      case 'Media':
+        return 'bg-orange-50 dark:bg-orange-950/40 text-orange-600 dark:text-orange-300 border-orange-100 dark:border-orange-900/40';
+      default:
+        return 'bg-gray-50 dark:bg-gray-800 text-gray-600 dark:text-gray-400 border-gray-100 dark:border-gray-700';
     }
   };
 
-  if (loading) return <div className="text-gray-400 font-syne uppercase tracking-widest text-xs">Cargando lista...</div>;
+  if (loading) return <div className="text-gray-400 font-syne uppercase tracking-widest text-xs">Cargando compras...</div>;
 
   return (
     <div className="max-w-5xl mx-auto space-y-12 pb-20">
       <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-8">
         <div className="flex-1">
-          <h1 className="font-dm-sans text-3xl md:text-4xl font-bold tracking-tight text-[var(--black)]">
+          <h1 className="font-dm-sans text-3xl md:text-4xl font-bold tracking-tight text-[var(--black)] dark:text-white">
             Lista de <span className="text-gradient">Compras</span>
           </h1>
-          <p className="font-inter mt-2 text-[var(--dark-gray)] font-light text-sm">
-            Controla lo que necesitas comprar, prioridades y dónde encontrarlo.
+          <p className="font-inter mt-2 text-[var(--dark-gray)] dark:text-gray-400 font-light text-sm">
+            Controla lo que necesitas adquirir, precios estimados y prioridades.
           </p>
         </div>
 
@@ -156,20 +151,20 @@ export default function Compras() {
           <div className="relative flex-1 sm:w-64">
             <input 
               type="text"
-              placeholder="Buscar artículo o tienda..."
+              placeholder="Buscar artículo..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-12 pr-6 py-3.5 bg-white border border-gray-100 rounded-2xl outline-none focus:ring-2 ring-gray-100 font-inter text-sm shadow-sm transition-all"
+              className="w-full pl-12 pr-6 py-3.5 bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl outline-none focus:ring-2 ring-gray-100 dark:ring-gray-700 font-inter text-sm shadow-sm transition-all text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500"
             />
             <HiOutlineSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-lg" />
           </div>
 
           <button 
             onClick={() => setShowAddForm(!showAddForm)}
-            className="px-6 py-3.5 bg-black text-white font-syne text-xs font-bold uppercase tracking-wider rounded-2xl hover:scale-105 active:scale-95 transition-all shadow-md flex items-center justify-center gap-2"
+            className="px-6 py-3.5 bg-black dark:bg-white text-white dark:text-black font-syne text-xs font-bold uppercase tracking-wider rounded-2xl hover:scale-105 active:scale-95 transition-all shadow-md flex items-center justify-center gap-2"
           >
             <HiOutlinePlus className="text-lg" />
-            <span>Nuevo Artículo</span>
+            <span>Agregar Artículo</span>
           </button>
         </div>
       </header>
@@ -186,8 +181,8 @@ export default function Compras() {
             onClick={() => setFilter(tab.id as 'all' | 'pending' | 'bought')}
             className={`px-5 py-2.5 rounded-2xl text-xs font-syne font-bold uppercase tracking-wider transition-all whitespace-nowrap ${
               filter === tab.id 
-                ? 'bg-black text-white shadow-md' 
-                : 'bg-white text-gray-500 border border-gray-100 hover:bg-gray-50'
+                ? 'bg-black dark:bg-white text-white dark:text-black shadow-md' 
+                : 'bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-300 border border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700'
             }`}
           >
             {tab.label}
@@ -203,13 +198,13 @@ export default function Compras() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
             onSubmit={handleAddItem}
-            className="bg-white p-6 md:p-8 rounded-[2rem] border border-gray-100 shadow-xl space-y-6"
+            className="bg-white dark:bg-gray-900 p-6 md:p-8 rounded-[2rem] border border-gray-100 dark:border-gray-800 shadow-xl space-y-6"
           >
-            <h3 className="font-dm-sans text-xl font-bold text-[var(--black)]">Agregar Artículo a la Lista</h3>
+            <h3 className="font-dm-sans text-xl font-bold text-[var(--black)] dark:text-white">Agregar Artículo a la Lista</h3>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="md:col-span-2">
-                <label className="block font-syne text-[10px] font-bold uppercase tracking-widest text-[var(--gray)] mb-2">
+                <label className="block font-syne text-[10px] font-bold uppercase tracking-widest text-[var(--gray)] dark:text-gray-400 mb-2">
                   Nombre del Artículo *
                 </label>
                 <input
@@ -218,12 +213,12 @@ export default function Compras() {
                   placeholder="Ej. Leche de almendras, Cable HDMI..."
                   value={newItem.name}
                   onChange={(e) => setNewItem({ ...newItem, name: e.target.value })}
-                  className="w-full px-5 py-3.5 bg-gray-50/50 border border-gray-100 rounded-xl outline-none focus:border-gray-300 font-inter text-sm"
+                  className="w-full px-5 py-3.5 bg-gray-50/50 dark:bg-gray-800/80 border border-gray-100 dark:border-gray-700 rounded-xl outline-none focus:border-gray-300 dark:focus:border-gray-500 font-inter text-sm text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500"
                 />
               </div>
 
               <div>
-                <label className="block font-syne text-[10px] font-bold uppercase tracking-widest text-[var(--gray)] mb-2">
+                <label className="block font-syne text-[10px] font-bold uppercase tracking-widest text-[var(--gray)] dark:text-gray-400 mb-2">
                   Lugar / Tienda (Opcional)
                 </label>
                 <input
@@ -231,12 +226,12 @@ export default function Compras() {
                   placeholder="Ej. Walmart, Amazon, Supermercado"
                   value={newItem.location}
                   onChange={(e) => setNewItem({ ...newItem, location: e.target.value })}
-                  className="w-full px-5 py-3.5 bg-gray-50/50 border border-gray-100 rounded-xl outline-none focus:border-gray-300 font-inter text-sm"
+                  className="w-full px-5 py-3.5 bg-gray-50/50 dark:bg-gray-800/80 border border-gray-100 dark:border-gray-700 rounded-xl outline-none focus:border-gray-300 dark:focus:border-gray-500 font-inter text-sm text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500"
                 />
               </div>
 
               <div>
-                <label className="block font-syne text-[10px] font-bold uppercase tracking-widest text-[var(--gray)] mb-2">
+                <label className="block font-syne text-[10px] font-bold uppercase tracking-widest text-[var(--gray)] dark:text-gray-400 mb-2">
                   Precio Estimado ($)
                 </label>
                 <input
@@ -245,12 +240,12 @@ export default function Compras() {
                   placeholder="0.00"
                   value={newItem.price}
                   onChange={(e) => setNewItem({ ...newItem, price: e.target.value })}
-                  className="w-full px-5 py-3.5 bg-gray-50/50 border border-gray-100 rounded-xl outline-none focus:border-gray-300 font-dm-sans font-bold text-sm"
+                  className="w-full px-5 py-3.5 bg-gray-50/50 dark:bg-gray-800/80 border border-gray-100 dark:border-gray-700 rounded-xl outline-none focus:border-gray-300 dark:focus:border-gray-500 font-dm-sans font-bold text-sm text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500"
                 />
               </div>
 
               <div className="md:col-span-2">
-                <label className="block font-syne text-[10px] font-bold uppercase tracking-widest text-[var(--gray)] mb-2">
+                <label className="block font-syne text-[10px] font-bold uppercase tracking-widest text-[var(--gray)] dark:text-gray-400 mb-2">
                   Prioridad
                 </label>
                 <div className="flex gap-3">
@@ -261,8 +256,8 @@ export default function Compras() {
                       onClick={() => setNewItem({ ...newItem, priority: p })}
                       className={`flex-1 py-3 rounded-xl font-syne text-xs font-bold uppercase tracking-wider transition-all border ${
                         newItem.priority === p 
-                          ? 'bg-black text-white border-black shadow-sm' 
-                          : 'bg-gray-50 text-gray-500 border-gray-100 hover:bg-gray-100'
+                          ? 'bg-black dark:bg-white text-white dark:text-black border-black dark:border-white shadow-sm' 
+                          : 'bg-gray-50 dark:bg-gray-800 text-gray-500 dark:text-gray-300 border-gray-100 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-700'
                       }`}
                     >
                       {p}
@@ -276,18 +271,18 @@ export default function Compras() {
               <button
                 type="button"
                 onClick={() => setShowAddForm(false)}
-                className="px-6 py-3 font-syne text-xs font-bold uppercase tracking-wider text-gray-500 hover:bg-gray-100 rounded-xl transition-all"
+                className="px-6 py-3 font-syne text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl transition-all"
               >
                 Cancelar
               </button>
               <button
                 type="submit"
                 disabled={submitting}
-                className="px-8 py-3 bg-black text-white font-syne text-xs font-bold uppercase tracking-wider rounded-xl hover:scale-105 active:scale-95 transition-all shadow-md disabled:opacity-50 flex items-center gap-2"
+                className="px-8 py-3 bg-black dark:bg-white text-white dark:text-black font-syne text-xs font-bold uppercase tracking-wider rounded-xl hover:scale-105 active:scale-95 transition-all shadow-md disabled:opacity-50 flex items-center gap-2"
               >
                 {submitting ? (
                   <>
-                    <div className="size-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    <div className="size-4 border-2 border-white/30 dark:border-black/30 border-t-white dark:border-t-black rounded-full animate-spin" />
                     <span>Guardando...</span>
                   </>
                 ) : (
@@ -302,9 +297,9 @@ export default function Compras() {
       {/* Grid of Shopping Items */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {filteredItems.length === 0 ? (
-          <div className="col-span-full bg-white rounded-[2rem] p-12 text-center border border-gray-100 shadow-sm space-y-3">
-            <p className="font-dm-sans text-lg font-bold text-gray-700">Tu lista está vacía</p>
-            <p className="font-inter text-sm text-gray-400">
+          <div className="col-span-full bg-white dark:bg-gray-900 rounded-[2rem] p-12 text-center border border-gray-100 dark:border-gray-800 shadow-sm space-y-3">
+            <p className="font-dm-sans text-lg font-bold text-gray-700 dark:text-gray-200">Tu lista está vacía</p>
+            <p className="font-inter text-sm text-gray-400 dark:text-gray-500">
               {filter === 'pending'
                 ? '¡No tienes compras pendientes por realizar!'
                 : 'No se encontraron artículos con este filtro.'}
@@ -318,8 +313,8 @@ export default function Compras() {
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
-              className={`p-6 bg-white rounded-3xl border transition-all flex flex-col justify-between gap-4 shadow-sm relative overflow-hidden group ${
-                item.bought ? 'border-gray-100 bg-gray-50/50 opacity-60' : 'border-gray-100 hover:border-gray-200'
+              className={`p-6 bg-white dark:bg-gray-900 rounded-3xl border transition-all flex flex-col justify-between gap-4 shadow-sm relative overflow-hidden group ${
+                item.bought ? 'border-gray-100 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-800/40 opacity-60' : 'border-gray-100 dark:border-gray-800 hover:border-gray-200 dark:hover:border-gray-700'
               }`}
             >
               <div className="space-y-3">
@@ -332,10 +327,10 @@ export default function Compras() {
                       {item.bought ? (
                         <HiOutlineCheckCircle className="text-emerald-500" />
                       ) : (
-                        <MdOutlineCircle className="text-gray-300 hover:text-gray-400" />
+                        <MdOutlineCircle className="text-gray-300 dark:text-gray-600 hover:text-gray-400" />
                       )}
                     </button>
-                    <h4 className={`font-dm-sans font-bold text-lg leading-snug ${item.bought ? 'line-through text-gray-400' : 'text-black'}`}>
+                    <h4 className={`font-dm-sans font-bold text-lg leading-snug ${item.bought ? 'line-through text-gray-400 dark:text-gray-500' : 'text-black dark:text-white'}`}>
                       {item.name}
                     </h4>
                   </div>
@@ -346,17 +341,17 @@ export default function Compras() {
                 </div>
 
                 {(item.location || item.price !== null) && (
-                  <div className="flex flex-wrap items-center gap-4 text-xs text-gray-500 pt-2 border-t border-gray-50">
+                  <div className="flex flex-wrap items-center gap-4 text-xs text-gray-500 dark:text-gray-400 pt-2 border-t border-gray-50 dark:border-gray-800">
                     {item.location && (
                       <div className="flex items-center gap-1.5 font-inter">
-                        <HiOutlineLocationMarker className="text-gray-400 text-sm" />
+                        <HiOutlineLocationMarker className="text-gray-400 dark:text-gray-500 text-sm" />
                         <span>{item.location}</span>
                       </div>
                     )}
 
                     {item.price !== null && (
-                      <div className="flex items-center gap-1 font-dm-sans font-bold text-black ml-auto">
-                        <HiOutlineTag className="text-gray-400 text-sm" />
+                      <div className="flex items-center gap-1 font-dm-sans font-bold text-black dark:text-white ml-auto">
+                        <HiOutlineTag className="text-gray-400 dark:text-gray-500 text-sm" />
                         <span>${item.price.toLocaleString()}</span>
                       </div>
                     )}
@@ -367,7 +362,7 @@ export default function Compras() {
               <div className="flex justify-end pt-2">
                 <button
                   onClick={() => deleteItem(item.id)}
-                  className="p-2 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all"
+                  className="p-2 text-gray-300 dark:text-gray-600 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-xl transition-all"
                   title="Eliminar artículo"
                 >
                   <HiOutlineTrash className="text-lg" />

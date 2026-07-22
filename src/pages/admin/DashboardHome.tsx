@@ -134,17 +134,17 @@ export default function DashboardHome() {
     <div className="space-y-12">
       <header className="flex flex-col sm:flex-row sm:items-end justify-between gap-6">
         <div>
-          <h1 className="font-dm-sans text-3xl md:text-4xl font-bold tracking-tight text-[var(--black)]">
+          <h1 className="font-dm-sans text-3xl md:text-4xl font-bold tracking-tight text-[var(--black)] dark:text-white">
             Hola, <span className="text-gradient">Andrés</span>
           </h1>
-          <p className="font-inter mt-2 text-[var(--dark-gray)] font-light text-sm">
+          <p className="font-inter mt-2 text-[var(--dark-gray)] dark:text-gray-400 font-light text-sm">
             Aquí tienes un resumen de tu actividad actual.
           </p>
         </div>
 
         <button
           onClick={() => setIsPrivacyMode(!isPrivacyMode)}
-          className="flex items-center gap-2.5 px-4 py-3 bg-white rounded-2xl border border-gray-100 shadow-sm text-xs font-syne font-bold uppercase tracking-wider text-gray-700 hover:bg-gray-50 active:scale-95 transition-all self-start sm:self-auto"
+          className="flex items-center gap-2.5 px-4 py-3 bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm text-xs font-syne font-bold uppercase tracking-wider text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 active:scale-95 transition-all self-start sm:self-auto"
         >
           {isPrivacyMode ? (
             <>
@@ -172,19 +172,19 @@ export default function DashboardHome() {
             >
               <Link 
                 to={card.path}
-                className="group block bg-white p-5 md:p-8 rounded-[2rem] md:rounded-[2.5rem] border border-gray-100 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-500"
+                className="group block bg-white dark:bg-gray-900/90 p-5 md:p-8 rounded-[2rem] md:rounded-[2.5rem] border border-gray-100 dark:border-gray-800 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-500"
               >
                 <div className="flex justify-between items-start">
                   <div className={`p-3 md:p-4 rounded-xl md:rounded-2xl ${card.color} text-white shadow-lg`}>
                     <card.icon className="text-xl md:text-2xl" />
                   </div>
-                  <HiOutlineArrowSmRight className="text-xl md:text-2xl text-gray-300 group-hover:text-black group-hover:translate-x-1 transition-all" />
+                  <HiOutlineArrowSmRight className="text-xl md:text-2xl text-gray-300 dark:text-gray-600 group-hover:text-black dark:group-hover:text-white group-hover:translate-x-1 transition-all" />
                 </div>
                 <div className="mt-6 md:mt-8">
-                  <p className="font-syne text-[10px] font-bold uppercase tracking-widest text-[var(--gray)] mb-1">
+                  <p className="font-syne text-[10px] font-bold uppercase tracking-widest text-[var(--gray)] dark:text-gray-400 mb-1">
                     {card.label}
                   </p>
-                  <h3 className="font-dm-sans text-xl md:text-3xl font-bold text-[var(--black)] tracking-tight">
+                  <h3 className="font-dm-sans text-xl md:text-3xl font-bold text-[var(--black)] dark:text-white tracking-tight">
                     {displayValue}
                   </h3>
                 </div>

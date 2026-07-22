@@ -164,10 +164,10 @@ export default function Notas() {
     <div className="max-w-5xl mx-auto space-y-12 pb-20">
       <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-8">
         <div className="flex-1">
-          <h1 className="font-dm-sans text-3xl md:text-4xl font-bold tracking-tight text-[var(--black)]">
+          <h1 className="font-dm-sans text-3xl md:text-4xl font-bold tracking-tight text-[var(--black)] dark:text-white">
             Notas <span className="text-gradient">Importantes</span>
           </h1>
-          <p className="font-inter mt-2 text-[var(--dark-gray)] font-light text-sm">
+          <p className="font-inter mt-2 text-[var(--dark-gray)] dark:text-gray-400 font-light text-sm">
             Guarda apuntes con formato, listas de viñetas y enlaces de referencia.
           </p>
         </div>
@@ -179,7 +179,7 @@ export default function Notas() {
               placeholder="Buscar en notas..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-12 pr-6 py-3.5 bg-white border border-gray-100 rounded-2xl outline-none focus:ring-2 ring-gray-100 font-inter text-sm shadow-sm transition-all"
+              className="w-full pl-12 pr-6 py-3.5 bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl outline-none focus:ring-2 ring-gray-100 dark:ring-gray-700 font-inter text-sm shadow-sm transition-all text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500"
             />
             <HiOutlineSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-lg" />
           </div>
@@ -194,7 +194,7 @@ export default function Notas() {
                 setShowAddForm(true);
               }
             }}
-            className="px-6 py-3.5 bg-black text-white font-syne text-xs font-bold uppercase tracking-wider rounded-2xl hover:scale-105 active:scale-95 transition-all shadow-md flex items-center justify-center gap-2"
+            className="px-6 py-3.5 bg-black dark:bg-white text-white dark:text-black font-syne text-xs font-bold uppercase tracking-wider rounded-2xl hover:scale-105 active:scale-95 transition-all shadow-md flex items-center justify-center gap-2"
           >
             <HiOutlinePlus className="text-lg" />
             <span>{showAddForm ? 'Cerrar Formulario' : 'Nueva Nota'}</span>
@@ -210,8 +210,8 @@ export default function Notas() {
             onClick={() => setSelectedCategory(cat)}
             className={`px-5 py-2.5 rounded-2xl text-xs font-syne font-bold uppercase tracking-wider transition-all whitespace-nowrap ${
               selectedCategory === cat
-                ? 'bg-black text-white shadow-md'
-                : 'bg-white text-gray-500 border border-gray-100 hover:bg-gray-50'
+                ? 'bg-black dark:bg-white text-white dark:text-black shadow-md'
+                : 'bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-300 border border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700'
             }`}
           >
             {cat}
@@ -227,16 +227,16 @@ export default function Notas() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
             onSubmit={handleSaveNote}
-            className="bg-white p-6 md:p-8 rounded-[2rem] border border-gray-100 shadow-xl space-y-6"
+            className="bg-white dark:bg-gray-900 p-6 md:p-8 rounded-[2rem] border border-gray-100 dark:border-gray-800 shadow-xl space-y-6"
           >
-            <h3 className="font-dm-sans text-xl font-bold text-[var(--black)]">
+            <h3 className="font-dm-sans text-xl font-bold text-[var(--black)] dark:text-white">
               {editingNoteId ? 'Editar Nota' : 'Crear Nueva Nota'}
             </h3>
 
             <div className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="md:col-span-2">
-                  <label className="block font-syne text-[10px] font-bold uppercase tracking-widest text-[var(--gray)] mb-2">
+                  <label className="block font-syne text-[10px] font-bold uppercase tracking-widest text-[var(--gray)] dark:text-gray-400 mb-2">
                     Título de la Nota *
                   </label>
                   <input
@@ -245,21 +245,21 @@ export default function Notas() {
                     placeholder="Ej. Resumen de reunión, Pasos para despliegue..."
                     value={newNote.title}
                     onChange={(e) => setNewNote({ ...newNote, title: e.target.value })}
-                    className="w-full px-5 py-3.5 bg-gray-50/50 border border-gray-100 rounded-xl outline-none focus:border-gray-300 font-inter text-sm"
+                    className="w-full px-5 py-3.5 bg-gray-50/50 dark:bg-gray-800/80 border border-gray-100 dark:border-gray-700 rounded-xl outline-none focus:border-gray-300 dark:focus:border-gray-500 font-inter text-sm text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500"
                   />
                 </div>
 
                 <div>
-                  <label className="block font-syne text-[10px] font-bold uppercase tracking-widest text-[var(--gray)] mb-2">
+                  <label className="block font-syne text-[10px] font-bold uppercase tracking-widest text-[var(--gray)] dark:text-gray-400 mb-2">
                     Categoría
                   </label>
                   <select
                     value={newNote.category}
                     onChange={(e) => setNewNote({ ...newNote, category: e.target.value })}
-                    className="w-full px-5 py-3.5 bg-gray-50/50 border border-gray-100 rounded-xl outline-none focus:border-gray-300 font-inter text-sm"
+                    className="w-full px-5 py-3.5 bg-gray-50/50 dark:bg-gray-800/80 border border-gray-100 dark:border-gray-700 rounded-xl outline-none focus:border-gray-300 dark:focus:border-gray-500 font-inter text-sm text-gray-900 dark:text-gray-100"
                   >
                     {categories.filter(c => c !== 'Todas').map(c => (
-                      <option key={c} value={c}>{c}</option>
+                      <option key={c} value={c} className="dark:bg-gray-800">{c}</option>
                     ))}
                   </select>
                 </div>
@@ -267,13 +267,13 @@ export default function Notas() {
 
               <div>
                 <div className="flex items-center justify-between mb-2">
-                  <label className="block font-syne text-[10px] font-bold uppercase tracking-widest text-[var(--gray)]">
+                  <label className="block font-syne text-[10px] font-bold uppercase tracking-widest text-[var(--gray)] dark:text-gray-400">
                     Contenido de la Nota (Opcional)
                   </label>
                   <button
                     type="button"
                     onClick={insertBullet}
-                    className="px-3 py-1 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-xs font-syne font-bold transition-all"
+                    className="px-3 py-1 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-lg text-xs font-syne font-bold transition-all"
                   >
                     + Agregar Viñeta (•)
                   </button>
@@ -283,12 +283,12 @@ export default function Notas() {
                   placeholder="Escribe tu nota aquí... (Puedes usar saltos de línea y viñetas)"
                   value={newNote.content}
                   onChange={(e) => setNewNote({ ...newNote, content: e.target.value })}
-                  className="w-full px-5 py-3.5 bg-gray-50/50 border border-gray-100 rounded-xl outline-none focus:border-gray-300 font-inter text-sm leading-relaxed"
+                  className="w-full px-5 py-3.5 bg-gray-50/50 dark:bg-gray-800/80 border border-gray-100 dark:border-gray-700 rounded-xl outline-none focus:border-gray-300 dark:focus:border-gray-500 font-inter text-sm leading-relaxed text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500"
                 />
               </div>
 
               <div>
-                <label className="block font-syne text-[10px] font-bold uppercase tracking-widest text-[var(--gray)] mb-2">
+                <label className="block font-syne text-[10px] font-bold uppercase tracking-widest text-[var(--gray)] dark:text-gray-400 mb-2">
                   Enlace Relacionado (Opcional)
                 </label>
                 <input
@@ -296,7 +296,7 @@ export default function Notas() {
                   placeholder="https://ejemplo.com"
                   value={newNote.url}
                   onChange={(e) => setNewNote({ ...newNote, url: e.target.value })}
-                  className="w-full px-5 py-3.5 bg-gray-50/50 border border-gray-100 rounded-xl outline-none focus:border-gray-300 font-inter text-sm"
+                  className="w-full px-5 py-3.5 bg-gray-50/50 dark:bg-gray-800/80 border border-gray-100 dark:border-gray-700 rounded-xl outline-none focus:border-gray-300 dark:focus:border-gray-500 font-inter text-sm text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500"
                 />
               </div>
             </div>
@@ -305,18 +305,18 @@ export default function Notas() {
               <button
                 type="button"
                 onClick={handleCancelForm}
-                className="px-6 py-3 font-syne text-xs font-bold uppercase tracking-wider text-gray-500 hover:bg-gray-100 rounded-xl transition-all"
+                className="px-6 py-3 font-syne text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl transition-all"
               >
                 Cancelar
               </button>
               <button
                 type="submit"
                 disabled={submitting}
-                className="px-8 py-3 bg-black text-white font-syne text-xs font-bold uppercase tracking-wider rounded-xl hover:scale-105 active:scale-95 transition-all shadow-md disabled:opacity-50 flex items-center gap-2"
+                className="px-8 py-3 bg-black dark:bg-white text-white dark:text-black font-syne text-xs font-bold uppercase tracking-wider rounded-xl hover:scale-105 active:scale-95 transition-all shadow-md disabled:opacity-50 flex items-center gap-2"
               >
                 {submitting ? (
                   <>
-                    <div className="size-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    <div className="size-4 border-2 border-white/30 dark:border-black/30 border-t-white dark:border-t-black rounded-full animate-spin" />
                     <span>Guardando...</span>
                   </>
                 ) : (
@@ -331,10 +331,10 @@ export default function Notas() {
       {/* Notes Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {filteredNotes.length === 0 ? (
-          <div className="col-span-full bg-white rounded-[2rem] p-12 text-center border border-gray-100 shadow-sm space-y-3">
-            <HiOutlineDocumentText className="text-4xl text-gray-300 mx-auto" />
-            <p className="font-dm-sans text-lg font-bold text-gray-700">No hay notas en esta sección</p>
-            <p className="font-inter text-sm text-gray-400">
+          <div className="col-span-full bg-white dark:bg-gray-900 rounded-[2rem] p-12 text-center border border-gray-100 dark:border-gray-800 shadow-sm space-y-3">
+            <HiOutlineDocumentText className="text-4xl text-gray-300 dark:text-gray-600 mx-auto" />
+            <p className="font-dm-sans text-lg font-bold text-gray-700 dark:text-gray-200">No hay notas en esta sección</p>
+            <p className="font-inter text-sm text-gray-400 dark:text-gray-500">
               Crea tu primera nota para organizar tus ideas e información clave.
             </p>
           </div>
@@ -346,22 +346,22 @@ export default function Notas() {
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
-              className="p-6 md:p-8 bg-white rounded-3xl border border-gray-100 shadow-sm hover:border-gray-200 transition-all flex flex-col justify-between gap-6 relative group"
+              className="p-6 md:p-8 bg-white dark:bg-gray-900 rounded-3xl border border-gray-100 dark:border-gray-800 shadow-sm hover:border-gray-200 dark:hover:border-gray-700 transition-all flex flex-col justify-between gap-6 relative group"
             >
               <div className="space-y-4">
                 <div className="flex items-start justify-between gap-4">
                   <div>
-                    <span className="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-[9px] font-syne font-bold uppercase tracking-wider">
+                    <span className="px-3 py-1 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-full text-[9px] font-syne font-bold uppercase tracking-wider">
                       {note.category}
                     </span>
-                    <h3 className="font-dm-sans font-bold text-xl text-black mt-2 leading-snug">
+                    <h3 className="font-dm-sans font-bold text-xl text-black dark:text-white mt-2 leading-snug">
                       {note.title}
                     </h3>
                   </div>
                   <div className="flex items-center gap-1 opacity-80 group-hover:opacity-100 transition-opacity">
                     <button
                       onClick={() => handleStartEdit(note)}
-                      className="p-2 text-gray-400 hover:text-black hover:bg-gray-50 rounded-xl transition-all"
+                      className="p-2 text-gray-400 hover:text-black dark:hover:text-white hover:bg-gray-50 dark:hover:bg-gray-800 rounded-xl transition-all"
                       title="Editar nota"
                     >
                       <HiOutlinePencil className="text-lg" />
@@ -369,7 +369,7 @@ export default function Notas() {
                     {note.content && (
                       <button
                         onClick={() => copyContent(note.content)}
-                        className="p-2 text-gray-400 hover:text-black hover:bg-gray-50 rounded-xl transition-all"
+                        className="p-2 text-gray-400 hover:text-black dark:hover:text-white hover:bg-gray-50 dark:hover:bg-gray-800 rounded-xl transition-all"
                         title="Copiar contenido"
                       >
                         <HiOutlineClipboardCopy className="text-lg" />
@@ -377,7 +377,7 @@ export default function Notas() {
                     )}
                     <button
                       onClick={() => deleteNote(note.id)}
-                      className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all"
+                      className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-950/30 rounded-xl transition-all"
                       title="Eliminar nota"
                     >
                       <HiOutlineTrash className="text-lg" />
@@ -386,19 +386,19 @@ export default function Notas() {
                 </div>
 
                 {note.content && (
-                  <div className="font-inter text-sm text-gray-600 font-light leading-relaxed whitespace-pre-wrap">
+                  <div className="font-inter text-sm text-gray-600 dark:text-gray-300 font-light leading-relaxed whitespace-pre-wrap">
                     {note.content}
                   </div>
                 )}
               </div>
 
               {note.url && (
-                <div className="pt-4 border-t border-gray-50 flex items-center justify-between">
+                <div className="pt-4 border-t border-gray-50 dark:border-gray-800 flex items-center justify-between">
                   <a
                     href={note.url}
                     target="_blank"
                     rel="noreferrer"
-                    className="inline-flex items-center gap-2 text-xs font-syne font-bold text-black hover:underline group/link"
+                    className="inline-flex items-center gap-2 text-xs font-syne font-bold text-black dark:text-white hover:underline group/link"
                   >
                     <span>Abrir Enlace</span>
                     <HiOutlineExternalLink className="text-sm transition-transform group-hover/link:translate-x-0.5 group-hover/link:-translate-y-0.5" />
