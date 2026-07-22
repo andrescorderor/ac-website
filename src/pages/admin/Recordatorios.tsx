@@ -11,6 +11,7 @@ import {
   HiOutlineSearch
 } from 'react-icons/hi';
 import { useToast } from '@/components/common/ToastContext';
+import { togglePinItem, isItemPinned } from '@/lib/pinned';
 
 type Reminder = {
   id: string;
@@ -400,6 +401,7 @@ export default function Recordatorios() {
 }
 
 function ReminderCard({ r, onDelete }: { r: Reminder; onDelete: (id: string) => void }) {
+  const { toast } = useToast();
   const days = getDaysUntil(r.date);
   const cfg = categoryConfig[r.category] || categoryConfig['Otro'];
   const Icon = cfg.icon;
@@ -430,13 +432,35 @@ function ReminderCard({ r, onDelete }: { r: Reminder; onDelete: (id: string) => 
           }`}>
             {days === 0 ? '¡Hoy!' : days < 0 ? `Hace ${Math.abs(days)}d` : `En ${days}d`}
           </span>
-          <button
-            onClick={() => onDelete(r.id)}
-            className="p-1.5 text-gray-300 dark:text-gray-600 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-xl transition-all"
-            title="Eliminar fecha"
-          >
-            <HiOutlineTrash className="text-base" />
-          </button>
+          <div className="flex items-center gap-1">
+            <button
+              onClick={() => {
+                const isNowPinned = togglePinItem({
+                  id: r.id,
+                  type: 'reminder',
+                  title: r.title,
+                  subtitle: `${r.date}${r.time ? ' - ' + r.time + ' hrs' : ''}`,
+                  path: '/admin/panel/recordatorios',
+                });
+                toast.info(isNowPinned ? 'Fecha fijada en el inicio 📌' : 'Fecha desfijada');
+              }}
+              className={`p-1.5 rounded-xl transition-all ${
+                isItemPinned(r.id)
+                  ? 'text-amber-500 bg-amber-50 dark:bg-amber-950/40'
+                  : 'text-gray-400 hover:text-amber-500 hover:bg-amber-50 dark:hover:bg-amber-950/30'
+              }`}
+              title={isItemPinned(r.id) ? 'Desfijar del inicio' : 'Fijar en la página principal'}
+            >
+              {isItemPinned(r.id) ? '📌' : '📍'}
+            </button>
+            <button
+              onClick={() => onDelete(r.id)}
+              className="p-1.5 text-gray-300 dark:text-gray-600 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-xl transition-all"
+              title="Eliminar fecha"
+            >
+              <HiOutlineTrash className="text-base" />
+            </button>
+          </div>
         </div>
       </div>
 

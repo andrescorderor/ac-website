@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { HiOutlinePlus, HiOutlineTrash, HiOutlineCheckCircle, HiOutlineSearch } from 'react-icons/hi';
 import { MdOutlineCircle } from 'react-icons/md';
 import { useToast } from '@/components/common/ToastContext';
+import { togglePinItem, isItemPinned } from '@/lib/pinned';
 
 type Task = {
   id: string;
@@ -312,13 +313,36 @@ export default function Pendientes() {
                 )}
               </div>
 
-              <button
-                onClick={() => deleteTask(task.id)}
-                className="p-2 text-gray-300 dark:text-gray-600 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-xl transition-all"
-                title="Eliminar tarea"
-              >
-                <HiOutlineTrash className="text-lg" />
-              </button>
+              <div className="flex items-center gap-1">
+                <button
+                  onClick={() => {
+                    const isNowPinned = togglePinItem({
+                      id: task.id,
+                      type: 'task',
+                      title: task.title,
+                      subtitle: task.due_date ? `Vence: ${task.due_date}` : 'Tarea Pendiente',
+                      path: '/admin/panel/pendientes',
+                    });
+                    toast.info(isNowPinned ? 'Tarea fijada en el inicio 📌' : 'Tarea desfijada');
+                    setTasks([...tasks]);
+                  }}
+                  className={`p-2 rounded-xl transition-all ${
+                    isItemPinned(task.id)
+                      ? 'text-amber-500 bg-amber-50 dark:bg-amber-950/40'
+                      : 'text-gray-400 hover:text-amber-500 hover:bg-amber-50 dark:hover:bg-amber-950/30'
+                  }`}
+                  title={isItemPinned(task.id) ? 'Desfijar del inicio' : 'Fijar en la página principal'}
+                >
+                  {isItemPinned(task.id) ? '📌' : '📍'}
+                </button>
+                <button
+                  onClick={() => deleteTask(task.id)}
+                  className="p-2 text-gray-300 dark:text-gray-600 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-xl transition-all"
+                  title="Eliminar tarea"
+                >
+                  <HiOutlineTrash className="text-lg" />
+                </button>
+              </div>
             </motion.div>
           ))
         )}

@@ -11,6 +11,7 @@ import {
   HiOutlinePencil
 } from 'react-icons/hi';
 import { useToast } from '@/components/common/ToastContext';
+import { togglePinItem, isItemPinned } from '@/lib/pinned';
 
 type Note = {
   id: string;
@@ -359,6 +360,27 @@ export default function Notas() {
                     </h3>
                   </div>
                   <div className="flex items-center gap-1 opacity-80 group-hover:opacity-100 transition-opacity">
+                    <button
+                      onClick={() => {
+                        const isNowPinned = togglePinItem({
+                          id: note.id,
+                          type: 'note',
+                          title: note.title,
+                          subtitle: note.content || note.category,
+                          path: '/admin/panel/notas',
+                        });
+                        toast.info(isNowPinned ? 'Nota fijada en el inicio 📌' : 'Nota desfijada');
+                        setNotes([...notes]);
+                      }}
+                      className={`p-2 rounded-xl transition-all ${
+                        isItemPinned(note.id)
+                          ? 'text-amber-500 bg-amber-50 dark:bg-amber-950/40'
+                          : 'text-gray-400 hover:text-amber-500 hover:bg-amber-50 dark:hover:bg-amber-950/30'
+                      }`}
+                      title={isItemPinned(note.id) ? 'Desfijar del inicio' : 'Fijar en la página principal'}
+                    >
+                      {isItemPinned(note.id) ? '📌' : '📍'}
+                    </button>
                     <button
                       onClick={() => handleStartEdit(note)}
                       className="p-2 text-gray-400 hover:text-black dark:hover:text-white hover:bg-gray-50 dark:hover:bg-gray-800 rounded-xl transition-all"

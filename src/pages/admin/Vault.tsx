@@ -3,6 +3,7 @@ import { supabase } from '@/lib/supabase';
 import { motion, AnimatePresence } from 'framer-motion';
 import { HiOutlinePlus, HiOutlineDuplicate, HiOutlineCheck, HiOutlineTrash } from 'react-icons/hi';
 import { useToast } from '@/components/common/ToastContext';
+import { togglePinItem, isItemPinned } from '@/lib/pinned';
 
 type VaultItem = {
   id: string;
@@ -188,12 +189,35 @@ export default function Vault() {
               <div className="space-y-1">
                 <div className="flex justify-between items-start">
                   <span className="font-syne text-[10px] font-bold uppercase tracking-widest text-gray-400 dark:text-gray-500">Título</span>
-                  <button 
-                    onClick={() => deleteItem(item.id)}
-                    className="opacity-0 group-hover:opacity-100 p-2 text-red-300 dark:text-red-400 hover:text-red-500 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-xl transition-all"
-                  >
-                    <HiOutlineTrash />
-                  </button>
+                  <div className="flex items-center gap-1">
+                    <button
+                      onClick={() => {
+                        const isNowPinned = togglePinItem({
+                          id: item.id,
+                          type: 'vault',
+                          title: item.title,
+                          subtitle: item.content,
+                          path: '/admin/panel/vault',
+                        });
+                        toast.info(isNowPinned ? 'Texto de bóveda fijado en el inicio 📌' : 'Texto desfijado');
+                        setItems([...items]);
+                      }}
+                      className={`p-1.5 rounded-xl transition-all ${
+                        isItemPinned(item.id)
+                          ? 'text-amber-500 bg-amber-50 dark:bg-amber-950/40'
+                          : 'opacity-0 group-hover:opacity-100 text-gray-400 hover:text-amber-500 hover:bg-amber-50 dark:hover:bg-amber-950/30'
+                      }`}
+                      title={isItemPinned(item.id) ? 'Desfijar del inicio' : 'Fijar en la página principal'}
+                    >
+                      {isItemPinned(item.id) ? '📌' : '📍'}
+                    </button>
+                    <button 
+                      onClick={() => deleteItem(item.id)}
+                      className="opacity-0 group-hover:opacity-100 p-1.5 text-red-300 dark:text-red-400 hover:text-red-500 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-xl transition-all"
+                    >
+                      <HiOutlineTrash />
+                    </button>
+                  </div>
                 </div>
                 <h3 className="font-dm-sans text-xl font-bold text-black dark:text-white break-words">{item.title}</h3>
               </div>

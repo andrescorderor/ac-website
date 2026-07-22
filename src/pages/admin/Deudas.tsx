@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import { HiOutlinePlus, HiOutlineTrash, HiOutlineSearch } from 'react-icons/hi';
 import { useToast } from '@/components/common/ToastContext';
+import { togglePinItem, isItemPinned } from '@/lib/pinned';
 
 type Debt = {
   id: string;
@@ -278,13 +279,36 @@ export default function Deudas() {
                       ${debt.amount.toLocaleString()}
                     </td>
                     <td className="px-6 py-4 text-center">
-                      <button
-                        onClick={() => deleteDebt(debt.id)}
-                        className="p-2 text-gray-300 dark:text-gray-600 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-xl transition-all"
-                        title="Eliminar registro"
-                      >
-                        <HiOutlineTrash className="text-lg" />
-                      </button>
+                      <div className="flex items-center justify-center gap-1">
+                        <button
+                          onClick={() => {
+                            const isNowPinned = togglePinItem({
+                              id: debt.id,
+                              type: 'debt',
+                              title: `${debt.debtor_name} ($${debt.amount})`,
+                              subtitle: debt.concept || undefined,
+                              path: '/admin/panel/deudas',
+                            });
+                            toast.info(isNowPinned ? 'Cuenta por cobrar fijada en el inicio 📌' : 'Cuenta desfijada');
+                            setDebts([...debts]);
+                          }}
+                          className={`p-2 rounded-xl transition-all ${
+                            isItemPinned(debt.id)
+                              ? 'text-amber-500 bg-amber-50 dark:bg-amber-950/40'
+                              : 'text-gray-400 hover:text-amber-500 hover:bg-amber-50 dark:hover:bg-amber-950/30'
+                          }`}
+                          title={isItemPinned(debt.id) ? 'Desfijar del inicio' : 'Fijar en la página principal'}
+                        >
+                          {isItemPinned(debt.id) ? '📌' : '📍'}
+                        </button>
+                        <button
+                          onClick={() => deleteDebt(debt.id)}
+                          className="p-2 text-gray-300 dark:text-gray-600 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-xl transition-all"
+                          title="Eliminar registro"
+                        >
+                          <HiOutlineTrash className="text-lg" />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))

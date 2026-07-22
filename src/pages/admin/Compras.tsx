@@ -11,6 +11,7 @@ import {
 } from 'react-icons/hi';
 import { MdOutlineCircle } from 'react-icons/md';
 import { useToast } from '@/components/common/ToastContext';
+import { togglePinItem, isItemPinned } from '@/lib/pinned';
 
 type ShoppingItem = {
   id: string;
@@ -359,7 +360,28 @@ export default function Compras() {
                 )}
               </div>
 
-              <div className="flex justify-end pt-2">
+              <div className="flex justify-end items-center gap-1 pt-2">
+                <button
+                  onClick={() => {
+                    const isNowPinned = togglePinItem({
+                      id: item.id,
+                      type: 'shopping',
+                      title: item.name,
+                      subtitle: item.location ? `Lugar: ${item.location}` : 'Lista de Compras',
+                      path: '/admin/panel/compras',
+                    });
+                    toast.info(isNowPinned ? 'Artículo fijado en el inicio 📌' : 'Artículo desfijado');
+                    setItems([...items]);
+                  }}
+                  className={`p-2 rounded-xl transition-all ${
+                    isItemPinned(item.id)
+                      ? 'text-amber-500 bg-amber-50 dark:bg-amber-950/40'
+                      : 'text-gray-400 hover:text-amber-500 hover:bg-amber-50 dark:hover:bg-amber-950/30'
+                  }`}
+                  title={isItemPinned(item.id) ? 'Desfijar del inicio' : 'Fijar en la página principal'}
+                >
+                  {isItemPinned(item.id) ? '📌' : '📍'}
+                </button>
                 <button
                   onClick={() => deleteItem(item.id)}
                   className="p-2 text-gray-300 dark:text-gray-600 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-xl transition-all"
