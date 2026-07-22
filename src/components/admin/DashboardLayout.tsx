@@ -10,6 +10,7 @@ import {
   sendBrowserNotification, 
   scanAndNotifyUpcomingEvents 
 } from '@/lib/notifications';
+import CommandPalette from '@/components/admin/CommandPalette';
 import { 
   HiOutlineViewGrid, 
   HiOutlineCurrencyDollar, 
@@ -25,6 +26,7 @@ import {
   HiOutlineGlobeAlt,
   HiOutlineBell,
   HiBell,
+  HiOutlineSearch,
   HiMenuAlt2,
   HiX
 } from 'react-icons/hi';
@@ -55,6 +57,7 @@ function DashboardLayoutContent() {
   const [loading, setLoading] = useState(true);
   const [mobileHeaderVisible, setMobileHeaderVisible] = useState(true);
   const [notifPermission, setNotifPermission] = useState<string>(getNotificationPermissionState());
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
   const lastScrollY = useRef(0);
@@ -64,6 +67,17 @@ function DashboardLayoutContent() {
 
   useEffect(() => {
     checkUser();
+  }, []);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        setIsSearchOpen((prev) => !prev);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
 
   useEffect(() => {
@@ -90,7 +104,6 @@ function DashboardLayoutContent() {
       navigate('/admin');
     } else {
       setLoading(false);
-      // Scan upcoming events to alert user if notifications are enabled
       scanAndNotifyUpcomingEvents();
     }
   };
@@ -127,6 +140,9 @@ function DashboardLayoutContent() {
 
   return (
     <div className="h-screen bg-[#F8F9FA] dark:bg-[#0B0F17] text-gray-900 dark:text-gray-100 flex overflow-hidden transition-colors duration-300">
+      {/* Universal Command Palette Search Modal */}
+      <CommandPalette isOpen={isSearchOpen} onClose={() => setIsSearchOpen(false)} />
+
       {/* ═══ Desktop Sidebar ═══ */}
       <aside 
         className={`hidden lg:flex flex-col h-screen sticky top-0 bg-white dark:bg-[#111827] border-r border-gray-100 dark:border-gray-800/80 transition-all duration-500 ease-[0.16,1,0.3,1] ${
@@ -255,40 +271,48 @@ function DashboardLayoutContent() {
 
       {/* ═══ Mobile Header (auto-hide on scroll) ═══ */}
       <div 
-        className={`lg:hidden fixed top-0 left-0 right-0 h-16 bg-white/90 dark:bg-[#111827]/90 backdrop-blur-xl border-b border-gray-100 dark:border-gray-800 flex items-center justify-between px-5 z-50 transition-transform duration-300 ${
+        className={`lg:hidden fixed top-0 left-0 right-0 h-16 bg-white/90 dark:bg-[#111827]/90 backdrop-blur-xl border-b border-gray-100 dark:border-gray-800 flex items-center justify-between px-4 z-50 transition-transform duration-300 ${
           mobileHeaderVisible ? 'translate-y-0' : '-translate-y-full'
         }`}
       >
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2.5">
           <div className="size-9 bg-black dark:bg-white text-white dark:text-black rounded-xl flex items-center justify-center text-sm font-bold shadow-lg">AC</div>
-          <span className="font-dm-sans font-bold text-base tracking-tight text-black dark:text-white">Panel Personal</span>
+          <span className="font-dm-sans font-bold text-sm sm:text-base tracking-tight text-black dark:text-white truncate">Panel Personal</span>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5">
+          <button 
+            onClick={() => setIsSearchOpen(true)}
+            className="p-2 bg-gray-100 dark:bg-gray-800 rounded-xl text-gray-700 dark:text-gray-300 transition-colors active:scale-95"
+            title="Buscar en todo el panel"
+          >
+            <HiOutlineSearch className="text-lg" />
+          </button>
+
           <button 
             onClick={handleToggleNotifications}
-            className="p-2.5 bg-gray-100 dark:bg-gray-800 rounded-xl text-gray-700 dark:text-gray-300 transition-colors active:scale-95"
+            className="p-2 bg-gray-100 dark:bg-gray-800 rounded-xl text-gray-700 dark:text-gray-300 transition-colors active:scale-95"
             title="Notificaciones PWA"
           >
             {notifPermission === 'granted' ? (
-              <HiBell className="text-xl text-emerald-500" />
+              <HiBell className="text-lg text-emerald-500" />
             ) : (
-              <HiOutlineBell className="text-xl text-amber-500" />
+              <HiOutlineBell className="text-lg text-amber-500" />
             )}
           </button>
 
           <button 
             onClick={toggleDarkMode}
-            className="p-2.5 bg-gray-100 dark:bg-gray-800 rounded-xl text-gray-700 dark:text-amber-400 transition-colors active:scale-95"
+            className="p-2 bg-gray-100 dark:bg-gray-800 rounded-xl text-gray-700 dark:text-amber-400 transition-colors active:scale-95"
             title={isDarkMode ? 'Modo Claro' : 'Modo Oscuro'}
           >
-            {isDarkMode ? <HiOutlineSun className="text-xl" /> : <HiOutlineMoon className="text-xl" />}
+            {isDarkMode ? <HiOutlineSun className="text-lg" /> : <HiOutlineMoon className="text-lg" />}
           </button>
 
           <button 
             onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-            className="p-2.5 bg-gray-100 dark:bg-gray-800 rounded-xl hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors active:scale-95 text-gray-800 dark:text-gray-200"
+            className="p-2 bg-gray-100 dark:bg-gray-800 rounded-xl hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors active:scale-95 text-gray-800 dark:text-gray-200"
           >
-            {isSidebarOpen ? <HiX className="text-xl" /> : <HiMenuAlt2 className="text-xl" />}
+            {isSidebarOpen ? <HiX className="text-lg" /> : <HiMenuAlt2 className="text-lg" />}
           </button>
         </div>
       </div>
@@ -388,14 +412,29 @@ function DashboardLayoutContent() {
       {/* ═══ Main Content ═══ */}
       <main ref={mainRef} className="flex-1 overflow-y-auto">
         {/* Desktop Top Bar */}
-        <header className="hidden lg:flex h-16 items-center justify-between px-12 bg-white/60 dark:bg-[#111827]/60 backdrop-blur-xl border-b border-gray-100 dark:border-gray-800/80 sticky top-0 z-30 transition-colors duration-300">
-          <button 
-            onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-            className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl transition-colors text-gray-700 dark:text-gray-300"
-          >
-            <HiMenuAlt2 className="text-xl" />
-          </button>
-          <div className="flex items-center gap-4">
+        <header className="hidden lg:flex h-16 items-center justify-between px-12 bg-white/60 dark:bg-[#111827]/60 backdrop-blur-xl border-b border-gray-100 dark:border-gray-800/80 sticky top-0 z-30 transition-colors duration-300 gap-6">
+          <div className="flex items-center gap-4 flex-1">
+            <button 
+              onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+              className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl transition-colors text-gray-700 dark:text-gray-300"
+            >
+              <HiMenuAlt2 className="text-xl" />
+            </button>
+
+            {/* Desktop Command Palette Search Bar */}
+            <button
+              onClick={() => setIsSearchOpen(true)}
+              className="flex items-center gap-3 px-4 py-2 bg-gray-100/80 dark:bg-gray-800/80 hover:bg-gray-200/60 dark:hover:bg-gray-700/60 border border-gray-200/60 dark:border-gray-700/60 rounded-xl text-sm font-inter text-gray-400 dark:text-gray-400 max-w-sm w-full transition-all group"
+            >
+              <HiOutlineSearch className="text-base text-gray-400 group-hover:text-gray-600 dark:group-hover:text-gray-200" />
+              <span className="truncate">Buscar en todo el panel...</span>
+              <kbd className="ml-auto px-2 py-0.5 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-md text-[10px] font-syne font-bold">
+                Ctrl K
+              </kbd>
+            </button>
+          </div>
+
+          <div className="flex items-center gap-4 shrink-0">
             <button
               onClick={handleToggleNotifications}
               className="flex items-center gap-2 px-4 py-2 bg-gray-100 dark:bg-gray-800 rounded-xl border border-gray-200/60 dark:border-gray-700/60 text-xs font-syne font-bold uppercase tracking-wider text-gray-700 dark:text-gray-200 hover:scale-105 active:scale-95 transition-all"

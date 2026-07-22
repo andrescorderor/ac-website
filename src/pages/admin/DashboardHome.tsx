@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
+import { getPinnedItems, removePinnedItem, PinnedItem } from '@/lib/pinned';
 import { 
   HiOutlineCurrencyDollar, 
   HiOutlineClipboardList, 
@@ -13,7 +14,8 @@ import {
   HiOutlineEye,
   HiOutlineEyeOff,
   HiOutlineDownload,
-  HiOutlineBell
+  HiOutlineBell,
+  HiOutlineTrash
 } from 'react-icons/hi';
 import { Link } from 'react-router-dom';
 import { useToast } from '@/components/common/ToastContext';
@@ -34,6 +36,7 @@ export default function DashboardHome() {
     bookmarks: 0,
     notes: 0
   });
+  const [pinnedItems, setPinnedItems] = useState<PinnedItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [exporting, setExporting] = useState(false);
   const [isPrivacyMode, setIsPrivacyMode] = useState(true);
@@ -41,7 +44,16 @@ export default function DashboardHome() {
 
   useEffect(() => {
     fetchStats();
+    loadPinned();
+
+    const handlePinnedChanged = () => loadPinned();
+    window.addEventListener('ac_pinned_changed', handlePinnedChanged);
+    return () => window.removeEventListener('ac_pinned_changed', handlePinnedChanged);
   }, []);
+
+  const loadPinned = () => {
+    setPinnedItems(getPinnedItems());
+  };
 
   const fetchStats = async () => {
     const { data: { user } } = await supabase.auth.getUser();
@@ -140,6 +152,25 @@ export default function DashboardHome() {
     }
   };
 
+  const handleUnpin = (id: string, e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    removePinnedItem(id);
+    toast.info('Elemento desfijado');
+  };
+
+  const getItemBadge = (type: string) => {
+    switch (type) {
+      case 'note': return 'bg-emerald-100 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-300';
+      case 'reminder': return 'bg-pink-100 dark:bg-pink-950/60 text-pink-600 dark:text-pink-300';
+      case 'task': return 'bg-orange-100 dark:bg-orange-950/60 text-orange-600 dark:text-orange-300';
+      case 'debt': return 'bg-red-100 dark:bg-red-950/60 text-red-600 dark:text-red-300';
+      case 'vault': return 'bg-purple-100 dark:bg-purple-950/60 text-purple-600 dark:text-purple-300';
+      case 'shopping': return 'bg-green-100 dark:bg-green-950/60 text-green-600 dark:text-green-300';
+      default: return 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300';
+    }
+  };
+
   const cards = [
     { 
       label: 'Gastos Mensuales', 
@@ -202,14 +233,14 @@ export default function DashboardHome() {
   if (loading) return <div className="text-gray-400 font-syne uppercase tracking-widest text-xs">Cargando dashboard...</div>;
 
   return (
-    <div className="space-y-12">
+    <div className="space-y-12 pb-16">
       <header className="flex flex-col md:flex-row md:items-end justify-between gap-6">
         <div>
           <h1 className="font-dm-sans text-3xl md:text-4xl font-bold tracking-tight text-[var(--black)] dark:text-white">
             Hola, <span className="text-gradient">Andrés</span>
           </h1>
           <p className="font-inter mt-2 text-[var(--dark-gray)] dark:text-gray-400 font-light text-sm">
-            Aquí tienes un resumen de tu actividad actual.
+            Aquí tienes un resumen de tu actividad actual y tus elementos fijados.
           </p>
         </div>
 
@@ -256,39 +287,114 @@ export default function DashboardHome() {
         </div>
       </header>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
-        {cards.map((card, idx) => {
-          const displayValue = card.isMonetary && isPrivacyMode ? '$••••••' : card.rawVal;
-          return (
-            <motion.div
-              key={card.label}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: idx * 0.05 }}
-            >
-              <Link 
-                to={card.path}
-                className="group block bg-white dark:bg-gray-900/90 p-5 md:p-8 rounded-[2rem] md:rounded-[2.5rem] border border-gray-100 dark:border-gray-800 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-500"
+      {/* 📌 Pinned Elements Section */}
+      <section className="space-y-4">
+        <div className="flex items-center justify-between">
+          <h2 className="font-dm-sans text-xl font-bold text-[var(--black)] dark:text-white flex items-center gap-2">
+            <span>📌</span>
+            <span>Elementos Fijados</span>
+            {pinnedItems.length > 0 && (
+              <span className="text-xs font-syne font-bold px-2.5 py-0.5 rounded-full bg-amber-100 dark:bg-amber-950/60 text-amber-600 dark:text-amber-300">
+                {pinnedItems.length}
+              </span>
+            )}
+          </h2>
+        </div>
+
+        {pinnedItems.length === 0 ? (
+          <div className="bg-white dark:bg-gray-900/60 rounded-[2rem] p-6 md:p-8 border border-dashed border-gray-200 dark:border-gray-800 text-center space-y-2">
+            <p className="font-dm-sans text-base font-bold text-gray-700 dark:text-gray-300">No tienes elementos fijados</p>
+            <p className="font-inter text-xs text-gray-400 dark:text-gray-500 max-w-md mx-auto">
+              Puedes fijar cualquier nota, recordatorio, tarea o dato importante usando el icono 📍 desde la búsqueda global (<kbd className="px-1.5 py-0.5 bg-gray-100 dark:bg-gray-800 rounded">Ctrl + K</kbd>).
+            </p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            <AnimatePresence>
+              {pinnedItems.map((item) => (
+                <motion.div
+                  key={item.id}
+                  layout
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.95 }}
+                >
+                  <Link
+                    to={item.path}
+                    className="group block p-5 bg-white dark:bg-gray-900 rounded-3xl border border-gray-100 dark:border-gray-800 hover:border-amber-300 dark:hover:border-amber-700/60 shadow-sm hover:shadow-lg transition-all relative overflow-hidden"
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <span className={`px-2.5 py-1 rounded-full text-[9px] font-syne font-bold uppercase tracking-wider ${getItemBadge(item.type)}`}>
+                        {item.type}
+                      </span>
+
+                      <button
+                        onClick={(e) => handleUnpin(item.id, e)}
+                        className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-xl transition-all"
+                        title="Desfijar del inicio"
+                      >
+                        <HiOutlineTrash className="text-sm" />
+                      </button>
+                    </div>
+
+                    <div className="mt-3 space-y-1">
+                      <h4 className="font-dm-sans font-bold text-base text-gray-900 dark:text-gray-100 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors line-clamp-1">
+                        {item.title}
+                      </h4>
+                      {item.subtitle && (
+                        <p className="font-inter text-xs text-gray-500 dark:text-gray-400 line-clamp-2">
+                          {item.subtitle}
+                        </p>
+                      )}
+                    </div>
+                  </Link>
+                </motion.div>
+              ))}
+            </AnimatePresence>
+          </div>
+        )}
+      </section>
+
+      {/* Module Overview Grid */}
+      <section className="space-y-4">
+        <h2 className="font-dm-sans text-xl font-bold text-[var(--black)] dark:text-white">
+          Módulos
+        </h2>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+          {cards.map((card, idx) => {
+            const displayValue = card.isMonetary && isPrivacyMode ? '$••••••' : card.rawVal;
+            return (
+              <motion.div
+                key={card.label}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: idx * 0.05 }}
               >
-                <div className="flex justify-between items-start">
-                  <div className={`p-3 md:p-4 rounded-xl md:rounded-2xl ${card.color} text-white shadow-lg`}>
-                    <card.icon className="text-xl md:text-2xl" />
+                <Link 
+                  to={card.path}
+                  className="group block bg-white dark:bg-gray-900/90 p-5 md:p-8 rounded-[2rem] md:rounded-[2.5rem] border border-gray-100 dark:border-gray-800 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-500"
+                >
+                  <div className="flex justify-between items-start">
+                    <div className={`p-3 md:p-4 rounded-xl md:rounded-2xl ${card.color} text-white shadow-lg`}>
+                      <card.icon className="text-xl md:text-2xl" />
+                    </div>
+                    <HiOutlineArrowSmRight className="text-xl md:text-2xl text-gray-300 dark:text-gray-600 group-hover:text-black dark:group-hover:text-white group-hover:translate-x-1 transition-all" />
                   </div>
-                  <HiOutlineArrowSmRight className="text-xl md:text-2xl text-gray-300 dark:text-gray-600 group-hover:text-black dark:group-hover:text-white group-hover:translate-x-1 transition-all" />
-                </div>
-                <div className="mt-6 md:mt-8">
-                  <p className="font-syne text-[10px] font-bold uppercase tracking-widest text-[var(--gray)] dark:text-gray-400 mb-1">
-                    {card.label}
-                  </p>
-                  <h3 className="font-dm-sans text-xl md:text-3xl font-bold text-[var(--black)] dark:text-white tracking-tight">
-                    {displayValue}
-                  </h3>
-                </div>
-              </Link>
-            </motion.div>
-          );
-        })}
-      </div>
+                  <div className="mt-6 md:mt-8">
+                    <p className="font-syne text-[10px] font-bold uppercase tracking-widest text-[var(--gray)] dark:text-gray-400 mb-1">
+                      {card.label}
+                    </p>
+                    <h3 className="font-dm-sans text-xl md:text-3xl font-bold text-[var(--black)] dark:text-white tracking-tight">
+                      {displayValue}
+                    </h3>
+                  </div>
+                </Link>
+              </motion.div>
+            );
+          })}
+        </div>
+      </section>
     </div>
   );
 }
