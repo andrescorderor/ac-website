@@ -30,6 +30,7 @@ const categoryConfig = {
 };
 
 function getDaysUntil(dateStr: string): number {
+  if (!dateStr) return 0;
   const today = new Date();
   today.setHours(0, 0, 0, 0);
   const target = new Date(dateStr + 'T00:00:00');
@@ -38,6 +39,7 @@ function getDaysUntil(dateStr: string): number {
 }
 
 function formatDate(dateStr: string, timeStr?: string | null): string {
+  if (!dateStr) return 'Sin fecha';
   const d = new Date(dateStr + 'T00:00:00');
   const formattedDate = d.toLocaleDateString('es-MX', { day: 'numeric', month: 'long', year: 'numeric' });
   if (timeStr) {
@@ -63,13 +65,18 @@ export default function Recordatorios() {
   const fetchReminders = async () => {
     const { data, error } = await supabase
       .from('reminders')
-      .select('*')
-      .order('date', { ascending: true });
+      .select('*');
     
     if (error) {
       toast.error('Error al cargar fechas importantes: ' + error.message);
     } else if (data) {
-      setReminders(data);
+      // Normalize date / event_date for column schema compatibility
+      const normalized = data.map((r: any) => ({
+        ...r,
+        date: r.date || r.event_date || (r.created_at ? r.created_at.split('T')[0] : ''),
+      }));
+      normalized.sort((a: any, b: any) => new Date(a.date).getTime() - new Date(b.date).getTime());
+      setReminders(normalized);
     }
     setLoading(false);
   };
@@ -92,15 +99,18 @@ export default function Recordatorios() {
 
     setSubmitting(true);
     try {
-      const { error } = await supabase.from('reminders').insert([{
+      const payload: any = {
         user_id: user.id,
         title: newReminder.title.trim(),
         date: newReminder.date,
+        event_date: newReminder.date, // Compatible with event_date column
         time: newReminder.time || null,
         category: newReminder.category,
         recurring: newReminder.recurring,
         notes: newReminder.notes?.trim() || null,
-      }]);
+      };
+
+      const { error } = await supabase.from('reminders').insert([payload]);
 
       if (error) throw error;
 
@@ -125,6 +135,10 @@ export default function Recordatorios() {
     } catch (err: any) {
       toast.error(err.message || 'Error al eliminar');
     }
+  };
+
+  const insertBullet = () => {
+    setNewReminder(prev => ({ ...prev, notes: prev.notes + (prev.notes ? '\n• ' : '• ') }));
   };
 
   const filtered = reminders.filter(r => {
@@ -259,16 +273,25 @@ export default function Recordatorios() {
                 </select>
               </div>
 
-              <div className="md:col-span-3">
-                <label className="block font-syne text-[10px] font-bold uppercase tracking-widest text-[var(--gray)] mb-2">
-                  Notas Adicionales (Opcional)
-                </label>
+              <div className="md:col-span-3 space-y-2">
+                <div className="flex items-center justify-between">
+                  <label className="block font-syne text-[10px] font-bold uppercase tracking-widest text-[var(--gray)]">
+                    Notas / Párrafo Descriptivo (Opcional)
+                  </label>
+                  <button
+                    type="button"
+                    onClick={insertBullet}
+                    className="px-3 py-1 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-xs font-syne font-bold transition-all"
+                  >
+                    + Agregar Viñeta (•)
+                  </button>
+                </div>
                 <textarea
-                  rows={2}
-                  placeholder="Añade detalles o recordatorios extra..."
+                  rows={4}
+                  placeholder="Añade párrafos descriptivos, notas o detalles extra... (Puedes usar saltos de línea y viñetas)"
                   value={newReminder.notes}
                   onChange={(e) => setNewReminder({ ...newReminder, notes: e.target.value })}
-                  className="w-full px-5 py-3.5 bg-gray-50/50 border border-gray-100 rounded-xl outline-none focus:border-gray-300 font-inter text-sm resize-none"
+                  className="w-full px-5 py-3.5 bg-gray-50/50 border border-gray-100 rounded-xl outline-none focus:border-gray-300 font-inter text-sm leading-relaxed"
                 />
               </div>
 
@@ -371,39 +394,46 @@ function ReminderCard({ r, onDelete }: { r: Reminder; onDelete: (id: string) => 
   const Icon = cfg.icon;
 
   return (
-    <div className="p-6 bg-white rounded-3xl border border-gray-100 shadow-sm flex items-start justify-between gap-4 group hover:border-gray-200 transition-all">
-      <div className="flex items-start gap-4">
-        <div className={`p-3 rounded-2xl ${cfg.color} text-xl shrink-0`}>
-          <Icon />
-        </div>
-        <div className="space-y-1">
-          <div className="flex items-center gap-2">
-            <h4 className="font-dm-sans font-bold text-lg text-black">{r.title}</h4>
-            <span className={`px-2.5 py-0.5 rounded-full text-[9px] font-syne font-bold uppercase tracking-wider ${cfg.badge}`}>
-              {r.category}
-            </span>
+    <div className="p-6 bg-white rounded-3xl border border-gray-100 shadow-sm flex flex-col justify-between gap-4 group hover:border-gray-200 transition-all">
+      <div className="flex items-start justify-between gap-4">
+        <div className="flex items-start gap-4">
+          <div className={`p-3 rounded-2xl ${cfg.color} text-xl shrink-0`}>
+            <Icon />
           </div>
-          <p className="font-inter text-sm text-gray-500 font-light flex items-center gap-1.5">
-            <span>{formatDate(r.date, r.time)}</span>
-          </p>
-          {r.notes && <p className="font-inter text-xs text-gray-400 pt-1">{r.notes}</p>}
+          <div className="space-y-1">
+            <div className="flex flex-wrap items-center gap-2">
+              <h4 className="font-dm-sans font-bold text-lg text-black">{r.title}</h4>
+              <span className={`px-2.5 py-0.5 rounded-full text-[9px] font-syne font-bold uppercase tracking-wider ${cfg.badge}`}>
+                {r.category}
+              </span>
+            </div>
+            <p className="font-inter text-sm text-gray-500 font-light">
+              {formatDate(r.date, r.time)}
+            </p>
+          </div>
+        </div>
+
+        <div className="flex flex-col items-end gap-2 shrink-0">
+          <span className={`font-syne text-[10px] font-bold uppercase tracking-wider px-3 py-1 rounded-full ${
+            days < 0 ? 'bg-gray-100 text-gray-400' : days <= 7 ? 'bg-red-100 text-red-600' : 'bg-emerald-100 text-emerald-600'
+          }`}>
+            {days === 0 ? '¡Hoy!' : days < 0 ? `Hace ${Math.abs(days)}d` : `En ${days}d`}
+          </span>
+          <button
+            onClick={() => onDelete(r.id)}
+            className="p-1.5 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all"
+            title="Eliminar fecha"
+          >
+            <HiOutlineTrash className="text-base" />
+          </button>
         </div>
       </div>
 
-      <div className="flex flex-col items-end gap-2 shrink-0">
-        <span className={`font-syne text-[10px] font-bold uppercase tracking-wider px-3 py-1 rounded-full ${
-          days < 0 ? 'bg-gray-100 text-gray-400' : days <= 7 ? 'bg-red-100 text-red-600' : 'bg-emerald-100 text-emerald-600'
-        }`}>
-          {days === 0 ? '¡Hoy!' : days < 0 ? `Hace ${Math.abs(days)}d` : `En ${days}d`}
-        </span>
-        <button
-          onClick={() => onDelete(r.id)}
-          className="p-1.5 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all"
-          title="Eliminar fecha"
-        >
-          <HiOutlineTrash className="text-base" />
-        </button>
-      </div>
+      {r.notes && (
+        <div className="font-inter text-sm text-gray-600 font-light leading-relaxed whitespace-pre-wrap pt-3 border-t border-gray-50">
+          {r.notes}
+        </div>
+      )}
     </div>
   );
 }
