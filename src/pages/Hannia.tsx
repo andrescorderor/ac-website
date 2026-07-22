@@ -9,138 +9,156 @@ type Garment = {
   color: string;
   metalness: number;
   roughness: number;
-  pattern: 'lace' | 'velvet' | 'silk' | 'gold';
+  shape: 'corset' | 'gown' | 'robe' | 'gala';
 };
 
 const GARMENTS: Garment[] = [
-  { id: 'corset_black', name: 'Corsé Victoriano Ébano', category: 'Corsé', color: '#0A0A0E', metalness: 0.2, roughness: 0.6, pattern: 'lace' },
-  { id: 'gown_pink', name: 'Vestido Lili de Noche', category: 'Vestido', color: '#FF2E93', metalness: 0.5, roughness: 0.2, pattern: 'silk' },
-  { id: 'robe_velvet', name: 'Túnica de Terciopelo Gótico', category: 'Túnica', color: '#3A0025', metalness: 0.1, roughness: 0.8, pattern: 'velvet' },
-  { id: 'gold_gala', name: 'Traje Real de Oro Victoriano', category: 'Gala', color: '#FFD700', metalness: 0.9, roughness: 0.1, pattern: 'gold' },
+  { id: 'corset_black', name: 'Corsé Victoriano Ébano', category: 'Corsé', color: '#111116', metalness: 0.3, roughness: 0.5, shape: 'corset' },
+  { id: 'gown_pink', name: 'Vestido Lili Magenta', category: 'Vestido', color: '#FF2E93', metalness: 0.4, roughness: 0.2, shape: 'gown' },
+  { id: 'robe_velvet', name: 'Túnica de Terciopelo Gótico', category: 'Túnica', color: '#4A0025', metalness: 0.1, roughness: 0.8, shape: 'robe' },
+  { id: 'gold_gala', name: 'Traje Real Oro Victoriano', category: 'Gala', color: '#FFD700', metalness: 0.85, roughness: 0.15, shape: 'gala' },
 ];
 
 export default function Hannia() {
   const mountRef = useRef<HTMLDivElement | null>(null);
 
-  // Mode Selection: 'studio3d' | 'runway3d' | 'rpg'
-  const [mode, setMode] = useState<'studio3d' | 'runway3d' | 'rpg'>('studio3d');
-  
-  // 3D Customizer State
-  const [selectedGarment, setSelectedGarment] = useState<Garment>(GARMENTS[0]);
-  const [garmentColor, setGarmentColor] = useState<string>(GARMENTS[0].color);
-  const [showLiliesOnDress, setShowLiliesOnDress] = useState(true);
-  const [isRotatingRunway, setIsRotatingRunway] = useState(false);
+  // Tab State
+  const [activeTab, setActiveTab] = useState<'atelier3d' | 'pasarela' | 'rpg'>('atelier3d');
 
-  // RPG Game State
-  const [rpgRoom, setRpgRoom] = useState<'atelier' | 'greenhouse' | 'crypt' | 'throne'>('atelier');
+  // Customizer State
+  const [selectedGarment, setSelectedGarment] = useState<Garment>(GARMENTS[1]);
+  const [currentColor, setCurrentColor] = useState<string>(GARMENTS[1].color);
+  const [hasLilies, setHasLilies] = useState(true);
+  const [isAutoRotating, setIsAutoRotating] = useState(false);
+
+  // RPG State
+  const [rpgRoom, setRpgRoom] = useState<'atelier' | 'greenhouse' | 'boss'>('atelier');
   const [bossHp, setBossHp] = useState(100);
-  const [rpgScore, setRpgScore] = useState(0);
-  const [showPoemScroll, setShowPoemScroll] = useState(false);
-  const [piboMsg, setPiboMsg] = useState('Pibo listo para el atelier 3D y la exploración gótica.');
+  const [xp, setXp] = useState(40);
+  const [showScrollModal, setShowScrollModal] = useState(false);
+  const [statusMsg, setStatusMsg] = useState('Pibo en el Atelier 3D: Toca y arrastra para rotar el diseño.');
 
-  // Three.js Scene References
+  // Three.js References
+  const rendererRef = useRef<THREE.WebGLRenderer | null>(null);
   const sceneRef = useRef<THREE.Scene | null>(null);
-  const mannequinMeshRef = useRef<THREE.Mesh | null>(null);
-  const dressMeshRef = useRef<THREE.Mesh | null>(null);
+  const modelGroupRef = useRef<THREE.Group | null>(null);
+  const dressMaterialRef = useRef<THREE.MeshStandardMaterial | null>(null);
   const liliesGroupRef = useRef<THREE.Group | null>(null);
+  
+  // Touch / Mouse Drag Rotation State
+  const isDraggingRef = useRef(false);
+  const previousTouchX = useRef(0);
 
   // ════════════════════════════════════════════════════════════
-  // 🎨 THREE.JS 3D WEBGL STUDIO SETUP
+  // 🎨 THREE.JS 3D WEBGL STUDIO SETUP (ROBUST & RESPONSIVE)
   // ════════════════════════════════════════════════════════════
   useEffect(() => {
-    if (mode === 'rpg') return;
+    if (activeTab === 'rpg') return;
 
     const container = mountRef.current;
     if (!container) return;
 
-    // 1. Scene, Camera, Renderer
+    // Dimensions with safe fallback
+    const width = Math.max(300, container.clientWidth || 360);
+    const height = Math.max(320, container.clientHeight || 360);
+
+    // 1. Scene
     const scene = new THREE.Scene();
     sceneRef.current = scene;
     scene.background = new THREE.Color(0x07080c);
 
-    const width = container.clientWidth || 360;
-    const height = container.clientHeight || 420;
+    // 2. Camera
+    const camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 100);
+    camera.position.set(0, 1.1, 3.2);
 
-    const camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 1000);
-    camera.position.set(0, 1.2, 3.5);
-
+    // 3. Renderer
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
     renderer.setSize(width, height);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     renderer.shadowMap.enabled = true;
+    rendererRef.current = renderer;
 
-    // Clear previous canvas
     container.innerHTML = '';
     container.appendChild(renderer.domElement);
 
-    // 2. Lighting (Victorian Studio Spotlights)
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.8);
+    // 4. Lights
+    const ambientLight = new THREE.AmbientLight(0xffffff, 1.2);
     scene.add(ambientLight);
 
-    const pinkSpotlight = new THREE.SpotLight(0xff2e93, 3, 10, Math.PI / 4, 0.5);
-    pinkSpotlight.position.set(2, 4, 2);
-    scene.add(pinkSpotlight);
+    const mainLight = new THREE.DirectionalLight(0xff2e93, 2.5);
+    mainLight.position.set(3, 4, 3);
+    scene.add(mainLight);
 
-    const goldSpotlight = new THREE.SpotLight(0xffd700, 2, 10, Math.PI / 4, 0.5);
-    goldSpotlight.position.set(-2, 3, -2);
-    scene.add(goldSpotlight);
+    const fillLight = new THREE.DirectionalLight(0xffd700, 1.8);
+    fillLight.position.set(-3, 2, -2);
+    scene.add(fillLight);
 
-    // 3. Create 3D Victorian Pedestal
-    const pedestalGeo = new THREE.CylinderGeometry(0.8, 0.9, 0.2, 32);
-    const pedestalMat = new THREE.MeshStandardMaterial({ color: 0x12141f, roughness: 0.3, metalness: 0.8 });
+    // 5. Main Model Group (holds pedestal + mannequin + dress)
+    const modelGroup = new THREE.Group();
+    modelGroupRef.current = modelGroup;
+    scene.add(modelGroup);
+
+    // Pedestal
+    const pedestalGeo = new THREE.CylinderGeometry(0.85, 0.95, 0.2, 32);
+    const pedestalMat = new THREE.MeshStandardMaterial({ color: 0x121420, roughness: 0.3, metalness: 0.7 });
     const pedestal = new THREE.Mesh(pedestalGeo, pedestalMat);
-    pedestal.position.y = -0.8;
-    scene.add(pedestal);
+    pedestal.position.y = -0.9;
+    modelGroup.add(pedestal);
 
-    // 4. Create 3D Mannequin Core Body
-    const mannequinGeo = new THREE.CylinderGeometry(0.25, 0.2, 1.4, 32);
-    const mannequinMat = new THREE.MeshStandardMaterial({ color: 0x1f2430, roughness: 0.4 });
+    // Mannequin Core
+    const mannequinGeo = new THREE.CylinderGeometry(0.24, 0.18, 1.4, 32);
+    const mannequinMat = new THREE.MeshStandardMaterial({ color: 0x1b1d2a, roughness: 0.4 });
     const mannequin = new THREE.Mesh(mannequinGeo, mannequinMat);
     mannequin.position.y = 0.1;
-    mannequinMeshRef.current = mannequin;
-    scene.add(mannequin);
+    modelGroup.add(mannequin);
 
-    // 5. Create 3D Dress Garment Mesh
-    const dressGeo = new THREE.ConeGeometry(0.5, 1.1, 32, 1, true);
+    // Crown on top of mannequin
+    const crownGeo = new THREE.ConeGeometry(0.12, 0.18, 5);
+    const crownMat = new THREE.MeshStandardMaterial({ color: 0xffd700, metalness: 0.9, roughness: 0.1 });
+    const crown = new THREE.Mesh(crownGeo, crownMat);
+    crown.position.y = 0.9;
+    crown.rotation.z = Math.PI;
+    modelGroup.add(crown);
+
+    // Dress Garment Mesh
+    const dressGeo = new THREE.ConeGeometry(0.52, 1.1, 32, 1, true);
     const dressMat = new THREE.MeshStandardMaterial({
-      color: new THREE.Color(garmentColor),
+      color: new THREE.Color(currentColor),
       metalness: selectedGarment.metalness,
       roughness: selectedGarment.roughness,
       side: THREE.DoubleSide,
     });
+    dressMaterialRef.current = dressMat;
+
     const dress = new THREE.Mesh(dressGeo, dressMat);
     dress.position.y = -0.1;
-    dressMeshRef.current = dress;
-    scene.add(dress);
+    modelGroup.add(dress);
 
-    // 6. Create 3D Lily Accents Group
+    // 3D Lilies Group around waist
     const liliesGroup = new THREE.Group();
-    for (let i = 0; i < 5; i++) {
-      const lilyGeo = new THREE.DodecahedronGeometry(0.08);
-      const lilyMat = new THREE.MeshStandardMaterial({ color: 0xff85c0, roughness: 0.1 });
-      const lilyMesh = new THREE.Mesh(lilyGeo, lilyMat);
-      const angle = (i / 5) * Math.PI * 2;
-      lilyMesh.position.set(Math.cos(angle) * 0.42, -0.4, Math.sin(angle) * 0.42);
-      liliesGroup.add(lilyMesh);
+    for (let i = 0; i < 6; i++) {
+      const lGeo = new THREE.DodecahedronGeometry(0.07);
+      const lMat = new THREE.MeshStandardMaterial({ color: 0xff85c0, roughness: 0.1 });
+      const lMesh = new THREE.Mesh(lGeo, lMat);
+      const angle = (i / 6) * Math.PI * 2;
+      lMesh.position.set(Math.cos(angle) * 0.42, -0.38, Math.sin(angle) * 0.42);
+      liliesGroup.add(lMesh);
     }
     liliesGroupRef.current = liliesGroup;
-    scene.add(liliesGroup);
+    modelGroup.add(liliesGroup);
 
-    // 7. Animation Loop
+    // 6. Animation Loop
     let animId: number;
     let clock = new THREE.Clock();
 
     const animate = () => {
-      const elapsedTime = clock.getElapsedTime();
+      const elapsed = clock.getElapsedTime();
 
-      if (isRotatingRunway || mode === 'runway3d') {
-        mannequin.rotation.y += 0.015;
-        dress.rotation.y += 0.015;
-        liliesGroup.rotation.y += 0.015;
-        pedestal.rotation.y += 0.015;
-      } else {
-        // Floating ambient movement
-        dress.position.y = -0.1 + Math.sin(elapsedTime * 2) * 0.02;
+      if (isAutoRotating || activeTab === 'pasarela') {
+        modelGroup.rotation.y += 0.012;
+      } else if (!isDraggingRef.current) {
+        // Gentle floating
+        modelGroup.position.y = Math.sin(elapsed * 2) * 0.02;
       }
 
       renderer.render(scene, camera);
@@ -149,54 +167,83 @@ export default function Hannia() {
 
     animate();
 
+    // Resize Handler
+    const handleResize = () => {
+      if (!container || !rendererRef.current) return;
+      const w = Math.max(300, container.clientWidth);
+      const h = Math.max(320, container.clientHeight);
+      camera.aspect = w / h;
+      camera.updateProjectionMatrix();
+      rendererRef.current.setSize(w, h);
+    };
+
+    window.addEventListener('resize', handleResize);
+
     return () => {
       cancelAnimationFrame(animId);
+      window.removeEventListener('resize', handleResize);
       renderer.dispose();
     };
-  }, [mode, selectedGarment, isRotatingRunway]);
+  }, [activeTab, selectedGarment, isAutoRotating]);
 
-  // Update Material Properties Live
+  // Sync Color and Lilies visibility
   useEffect(() => {
-    if (dressMeshRef.current) {
-      const mat = dressMeshRef.current.material as THREE.MeshStandardMaterial;
-      mat.color.set(garmentColor);
-      mat.metalness = selectedGarment.metalness;
-      mat.roughness = selectedGarment.roughness;
-      mat.needsUpdate = true;
+    if (dressMaterialRef.current) {
+      dressMaterialRef.current.color.set(currentColor);
+      dressMaterialRef.current.metalness = selectedGarment.metalness;
+      dressMaterialRef.current.roughness = selectedGarment.roughness;
+      dressMaterialRef.current.needsUpdate = true;
     }
     if (liliesGroupRef.current) {
-      liliesGroupRef.current.visible = showLiliesOnDress;
+      liliesGroupRef.current.visible = hasLilies;
     }
-  }, [garmentColor, selectedGarment, showLiliesOnDress]);
+  }, [currentColor, selectedGarment, hasLilies]);
 
-  // ════════════════════════════════════════════════════════════
-  // ⚔️ ACTION RPG COMBAT SYSTEM LOGIC
-  // ════════════════════════════════════════════════════════════
-  const handleAttackBoss = () => {
+  // Touch / Mouse Drag Controls for 3D Model
+  const handleTouchStart = (e: React.TouchEvent | React.MouseEvent) => {
+    isDraggingRef.current = true;
+    const pageX = 'touches' in e ? e.touches[0].pageX : e.pageX;
+    previousTouchX.current = pageX;
+  };
+
+  const handleTouchMove = (e: React.TouchEvent | React.MouseEvent) => {
+    if (!isDraggingRef.current || !modelGroupRef.current) return;
+    const pageX = 'touches' in e ? e.touches[0].pageX : e.pageX;
+    const deltaX = pageX - previousTouchX.current;
+    modelGroupRef.current.rotation.y += deltaX * 0.015;
+    previousTouchX.current = pageX;
+  };
+
+  const handleTouchEnd = () => {
+    isDraggingRef.current = false;
+  };
+
+  // RPG Actions
+  const handleAttackSpider = () => {
     if (bossHp <= 0) return;
-    const damage = Math.floor(Math.random() * 20) + 15;
-    const nextBossHp = Math.max(0, bossHp - damage);
-    setBossHp(nextBossHp);
-    setRpgScore((s) => s + 50);
+    const dmg = 25;
+    const nextHp = Math.max(0, bossHp - dmg);
+    setBossHp(nextHp);
+    setXp((x) => x + 35);
 
-    if (nextBossHp === 0) {
-      setPiboMsg('🏆 ¡REINA ARAÑA DERROTADA! El Velo Oscuro ha sido liberado.');
-      setShowPoemScroll(true);
+    if (nextHp === 0) {
+      setStatusMsg('🏆 ¡REINA ARAÑA DERROTADA! Se desbloqueó el manuscrito secreto.');
+      setShowScrollModal(true);
     } else {
-      setPiboMsg(`🪡 Disparo de Aguja de Plata: -${damage} HP a la Reina Araña.`);
+      setStatusMsg(`🪡 Disparo de Aguja de Plata: -${dmg} HP. Quedan ${nextHp} HP.`);
     }
   };
 
   return (
     <div className="min-h-screen bg-[#050508] text-[#E2DCE7] flex flex-col items-center justify-between p-3 sm:p-5 relative overflow-hidden font-serif selection:bg-[#FF2E93] selection:text-white">
-      {/* 🖤 Ambient Glow */}
+      {/* Ambient Glow */}
       <div className="fixed inset-0 pointer-events-none z-0">
         <div className="absolute top-[-10%] right-[-10%] w-[380px] h-[380px] rounded-full bg-[#FF2E93]/10 blur-[140px]" />
         <div className="absolute bottom-[-10%] left-[-10%] w-[320px] h-[320px] rounded-full bg-[#3B001F]/20 blur-[120px]" />
         <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: 'radial-gradient(#FF85C0 1px, transparent 1px)', backgroundSize: '24px 24px' }} />
       </div>
 
-      {/* 👑 Mode Switcher Top Bar */}
+      {/* Header Bar */}
       <header className="w-full max-w-md z-10 space-y-2 text-center">
         <div className="inline-flex items-center gap-2 px-4 py-1 rounded-full bg-[#0D0E16] border border-[#FF85C0]/30 shadow-lg">
           <span className="font-sans text-[9px] font-bold uppercase tracking-[0.2em] text-[#FF85C0]">
@@ -204,11 +251,12 @@ export default function Hannia() {
           </span>
         </div>
 
+        {/* Tab Navigation */}
         <div className="grid grid-cols-3 gap-2 font-sans text-xs font-bold uppercase tracking-wider">
           <button
-            onClick={() => { setMode('studio3d'); setIsRotatingRunway(false); }}
+            onClick={() => { setActiveTab('atelier3d'); setIsAutoRotating(false); }}
             className={`py-2.5 rounded-xl border transition-all ${
-              mode === 'studio3d'
+              activeTab === 'atelier3d'
                 ? 'bg-[#FF2E93] text-white border-[#FF85C0] shadow-[0_0_15px_rgba(255,46,147,0.4)]'
                 : 'bg-[#0D0E16] text-gray-400 border-white/5 hover:bg-white/5'
             }`}
@@ -216,19 +264,19 @@ export default function Hannia() {
             👗 Atelier 3D
           </button>
           <button
-            onClick={() => { setMode('runway3d'); setIsRotatingRunway(true); }}
+            onClick={() => { setActiveTab('pasarela'); setIsAutoRotating(true); }}
             className={`py-2.5 rounded-xl border transition-all ${
-              mode === 'runway3d'
+              activeTab === 'pasarela'
                 ? 'bg-[#FF2E93] text-white border-[#FF85C0] shadow-[0_0_15px_rgba(255,46,147,0.4)]'
                 : 'bg-[#0D0E16] text-gray-400 border-white/5 hover:bg-white/5'
             }`}
           >
-            👑 Pasarela 3D
+            👑 Pasarela 360°
           </button>
           <button
-            onClick={() => setMode('rpg')}
+            onClick={() => setActiveTab('rpg')}
             className={`py-2.5 rounded-xl border transition-all ${
-              mode === 'rpg'
+              activeTab === 'rpg'
                 ? 'bg-[#FF2E93] text-white border-[#FF85C0] shadow-[0_0_15px_rgba(255,46,147,0.4)]'
                 : 'bg-[#0D0E16] text-gray-400 border-white/5 hover:bg-white/5'
             }`}
@@ -238,37 +286,41 @@ export default function Hannia() {
         </div>
       </header>
 
-      {/* 💬 Pibo Assistant */}
+      {/* Status Bar */}
       <section className="w-full max-w-md z-10 my-2">
         <div className="bg-[#0A0C14]/90 p-3 rounded-2xl border border-[#FF85C0]/20 flex items-center gap-3 shadow-lg">
           <span className="text-2xl animate-bounce shrink-0">🐷🐝</span>
           <p className="font-serif italic text-xs text-gray-200 truncate">
-            "{piboMsg}"
+            "{statusMsg}"
           </p>
         </div>
       </section>
 
-      {/* ════════════════════════════════════════════════════════════ */}
-      {/* 👗 MODE 1 & 2: THREE.JS 3D WEBGL STUDIO & RUNWAY MODE */}
-      {/* ════════════════════════════════════════════════════════════ */}
-      {(mode === 'studio3d' || mode === 'runway3d') && (
+      {/* 👗 TAB 1 & 2: THREE.JS 3D WEBGL STUDIO & RUNWAY */}
+      {(activeTab === 'atelier3d' || activeTab === 'pasarela') && (
         <main className="w-full max-w-md z-10 my-1 flex-1 flex flex-col items-center justify-between space-y-3">
-          {/* 3D WebGL Canvas Container */}
-          <div className="w-full h-72 sm:h-80 rounded-3xl border-2 border-[#FF85C0]/30 shadow-2xl relative overflow-hidden bg-[#07080C]">
+          {/* 3D Canvas Box with Touch Drag Listener */}
+          <div
+            onMouseDown={handleTouchStart}
+            onMouseMove={handleTouchMove}
+            onMouseUp={handleTouchEnd}
+            onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={handleTouchEnd}
+            className="w-full h-80 rounded-3xl border-2 border-[#FF85C0]/40 shadow-2xl relative overflow-hidden bg-[#07080C] cursor-grab active:cursor-grabbing select-none"
+          >
             <div ref={mountRef} className="w-full h-full" />
 
-            {mode === 'runway3d' && (
-              <div className="absolute top-3 left-4 font-sans text-[10px] font-bold uppercase tracking-widest text-[#FF85C0] bg-black/60 px-3 py-1 rounded-full backdrop-blur-md">
-                ✨ Pasarela 3D en Vivo • Cámara 360°
-              </div>
-            )}
+            <div className="absolute top-3 left-4 font-sans text-[10px] font-bold uppercase tracking-widest text-[#FF85C0] bg-black/70 px-3 py-1 rounded-full backdrop-blur-md">
+              {activeTab === 'pasarela' ? '✨ Pasarela 360° en Vivo' : '👈 Desliza para rotar 3D 👉'}
+            </div>
           </div>
 
-          {/* 🎨 3D Customizer Controls */}
-          {mode === 'studio3d' && (
+          {/* 3D Customizer Panel */}
+          {activeTab === 'atelier3d' && (
             <div className="w-full bg-[#0A0C14] p-4 rounded-3xl border border-white/10 space-y-3 shadow-xl">
               <div className="flex items-center justify-between text-xs font-sans text-gray-400">
-                <span className="font-bold text-[#FF85C0] uppercase tracking-wider">Diseños 3D</span>
+                <span className="font-bold text-[#FF85C0] uppercase tracking-wider">Diseños Haute Couture</span>
                 <span>Telas & Flores</span>
               </div>
 
@@ -279,12 +331,12 @@ export default function Hannia() {
                     key={g.id}
                     onClick={() => {
                       setSelectedGarment(g);
-                      setGarmentColor(g.color);
-                      setPiboMsg(`Seleccionado: ${g.name}`);
+                      setCurrentColor(g.color);
+                      setStatusMsg(`Diseño aplicado: ${g.name}`);
                     }}
                     className={`p-2.5 rounded-xl border text-left font-serif text-xs transition-all ${
                       selectedGarment.id === g.id
-                        ? 'bg-[#FF2E93]/20 border-[#FF2E93] text-white'
+                        ? 'bg-[#FF2E93]/25 border-[#FF2E93] text-white shadow-md'
                         : 'bg-white/5 border-white/5 text-gray-400 hover:bg-white/10'
                     }`}
                   >
@@ -294,14 +346,14 @@ export default function Hannia() {
                 ))}
               </div>
 
-              {/* Color Picker & Lily Accent Toggle */}
+              {/* Color & Lily Toggles */}
               <div className="flex items-center justify-between pt-2 border-t border-white/5">
                 <div className="flex items-center gap-2">
                   <span className="font-sans text-[10px] uppercase text-gray-400">Color:</span>
-                  {['#0A0A0E', '#FF2E93', '#3A0025', '#FFD700', '#4A0033'].map((c) => (
+                  {['#111116', '#FF2E93', '#4A0025', '#FFD700', '#2E004F'].map((c) => (
                     <button
                       key={c}
-                      onClick={() => setGarmentColor(c)}
+                      onClick={() => setCurrentColor(c)}
                       className="size-6 rounded-full border-2 border-white/20 shadow-md transition-transform active:scale-90"
                       style={{ backgroundColor: c }}
                     />
@@ -309,9 +361,9 @@ export default function Hannia() {
                 </div>
 
                 <button
-                  onClick={() => setShowLiliesOnDress(!showLiliesOnDress)}
+                  onClick={() => setHasLilies(!hasLilies)}
                   className={`px-3 py-1.5 rounded-xl font-sans text-[10px] font-bold uppercase tracking-wider border transition-all ${
-                    showLiliesOnDress
+                    hasLilies
                       ? 'bg-[#FF2E93] text-white border-[#FF85C0]'
                       : 'bg-white/5 text-gray-400 border-white/5'
                   }`}
@@ -324,18 +376,15 @@ export default function Hannia() {
         </main>
       )}
 
-      {/* ════════════════════════════════════════════════════════════ */}
-      {/* ⚔️ MODE 3: GOTHIC ACTION RPG & BOSS FIGHT */}
-      {/* ════════════════════════════════════════════════════════════ */}
-      {mode === 'rpg' && (
+      {/* ⚔️ TAB 3: GOTHIC ACTION RPG */}
+      {activeTab === 'rpg' && (
         <main className="w-full max-w-md z-10 my-1 flex-1 flex flex-col items-center justify-between space-y-3">
-          {/* RPG Room Selector */}
-          <div className="w-full grid grid-cols-4 gap-1.5 font-sans text-[10px] font-bold uppercase tracking-wider">
+          {/* Room Selector */}
+          <div className="w-full grid grid-cols-3 gap-2 font-sans text-[10px] font-bold uppercase tracking-wider">
             {[
               { id: 'atelier', name: 'Atelier' },
               { id: 'greenhouse', name: 'Invernadero' },
-              { id: 'crypt', name: 'Cripta Araña' },
-              { id: 'throne', name: 'Trono Velo' },
+              { id: 'boss', name: 'Reina Araña' },
             ].map((r) => (
               <button
                 key={r.id}
@@ -351,76 +400,56 @@ export default function Hannia() {
             ))}
           </div>
 
-          {/* RPG Screen Area */}
-          <div className="w-full h-72 sm:h-80 bg-[#07080C] rounded-3xl border-2 border-[#FF85C0]/40 p-5 relative overflow-hidden flex flex-col justify-between shadow-2xl">
-            {/* Header: Player HP & Score */}
+          {/* RPG Canvas Area */}
+          <div className="w-full h-80 bg-[#07080C] rounded-3xl border-2 border-[#FF85C0]/40 p-5 relative overflow-hidden flex flex-col justify-between shadow-2xl">
             <div className="flex items-center justify-between text-xs font-sans">
               <span className="font-bold text-red-400">Pibo HP: ❤️❤️❤️</span>
-              <span className="font-bold text-[#FF85C0]">XP Score: {rpgScore} pts</span>
+              <span className="font-bold text-[#FF85C0]">XP: {xp} pts</span>
             </div>
 
-            {/* Room 1: Atelier */}
             {rpgRoom === 'atelier' && (
               <div className="text-center space-y-3 my-auto">
                 <span className="text-5xl block">🧵👗</span>
-                <h3 className="font-serif font-bold text-lg text-white">El Taller de Seda Negra</h3>
-                <p className="font-sans text-xs text-gray-400">Pibo está trazando los patrones victorianos sobre el maniquí.</p>
+                <h3 className="font-serif font-bold text-lg text-white">Taller de Costura Victoriana</h3>
+                <p className="font-sans text-xs text-gray-400">Confecciona vestidos góticos para aumentar tus estadísticas.</p>
                 <button
-                  onClick={() => { setRpgScore((s) => s + 30); setPiboMsg('🧵 +30 XP por confeccionar encajes góticos.'); }}
-                  className="py-2.5 px-6 bg-[#FF2E93] text-white font-sans text-xs font-bold uppercase tracking-wider rounded-xl shadow-lg"
+                  onClick={() => { setXp((x) => x + 30); setStatusMsg('🧵 +30 XP por confeccionar encajes góticos.'); }}
+                  className="py-2.5 px-6 bg-[#FF2E93] text-white font-sans text-xs font-bold uppercase tracking-wider rounded-xl shadow-lg active:scale-95"
                 >
                   🪡 Confeccionar Prenda (+30 XP)
                 </button>
               </div>
             )}
 
-            {/* Room 2: Invernadero */}
             {rpgRoom === 'greenhouse' && (
               <div className="text-center space-y-3 my-auto">
                 <span className="text-5xl block">🥀🌸</span>
                 <h3 className="font-serif font-bold text-lg text-white">Invernadero de Lilis Marianas</h3>
-                <p className="font-sans text-xs text-gray-400">Riega las flores de ébano para recargar tu magia gótica.</p>
+                <p className="font-sans text-xs text-gray-400">Riega las flores de ébano para recargar la energía del castillo.</p>
                 <button
-                  onClick={() => { setRpgScore((s) => s + 25); setPiboMsg('💧 Lilis regadas. +25 XP cosechados.'); }}
-                  className="py-2.5 px-6 bg-[#FF2E93] text-white font-sans text-xs font-bold uppercase tracking-wider rounded-xl shadow-lg"
+                  onClick={() => { setXp((x) => x + 25); setStatusMsg('💧 Lilis regadas. +25 XP cosechados.'); }}
+                  className="py-2.5 px-6 bg-[#FF2E93] text-white font-sans text-xs font-bold uppercase tracking-wider rounded-xl shadow-lg active:scale-95"
                 >
                   💧 Regar Lilis (+25 XP)
                 </button>
               </div>
             )}
 
-            {/* Room 3: Cripta & Boss Fight */}
-            {rpgRoom === 'crypt' && (
+            {rpgRoom === 'boss' && (
               <div className="text-center space-y-3 my-auto">
                 <span className="text-5xl block animate-pulse">🕷️👑</span>
                 <h3 className="font-serif font-bold text-lg text-red-400">Jefe: Reina Araña de la Seda</h3>
                 
-                {/* Boss Health Bar */}
                 <div className="w-full bg-gray-800 h-3 rounded-full overflow-hidden border border-white/10">
                   <div className="bg-red-600 h-full transition-all duration-300" style={{ width: `${bossHp}%` }} />
                 </div>
                 <p className="font-sans text-[10px] text-gray-400">Boss HP: {bossHp}/100</p>
 
                 <button
-                  onClick={handleAttackBoss}
+                  onClick={handleAttackSpider}
                   className="py-3 px-8 bg-gradient-to-r from-red-600 to-[#FF2E93] text-white font-sans text-xs font-bold uppercase tracking-widest rounded-xl shadow-lg active:scale-95"
                 >
                   🪡 Disparar Aguja de Plata
-                </button>
-              </div>
-            )}
-
-            {/* Room 4: Sala del Trono */}
-            {rpgRoom === 'throne' && (
-              <div className="text-center space-y-3 my-auto">
-                <span className="text-5xl block">📜⚜️</span>
-                <h3 className="font-serif font-bold text-lg text-amber-400">La Sala del Velo Oscuro</h3>
-                <p className="font-sans text-xs text-gray-400">El manuscrito secreto reposa sobre el pedestal de oro.</p>
-                <button
-                  onClick={() => setShowPoemScroll(true)}
-                  className="py-3 px-6 bg-gradient-to-r from-amber-500 to-[#FF2E93] text-white font-sans text-xs font-bold uppercase tracking-widest rounded-xl shadow-lg"
-                >
-                  📜 Leer Manuscrito Secreto
                 </button>
               </div>
             )}
@@ -428,9 +457,9 @@ export default function Hannia() {
         </main>
       )}
 
-      {/* 📜 SECRET POEM RELIC MODAL */}
+      {/* Secret Poem Modal */}
       <AnimatePresence>
-        {showPoemScroll && (
+        {showScrollModal && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
             <div className="fixed inset-0 bg-[#050508]/85 backdrop-blur-md" />
 
@@ -462,7 +491,7 @@ export default function Hannia() {
               </div>
 
               <button
-                onClick={() => setShowPoemScroll(false)}
+                onClick={() => setShowScrollModal(false)}
                 className="w-full py-3.5 bg-[#FF2E93] text-white rounded-xl font-sans text-xs font-bold uppercase tracking-wider hover:bg-[#FF85C0] transition-colors shadow-lg"
               >
                 Cerrar Manuscrito ✨
