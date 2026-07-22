@@ -11,7 +11,6 @@ import {
   HiOutlineLockClosed,
   HiOutlineShoppingBag,
   HiOutlineCalendar,
-  HiOutlineLink,
   HiOutlineDocumentText,
   HiOutlineLogout,
   HiMenuAlt2,
@@ -26,7 +25,7 @@ const menuItems = [
   { icon: HiOutlineLockClosed, label: 'Bóveda', path: '/admin/panel/vault' },
   { icon: HiOutlineShoppingBag, label: 'Compras', path: '/admin/panel/compras' },
   { icon: HiOutlineCalendar, label: 'Fechas', path: '/admin/panel/recordatorios' },
-  { icon: HiOutlineLink, label: 'Enlaces', path: '/admin/panel/enlaces' },
+  // { icon: HiOutlineLink, label: 'Enlaces', path: '/admin/panel/enlaces' }, // Oculto a petición
   { icon: HiOutlineDocumentText, label: 'Notas', path: '/admin/panel/notas' },
 ];
 

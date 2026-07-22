@@ -73,10 +73,6 @@ export default function Notas() {
       toast.error('El título es obligatorio');
       return;
     }
-    if (!newNote.content.trim()) {
-      toast.error('El contenido de la nota es obligatorio');
-      return;
-    }
 
     setSubmitting(true);
     try {
@@ -84,7 +80,7 @@ export default function Notas() {
         {
           user_id: user.id,
           title: newNote.title.trim(),
-          content: newNote.content.trim(),
+          content: newNote.content?.trim() || '',
           url: newNote.url?.trim() || null,
           category: newNote.category,
         },
@@ -231,7 +227,7 @@ export default function Notas() {
               <div>
                 <div className="flex items-center justify-between mb-2">
                   <label className="block font-syne text-[10px] font-bold uppercase tracking-widest text-[var(--gray)]">
-                    Contenido de la Nota *
+                    Contenido de la Nota (Opcional)
                   </label>
                   <button
                     type="button"
@@ -242,8 +238,7 @@ export default function Notas() {
                   </button>
                 </div>
                 <textarea
-                  rows={6}
-                  required
+                  rows={5}
                   placeholder="Escribe tu nota aquí... (Puedes usar saltos de línea y viñetas)"
                   value={newNote.content}
                   onChange={(e) => setNewNote({ ...newNote, content: e.target.value })}
@@ -340,9 +335,11 @@ export default function Notas() {
                   </div>
                 </div>
 
-                <div className="font-inter text-sm text-gray-600 font-light leading-relaxed whitespace-pre-wrap">
-                  {note.content}
-                </div>
+                {note.content && (
+                  <div className="font-inter text-sm text-gray-600 font-light leading-relaxed whitespace-pre-wrap">
+                    {note.content}
+                  </div>
+                )}
               </div>
 
               {note.url && (

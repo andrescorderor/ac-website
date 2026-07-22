@@ -8,7 +8,6 @@ import {
   HiOutlineUserGroup,
   HiOutlineShoppingBag,
   HiOutlineCalendar,
-  HiOutlineLink,
   HiOutlineDocumentText,
   HiOutlineArrowSmRight,
   HiOutlineEye,
@@ -111,14 +110,14 @@ export default function DashboardHome() {
       color: 'bg-pink-500', 
       path: '/admin/panel/recordatorios' 
     },
-    { 
-      label: 'Enlaces Guardados', 
-      rawVal: stats.bookmarks, 
-      isMonetary: false,
-      icon: HiOutlineLink, 
-      color: 'bg-cyan-500', 
-      path: '/admin/panel/enlaces' 
-    },
+    // { 
+    //   label: 'Enlaces Guardados', 
+    //   rawVal: stats.bookmarks, 
+    //   isMonetary: false,
+    //   icon: HiOutlineLink, 
+    //   color: 'bg-cyan-500', 
+    //   path: '/admin/panel/enlaces' 
+    // },
     { 
       label: 'Notas Importantes', 
       rawVal: stats.notes, 
