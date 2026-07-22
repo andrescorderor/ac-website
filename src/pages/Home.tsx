@@ -1,3 +1,6 @@
+import { useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { supabase } from '@/lib/supabase';
 import CertificationsSection from '@components/home/CertificationsSection';
 import DiscussionCarousel from '@components/home/DiscussionCarousel';
 import Hero from '@components/home/Hero';
@@ -5,9 +8,18 @@ import ExpertiseSection from '@components/home/ExpertiseSection';
 import ExperienceSection from '@components/home/ExperienceSection';
 import KnowledgeCarousel from '@components/home/KnowledgeCarousel';
 import ProjectsSection from '@components/home/ProjectsSection';
-// import ProjectsSection from '@components/home/ProjectsSection';
 
 export default function Home() {
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session) {
+        navigate('/admin/panel', { replace: true });
+      }
+    });
+  }, [navigate]);
+
   return (
     <div className="relative overflow-y-hidden bg-[var(--white)] selection:bg-[var(--vibrant-sky-blue)] selection:text-white">
       {/* Mesh Background */}

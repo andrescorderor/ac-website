@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
 import { supabase } from '@/lib/supabase';
 
 export default function Login() {
@@ -8,6 +8,14 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session) {
+        navigate('/admin/panel', { replace: true });
+      }
+    });
+  }, [navigate]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -30,8 +38,8 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-white">
-      <div className="max-w-xs w-full px-6">
+    <div className="min-h-screen flex items-center justify-center bg-white dark:bg-[#0B0F17] transition-colors duration-300">
+      <div className="max-w-xs w-full px-6 space-y-6">
         <form onSubmit={handleLogin} className="space-y-4">
           {error && (
             <div className="text-xs text-gray-400 font-mono mb-4">
@@ -44,7 +52,7 @@ export default function Login() {
               type="text"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full text-sm py-2 border-b border-gray-100 focus:border-gray-400 outline-none transition-colors"
+              className="w-full text-sm py-2 border-b border-gray-100 dark:border-gray-800 focus:border-gray-400 dark:focus:border-gray-500 bg-transparent text-gray-900 dark:text-gray-100 outline-none transition-colors"
               placeholder="id"
               required
             />
@@ -55,7 +63,7 @@ export default function Login() {
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full text-sm py-2 border-b border-gray-100 focus:border-gray-400 outline-none transition-colors"
+              className="w-full text-sm py-2 border-b border-gray-100 dark:border-gray-800 focus:border-gray-400 dark:focus:border-gray-500 bg-transparent text-gray-900 dark:text-gray-100 outline-none transition-colors"
               placeholder="pass"
               required
             />
@@ -64,11 +72,20 @@ export default function Login() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-2 text-xs text-gray-400 hover:text-gray-800 transition-colors uppercase tracking-widest text-left"
+            className="w-full py-2 text-xs text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 transition-colors uppercase tracking-widest text-left"
           >
             {loading ? '...' : 'Entrar'}
           </button>
         </form>
+
+        <div className="pt-4 border-t border-gray-100 dark:border-gray-800 text-center">
+          <Link
+            to="/"
+            className="text-xs font-syne font-bold uppercase tracking-wider text-gray-400 hover:text-black dark:hover:text-white transition-colors"
+          >
+            ← Ir a Landing Page
+          </Link>
+        </div>
       </div>
     </div>
   );

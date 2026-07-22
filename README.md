@@ -37,11 +37,13 @@ The productivity hub is a mobile-optimized private dashboard with specialized mo
 *   💸 **Debt Tracker:** Monitor pending payments and collections with default pending filters.
 
 ### ✨ Premium UX Design
-*   👁️ **Global Privacy Mode:** One-click toggle to mask or show financial values across the dashboard.
+*   👁️ **Global Privacy Mode & Dark Mode Default:** One-click toggle to mask financial values and default high-contrast dark theme.
+*   ⚡ **Persistent Active Session Auto-Redirect:** Automatically detects existing login sessions on `https://andresmcorderor.netlify.app/` and redirects straight to the private dashboard.
+*   🌐 **Landing Page Navigation Link:** Easy "Ver Landing Page" link on login and panel navigation to view the public portfolio anytime.
 *   🔔 **Toast Alert System:** Real-time feedback notifications for creation, edit, and deletion actions.
 *   ⏳ **Submit Protection:** Loading indicators and button locking during async operations to prevent duplicate submissions.
 *   📱 **Auto-Hide Navigation & Responsive Layouts:** Mobile-optimized headers and square responsive sidebar navigation.
-*   🚀 **Database Keep-Alive:** Automated GitHub Actions workflow to prevent free-tier database inactivity pauses.
+*   🚀 **Database Keep-Alive & Auto-Backups:** Automated GitHub Actions workflows for database pinging and bi-monthly JSON backups.
 
 ---
 
