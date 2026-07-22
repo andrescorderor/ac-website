@@ -9,20 +9,20 @@ type Garment = {
   color: string;
   metalness: number;
   roughness: number;
-  shape: 'corset' | 'gown' | 'robe' | 'gala';
 };
 
 const GARMENTS: Garment[] = [
-  { id: 'gown_pink', name: 'Vestido Lili Magenta', category: 'Vestido', color: '#FF2E93', metalness: 0.4, roughness: 0.2, shape: 'gown' },
-  { id: 'corset_black', name: 'Corsé Victoriano Ébano', category: 'Corsé', color: '#16161F', metalness: 0.3, roughness: 0.5, shape: 'corset' },
-  { id: 'robe_velvet', name: 'Túnica de Terciopelo Gótico', category: 'Túnica', color: '#4A0025', metalness: 0.1, roughness: 0.8, shape: 'robe' },
-  { id: 'gold_gala', name: 'Traje Real Oro Victoriano', category: 'Gala', color: '#FFD700', metalness: 0.85, roughness: 0.15, shape: 'gala' },
+  { id: 'gown_pink', name: 'Vestido Lili Magenta', category: 'Vestido', color: '#FF2E93', metalness: 0.4, roughness: 0.2 },
+  { id: 'corset_black', name: 'Corsé Victoriano Ébano', category: 'Corsé', color: '#16161F', metalness: 0.3, roughness: 0.5 },
+  { id: 'robe_velvet', name: 'Túnica de Terciopelo Gótico', category: 'Túnica', color: '#4A0025', metalness: 0.1, roughness: 0.8 },
+  { id: 'gold_gala', name: 'Traje Real Oro Victoriano', category: 'Gala', color: '#FFD700', metalness: 0.85, roughness: 0.15 },
 ];
 
 export default function Hannia() {
   const mountRef = useRef<HTMLDivElement | null>(null);
+  const rpgCanvasRef = useRef<HTMLCanvasElement | null>(null);
 
-  // Tab State
+  // Tab State: 'atelier3d' | 'pasarela' | 'rpg'
   const [activeTab, setActiveTab] = useState<'atelier3d' | 'pasarela' | 'rpg'>('atelier3d');
 
   // Customizer State
@@ -31,19 +31,19 @@ export default function Hannia() {
   const [hasLilies, setHasLilies] = useState(true);
   const [isAutoRotating, setIsAutoRotating] = useState(false);
 
-  // RPG State
+  // RPG Interactive Canvas State
   const [rpgRoom, setRpgRoom] = useState<'atelier' | 'greenhouse' | 'boss'>('atelier');
+  const [xp, setXp] = useState(60);
+  const [lives] = useState(3);
   const [bossHp, setBossHp] = useState(100);
-  const [xp, setXp] = useState(40);
   const [showScrollModal, setShowScrollModal] = useState(false);
-  const [statusMsg, setStatusMsg] = useState('Pibo en el Atelier 3D: Desliza con tu dedo para rotar el vestido 3D.');
+  const [statusMsg, setStatusMsg] = useState('Pibo listo para el Atelier 3D y la exploración gótica.');
 
   // Three.js References
   const rendererRef = useRef<THREE.WebGLRenderer | null>(null);
   const sceneRef = useRef<THREE.Scene | null>(null);
   const cameraRef = useRef<THREE.PerspectiveCamera | null>(null);
   const modelGroupRef = useRef<THREE.Group | null>(null);
-  const dressMeshRef = useRef<THREE.Mesh | null>(null);
   const dressMaterialRef = useRef<THREE.MeshStandardMaterial | null>(null);
   const liliesGroupRef = useRef<THREE.Group | null>(null);
   
@@ -51,8 +51,12 @@ export default function Hannia() {
   const isDraggingRef = useRef(false);
   const previousTouchX = useRef(0);
 
+  // RPG 2D Canvas Animation Engine
+  const rpgPlayerRef = useRef({ x: 180, y: 220, targetX: 180, targetY: 220 });
+  const rpgSparksRef = useRef<{ x: number; y: number; life: number; color: string }[]>([]);
+
   // ════════════════════════════════════════════════════════════
-  // 🎨 THREE.JS 3D WEBGL STUDIO SETUP (PERFECT CAMERA & MESH FIT)
+  // 🎨 THREE.JS 3D WEBGL STUDIO SETUP
   // ════════════════════════════════════════════════════════════
   useEffect(() => {
     if (activeTab === 'rpg') return;
@@ -63,18 +67,15 @@ export default function Hannia() {
     const width = Math.max(300, container.clientWidth || 360);
     const height = Math.max(340, container.clientHeight || 340);
 
-    // 1. Scene
     const scene = new THREE.Scene();
     sceneRef.current = scene;
     scene.background = new THREE.Color(0x07080c);
 
-    // 2. Camera (Positioned to fit full mannequin + dress from top to bottom)
     const camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 100);
     camera.position.set(0, 0.1, 4.2);
     camera.lookAt(0, 0, 0);
     cameraRef.current = camera;
 
-    // 3. Renderer
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
     renderer.setSize(width, height);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
@@ -83,7 +84,7 @@ export default function Hannia() {
     container.innerHTML = '';
     container.appendChild(renderer.domElement);
 
-    // 4. Studio Lighting
+    // Studio Lights
     const ambientLight = new THREE.AmbientLight(0xffffff, 1.4);
     scene.add(ambientLight);
 
@@ -95,33 +96,31 @@ export default function Hannia() {
     goldSpotlight.position.set(-2.5, 2, -2);
     scene.add(goldSpotlight);
 
-    // 5. Main Model Group (Centered at 0,0,0)
+    // Main Model Group
     const modelGroup = new THREE.Group();
     modelGroupRef.current = modelGroup;
     scene.add(modelGroup);
 
-    // Victorian Pedestal
+    // Pedestal
     const pedestalGeo = new THREE.CylinderGeometry(0.7, 0.8, 0.15, 32);
     const pedestalMat = new THREE.MeshStandardMaterial({ color: 0x121420, roughness: 0.3, metalness: 0.8 });
     const pedestal = new THREE.Mesh(pedestalGeo, pedestalMat);
     pedestal.position.y = -1.0;
     modelGroup.add(pedestal);
 
-    // Mannequin Upper Torso
+    // Mannequin Core & Head
     const mannequinGeo = new THREE.CylinderGeometry(0.18, 0.14, 0.9, 32);
     const mannequinMat = new THREE.MeshStandardMaterial({ color: 0x1f2233, roughness: 0.4 });
     const mannequin = new THREE.Mesh(mannequinGeo, mannequinMat);
     mannequin.position.y = 0.2;
     modelGroup.add(mannequin);
 
-    // Mannequin Neck / Head Stand
     const headGeo = new THREE.SphereGeometry(0.12, 32, 32);
     const headMat = new THREE.MeshStandardMaterial({ color: 0x1f2233, roughness: 0.3 });
     const head = new THREE.Mesh(headGeo, headMat);
     head.position.y = 0.72;
     modelGroup.add(head);
 
-    // Crown on top of head
     const crownGeo = new THREE.ConeGeometry(0.1, 0.16, 5);
     const crownMat = new THREE.MeshStandardMaterial({ color: 0xffd700, metalness: 0.9, roughness: 0.1 });
     const crown = new THREE.Mesh(crownGeo, crownMat);
@@ -129,7 +128,7 @@ export default function Hannia() {
     crown.rotation.z = Math.PI;
     modelGroup.add(crown);
 
-    // Victorian Dress Geometry (Elegant Skirt & Bodice Silhouette)
+    // Dress Mesh
     const dressGeo = new THREE.CylinderGeometry(0.22, 0.65, 1.1, 32);
     const dressMat = new THREE.MeshStandardMaterial({
       color: new THREE.Color(currentColor),
@@ -141,10 +140,9 @@ export default function Hannia() {
 
     const dress = new THREE.Mesh(dressGeo, dressMat);
     dress.position.y = -0.3;
-    dressMeshRef.current = dress;
     modelGroup.add(dress);
 
-    // 3D Lilies Ring around waist
+    // Lilies Group
     const liliesGroup = new THREE.Group();
     for (let i = 0; i < 6; i++) {
       const lGeo = new THREE.DodecahedronGeometry(0.065);
@@ -157,7 +155,7 @@ export default function Hannia() {
     liliesGroupRef.current = liliesGroup;
     modelGroup.add(liliesGroup);
 
-    // 6. Animation Loop
+    // Animation Loop
     let animId: number;
     let clock = new THREE.Clock();
 
@@ -176,7 +174,6 @@ export default function Hannia() {
 
     animate();
 
-    // Resize Handler
     const handleResize = () => {
       if (!container || !rendererRef.current || !cameraRef.current) return;
       const w = Math.max(300, container.clientWidth);
@@ -195,7 +192,6 @@ export default function Hannia() {
     };
   }, [activeTab, selectedGarment, isAutoRotating]);
 
-  // Sync Color and Lilies visibility live
   useEffect(() => {
     if (dressMaterialRef.current) {
       dressMaterialRef.current.color.set(currentColor);
@@ -208,7 +204,7 @@ export default function Hannia() {
     }
   }, [currentColor, selectedGarment, hasLilies]);
 
-  // Touch & Mouse Drag 360 Controls
+  // Touch Drag
   const handleTouchStart = (e: React.TouchEvent | React.MouseEvent) => {
     isDraggingRef.current = true;
     const pageX = 'touches' in e ? e.touches[0].pageX : e.pageX;
@@ -227,9 +223,159 @@ export default function Hannia() {
     isDraggingRef.current = false;
   };
 
-  // RPG Boss Attack
+  // ════════════════════════════════════════════════════════════
+  // 🎮 RPG 2D CANVAS ACTION ENGINE (REAL-TIME ANIMATED STAGE)
+  // ════════════════════════════════════════════════════════════
+  useEffect(() => {
+    if (activeTab !== 'rpg') return;
+
+    const canvas = rpgCanvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    let animId: number;
+    let frame = 0;
+
+    const renderRpgFrame = () => {
+      frame++;
+      const p = rpgPlayerRef.current;
+
+      // Smooth Pibo Movement towards target
+      p.x += (p.targetX - p.x) * 0.1;
+      p.y += (p.targetY - p.y) * 0.1;
+
+      // 1. Draw Room Background
+      ctx.fillStyle = '#07080C';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      // Ambient Floor Grid & Glow
+      ctx.strokeStyle = 'rgba(255, 133, 192, 0.08)';
+      ctx.lineWidth = 1;
+      for (let x = 0; x < canvas.width; x += 30) {
+        ctx.beginPath();
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, canvas.height);
+        ctx.stroke();
+      }
+
+      // 2. Room Content Render
+      if (rpgRoom === 'atelier') {
+        // Draw Mannequin Stand
+        ctx.font = '40px serif';
+        ctx.fillText('👗', canvas.width / 2 - 20, 140);
+        ctx.font = '24px serif';
+        ctx.fillText('🧵', 60, 180 + Math.sin(frame * 0.05) * 5);
+        ctx.fillText('🪡', canvas.width - 80, 180 + Math.cos(frame * 0.05) * 5);
+
+        ctx.fillStyle = '#FF85C0';
+        ctx.font = '12px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('Atelier de Seda: Toca la pantalla para mover a Pibo', canvas.width / 2, 40);
+      } else if (rpgRoom === 'greenhouse') {
+        // Floating Lilies & Pollen Spores
+        ctx.font = '42px serif';
+        ctx.fillText('🥀', 70, 150);
+        ctx.fillText('🌸', canvas.width - 100, 150);
+        ctx.fillText('🌺', canvas.width / 2 - 20, 180 + Math.sin(frame * 0.08) * 8);
+
+        ctx.fillStyle = '#FF85C0';
+        ctx.font = '12px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('Invernadero: Pibo recolecta polen mariano', canvas.width / 2, 40);
+      } else if (rpgRoom === 'boss') {
+        // Animated Boss Spider
+        const spiderY = 130 + Math.sin(frame * 0.06) * 10;
+        ctx.font = '54px serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('🕷️', canvas.width / 2, spiderY);
+
+        // Boss Crown
+        ctx.font = '20px serif';
+        ctx.fillText('👑', canvas.width / 2, spiderY - 35);
+
+        // Boss HP Bar Above Spider
+        ctx.fillStyle = 'rgba(255,255,255,0.1)';
+        ctx.fillRect(canvas.width / 2 - 60, spiderY - 60, 120, 8);
+        ctx.fillStyle = '#EF4444';
+        ctx.fillRect(canvas.width / 2 - 60, spiderY - 60, (120 * bossHp) / 100, 8);
+      }
+
+      // 3. Render Sparks Particles
+      rpgSparksRef.current.forEach((sp, idx) => {
+        sp.y -= 2;
+        sp.life -= 0.04;
+        ctx.fillStyle = sp.color;
+        ctx.beginPath();
+        ctx.arc(sp.x, sp.y, 4, 0, Math.PI * 2);
+        ctx.fill();
+
+        if (sp.life <= 0) rpgSparksRef.current.splice(idx, 1);
+      });
+
+      // 4. Render Player Pibo (🐷🐝)
+      ctx.save();
+      ctx.shadowColor = '#FF2E93';
+      ctx.shadowBlur = 18;
+      ctx.font = '34px serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('🐷🐝', p.x, p.y);
+      ctx.restore();
+
+      animId = requestAnimationFrame(renderRpgFrame);
+    };
+
+    animId = requestAnimationFrame(renderRpgFrame);
+    return () => cancelAnimationFrame(animId);
+  }, [activeTab, rpgRoom, bossHp]);
+
+  // Touch Rpg Canvas Tap
+  const handleRpgCanvasClick = (e: React.MouseEvent<HTMLCanvasElement>) => {
+    const canvas = rpgCanvasRef.current;
+    if (!canvas) return;
+    const rect = canvas.getBoundingClientRect();
+    const clickX = e.clientX - rect.left;
+    const clickY = e.clientY - rect.top;
+
+    rpgPlayerRef.current.targetX = clickX;
+    rpgPlayerRef.current.targetY = clickY;
+
+    // Spawn sparks
+    for (let i = 0; i < 5; i++) {
+      rpgSparksRef.current.push({
+        x: clickX + (Math.random() * 20 - 10),
+        y: clickY + (Math.random() * 20 - 10),
+        life: 1,
+        color: '#FF85C0',
+      });
+    }
+
+    if (rpgRoom === 'atelier') {
+      setXp((x) => x + 15);
+      setStatusMsg('🧵 Pibo hiló seda victoriana en el atelier (+15 XP).');
+    } else if (rpgRoom === 'greenhouse') {
+      setXp((x) => x + 20);
+      setStatusMsg('🌸 Pibo regó las lilis marianas (+20 XP).');
+    }
+  };
+
+  // Boss Attack Action
   const handleAttackSpider = () => {
     if (bossHp <= 0) return;
+
+    // Move Pibo to Boss & Spawn Magic Sparks
+    rpgPlayerRef.current.targetX = 180;
+    rpgPlayerRef.current.targetY = 160;
+
+    for (let i = 0; i < 12; i++) {
+      rpgSparksRef.current.push({
+        x: 180 + (Math.random() * 40 - 20),
+        y: 130 + (Math.random() * 40 - 20),
+        life: 1,
+        color: '#FF2E93',
+      });
+    }
+
     const dmg = 25;
     const nextHp = Math.max(0, bossHp - dmg);
     setBossHp(nextHp);
@@ -239,7 +385,7 @@ export default function Hannia() {
       setStatusMsg('🏆 ¡REINA ARAÑA DERROTADA! Se desbloqueó el manuscrito secreto.');
       setShowScrollModal(true);
     } else {
-      setStatusMsg(`🪡 Disparo de Aguja de Plata: -${dmg} HP. Quedan ${nextHp} HP.`);
+      setStatusMsg(`🪡 Disparo de Aguja de Plata: -${dmg} HP a la Reina Araña.`);
     }
   };
 
@@ -260,7 +406,7 @@ export default function Hannia() {
           </span>
         </div>
 
-        {/* Tab Navigation */}
+        {/* Navigation Tabs */}
         <div className="grid grid-cols-3 gap-2 font-sans text-xs font-bold uppercase tracking-wider">
           <button
             onClick={() => { setActiveTab('atelier3d'); setIsAutoRotating(false); }}
@@ -305,10 +451,10 @@ export default function Hannia() {
         </div>
       </section>
 
-      {/* 👗 TAB 1 & 2: THREE.JS 3D WEBGL STUDIO & RUNWAY */}
+      {/* 👗 TAB 1 & 2: THREE.JS 3D WEBGL STUDIO */}
       {(activeTab === 'atelier3d' || activeTab === 'pasarela') && (
         <main className="w-full max-w-md z-10 my-1 flex-1 flex flex-col items-center justify-between space-y-3">
-          {/* 3D Canvas Container */}
+          {/* 3D Canvas Box */}
           <div
             onMouseDown={handleTouchStart}
             onMouseMove={handleTouchMove}
@@ -385,7 +531,7 @@ export default function Hannia() {
         </main>
       )}
 
-      {/* ⚔️ TAB 3: GOTHIC ACTION RPG */}
+      {/* ⚔️ TAB 3: REAL-TIME 2D CANVAS ACTION RPG */}
       {activeTab === 'rpg' && (
         <main className="w-full max-w-md z-10 my-1 flex-1 flex flex-col items-center justify-between space-y-3">
           {/* Room Selector */}
@@ -409,56 +555,44 @@ export default function Hannia() {
             ))}
           </div>
 
-          {/* RPG Canvas Area */}
-          <div className="w-full h-80 bg-[#07080C] rounded-3xl border-2 border-[#FF85C0]/40 p-5 relative overflow-hidden flex flex-col justify-between shadow-2xl">
-            <div className="flex items-center justify-between text-xs font-sans">
-              <span className="font-bold text-red-400">Pibo HP: ❤️❤️❤️</span>
+          {/* 🎮 2D Canvas Stage */}
+          <div className="w-full h-80 bg-[#07080C] rounded-3xl border-2 border-[#FF85C0]/40 relative overflow-hidden shadow-2xl flex flex-col">
+            <div className="p-3 bg-[#0D0E16]/80 backdrop-blur-md flex items-center justify-between text-xs font-sans border-b border-white/10 z-10">
+              <span className="font-bold text-red-400">Pibo HP: {Array(lives).fill('❤️').join('')}</span>
               <span className="font-bold text-[#FF85C0]">XP: {xp} pts</span>
             </div>
 
-            {rpgRoom === 'atelier' && (
-              <div className="text-center space-y-3 my-auto">
-                <span className="text-5xl block">🧵👗</span>
-                <h3 className="font-serif font-bold text-lg text-white">Taller de Costura Victoriana</h3>
-                <p className="font-sans text-xs text-gray-400">Confecciona vestidos góticos para aumentar tus estadísticas.</p>
+            <canvas
+              ref={rpgCanvasRef}
+              width={360}
+              height={220}
+              onClick={handleRpgCanvasClick}
+              className="w-full h-full cursor-pointer"
+            />
+          </div>
+
+          {/* Interactive RPG Action Bar */}
+          <div className="w-full space-y-2">
+            {rpgRoom === 'boss' ? (
+              <button
+                onClick={handleAttackSpider}
+                className="w-full py-3.5 bg-gradient-to-r from-red-600 to-[#FF2E93] text-white font-sans text-xs font-bold uppercase tracking-widest rounded-2xl shadow-[0_0_20px_rgba(255,46,147,0.5)] border border-[#FF85C0]/40 active:scale-95"
+              >
+                🪡 Disparar Aguja de Plata a la Araña
+              </button>
+            ) : (
+              <div className="grid grid-cols-2 gap-2 font-sans text-xs font-bold uppercase">
                 <button
-                  onClick={() => { setXp((x) => x + 30); setStatusMsg('🧵 +30 XP por confeccionar encajes góticos.'); }}
-                  className="py-2.5 px-6 bg-[#FF2E93] text-white font-sans text-xs font-bold uppercase tracking-wider rounded-xl shadow-lg active:scale-95"
+                  onClick={() => { setXp((x) => x + 25); setStatusMsg('🧵 Pibo hila encaje gótico en el atelier.'); }}
+                  className="py-3 bg-[#121420] hover:bg-[#FF2E93] text-white border border-[#FF85C0]/30 rounded-xl transition-all shadow-md active:scale-95"
                 >
-                  🪡 Confeccionar Prenda (+30 XP)
+                  🧵 Hilvanar Seda
                 </button>
-              </div>
-            )}
-
-            {rpgRoom === 'greenhouse' && (
-              <div className="text-center space-y-3 my-auto">
-                <span className="text-5xl block">🥀🌸</span>
-                <h3 className="font-serif font-bold text-lg text-white">Invernadero de Lilis Marianas</h3>
-                <p className="font-sans text-xs text-gray-400">Riega las flores de ébano para recargar la energía del castillo.</p>
                 <button
-                  onClick={() => { setXp((x) => x + 25); setStatusMsg('💧 Lilis regadas. +25 XP cosechados.'); }}
-                  className="py-2.5 px-6 bg-[#FF2E93] text-white font-sans text-xs font-bold uppercase tracking-wider rounded-xl shadow-lg active:scale-95"
+                  onClick={() => { setXp((x) => x + 25); setStatusMsg('💧 Lilis regadas y polen cosechado.'); }}
+                  className="py-3 bg-[#121420] hover:bg-[#FF2E93] text-white border border-[#FF85C0]/30 rounded-xl transition-all shadow-md active:scale-95"
                 >
-                  💧 Regar Lilis (+25 XP)
-                </button>
-              </div>
-            )}
-
-            {rpgRoom === 'boss' && (
-              <div className="text-center space-y-3 my-auto">
-                <span className="text-5xl block animate-pulse">🕷️👑</span>
-                <h3 className="font-serif font-bold text-lg text-red-400">Jefe: Reina Araña de la Seda</h3>
-                
-                <div className="w-full bg-gray-800 h-3 rounded-full overflow-hidden border border-white/10">
-                  <div className="bg-red-600 h-full transition-all duration-300" style={{ width: `${bossHp}%` }} />
-                </div>
-                <p className="font-sans text-[10px] text-gray-400">Boss HP: {bossHp}/100</p>
-
-                <button
-                  onClick={handleAttackSpider}
-                  className="py-3 px-8 bg-gradient-to-r from-red-600 to-[#FF2E93] text-white font-sans text-xs font-bold uppercase tracking-widest rounded-xl shadow-lg active:scale-95"
-                >
-                  🪡 Disparar Aguja de Plata
+                  💧 Regar Lilis
                 </button>
               </div>
             )}
