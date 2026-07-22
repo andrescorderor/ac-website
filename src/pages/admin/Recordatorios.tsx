@@ -22,11 +22,17 @@ type Reminder = {
   notes: string | null;
 };
 
-const categoryConfig = {
+const categoryConfig: Record<string, { icon: any; color: string; badge: string }> = {
   'Cumpleaños': { icon: HiOutlineCake, color: 'bg-pink-50 text-pink-500', badge: 'bg-pink-100 text-pink-600' },
+  'cumpleaños': { icon: HiOutlineCake, color: 'bg-pink-50 text-pink-500', badge: 'bg-pink-100 text-pink-600' },
+  'Cumpleanos': { icon: HiOutlineCake, color: 'bg-pink-50 text-pink-500', badge: 'bg-pink-100 text-pink-600' },
+  'cumpleanos': { icon: HiOutlineCake, color: 'bg-pink-50 text-pink-500', badge: 'bg-pink-100 text-pink-600' },
   'Documento': { icon: HiOutlineDocumentText, color: 'bg-blue-50 text-blue-500', badge: 'bg-blue-100 text-blue-600' },
+  'documento': { icon: HiOutlineDocumentText, color: 'bg-blue-50 text-blue-500', badge: 'bg-blue-100 text-blue-600' },
   'Pago': { icon: HiOutlineCreditCard, color: 'bg-orange-50 text-orange-500', badge: 'bg-orange-100 text-orange-600' },
+  'pago': { icon: HiOutlineCreditCard, color: 'bg-orange-50 text-orange-500', badge: 'bg-orange-100 text-orange-600' },
   'Otro': { icon: HiOutlineDotsCircleHorizontal, color: 'bg-gray-50 text-gray-500', badge: 'bg-gray-100 text-gray-600' },
+  'otro': { icon: HiOutlineDotsCircleHorizontal, color: 'bg-gray-50 text-gray-500', badge: 'bg-gray-100 text-gray-600' },
 };
 
 function getDaysUntil(dateStr: string): number {
@@ -110,7 +116,14 @@ export default function Recordatorios() {
         notes: newReminder.notes?.trim() || null,
       };
 
-      const { error } = await supabase.from('reminders').insert([payload]);
+      let { error } = await supabase.from('reminders').insert([payload]);
+
+      if (error && (error.message.includes('reminders_category_check') || error.code === '23514')) {
+        // Fallback retry with lowercase category in case the database check constraint requires lowercase
+        payload.category = payload.category.toLowerCase();
+        const retry = await supabase.from('reminders').insert([payload]);
+        error = retry.error;
+      }
 
       if (error) throw error;
 
