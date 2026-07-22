@@ -160,7 +160,7 @@ export default function DashboardHome() {
         </button>
       </header>
 
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
         {cards.map((card, idx) => {
           const displayValue = card.isMonetary && isPrivacyMode ? '$••••••' : card.rawVal;
           return (
