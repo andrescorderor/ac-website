@@ -13,8 +13,8 @@ type Garment = {
 };
 
 const GARMENTS: Garment[] = [
-  { id: 'corset_black', name: 'Corsé Victoriano Ébano', category: 'Corsé', color: '#111116', metalness: 0.3, roughness: 0.5, shape: 'corset' },
   { id: 'gown_pink', name: 'Vestido Lili Magenta', category: 'Vestido', color: '#FF2E93', metalness: 0.4, roughness: 0.2, shape: 'gown' },
+  { id: 'corset_black', name: 'Corsé Victoriano Ébano', category: 'Corsé', color: '#16161F', metalness: 0.3, roughness: 0.5, shape: 'corset' },
   { id: 'robe_velvet', name: 'Túnica de Terciopelo Gótico', category: 'Túnica', color: '#4A0025', metalness: 0.1, roughness: 0.8, shape: 'robe' },
   { id: 'gold_gala', name: 'Traje Real Oro Victoriano', category: 'Gala', color: '#FFD700', metalness: 0.85, roughness: 0.15, shape: 'gala' },
 ];
@@ -26,8 +26,8 @@ export default function Hannia() {
   const [activeTab, setActiveTab] = useState<'atelier3d' | 'pasarela' | 'rpg'>('atelier3d');
 
   // Customizer State
-  const [selectedGarment, setSelectedGarment] = useState<Garment>(GARMENTS[1]);
-  const [currentColor, setCurrentColor] = useState<string>(GARMENTS[1].color);
+  const [selectedGarment, setSelectedGarment] = useState<Garment>(GARMENTS[0]);
+  const [currentColor, setCurrentColor] = useState<string>(GARMENTS[0].color);
   const [hasLilies, setHasLilies] = useState(true);
   const [isAutoRotating, setIsAutoRotating] = useState(false);
 
@@ -36,12 +36,14 @@ export default function Hannia() {
   const [bossHp, setBossHp] = useState(100);
   const [xp, setXp] = useState(40);
   const [showScrollModal, setShowScrollModal] = useState(false);
-  const [statusMsg, setStatusMsg] = useState('Pibo en el Atelier 3D: Toca y arrastra para rotar el diseño.');
+  const [statusMsg, setStatusMsg] = useState('Pibo en el Atelier 3D: Desliza con tu dedo para rotar el vestido 3D.');
 
   // Three.js References
   const rendererRef = useRef<THREE.WebGLRenderer | null>(null);
   const sceneRef = useRef<THREE.Scene | null>(null);
+  const cameraRef = useRef<THREE.PerspectiveCamera | null>(null);
   const modelGroupRef = useRef<THREE.Group | null>(null);
+  const dressMeshRef = useRef<THREE.Mesh | null>(null);
   const dressMaterialRef = useRef<THREE.MeshStandardMaterial | null>(null);
   const liliesGroupRef = useRef<THREE.Group | null>(null);
   
@@ -50,7 +52,7 @@ export default function Hannia() {
   const previousTouchX = useRef(0);
 
   // ════════════════════════════════════════════════════════════
-  // 🎨 THREE.JS 3D WEBGL STUDIO SETUP (ROBUST & RESPONSIVE)
+  // 🎨 THREE.JS 3D WEBGL STUDIO SETUP (PERFECT CAMERA & MESH FIT)
   // ════════════════════════════════════════════════════════════
   useEffect(() => {
     if (activeTab === 'rpg') return;
@@ -58,70 +60,77 @@ export default function Hannia() {
     const container = mountRef.current;
     if (!container) return;
 
-    // Dimensions with safe fallback
     const width = Math.max(300, container.clientWidth || 360);
-    const height = Math.max(320, container.clientHeight || 360);
+    const height = Math.max(340, container.clientHeight || 340);
 
     // 1. Scene
     const scene = new THREE.Scene();
     sceneRef.current = scene;
     scene.background = new THREE.Color(0x07080c);
 
-    // 2. Camera
+    // 2. Camera (Positioned to fit full mannequin + dress from top to bottom)
     const camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 100);
-    camera.position.set(0, 1.1, 3.2);
+    camera.position.set(0, 0.1, 4.2);
+    camera.lookAt(0, 0, 0);
+    cameraRef.current = camera;
 
     // 3. Renderer
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
     renderer.setSize(width, height);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-    renderer.shadowMap.enabled = true;
     rendererRef.current = renderer;
 
     container.innerHTML = '';
     container.appendChild(renderer.domElement);
 
-    // 4. Lights
-    const ambientLight = new THREE.AmbientLight(0xffffff, 1.2);
+    // 4. Studio Lighting
+    const ambientLight = new THREE.AmbientLight(0xffffff, 1.4);
     scene.add(ambientLight);
 
-    const mainLight = new THREE.DirectionalLight(0xff2e93, 2.5);
-    mainLight.position.set(3, 4, 3);
-    scene.add(mainLight);
+    const pinkSpotlight = new THREE.SpotLight(0xff2e93, 3, 10, Math.PI / 3, 0.5);
+    pinkSpotlight.position.set(2.5, 3, 2.5);
+    scene.add(pinkSpotlight);
 
-    const fillLight = new THREE.DirectionalLight(0xffd700, 1.8);
-    fillLight.position.set(-3, 2, -2);
-    scene.add(fillLight);
+    const goldSpotlight = new THREE.SpotLight(0xffd700, 2.2, 10, Math.PI / 3, 0.5);
+    goldSpotlight.position.set(-2.5, 2, -2);
+    scene.add(goldSpotlight);
 
-    // 5. Main Model Group (holds pedestal + mannequin + dress)
+    // 5. Main Model Group (Centered at 0,0,0)
     const modelGroup = new THREE.Group();
     modelGroupRef.current = modelGroup;
     scene.add(modelGroup);
 
-    // Pedestal
-    const pedestalGeo = new THREE.CylinderGeometry(0.85, 0.95, 0.2, 32);
-    const pedestalMat = new THREE.MeshStandardMaterial({ color: 0x121420, roughness: 0.3, metalness: 0.7 });
+    // Victorian Pedestal
+    const pedestalGeo = new THREE.CylinderGeometry(0.7, 0.8, 0.15, 32);
+    const pedestalMat = new THREE.MeshStandardMaterial({ color: 0x121420, roughness: 0.3, metalness: 0.8 });
     const pedestal = new THREE.Mesh(pedestalGeo, pedestalMat);
-    pedestal.position.y = -0.9;
+    pedestal.position.y = -1.0;
     modelGroup.add(pedestal);
 
-    // Mannequin Core
-    const mannequinGeo = new THREE.CylinderGeometry(0.24, 0.18, 1.4, 32);
-    const mannequinMat = new THREE.MeshStandardMaterial({ color: 0x1b1d2a, roughness: 0.4 });
+    // Mannequin Upper Torso
+    const mannequinGeo = new THREE.CylinderGeometry(0.18, 0.14, 0.9, 32);
+    const mannequinMat = new THREE.MeshStandardMaterial({ color: 0x1f2233, roughness: 0.4 });
     const mannequin = new THREE.Mesh(mannequinGeo, mannequinMat);
-    mannequin.position.y = 0.1;
+    mannequin.position.y = 0.2;
     modelGroup.add(mannequin);
 
-    // Crown on top of mannequin
-    const crownGeo = new THREE.ConeGeometry(0.12, 0.18, 5);
+    // Mannequin Neck / Head Stand
+    const headGeo = new THREE.SphereGeometry(0.12, 32, 32);
+    const headMat = new THREE.MeshStandardMaterial({ color: 0x1f2233, roughness: 0.3 });
+    const head = new THREE.Mesh(headGeo, headMat);
+    head.position.y = 0.72;
+    modelGroup.add(head);
+
+    // Crown on top of head
+    const crownGeo = new THREE.ConeGeometry(0.1, 0.16, 5);
     const crownMat = new THREE.MeshStandardMaterial({ color: 0xffd700, metalness: 0.9, roughness: 0.1 });
     const crown = new THREE.Mesh(crownGeo, crownMat);
-    crown.position.y = 0.9;
+    crown.position.y = 0.88;
     crown.rotation.z = Math.PI;
     modelGroup.add(crown);
 
-    // Dress Garment Mesh
-    const dressGeo = new THREE.ConeGeometry(0.52, 1.1, 32, 1, true);
+    // Victorian Dress Geometry (Elegant Skirt & Bodice Silhouette)
+    const dressGeo = new THREE.CylinderGeometry(0.22, 0.65, 1.1, 32);
     const dressMat = new THREE.MeshStandardMaterial({
       color: new THREE.Color(currentColor),
       metalness: selectedGarment.metalness,
@@ -131,17 +140,18 @@ export default function Hannia() {
     dressMaterialRef.current = dressMat;
 
     const dress = new THREE.Mesh(dressGeo, dressMat);
-    dress.position.y = -0.1;
+    dress.position.y = -0.3;
+    dressMeshRef.current = dress;
     modelGroup.add(dress);
 
-    // 3D Lilies Group around waist
+    // 3D Lilies Ring around waist
     const liliesGroup = new THREE.Group();
     for (let i = 0; i < 6; i++) {
-      const lGeo = new THREE.DodecahedronGeometry(0.07);
+      const lGeo = new THREE.DodecahedronGeometry(0.065);
       const lMat = new THREE.MeshStandardMaterial({ color: 0xff85c0, roughness: 0.1 });
       const lMesh = new THREE.Mesh(lGeo, lMat);
       const angle = (i / 6) * Math.PI * 2;
-      lMesh.position.set(Math.cos(angle) * 0.42, -0.38, Math.sin(angle) * 0.42);
+      lMesh.position.set(Math.cos(angle) * 0.35, -0.05, Math.sin(angle) * 0.35);
       liliesGroup.add(lMesh);
     }
     liliesGroupRef.current = liliesGroup;
@@ -157,7 +167,6 @@ export default function Hannia() {
       if (isAutoRotating || activeTab === 'pasarela') {
         modelGroup.rotation.y += 0.012;
       } else if (!isDraggingRef.current) {
-        // Gentle floating
         modelGroup.position.y = Math.sin(elapsed * 2) * 0.02;
       }
 
@@ -169,11 +178,11 @@ export default function Hannia() {
 
     // Resize Handler
     const handleResize = () => {
-      if (!container || !rendererRef.current) return;
+      if (!container || !rendererRef.current || !cameraRef.current) return;
       const w = Math.max(300, container.clientWidth);
-      const h = Math.max(320, container.clientHeight);
-      camera.aspect = w / h;
-      camera.updateProjectionMatrix();
+      const h = Math.max(340, container.clientHeight);
+      cameraRef.current.aspect = w / h;
+      cameraRef.current.updateProjectionMatrix();
       rendererRef.current.setSize(w, h);
     };
 
@@ -186,7 +195,7 @@ export default function Hannia() {
     };
   }, [activeTab, selectedGarment, isAutoRotating]);
 
-  // Sync Color and Lilies visibility
+  // Sync Color and Lilies visibility live
   useEffect(() => {
     if (dressMaterialRef.current) {
       dressMaterialRef.current.color.set(currentColor);
@@ -199,7 +208,7 @@ export default function Hannia() {
     }
   }, [currentColor, selectedGarment, hasLilies]);
 
-  // Touch / Mouse Drag Controls for 3D Model
+  // Touch & Mouse Drag 360 Controls
   const handleTouchStart = (e: React.TouchEvent | React.MouseEvent) => {
     isDraggingRef.current = true;
     const pageX = 'touches' in e ? e.touches[0].pageX : e.pageX;
@@ -218,7 +227,7 @@ export default function Hannia() {
     isDraggingRef.current = false;
   };
 
-  // RPG Actions
+  // RPG Boss Attack
   const handleAttackSpider = () => {
     if (bossHp <= 0) return;
     const dmg = 25;
@@ -299,7 +308,7 @@ export default function Hannia() {
       {/* 👗 TAB 1 & 2: THREE.JS 3D WEBGL STUDIO & RUNWAY */}
       {(activeTab === 'atelier3d' || activeTab === 'pasarela') && (
         <main className="w-full max-w-md z-10 my-1 flex-1 flex flex-col items-center justify-between space-y-3">
-          {/* 3D Canvas Box with Touch Drag Listener */}
+          {/* 3D Canvas Container */}
           <div
             onMouseDown={handleTouchStart}
             onMouseMove={handleTouchMove}
@@ -350,7 +359,7 @@ export default function Hannia() {
               <div className="flex items-center justify-between pt-2 border-t border-white/5">
                 <div className="flex items-center gap-2">
                   <span className="font-sans text-[10px] uppercase text-gray-400">Color:</span>
-                  {['#111116', '#FF2E93', '#4A0025', '#FFD700', '#2E004F'].map((c) => (
+                  {['#FF2E93', '#16161F', '#4A0025', '#FFD700', '#2E004F'].map((c) => (
                     <button
                       key={c}
                       onClick={() => setCurrentColor(c)}
