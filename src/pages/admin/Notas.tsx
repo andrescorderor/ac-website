@@ -7,7 +7,8 @@ import {
   HiOutlineDocumentText, 
   HiOutlineExternalLink, 
   HiOutlineSearch,
-  HiOutlineClipboardCopy
+  HiOutlineClipboardCopy,
+  HiOutlinePencil
 } from 'react-icons/hi';
 import { useToast } from '@/components/common/ToastContext';
 
@@ -28,6 +29,7 @@ export default function Notas() {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [showAddForm, setShowAddForm] = useState(false);
+  const [editingNoteId, setEditingNoteId] = useState<string | null>(null);
   const [selectedCategory, setSelectedCategory] = useState('Todas');
   const [searchTerm, setSearchTerm] = useState('');
   const [newNote, setNewNote] = useState({
@@ -50,7 +52,6 @@ export default function Notas() {
         .order('created_at', { ascending: false });
 
       if (error) {
-        // Table might not exist yet, handle gracefully
         toast.info('Para usar Notas, ejecuta la consulta SQL de scratch/notes_db.sql en Supabase.');
       } else if (data) {
         setNotes(data);
@@ -62,7 +63,24 @@ export default function Notas() {
     }
   };
 
-  const handleAddNote = async (e: React.FormEvent) => {
+  const handleStartEdit = (note: Note) => {
+    setEditingNoteId(note.id);
+    setNewNote({
+      title: note.title,
+      content: note.content || '',
+      url: note.url || '',
+      category: note.category || 'General',
+    });
+    setShowAddForm(true);
+  };
+
+  const handleCancelForm = () => {
+    setShowAddForm(false);
+    setEditingNoteId(null);
+    setNewNote({ title: '', content: '', url: '', category: 'General' });
+  };
+
+  const handleSaveNote = async (e: React.FormEvent) => {
     e.preventDefault();
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) {
@@ -76,21 +94,34 @@ export default function Notas() {
 
     setSubmitting(true);
     try {
-      const { error } = await supabase.from('notes').insert([
-        {
-          user_id: user.id,
-          title: newNote.title.trim(),
-          content: newNote.content?.trim() || '',
-          url: newNote.url?.trim() || null,
-          category: newNote.category,
-        },
-      ]);
+      const payload = {
+        title: newNote.title.trim(),
+        content: newNote.content?.trim() || '',
+        url: newNote.url?.trim() || null,
+        category: newNote.category,
+      };
 
-      if (error) throw error;
+      if (editingNoteId) {
+        const { error } = await supabase
+          .from('notes')
+          .update(payload)
+          .eq('id', editingNoteId);
 
-      toast.success('Nota guardada correctamente');
-      setNewNote({ title: '', content: '', url: '', category: 'General' });
-      setShowAddForm(false);
+        if (error) throw error;
+        toast.success('Nota actualizada correctamente');
+      } else {
+        const { error } = await supabase.from('notes').insert([
+          {
+            user_id: user.id,
+            ...payload,
+          },
+        ]);
+
+        if (error) throw error;
+        toast.success('Nota creada correctamente');
+      }
+
+      handleCancelForm();
       fetchNotes();
     } catch (err: any) {
       toast.error(err.message || 'Error al guardar la nota');
@@ -154,11 +185,19 @@ export default function Notas() {
           </div>
 
           <button
-            onClick={() => setShowAddForm(!showAddForm)}
+            onClick={() => {
+              if (showAddForm) {
+                handleCancelForm();
+              } else {
+                setEditingNoteId(null);
+                setNewNote({ title: '', content: '', url: '', category: 'General' });
+                setShowAddForm(true);
+              }
+            }}
             className="px-6 py-3.5 bg-black text-white font-syne text-xs font-bold uppercase tracking-wider rounded-2xl hover:scale-105 active:scale-95 transition-all shadow-md flex items-center justify-center gap-2"
           >
             <HiOutlinePlus className="text-lg" />
-            <span>Nueva Nota</span>
+            <span>{showAddForm ? 'Cerrar Formulario' : 'Nueva Nota'}</span>
           </button>
         </div>
       </header>
@@ -180,17 +219,19 @@ export default function Notas() {
         ))}
       </div>
 
-      {/* Add Form */}
+      {/* Add / Edit Form */}
       <AnimatePresence>
         {showAddForm && (
           <motion.form
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
-            onSubmit={handleAddNote}
+            onSubmit={handleSaveNote}
             className="bg-white p-6 md:p-8 rounded-[2rem] border border-gray-100 shadow-xl space-y-6"
           >
-            <h3 className="font-dm-sans text-xl font-bold text-[var(--black)]">Crear Nueva Nota</h3>
+            <h3 className="font-dm-sans text-xl font-bold text-[var(--black)]">
+              {editingNoteId ? 'Editar Nota' : 'Crear Nueva Nota'}
+            </h3>
 
             <div className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -263,7 +304,7 @@ export default function Notas() {
             <div className="flex justify-end gap-3 pt-4">
               <button
                 type="button"
-                onClick={() => setShowAddForm(false)}
+                onClick={handleCancelForm}
                 className="px-6 py-3 font-syne text-xs font-bold uppercase tracking-wider text-gray-500 hover:bg-gray-100 rounded-xl transition-all"
               >
                 Cancelar
@@ -279,7 +320,7 @@ export default function Notas() {
                     <span>Guardando...</span>
                   </>
                 ) : (
-                  <span>Guardar Nota</span>
+                  <span>{editingNoteId ? 'Actualizar Nota' : 'Guardar Nota'}</span>
                 )}
               </button>
             </div>
@@ -319,12 +360,21 @@ export default function Notas() {
                   </div>
                   <div className="flex items-center gap-1 opacity-80 group-hover:opacity-100 transition-opacity">
                     <button
-                      onClick={() => copyContent(note.content)}
+                      onClick={() => handleStartEdit(note)}
                       className="p-2 text-gray-400 hover:text-black hover:bg-gray-50 rounded-xl transition-all"
-                      title="Copiar contenido"
+                      title="Editar nota"
                     >
-                      <HiOutlineClipboardCopy className="text-lg" />
+                      <HiOutlinePencil className="text-lg" />
                     </button>
+                    {note.content && (
+                      <button
+                        onClick={() => copyContent(note.content)}
+                        className="p-2 text-gray-400 hover:text-black hover:bg-gray-50 rounded-xl transition-all"
+                        title="Copiar contenido"
+                      >
+                        <HiOutlineClipboardCopy className="text-lg" />
+                      </button>
+                    )}
                     <button
                       onClick={() => deleteNote(note.id)}
                       className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all"
