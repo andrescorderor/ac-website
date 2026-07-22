@@ -11,9 +11,11 @@ import {
   HiOutlineDocumentText,
   HiOutlineArrowSmRight,
   HiOutlineEye,
-  HiOutlineEyeOff
+  HiOutlineEyeOff,
+  HiOutlineDownload
 } from 'react-icons/hi';
 import { Link } from 'react-router-dom';
+import { useToast } from '@/components/common/ToastContext';
 
 export default function DashboardHome() {
   const [stats, setStats] = useState({
@@ -27,7 +29,9 @@ export default function DashboardHome() {
     notes: 0
   });
   const [loading, setLoading] = useState(true);
+  const [exporting, setExporting] = useState(false);
   const [isPrivacyMode, setIsPrivacyMode] = useState(true);
+  const { toast } = useToast();
 
   useEffect(() => {
     fetchStats();
@@ -59,6 +63,62 @@ export default function DashboardHome() {
       notes: nts.data?.length || 0
     });
     setLoading(false);
+  };
+
+  const exportBackup = async () => {
+    setExporting(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        toast.error('Sesión no válida');
+        return;
+      }
+
+      const [exp, sal, tsk, dbt, vlt, shp, rem, nts] = await Promise.all([
+        supabase.from('finance_expenses').select('*'),
+        supabase.from('finance_salary').select('*'),
+        supabase.from('tasks').select('*'),
+        supabase.from('debts').select('*'),
+        supabase.from('vault_items').select('*'),
+        supabase.from('shopping_list').select('*'),
+        supabase.from('reminders').select('*'),
+        supabase.from('notes').select('*'),
+      ]);
+
+      const backupObj = {
+        version: '1.0',
+        exported_at: new Date().toISOString(),
+        user_email: user.email,
+        tables: {
+          finance_expenses: exp.data || [],
+          finance_salary: sal.data || [],
+          tasks: tsk.data || [],
+          debts: dbt.data || [],
+          vault_items: vlt.data || [],
+          shopping_list: shp.data || [],
+          reminders: rem.data || [],
+          notes: nts.data || [],
+        }
+      };
+
+      const jsonStr = JSON.stringify(backupObj, null, 2);
+      const blob = new Blob([jsonStr], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      const dateStr = new Date().toISOString().split('T')[0];
+      a.href = url;
+      a.download = `respaldo_panel_andres_${dateStr}.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+
+      toast.success('Respaldo JSON descargado correctamente');
+    } catch (err: any) {
+      toast.error('Error al exportar respaldo: ' + err.message);
+    } finally {
+      setExporting(false);
+    }
   };
 
   const cards = [
@@ -110,14 +170,6 @@ export default function DashboardHome() {
       color: 'bg-pink-500', 
       path: '/admin/panel/recordatorios' 
     },
-    // { 
-    //   label: 'Enlaces Guardados', 
-    //   rawVal: stats.bookmarks, 
-    //   isMonetary: false,
-    //   icon: HiOutlineLink, 
-    //   color: 'bg-cyan-500', 
-    //   path: '/admin/panel/enlaces' 
-    // },
     { 
       label: 'Notas Importantes', 
       rawVal: stats.notes, 
@@ -132,7 +184,7 @@ export default function DashboardHome() {
 
   return (
     <div className="space-y-12">
-      <header className="flex flex-col sm:flex-row sm:items-end justify-between gap-6">
+      <header className="flex flex-col md:flex-row md:items-end justify-between gap-6">
         <div>
           <h1 className="font-dm-sans text-3xl md:text-4xl font-bold tracking-tight text-[var(--black)] dark:text-white">
             Hola, <span className="text-gradient">Andrés</span>
@@ -142,22 +194,38 @@ export default function DashboardHome() {
           </p>
         </div>
 
-        <button
-          onClick={() => setIsPrivacyMode(!isPrivacyMode)}
-          className="flex items-center gap-2.5 px-4 py-3 bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm text-xs font-syne font-bold uppercase tracking-wider text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 active:scale-95 transition-all self-start sm:self-auto"
-        >
-          {isPrivacyMode ? (
-            <>
-              <HiOutlineEyeOff className="text-lg text-gray-400" />
-              <span>Mostrar Montos</span>
-            </>
-          ) : (
-            <>
-              <HiOutlineEye className="text-lg text-emerald-500" />
-              <span>Modo Privacidad</span>
-            </>
-          )}
-        </button>
+        <div className="flex flex-wrap items-center gap-3">
+          <button
+            onClick={exportBackup}
+            disabled={exporting}
+            className="flex items-center gap-2.5 px-4 py-3 bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm text-xs font-syne font-bold uppercase tracking-wider text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 active:scale-95 transition-all disabled:opacity-50"
+            title="Descargar una copia de seguridad en JSON con todos tus datos"
+          >
+            {exporting ? (
+              <div className="size-4 border-2 border-gray-400 border-t-black dark:border-t-white rounded-full animate-spin" />
+            ) : (
+              <HiOutlineDownload className="text-lg text-blue-500" />
+            )}
+            <span>Exportar Respaldo</span>
+          </button>
+
+          <button
+            onClick={() => setIsPrivacyMode(!isPrivacyMode)}
+            className="flex items-center gap-2.5 px-4 py-3 bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm text-xs font-syne font-bold uppercase tracking-wider text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 active:scale-95 transition-all"
+          >
+            {isPrivacyMode ? (
+              <>
+                <HiOutlineEyeOff className="text-lg text-gray-400" />
+                <span>Mostrar Montos</span>
+              </>
+            ) : (
+              <>
+                <HiOutlineEye className="text-lg text-emerald-500" />
+                <span>Modo Privacidad</span>
+              </>
+            )}
+          </button>
+        </div>
       </header>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">

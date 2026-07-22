@@ -1,0 +1,74 @@
+name: Automated Database Backup
+
+on:
+  schedule:
+    # Runs at 00:00 UTC on day 1 of every 2nd month (Jan, Mar, May, Jul, Sep, Nov)
+    - cron: '0 0 1 */2 *'
+  workflow_dispatch: # Allows manual trigger anytime from GitHub Actions tab
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
+      - name: Run Database Export Script
+        env:
+          SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
+        run: |
+          node -e '
+          const fs = require("fs");
+          const url = process.env.SUPABASE_URL || "https://hpijsgxcjynqtrclkbnq.supabase.co";
+          const key = process.env.SUPABASE_ANON_KEY || "${{ secrets.VITE_SUPABASE_ANON_KEY }}";
+
+          async function backup() {
+            const dateStr = new Date().toISOString().split("T")[0];
+            const tables = ["finance_expenses", "finance_salary", "tasks", "debts", "vault_items", "shopping_list", "reminders", "notes"];
+            const backupData = { exported_at: new Date().toISOString(), tables: {} };
+
+            for (const table of tables) {
+              try {
+                const res = await fetch(`${url}/rest/v1/${table}?select=*`, {
+                  headers: { "apikey": key, "Authorization": `Bearer ${key}` }
+                });
+                if (res.ok) {
+                  backupData.tables[table] = await res.json();
+                } else {
+                  backupData.tables[table] = [];
+                }
+              } catch (e) {
+                backupData.tables[table] = [];
+              }
+            }
+
+            if (!fs.existsSync("backups")) fs.mkdirSync("backups");
+            const filePath = `backups/backup_${dateStr}.json`;
+            fs.writeFileSync(filePath, JSON.stringify(backupData, null, 2));
+            console.log(`Backup saved to ${filePath}`);
+          }
+          backup();
+          '
+
+      - name: Upload Backup Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: database-backup-${{ github.run_id }}
+          path: backups/*.json
+          retention-days: 90
+
+      - name: Commit Backup to Git Repository
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action Bot"
+          git add backups/
+          git diff --quiet && git diff --staged --quiet || (git commit -m "chore(backup): automated database snapshot [skip ci]" && git push)
