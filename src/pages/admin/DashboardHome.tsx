@@ -12,10 +12,16 @@ import {
   HiOutlineArrowSmRight,
   HiOutlineEye,
   HiOutlineEyeOff,
-  HiOutlineDownload
+  HiOutlineDownload,
+  HiOutlineBell
 } from 'react-icons/hi';
 import { Link } from 'react-router-dom';
 import { useToast } from '@/components/common/ToastContext';
+import { 
+  requestNotificationPermission, 
+  sendBrowserNotification, 
+  scanAndNotifyUpcomingEvents 
+} from '@/lib/notifications';
 
 export default function DashboardHome() {
   const [stats, setStats] = useState({
@@ -121,6 +127,19 @@ export default function DashboardHome() {
     }
   };
 
+  const handleTestNotification = async () => {
+    const granted = await requestNotificationPermission();
+    if (granted) {
+      toast.success('Probando notificación PWA...');
+      sendBrowserNotification('🔔 Prueba de Notificación', {
+        body: 'Las notificaciones de tu panel privado están funcionando perfectamente.',
+      });
+      scanAndNotifyUpcomingEvents();
+    } else {
+      toast.info('Habilita las notificaciones en la configuración de tu navegador.');
+    }
+  };
+
   const cards = [
     { 
       label: 'Gastos Mensuales', 
@@ -195,6 +214,15 @@ export default function DashboardHome() {
         </div>
 
         <div className="flex flex-wrap items-center gap-3">
+          <button
+            onClick={handleTestNotification}
+            className="flex items-center gap-2.5 px-4 py-3 bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm text-xs font-syne font-bold uppercase tracking-wider text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 active:scale-95 transition-all"
+            title="Activar o probar notificaciones flotantes en tu celular/PC"
+          >
+            <HiOutlineBell className="text-lg text-amber-500" />
+            <span>Notificaciones</span>
+          </button>
+
           <button
             onClick={exportBackup}
             disabled={exporting}

@@ -2,8 +2,14 @@ import { useState, useEffect, useRef } from 'react';
 import { Outlet, useNavigate, Link, useLocation } from 'react-router-dom';
 import { supabase } from '@/lib/supabase';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ToastProvider } from '@/components/common/ToastContext';
+import { ToastProvider, useToast } from '@/components/common/ToastContext';
 import { ThemeProvider, useTheme } from '@/components/common/ThemeContext';
+import { 
+  requestNotificationPermission, 
+  getNotificationPermissionState, 
+  sendBrowserNotification, 
+  scanAndNotifyUpcomingEvents 
+} from '@/lib/notifications';
 import { 
   HiOutlineViewGrid, 
   HiOutlineCurrencyDollar, 
@@ -17,6 +23,8 @@ import {
   HiOutlineSun,
   HiOutlineMoon,
   HiOutlineGlobeAlt,
+  HiOutlineBell,
+  HiBell,
   HiMenuAlt2,
   HiX
 } from 'react-icons/hi';
@@ -46,11 +54,13 @@ function DashboardLayoutContent() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [mobileHeaderVisible, setMobileHeaderVisible] = useState(true);
+  const [notifPermission, setNotifPermission] = useState<string>(getNotificationPermissionState());
   const navigate = useNavigate();
   const location = useLocation();
   const lastScrollY = useRef(0);
   const mainRef = useRef<HTMLDivElement>(null);
   const { isDarkMode, toggleDarkMode } = useTheme();
+  const { toast } = useToast();
 
   useEffect(() => {
     checkUser();
@@ -78,13 +88,39 @@ function DashboardLayoutContent() {
     const { data: { session } } = await supabase.auth.getSession();
     if (!session) {
       navigate('/admin');
+    } else {
+      setLoading(false);
+      // Scan upcoming events to alert user if notifications are enabled
+      scanAndNotifyUpcomingEvents();
     }
-    setLoading(false);
   };
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
     navigate('/');
+  };
+
+  const handleToggleNotifications = async () => {
+    if (!('Notification' in window)) {
+      toast.error('Tu navegador no soporta notificaciones flotantes PWA.');
+      return;
+    }
+
+    if (Notification.permission === 'denied') {
+      toast.info('Las notificaciones están bloqueadas en tu navegador. Habilítalas en la configuración de la página.');
+      return;
+    }
+
+    const granted = await requestNotificationPermission();
+    setNotifPermission(getNotificationPermissionState());
+
+    if (granted) {
+      toast.success('¡Notificaciones PWA activadas!');
+      sendBrowserNotification('🔔 Notificaciones Activadas', {
+        body: 'Te notificaremos automáticamente sobre tus próximas fechas importantes y tareas pendientes.',
+      });
+      scanAndNotifyUpcomingEvents();
+    }
   };
 
   if (loading) return null;
@@ -149,6 +185,27 @@ function DashboardLayoutContent() {
 
         <div className="p-3 border-t border-gray-100 dark:border-gray-800/80 shrink-0 space-y-2">
           <button
+            onClick={handleToggleNotifications}
+            className={`flex items-center transition-all duration-300 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 ${
+              isSidebarOpen 
+                ? 'w-full gap-4 px-4 py-3.5 rounded-2xl' 
+                : 'justify-center w-12 h-12 mx-auto rounded-2xl'
+            }`}
+            title="Activar o probar notificaciones PWA"
+          >
+            {notifPermission === 'granted' ? (
+              <HiBell className="text-2xl shrink-0 text-emerald-500" />
+            ) : (
+              <HiOutlineBell className="text-2xl shrink-0 text-amber-500 animate-bounce" />
+            )}
+            {isSidebarOpen && (
+              <span className="font-syne text-xs font-bold uppercase tracking-widest text-gray-800 dark:text-gray-200 whitespace-nowrap">
+                {notifPermission === 'granted' ? 'Notificaciones' : 'Activar Alertas'}
+              </span>
+            )}
+          </button>
+
+          <button
             onClick={toggleDarkMode}
             className={`flex items-center transition-all duration-300 text-gray-700 dark:text-amber-400 hover:bg-gray-100 dark:hover:bg-gray-800 ${
               isSidebarOpen 
@@ -207,6 +264,18 @@ function DashboardLayoutContent() {
           <span className="font-dm-sans font-bold text-base tracking-tight text-black dark:text-white">Panel Personal</span>
         </div>
         <div className="flex items-center gap-2">
+          <button 
+            onClick={handleToggleNotifications}
+            className="p-2.5 bg-gray-100 dark:bg-gray-800 rounded-xl text-gray-700 dark:text-gray-300 transition-colors active:scale-95"
+            title="Notificaciones PWA"
+          >
+            {notifPermission === 'granted' ? (
+              <HiBell className="text-xl text-emerald-500" />
+            ) : (
+              <HiOutlineBell className="text-xl text-amber-500" />
+            )}
+          </button>
+
           <button 
             onClick={toggleDarkMode}
             className="p-2.5 bg-gray-100 dark:bg-gray-800 rounded-xl text-gray-700 dark:text-amber-400 transition-colors active:scale-95"
@@ -272,6 +341,20 @@ function DashboardLayoutContent() {
 
         <div className="p-3 border-t border-gray-100 dark:border-gray-800 shrink-0 space-y-2">
           <button
+            onClick={handleToggleNotifications}
+            className="w-full flex items-center gap-4 px-4 py-3 rounded-xl text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-all active:scale-[0.98]"
+          >
+            {notifPermission === 'granted' ? (
+              <HiBell className="text-xl text-emerald-500" />
+            ) : (
+              <HiOutlineBell className="text-xl text-amber-500" />
+            )}
+            <span className="font-syne text-[11px] font-bold uppercase tracking-widest text-gray-800 dark:text-gray-200">
+              {notifPermission === 'granted' ? 'Notificaciones Activas' : 'Activar Notificaciones'}
+            </span>
+          </button>
+
+          <button
             onClick={toggleDarkMode}
             className="w-full flex items-center gap-4 px-4 py-3 rounded-xl text-gray-700 dark:text-amber-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-all active:scale-[0.98]"
           >
@@ -313,6 +396,24 @@ function DashboardLayoutContent() {
             <HiMenuAlt2 className="text-xl" />
           </button>
           <div className="flex items-center gap-4">
+            <button
+              onClick={handleToggleNotifications}
+              className="flex items-center gap-2 px-4 py-2 bg-gray-100 dark:bg-gray-800 rounded-xl border border-gray-200/60 dark:border-gray-700/60 text-xs font-syne font-bold uppercase tracking-wider text-gray-700 dark:text-gray-200 hover:scale-105 active:scale-95 transition-all"
+              title="Notificaciones PWA"
+            >
+              {notifPermission === 'granted' ? (
+                <>
+                  <HiBell className="text-base text-emerald-500" />
+                  <span>Alertas OK</span>
+                </>
+              ) : (
+                <>
+                  <HiOutlineBell className="text-base text-amber-500 animate-bounce" />
+                  <span>Activar Alertas</span>
+                </>
+              )}
+            </button>
+
             <button
               onClick={toggleDarkMode}
               className="flex items-center gap-2 px-4 py-2 bg-gray-100 dark:bg-gray-800 rounded-xl border border-gray-200/60 dark:border-gray-700/60 text-xs font-syne font-bold uppercase tracking-wider text-gray-700 dark:text-amber-400 hover:scale-105 active:scale-95 transition-all"
