@@ -5,6 +5,7 @@ import './i18n';
 import Cursor from '@components/common/Cursor';
 import Layout from '@components/common/Layout';
 import Home from '@pages/Home';
+import Hannia from '@pages/Hannia';
 import { createRoot } from 'react-dom/client';
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 import { registerSW } from 'virtual:pwa-register';
@@ -33,6 +34,10 @@ const router = createBrowserRouter([
         element: <Home />,
       },
     ],
+  },
+  {
+    path: '/hannia',
+    element: <Hannia />,
   },
   {
     path: '/admin',
@@ -86,5 +91,5 @@ createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <Cursor />
     <RouterProvider router={router} />
-  </StrictMode>,
+  </StrictMode>
 );
