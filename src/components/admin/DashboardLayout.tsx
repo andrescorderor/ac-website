@@ -141,13 +141,13 @@ function DashboardLayoutContent() {
   if (loading) return null;
 
   return (
-    <div className="h-screen bg-[#F8F9FA] dark:bg-[#0B0F17] text-gray-900 dark:text-gray-100 flex overflow-hidden transition-colors duration-300">
+    <div className="h-screen bg-soft-light-gray dark:bg-black text-black dark:text-white flex overflow-hidden transition-colors duration-300">
       {/* Universal Command Palette Search Modal */}
       <CommandPalette isOpen={isSearchOpen} onClose={() => setIsSearchOpen(false)} />
 
       {/* ═══ Desktop Sidebar ═══ */}
       <aside 
-        className={`hidden lg:flex flex-col h-screen sticky top-0 bg-white dark:bg-[#111827] border-r border-gray-100 dark:border-gray-800/80 transition-all duration-500 ease-[0.16,1,0.3,1] ${
+        className={`hidden lg:flex flex-col h-screen sticky top-0 bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl border-r border-gray-200/50 dark:border-gray-800/50 transition-all duration-500 ease-[0.16,1,0.3,1] ${
           isSidebarOpen ? 'w-72' : 'w-24'
         }`}
       >
@@ -174,14 +174,14 @@ function DashboardLayoutContent() {
             <Link
               key={item.path}
               to={item.path}
-              className={`flex items-center transition-all duration-300 ${
+              className={`flex items-center transition-all duration-300 interactive-hover ${
                 isSidebarOpen 
                   ? 'gap-4 px-4 py-3.5 rounded-2xl' 
                   : 'justify-center w-12 h-12 mx-auto rounded-2xl'
               } ${
                 location.pathname === item.path 
-                  ? 'bg-black dark:bg-white text-white dark:text-black shadow-lg' 
-                  : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800/60 hover:text-black dark:hover:text-white'
+                  ? 'bg-black dark:bg-white text-white dark:text-black shadow-lg shadow-black/10 dark:shadow-white/10' 
+                  : 'text-gray-500 dark:text-gray-400 hover:bg-gray-100/80 dark:hover:bg-gray-800/60 hover:text-black dark:hover:text-white'
               }`}
             >
               <item.icon className="text-2xl shrink-0" />
@@ -273,7 +273,7 @@ function DashboardLayoutContent() {
 
       {/* ═══ Mobile Header (auto-hide on scroll) ═══ */}
       <div 
-        className={`lg:hidden fixed top-0 left-0 right-0 h-16 bg-white/90 dark:bg-[#111827]/90 backdrop-blur-xl border-b border-gray-100 dark:border-gray-800 flex items-center justify-between px-4 z-50 transition-transform duration-300 ${
+        className={`lg:hidden fixed top-0 left-0 right-0 h-16 bg-white/70 dark:bg-black/70 backdrop-blur-2xl border-b border-gray-200/50 dark:border-gray-800/50 flex items-center justify-between px-4 z-50 transition-transform duration-300 shadow-sm ${
           mobileHeaderVisible ? 'translate-y-0' : '-translate-y-full'
         }`}
       >
@@ -284,7 +284,7 @@ function DashboardLayoutContent() {
         <div className="flex items-center gap-1.5">
           <button 
             onClick={() => setIsSearchOpen(true)}
-            className="p-2 bg-gray-100 dark:bg-gray-800 rounded-xl text-gray-700 dark:text-gray-300 transition-colors active:scale-95"
+            className="p-2 bg-gray-100/80 dark:bg-gray-800/80 rounded-xl text-gray-700 dark:text-gray-300 transition-colors active:scale-95 interactive-hover"
             title="Buscar en todo el panel"
           >
             <HiOutlineSearch className="text-lg" />
@@ -292,7 +292,7 @@ function DashboardLayoutContent() {
 
           <button 
             onClick={handleToggleNotifications}
-            className="p-2 bg-gray-100 dark:bg-gray-800 rounded-xl text-gray-700 dark:text-gray-300 transition-colors active:scale-95"
+            className="p-2 bg-gray-100/80 dark:bg-gray-800/80 rounded-xl text-gray-700 dark:text-gray-300 transition-colors active:scale-95 interactive-hover"
             title="Notificaciones PWA"
           >
             {notifPermission === 'granted' ? (
@@ -304,7 +304,7 @@ function DashboardLayoutContent() {
 
           <button 
             onClick={toggleDarkMode}
-            className="p-2 bg-gray-100 dark:bg-gray-800 rounded-xl text-gray-700 dark:text-amber-400 transition-colors active:scale-95"
+            className="p-2 bg-gray-100/80 dark:bg-gray-800/80 rounded-xl text-gray-700 dark:text-amber-400 transition-colors active:scale-95 interactive-hover"
             title={isDarkMode ? 'Modo Claro' : 'Modo Oscuro'}
           >
             {isDarkMode ? <HiOutlineSun className="text-lg" /> : <HiOutlineMoon className="text-lg" />}
@@ -312,7 +312,7 @@ function DashboardLayoutContent() {
 
           <button 
             onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-            className="p-2 bg-gray-100 dark:bg-gray-800 rounded-xl hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors active:scale-95 text-gray-800 dark:text-gray-200"
+            className="p-2 bg-gray-100/80 dark:bg-gray-800/80 rounded-xl hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors active:scale-95 text-gray-800 dark:text-gray-200 interactive-hover"
           >
             {isSidebarOpen ? <HiX className="text-lg" /> : <HiMenuAlt2 className="text-lg" />}
           </button>
@@ -414,11 +414,11 @@ function DashboardLayoutContent() {
       {/* ═══ Main Content ═══ */}
       <main ref={mainRef} className="flex-1 overflow-y-auto">
         {/* Desktop Top Bar */}
-        <header className="hidden lg:flex h-16 items-center justify-between px-12 bg-white/60 dark:bg-[#111827]/60 backdrop-blur-xl border-b border-gray-100 dark:border-gray-800/80 sticky top-0 z-30 transition-colors duration-300 gap-6">
+        <header className="hidden lg:flex h-16 items-center justify-between px-12 glass dark:dark-glass sticky top-0 z-30 transition-colors duration-300 gap-6 border-b-0">
           <div className="flex items-center gap-4 flex-1">
             <button 
               onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-              className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl transition-colors text-gray-700 dark:text-gray-300"
+              className="p-2 hover:bg-gray-100/80 dark:hover:bg-gray-800/80 rounded-xl transition-colors text-gray-700 dark:text-gray-300 interactive-hover"
             >
               <HiMenuAlt2 className="text-xl" />
             </button>
@@ -481,7 +481,7 @@ function DashboardLayoutContent() {
           </div>
         </header>
 
-        <div className="p-5 md:p-8 lg:p-12 pt-20 lg:pt-8 max-w-7xl mx-auto">
+        <div className="p-5 md:p-8 lg:p-12 pt-20 lg:pt-8 max-w-7xl mx-auto min-h-screen">
           <Outlet />
         </div>
       </main>

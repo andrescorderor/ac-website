@@ -247,7 +247,7 @@ export default function Recordatorios() {
 
           <button 
             onClick={() => setShowAddForm(!showAddForm)}
-            className="px-6 py-3.5 bg-black dark:bg-white text-white dark:text-black font-syne text-xs font-bold uppercase tracking-wider rounded-2xl hover:scale-105 active:scale-95 transition-all shadow-md flex items-center justify-center gap-2"
+            className="px-6 py-3.5 bg-black dark:bg-white text-white dark:text-black font-syne text-xs font-bold uppercase tracking-wider rounded-2xl shadow-md flex items-center justify-center gap-2 interactive-hover"
           >
             <HiOutlinePlus className="text-lg" />
             <span>Nueva Fecha</span>
@@ -280,7 +280,7 @@ export default function Recordatorios() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
             onSubmit={handleAdd}
-            className="bg-white dark:bg-gray-900 p-6 md:p-8 rounded-[2rem] border border-gray-100 dark:border-gray-800 shadow-xl space-y-6"
+            className="bg-white/80 dark:bg-gray-900/80 glass dark:dark-glass p-6 md:p-8 rounded-[2rem] shadow-xl space-y-6"
           >
             <h3 className="font-dm-sans text-xl font-bold text-[var(--black)] dark:text-white">Registrar Nueva Fecha Importante</h3>
 
@@ -387,7 +387,7 @@ export default function Recordatorios() {
               <button
                 type="submit"
                 disabled={submitting}
-                className="px-8 py-3 bg-black dark:bg-white text-white dark:text-black font-syne text-xs font-bold uppercase tracking-wider rounded-xl hover:scale-105 active:scale-95 transition-all shadow-md disabled:opacity-50 flex items-center gap-2"
+                className="px-8 py-3 bg-black dark:bg-white text-white dark:text-black font-syne text-xs font-bold uppercase tracking-wider rounded-xl shadow-md disabled:opacity-50 flex items-center gap-2 interactive-hover"
               >
                 {submitting ? (
                   <>
@@ -472,7 +472,13 @@ function ReminderCard({ r, onDelete }: { r: Reminder; onDelete: (id: string) => 
   const Icon = cfg.icon;
 
   return (
-    <div className="p-6 bg-white dark:bg-gray-900 rounded-3xl border border-gray-100 dark:border-gray-800 shadow-sm flex flex-col justify-between gap-4 group hover:border-gray-200 dark:hover:border-gray-700 transition-all">
+    <motion.div 
+      layout
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -10 }}
+      className="p-6 bg-white/80 dark:bg-gray-900/80 glass dark:dark-glass rounded-[2rem] shadow-sm flex flex-col justify-between gap-4 group hover:shadow-lg hover:-translate-y-1 transition-all duration-300"
+    >
       <div className="flex items-start justify-between gap-4">
         <div className="flex items-start gap-4">
           <div className={`p-3 rounded-2xl ${cfg.color} text-xl shrink-0`}>
@@ -535,11 +541,11 @@ function ReminderCard({ r, onDelete }: { r: Reminder; onDelete: (id: string) => 
       </div>
 
       {r.notes && (
-        <div className="font-inter text-sm text-gray-600 dark:text-gray-300 font-light leading-relaxed whitespace-pre-wrap pt-3 border-t border-gray-50 dark:border-gray-800">
+        <div className="font-inter text-sm text-gray-600 dark:text-gray-300 font-light leading-relaxed whitespace-pre-wrap pt-3 border-t border-gray-100 dark:border-gray-800/50">
           {r.notes}
         </div>
       )}
-    </div>
+    </motion.div>
   );
 }
 
@@ -588,7 +594,7 @@ function CalendarView({
   const isCurrentMonthReal = today.getFullYear() === year && today.getMonth() === month;
 
   return (
-    <div className="bg-white dark:bg-gray-900 rounded-[2rem] p-6 md:p-8 border border-gray-100 dark:border-gray-800 shadow-xl space-y-6">
+    <div className="bg-white/80 dark:bg-gray-900/80 glass dark:dark-glass rounded-[2rem] p-6 md:p-8 shadow-xl space-y-6">
       {/* Calendar Header Navigation */}
       <div className="flex items-center justify-between">
         <h3 className="font-dm-sans text-xl font-bold capitalize text-black dark:text-white flex items-center gap-3">
@@ -645,22 +651,24 @@ function CalendarView({
           const isSelected = selectedDayReminders?.dayNum === dayNum;
 
           return (
-            <div
+            <motion.div
               key={dayNum}
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
               onClick={() => items.length > 0 && setSelectedDayReminders({ dayNum, items })}
               className={`h-24 md:h-28 p-2 rounded-2xl border transition-all flex flex-col justify-between cursor-pointer select-none overflow-hidden ${
                 isToday
-                  ? 'border-[#FF2E93] bg-[#FF2E93]/5 dark:bg-[#FF2E93]/10 shadow-sm'
+                  ? 'border-[var(--vibrant-sky-blue)] bg-[var(--vibrant-sky-blue-light)]/50 dark:bg-[var(--vibrant-sky-blue)]/20 shadow-sm'
                   : isSelected
-                  ? 'border-black dark:border-white bg-gray-50 dark:bg-gray-800/80'
-                  : 'border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900/60 hover:border-gray-300 dark:hover:border-gray-700'
+                  ? 'border-gray-400 dark:border-gray-500 bg-gray-50 dark:bg-gray-800'
+                  : 'border-transparent bg-white/50 dark:bg-gray-800/30 hover:border-gray-200 dark:hover:border-gray-700'
               }`}
             >
               <div className="flex items-center justify-between">
                 <span
                   className={`size-6 rounded-full flex items-center justify-center font-syne text-xs font-bold ${
                     isToday
-                      ? 'bg-[#FF2E93] text-white shadow-md'
+                      ? 'bg-[var(--vibrant-sky-blue)] text-white shadow-md'
                       : 'text-gray-700 dark:text-gray-300'
                   }`}
                 >
@@ -693,7 +701,7 @@ function CalendarView({
                   </div>
                 )}
               </div>
-            </div>
+            </motion.div>
           );
         })}
       </div>

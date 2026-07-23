@@ -138,7 +138,7 @@ export default function Vault() {
           </div>
           <button 
             onClick={() => setShowAddForm(!showAddForm)}
-            className="p-4 bg-black dark:bg-white text-white dark:text-black rounded-2xl hover:scale-105 active:scale-95 transition-all shadow-lg flex items-center justify-center gap-2"
+            className="p-4 bg-black dark:bg-white text-white dark:text-black rounded-2xl hover:scale-105 active:scale-95 transition-all shadow-lg flex items-center justify-center gap-2 interactive-hover"
           >
             <HiOutlinePlus className="text-2xl" />
             <span className="font-syne text-[10px] font-bold uppercase tracking-widest sm:hidden">Nuevo Registro</span>
@@ -152,7 +152,7 @@ export default function Vault() {
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
-            className="bg-white dark:bg-gray-900 p-8 rounded-[2.5rem] border border-gray-100 dark:border-gray-800 shadow-xl"
+            className="bg-white/80 dark:bg-gray-900/80 glass dark:dark-glass p-8 rounded-[2.5rem] shadow-xl"
           >
             <form onSubmit={handleAddItem} className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -161,7 +161,7 @@ export default function Vault() {
                   <input 
                     value={newItem.title}
                     onChange={(e) => setNewItem({...newItem, title: e.target.value})}
-                    className="w-full px-6 py-4 rounded-2xl bg-gray-50 dark:bg-gray-800 border border-transparent focus:border-gray-200 dark:focus:border-gray-600 outline-none font-inter text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 transition-all"
+                    className="w-full px-6 py-4 rounded-2xl bg-white dark:bg-gray-800 border border-transparent focus:border-[var(--vibrant-sky-blue)] outline-none font-inter text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 transition-all shadow-sm"
                     placeholder="¿Qué es esto?"
                     required
                   />
@@ -171,7 +171,7 @@ export default function Vault() {
                   <input 
                     value={newItem.content}
                     onChange={(e) => setNewItem({...newItem, content: e.target.value})}
-                    className="w-full px-6 py-4 rounded-2xl bg-gray-50 dark:bg-gray-800 border border-transparent focus:border-gray-200 dark:focus:border-gray-600 outline-none font-inter text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 transition-all"
+                    className="w-full px-6 py-4 rounded-2xl bg-white dark:bg-gray-800 border border-transparent focus:border-[var(--vibrant-sky-blue)] outline-none font-inter text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 transition-all shadow-sm"
                     placeholder="El texto a copiar..."
                     required
                   />
@@ -179,7 +179,7 @@ export default function Vault() {
               </div>
               <button 
                 type="submit"
-                className="w-full py-4 bg-black dark:bg-white text-white dark:text-black rounded-2xl font-syne font-bold uppercase tracking-widest hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors shadow-lg"
+                className="w-full py-4 bg-black dark:bg-white text-white dark:text-black rounded-2xl font-syne font-bold uppercase tracking-widest hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors shadow-lg interactive-hover"
               >
                 Guardar Texto
               </button>
@@ -198,7 +198,10 @@ export default function Vault() {
             <motion.div 
               key={item.id}
               layout
-              className="group bg-white dark:bg-gray-900 p-6 rounded-[2rem] border border-gray-100 dark:border-gray-800 shadow-sm hover:shadow-xl hover:border-gray-200 dark:hover:border-gray-700 transition-all duration-500 flex flex-col justify-between"
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="group bg-white/80 dark:bg-gray-900/80 glass dark:dark-glass p-6 rounded-[2rem] shadow-sm hover:shadow-xl transition-all duration-500 flex flex-col justify-between"
             >
               <div className="space-y-1">
                 <div className="flex justify-between items-start">
@@ -237,16 +240,16 @@ export default function Vault() {
               </div>
 
               <div className="mt-6 space-y-4">
-                <div className="bg-gray-50 dark:bg-gray-800/80 p-4 rounded-2xl border border-gray-100 dark:border-gray-700 relative overflow-hidden group/content">
+                <div className="bg-white dark:bg-gray-800 p-4 rounded-2xl border border-gray-100/50 dark:border-gray-700/50 relative overflow-hidden group/content shadow-inner">
                   <p className="font-mono text-sm text-gray-600 dark:text-gray-300 break-all pr-8">{item.content}</p>
                 </div>
                 
                 <button 
                   onClick={() => copyToClipboard(item.content, item.id)}
-                  className={`w-full flex items-center justify-center gap-2 py-3 rounded-2xl font-syne text-[10px] font-bold uppercase tracking-widest transition-all ${
+                  className={`w-full flex items-center justify-center gap-2 py-3 rounded-2xl font-syne text-[10px] font-bold uppercase tracking-widest transition-all interactive-hover ${
                     copiedId === item.id 
-                    ? 'bg-green-500 text-white shadow-lg shadow-green-100' 
-                    : 'bg-gray-50 dark:bg-gray-800 text-gray-400 dark:text-gray-300 hover:bg-black dark:hover:bg-white hover:text-white dark:hover:text-black hover:shadow-lg'
+                    ? 'bg-green-500 text-white shadow-lg shadow-green-100 dark:shadow-green-900/20' 
+                    : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-black dark:hover:bg-white hover:text-white dark:hover:text-black hover:shadow-lg border border-gray-100 dark:border-gray-700'
                   }`}
                 >
                   {copiedId === item.id ? (

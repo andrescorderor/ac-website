@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import { HiOutlinePlus, HiOutlineTrash, HiOutlineSave, HiOutlineEye, HiOutlineEyeOff } from 'react-icons/hi';
 import { useToast } from '@/components/common/ToastContext';
+import { motion, AnimatePresence } from 'framer-motion';
 
 type Expense = {
   id: string;
@@ -36,14 +37,15 @@ export default function Finanzas() {
     else if (expData) setExpenses(expData);
 
     // Fetch salary
-    const { data: salData } = await supabase
+    const { data: salData, error: salErr } = await supabase
       .from('finance_salary')
       .select('amount')
-      .eq('user_id', user.id)
-      .maybeSingle();
+      .eq('user_id', user.id);
 
-    if (salData) {
-      setSalary(salData.amount);
+    if (salErr) {
+      toast.error('Error al cargar salario: ' + salErr.message);
+    } else if (salData && salData.length > 0) {
+      setSalary(salData[0].amount);
     }
     setLoading(false);
   };
@@ -139,9 +141,11 @@ export default function Finanzas() {
         </div>
 
         <div className="flex flex-wrap items-center gap-4">
-          <button
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
             onClick={() => setIsPrivacyMode(!isPrivacyMode)}
-            className="flex items-center gap-2.5 px-4 py-3 bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm text-xs font-syne font-bold uppercase tracking-wider text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 active:scale-95 transition-all"
+            className="flex items-center gap-2.5 px-4 py-3 bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm text-xs font-syne font-bold uppercase tracking-wider text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 transition-all"
           >
             {isPrivacyMode ? (
               <>
@@ -154,9 +158,9 @@ export default function Finanzas() {
                 <span>Modo Privacidad</span>
               </>
             )}
-          </button>
+          </motion.button>
 
-          <div className="flex items-center gap-3 bg-white dark:bg-gray-800 px-5 py-2.5 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm">
+          <div className="flex items-center gap-3 bg-white/70 dark:bg-gray-800/70 glass dark:dark-glass px-5 py-2.5 rounded-2xl shadow-sm">
             <div className="space-y-0.5">
               <p className="font-syne text-[9px] font-bold uppercase tracking-[0.2em] text-[var(--gray)] dark:text-gray-400">Salario Mensual</p>
               <div className="flex items-center gap-2">
@@ -184,33 +188,42 @@ export default function Finanzas() {
       {/* Summary Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 md:gap-6">
         {[
-          { label: 'Salario', value: salary, color: 'text-black dark:text-white' },
-          { label: 'Comida', value: getCategoryTotal('comida'), color: 'text-blue-500' },
-          { label: 'Insumos', value: getCategoryTotal('insumos'), color: 'text-orange-500' },
-          { label: 'Servicios', value: getCategoryTotal('servicios'), color: 'text-purple-500' },
-          { label: 'Total Gastos', value: globalTotal, color: 'text-red-500', highlight: true },
-        ].map((item) => (
-          <div
+          { label: 'Salario', value: salary, color: 'text-black dark:text-white', bg: 'bg-white/80 dark:bg-gray-900/80 glass dark:dark-glass' },
+          { label: 'Comida', value: getCategoryTotal('comida'), color: 'text-[var(--color-info)]', bg: 'bg-white dark:bg-gray-900' },
+          { label: 'Insumos', value: getCategoryTotal('insumos'), color: 'text-[var(--color-warning)]', bg: 'bg-white dark:bg-gray-900' },
+          { label: 'Servicios', value: getCategoryTotal('servicios'), color: 'text-[var(--color-success)]', bg: 'bg-white dark:bg-gray-900' },
+          { label: 'Total Gastos', value: globalTotal, color: 'text-[var(--color-danger)]', highlight: true, bg: 'bg-red-50/50 dark:bg-red-950/20' },
+        ].map((item, i) => (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: i * 0.1, duration: 0.4 }}
             key={item.label}
-            className={`p-4 md:p-6 bg-white dark:bg-gray-900 rounded-2xl md:rounded-3xl border ${
+            className={`p-4 md:p-6 rounded-2xl md:rounded-3xl border ${
               item.highlight 
-                ? 'border-red-100 dark:border-red-950/60 bg-red-50/30 dark:bg-red-950/20' 
-                : 'border-gray-50 dark:border-gray-800'
-            } shadow-sm`}
+                ? 'border-red-200/50 dark:border-red-900/50 ' + item.bg
+                : 'border-gray-100/50 dark:border-gray-800/50 ' + item.bg
+            } shadow-sm hover:shadow-md transition-shadow`}
           >
-            <p className="font-syne text-[9px] md:text-[10px] font-bold uppercase tracking-widest text-[var(--gray)] dark:text-gray-400 mb-1 md:mb-2">
+            <p className="font-syne text-[9px] md:text-[10px] font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400 mb-1 md:mb-2">
               {item.label}
             </p>
-            <h3 className={`font-dm-sans text-lg md:text-2xl font-bold ${item.color}`}>
+            <h3 className={`font-dm-sans text-xl md:text-2xl font-bold ${item.color}`}>
               {formatAmount(item.value)}
             </h3>
-          </div>
+          </motion.div>
         ))}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {(['comida', 'insumos', 'servicios'] as const).map((cat) => (
-          <div key={cat} className="space-y-6">
+        {(['comida', 'insumos', 'servicios'] as const).map((cat, catIndex) => (
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 0.3 + (catIndex * 0.1), duration: 0.4 }}
+            key={cat} 
+            className="space-y-6"
+          >
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <h2 className="font-dm-sans text-xl font-bold capitalize text-black dark:text-white">{cat}</h2>
@@ -225,47 +238,42 @@ export default function Finanzas() {
               </span>
             </div>
 
-            <div className="bg-white dark:bg-gray-900 rounded-[2rem] border border-gray-100 dark:border-gray-800 overflow-hidden shadow-sm">
-              <div className="overflow-x-auto">
-                <table className="w-full text-left border-collapse min-w-[300px]">
-                  <thead className="bg-gray-50/50 dark:bg-gray-800/50">
-                    <tr>
-                      <th className="px-6 py-4 font-syne text-[10px] font-bold uppercase tracking-widest text-[var(--gray)] dark:text-gray-400">
-                        Concepto
-                      </th>
-                      <th className="px-6 py-4 font-syne text-[10px] font-bold uppercase tracking-widest text-[var(--gray)] dark:text-gray-400 text-right">
-                        Monto
-                      </th>
-                      <th className="px-4 py-4"></th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-50 dark:divide-gray-800">
-                    {expenses.filter((e) => e.category === cat).map((exp) => (
-                      <tr key={exp.id} className="group hover:bg-gray-50/50 dark:hover:bg-gray-800/50 transition-colors">
-                        <td className="px-6 py-4 font-inter text-sm text-gray-600 dark:text-gray-300">{exp.concept}</td>
-                        <td className="px-6 py-4 font-dm-sans text-sm font-semibold text-right text-gray-900 dark:text-gray-100">
+            <div className="bg-white/80 dark:bg-gray-900/80 glass dark:dark-glass rounded-[2rem] overflow-hidden shadow-sm flex flex-col">
+              <div className="flex-1 p-2 md:p-4 space-y-2 max-h-[400px] overflow-y-auto scrollbar-thin">
+                <AnimatePresence>
+                  {expenses.filter((e) => e.category === cat).map((exp) => (
+                    <motion.div 
+                      layout
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, x: -20 }}
+                      key={exp.id} 
+                      className="group bg-white dark:bg-gray-800 p-4 rounded-2xl border border-gray-100/50 dark:border-gray-700/50 flex items-center justify-between transition-colors hover:border-gray-200 dark:hover:border-gray-600"
+                    >
+                      <div className="flex flex-col">
+                        <span className="font-inter text-sm text-gray-700 dark:text-gray-200 font-medium">{exp.concept}</span>
+                        <span className="font-dm-sans text-sm font-bold text-[var(--color-info)] dark:text-[var(--vibrant-sky-blue)] mt-1">
                           {formatAmount(exp.amount)}
-                        </td>
-                        <td className="px-4 py-4 text-right">
-                          <button
-                            onClick={() => handleDeleteExpense(exp.id)}
-                            className="p-2 text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-full transition-all lg:opacity-0 lg:group-hover:opacity-100"
-                            title="Eliminar gasto"
-                          >
-                            <HiOutlineTrash />
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
-                    {expenses.filter((e) => e.category === cat).length === 0 && (
-                      <tr>
-                        <td colSpan={3} className="px-6 py-8 text-center text-xs text-gray-400 dark:text-gray-500 font-inter">
-                          No hay gastos registrados en esta categoría
-                        </td>
-                      </tr>
-                    )}
-                  </tbody>
-                </table>
+                        </span>
+                      </div>
+                      <button
+                        onClick={() => handleDeleteExpense(exp.id)}
+                        className="p-2 text-red-400 bg-red-50 dark:bg-red-950/30 hover:bg-red-100 dark:hover:bg-red-900/50 rounded-xl transition-all opacity-100 lg:opacity-0 lg:group-hover:opacity-100 active:scale-95"
+                        title="Eliminar gasto"
+                      >
+                        <HiOutlineTrash />
+                      </button>
+                    </motion.div>
+                  ))}
+                  {expenses.filter((e) => e.category === cat).length === 0 && (
+                    <motion.div 
+                      initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+                      className="p-8 text-center text-xs text-gray-400 dark:text-gray-500 font-inter"
+                    >
+                      No hay gastos registrados
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </div>
 
               <div className="p-3 md:p-4 bg-gray-50/30 dark:bg-gray-800/30 border-t border-gray-50 dark:border-gray-800">
@@ -274,33 +282,35 @@ export default function Finanzas() {
                     placeholder="Concepto"
                     value={newExpense.category === cat ? newExpense.concept : ''}
                     onChange={(e) => setNewExpense({ ...newExpense, concept: e.target.value, category: cat })}
-                    className="flex-1 px-4 py-3 bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-xl text-sm outline-none focus:border-gray-300 dark:focus:border-gray-500 font-inter text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500"
+                    className="flex-1 px-4 py-3 bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-xl text-sm outline-none focus:border-[var(--vibrant-sky-blue)] dark:focus:border-[var(--vibrant-sky-blue)] font-inter text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 transition-colors"
                   />
                   <div className="flex gap-2">
-                    <input
-                      type="number"
-                      placeholder="$0"
-                      value={newExpense.category === cat ? newExpense.amount : ''}
-                      onChange={(e) => setNewExpense({ ...newExpense, amount: e.target.value, category: cat })}
-                      className="flex-1 px-4 py-3 bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-xl text-sm outline-none focus:border-gray-300 dark:focus:border-gray-500 text-right font-dm-sans font-bold text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500"
-                    />
-                    <button
-                      onClick={() => handleAddExpense(cat)}
-                      disabled={submittingCat === cat}
-                      className="px-5 py-3 bg-black dark:bg-white text-white dark:text-black rounded-xl hover:scale-105 active:scale-95 transition-all shrink-0 font-syne text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-2 disabled:opacity-50 disabled:hover:scale-100"
-                    >
+                      <input
+                        type="number"
+                        placeholder="$0"
+                        value={newExpense.category === cat ? newExpense.amount : ''}
+                        onChange={(e) => setNewExpense({ ...newExpense, amount: e.target.value, category: cat })}
+                        className="flex-1 px-4 py-3 bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-xl text-sm outline-none focus:border-[var(--vibrant-sky-blue)] dark:focus:border-[var(--vibrant-sky-blue)] text-right font-dm-sans font-bold text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 transition-colors"
+                      />
+                      <motion.button
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        onClick={() => handleAddExpense(cat)}
+                        disabled={submittingCat === cat}
+                        className="px-5 py-3 bg-black dark:bg-white text-white dark:text-black rounded-xl transition-all shrink-0 font-syne text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-2 disabled:opacity-50"
+                      >
                       {submittingCat === cat ? (
                         <div className="size-4 border-2 border-white/30 dark:border-black/30 border-t-white dark:border-t-black rounded-full animate-spin" />
                       ) : (
                         <HiOutlinePlus className="text-base" />
                       )}
-                    </button>
+                      </motion.button>
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
-          </div>
-        ))}
+            </motion.div>
+          ))}
       </div>
     </div>
   );
