@@ -11,6 +11,7 @@ import {
   scanAndNotifyUpcomingEvents 
 } from '@/lib/notifications';
 import CommandPalette from '@/components/admin/CommandPalette';
+import { syncPinnedItemsWithSupabase } from '@/lib/pinned';
 import { 
   HiOutlineViewGrid, 
   HiOutlineCurrencyDollar, 
@@ -67,6 +68,7 @@ function DashboardLayoutContent() {
 
   useEffect(() => {
     checkUser();
+    syncPinnedItemsWithSupabase();
   }, []);
 
   useEffect(() => {

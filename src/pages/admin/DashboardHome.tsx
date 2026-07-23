@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import { motion, AnimatePresence } from 'framer-motion';
-import { getPinnedItems, removePinnedItem, PinnedItem } from '@/lib/pinned';
+import { getPinnedItems, removePinnedItem, PinnedItem, syncPinnedItemsWithSupabase } from '@/lib/pinned';
 import { 
   HiOutlineCurrencyDollar, 
   HiOutlineClipboardList, 
@@ -53,6 +53,7 @@ export default function DashboardHome() {
 
   const loadPinned = () => {
     setPinnedItems(getPinnedItems());
+    syncPinnedItemsWithSupabase();
   };
 
   const fetchStats = async () => {

@@ -42,7 +42,7 @@ export default function Vault() {
     if (!user) return;
 
     try {
-      const { data, error } = await supabase
+      let { data, error } = await supabase
         .from('vault_items')
         .insert([{ 
           user_id: user.id, 
@@ -51,6 +51,20 @@ export default function Vault() {
           category: newItem.category 
         }])
         .select();
+
+      // If category column is missing in Supabase table schema, fallback to inserting without category
+      if (error && (error.message.includes("category") || error.code === 'PGRST204')) {
+        const fallbackRes = await supabase
+          .from('vault_items')
+          .insert([{ 
+            user_id: user.id, 
+            title: newItem.title, 
+            content: newItem.content 
+          }])
+          .select();
+        data = fallbackRes.data;
+        error = fallbackRes.error;
+      }
 
       if (error) throw error;
 
