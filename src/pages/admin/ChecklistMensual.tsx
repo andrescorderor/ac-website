@@ -13,6 +13,7 @@ import {
   HiOutlineEye,
 } from 'react-icons/hi';
 import { useToast } from '@/components/common/ToastContext';
+import { togglePinItem, isItemPinned } from '@/lib/pinned';
 
 type ChecklistItem = {
   id: string;
@@ -381,6 +382,27 @@ export default function ChecklistMensual() {
 
                         {!isReadOnly && (
                           <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-all shrink-0">
+                            <button
+                              onClick={() => {
+                                const isNowPinned = togglePinItem({
+                                  id: item.id,
+                                  type: 'checklist',
+                                  title: item.title,
+                                  subtitle: item.category,
+                                  path: '/admin/panel/checklist',
+                                });
+                                toast.info(isNowPinned ? 'Ítem fijado 📌' : 'Ítem desfijado');
+                                setItems([...items]);
+                              }}
+                              className={`p-1.5 rounded-xl transition-all ${
+                                isItemPinned(item.id)
+                                  ? 'text-amber-500 bg-amber-50 dark:bg-amber-950/40'
+                                  : 'text-gray-400 hover:text-amber-500 hover:bg-amber-50 dark:hover:bg-amber-950/30'
+                              }`}
+                              title={isItemPinned(item.id) ? 'Desfijar del inicio' : 'Fijar en la página principal'}
+                            >
+                              📌
+                            </button>
                             <button onClick={() => openEdit(item)} className="p-1.5 text-gray-400 hover:text-black dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl transition-all">
                               <HiOutlinePencil className="text-sm" />
                             </button>

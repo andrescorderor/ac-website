@@ -178,6 +178,8 @@ export default function DashboardHome() {
       case 'debt': return 'bg-red-100 dark:bg-red-950/60 text-red-600 dark:text-red-300';
       case 'vault': return 'bg-purple-100 dark:bg-purple-950/60 text-purple-600 dark:text-purple-300';
       case 'shopping': return 'bg-green-100 dark:bg-green-950/60 text-green-600 dark:text-green-300';
+      case 'project': return 'bg-violet-100 dark:bg-violet-950/60 text-violet-600 dark:text-violet-300';
+      case 'checklist': return 'bg-teal-100 dark:bg-teal-950/60 text-teal-600 dark:text-teal-300';
       default: return 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300';
     }
   };

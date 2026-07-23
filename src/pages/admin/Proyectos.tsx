@@ -12,6 +12,7 @@ import {
   HiOutlineChevronUp,
 } from 'react-icons/hi';
 import { useToast } from '@/components/common/ToastContext';
+import { togglePinItem, isItemPinned } from '@/lib/pinned';
 
 type Task = { id: string; text: string; done: boolean };
 
@@ -318,6 +319,27 @@ export default function Proyectos() {
                         </div>
                       </div>
                       <div className="flex items-center gap-1 shrink-0">
+                        <button
+                          onClick={() => {
+                            const isNowPinned = togglePinItem({
+                              id: project.id,
+                              type: 'project',
+                              title: project.name,
+                              subtitle: project.category,
+                              path: '/admin/panel/proyectos',
+                            });
+                            toast.info(isNowPinned ? 'Proyecto fijado 📌' : 'Proyecto desfijado');
+                            setProjects([...projects]);
+                          }}
+                          className={`p-1.5 rounded-xl transition-all ${
+                            isItemPinned(project.id)
+                              ? 'text-amber-500 bg-amber-50 dark:bg-amber-950/40'
+                              : 'text-gray-400 hover:text-amber-500 hover:bg-amber-50 dark:hover:bg-amber-950/30'
+                          }`}
+                          title={isItemPinned(project.id) ? 'Desfijar del inicio' : 'Fijar en la página principal'}
+                        >
+                          📌
+                        </button>
                         <button onClick={() => openEditForm(project)} className="p-1.5 text-gray-400 hover:text-black dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl transition-all">
                           <HiOutlinePencil className="text-sm" />
                         </button>
