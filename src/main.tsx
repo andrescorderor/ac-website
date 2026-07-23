@@ -20,6 +20,8 @@ import Compras from '@pages/admin/Compras';
 import Recordatorios from '@pages/admin/Recordatorios';
 import Enlaces from '@pages/admin/Enlaces';
 import Notas from '@pages/admin/Notas';
+import Proyectos from '@pages/admin/Proyectos';
+import ChecklistMensual from '@pages/admin/ChecklistMensual';
 
 registerSW({ immediate: true });
 
@@ -77,6 +79,14 @@ const router = createBrowserRouter([
       {
         path: 'notas',
         element: <Notas />,
+      },
+      {
+        path: 'proyectos',
+        element: <Proyectos />,
+      },
+      {
+        path: 'checklist',
+        element: <ChecklistMensual />,
       },
     ],
   },

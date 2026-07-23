@@ -1,0 +1,429 @@
+import { useState, useEffect } from 'react';
+import { supabase } from '@/lib/supabase';
+import { motion, AnimatePresence } from 'framer-motion';
+import {
+  HiOutlinePlus,
+  HiOutlineTrash,
+  HiOutlinePencil,
+  HiOutlineCheckCircle,
+  HiOutlineDotsCircleHorizontal,
+  HiX,
+  HiOutlineChevronDown,
+  HiOutlineChevronUp,
+} from 'react-icons/hi';
+import { useToast } from '@/components/common/ToastContext';
+
+type Task = { id: string; text: string; done: boolean };
+
+type Project = {
+  id: string;
+  name: string;
+  description: string | null;
+  category: string;
+  status: string;
+  emoji: string;
+  notes: string | null;
+  tasks: Task[];
+  created_at: string;
+};
+
+const STATUS_CONFIG: Record<string, { label: string; color: string; dot: string }> = {
+  idea:        { label: 'Idea',        color: 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300',           dot: 'bg-gray-400' },
+  en_progreso: { label: 'En Progreso', color: 'bg-blue-100 dark:bg-blue-950/60 text-blue-600 dark:text-blue-300',         dot: 'bg-blue-500 animate-pulse' },
+  pausado:     { label: 'Pausado',     color: 'bg-amber-100 dark:bg-amber-950/60 text-amber-600 dark:text-amber-300',     dot: 'bg-amber-500' },
+  terminado:   { label: 'Terminado',   color: 'bg-emerald-100 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-300', dot: 'bg-emerald-500' },
+};
+
+const CATEGORIES = ['Personal', 'Desarrollo', 'Diseño', 'Contenido', 'Negocio'];
+const EMOJIS = ['🛠️', '🎨', '🎵', '📝', '🚀', '🌍', '🎬', '📱', '💡', '🎯', '📸', '🎮', '🏗️', '🌱'];
+
+const EMPTY_FORM = { name: '', description: '', category: 'Personal', status: 'idea', emoji: '🛠️', notes: '' };
+
+export default function Proyectos() {
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [showForm, setShowForm] = useState(false);
+  const [editingProject, setEditingProject] = useState<Project | null>(null);
+  const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [filterStatus, setFilterStatus] = useState('all');
+  const [form, setForm] = useState(EMPTY_FORM);
+  const [newTaskText, setNewTaskText] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+  const { toast } = useToast();
+
+  useEffect(() => { fetchProjects(); }, []);
+
+  const fetchProjects = async () => {
+    const { data, error } = await supabase
+      .from('creative_projects')
+      .select('*')
+      .order('created_at', { ascending: false });
+    if (error) toast.error('Error al cargar proyectos: ' + error.message);
+    else if (data) setProjects(data.map(p => ({ ...p, tasks: p.tasks || [] })));
+    setLoading(false);
+  };
+
+  const openAddForm = () => {
+    setEditingProject(null);
+    setForm(EMPTY_FORM);
+    setShowForm(true);
+  };
+
+  const openEditForm = (p: Project) => {
+    setEditingProject(p);
+    setForm({ name: p.name, description: p.description || '', category: p.category, status: p.status, emoji: p.emoji, notes: p.notes || '' });
+    setShowForm(true);
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!form.name.trim()) { toast.error('El nombre es obligatorio'); return; }
+    setSubmitting(true);
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+
+    try {
+      if (editingProject) {
+        const { error } = await supabase
+          .from('creative_projects')
+          .update({ name: form.name, description: form.description, category: form.category, status: form.status, emoji: form.emoji, notes: form.notes })
+          .eq('id', editingProject.id);
+        if (error) throw error;
+        setProjects(projects.map(p => p.id === editingProject.id ? { ...p, ...form } : p));
+        toast.success('Proyecto actualizado');
+      } else {
+        const { data, error } = await supabase
+          .from('creative_projects')
+          .insert([{ user_id: user.id, ...form, tasks: [] }])
+          .select();
+        if (error) throw error;
+        if (data) setProjects([{ ...data[0], tasks: [] }, ...projects]);
+        toast.success('Proyecto creado');
+      }
+      setShowForm(false);
+      setForm(EMPTY_FORM);
+      setEditingProject(null);
+    } catch (err: any) {
+      toast.error('Error: ' + err.message);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const deleteProject = async (id: string) => {
+    const { error } = await supabase.from('creative_projects').delete().eq('id', id);
+    if (error) { toast.error('Error al eliminar'); return; }
+    setProjects(projects.filter(p => p.id !== id));
+    toast.success('Proyecto eliminado');
+  };
+
+  const updateStatus = async (id: string, status: string) => {
+    await supabase.from('creative_projects').update({ status }).eq('id', id);
+    setProjects(projects.map(p => p.id === id ? { ...p, status } : p));
+  };
+
+  const addTask = async (project: Project) => {
+    if (!newTaskText.trim()) return;
+    const newTask: Task = { id: Date.now().toString(), text: newTaskText.trim(), done: false };
+    const updatedTasks = [...project.tasks, newTask];
+    await supabase.from('creative_projects').update({ tasks: updatedTasks }).eq('id', project.id);
+    setProjects(projects.map(p => p.id === project.id ? { ...p, tasks: updatedTasks } : p));
+    setNewTaskText('');
+  };
+
+  const toggleTask = async (project: Project, taskId: string) => {
+    const updatedTasks = project.tasks.map(t => t.id === taskId ? { ...t, done: !t.done } : t);
+    await supabase.from('creative_projects').update({ tasks: updatedTasks }).eq('id', project.id);
+    setProjects(projects.map(p => p.id === project.id ? { ...p, tasks: updatedTasks } : p));
+  };
+
+  const deleteTask = async (project: Project, taskId: string) => {
+    const updatedTasks = project.tasks.filter(t => t.id !== taskId);
+    await supabase.from('creative_projects').update({ tasks: updatedTasks }).eq('id', project.id);
+    setProjects(projects.map(p => p.id === project.id ? { ...p, tasks: updatedTasks } : p));
+  };
+
+  const filtered = filterStatus === 'all' ? projects : projects.filter(p => p.status === filterStatus);
+
+  if (loading) return <div className="text-gray-400 font-syne uppercase tracking-widest text-xs">Cargando proyectos...</div>;
+
+  return (
+    <div className="space-y-10 pb-20">
+      {/* Header */}
+      <header className="flex flex-col sm:flex-row sm:items-end justify-between gap-6">
+        <div>
+          <h1 className="font-dm-sans text-3xl md:text-4xl font-bold tracking-tight text-black dark:text-white">
+            Proyectos <span className="text-gradient">Creativos</span>
+          </h1>
+          <p className="font-inter mt-2 text-[var(--dark-gray)] dark:text-gray-400 font-light text-sm">
+            Tu espacio personal para gestionar proyectos y creaciones propias.
+          </p>
+        </div>
+        <motion.button
+          whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
+          onClick={openAddForm}
+          className="px-6 py-3.5 bg-black dark:bg-white text-white dark:text-black font-syne text-xs font-bold uppercase tracking-wider rounded-2xl shadow-lg flex items-center gap-2 shrink-0"
+        >
+          <HiOutlinePlus className="text-lg" />
+          Nuevo Proyecto
+        </motion.button>
+      </header>
+
+      {/* Status Filter Pills */}
+      <div className="flex items-center gap-2 flex-wrap">
+        {[
+          { key: 'all', label: 'Todos' },
+          ...Object.entries(STATUS_CONFIG).map(([key, val]) => ({ key, label: val.label }))
+        ].map(({ key, label }) => (
+          <button
+            key={key}
+            onClick={() => setFilterStatus(key)}
+            className={`px-4 py-2 rounded-2xl text-xs font-syne font-bold uppercase tracking-wider transition-all ${
+              filterStatus === key
+                ? 'bg-black dark:bg-white text-white dark:text-black shadow-md'
+                : 'bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-400 border border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700'
+            }`}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
+
+      {/* Add/Edit Form */}
+      <AnimatePresence>
+        {showForm && (
+          <motion.div
+            initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}
+            className="bg-white/80 dark:bg-gray-900/80 glass dark:dark-glass p-6 md:p-8 rounded-[2rem] shadow-xl space-y-6"
+          >
+            <div className="flex items-center justify-between">
+              <h3 className="font-dm-sans text-xl font-bold text-black dark:text-white">
+                {editingProject ? 'Editar Proyecto' : 'Nuevo Proyecto'}
+              </h3>
+              <button onClick={() => setShowForm(false)} className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl">
+                <HiX />
+              </button>
+            </div>
+
+            <form onSubmit={handleSubmit} className="space-y-5">
+              {/* Emoji selector */}
+              <div className="space-y-2">
+                <label className="font-syne text-[10px] font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">Ícono del Proyecto</label>
+                <div className="flex flex-wrap gap-2">
+                  {EMOJIS.map(e => (
+                    <button
+                      key={e} type="button"
+                      onClick={() => setForm({ ...form, emoji: e })}
+                      className={`size-10 text-xl rounded-xl border-2 transition-all ${form.emoji === e ? 'border-black dark:border-white scale-110 bg-gray-100 dark:bg-gray-800' : 'border-transparent hover:border-gray-200 dark:hover:border-gray-700'}`}
+                    >
+                      {e}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                <div className="space-y-2">
+                  <label className="font-syne text-[10px] font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">Nombre *</label>
+                  <input
+                    required value={form.name} onChange={e => setForm({ ...form, name: e.target.value })}
+                    placeholder="Nombre del proyecto..."
+                    className="w-full px-5 py-3.5 bg-white dark:bg-gray-800 border border-transparent focus:border-[var(--vibrant-sky-blue)] rounded-xl outline-none font-inter text-sm text-gray-900 dark:text-gray-100 placeholder-gray-400 transition-all shadow-sm"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <label className="font-syne text-[10px] font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">Categoría</label>
+                  <select
+                    value={form.category} onChange={e => setForm({ ...form, category: e.target.value })}
+                    className="w-full px-5 py-3.5 bg-white dark:bg-gray-800 border border-transparent focus:border-[var(--vibrant-sky-blue)] rounded-xl outline-none font-inter text-sm text-gray-900 dark:text-gray-100 transition-all shadow-sm"
+                  >
+                    {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
+                  </select>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <label className="font-syne text-[10px] font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">Estado</label>
+                <div className="flex flex-wrap gap-2">
+                  {Object.entries(STATUS_CONFIG).map(([key, val]) => (
+                    <button
+                      key={key} type="button"
+                      onClick={() => setForm({ ...form, status: key })}
+                      className={`px-4 py-2 rounded-xl text-xs font-syne font-bold uppercase tracking-wider transition-all ${form.status === key ? val.color + ' ring-2 ring-offset-1 ring-current' : 'bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400'}`}
+                    >
+                      {val.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <label className="font-syne text-[10px] font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">Descripción</label>
+                <textarea
+                  rows={3} value={form.description} onChange={e => setForm({ ...form, description: e.target.value })}
+                  placeholder="¿De qué trata este proyecto?"
+                  className="w-full px-5 py-3.5 bg-white dark:bg-gray-800 border border-transparent focus:border-[var(--vibrant-sky-blue)] rounded-xl outline-none font-inter text-sm text-gray-900 dark:text-gray-100 placeholder-gray-400 transition-all shadow-sm resize-none"
+                />
+              </div>
+
+              <div className="flex justify-end gap-3">
+                <button type="button" onClick={() => setShowForm(false)} className="px-6 py-3 font-syne text-xs font-bold uppercase tracking-wider text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl transition-all">
+                  Cancelar
+                </button>
+                <button type="submit" disabled={submitting} className="px-8 py-3 bg-black dark:bg-white text-white dark:text-black font-syne text-xs font-bold uppercase tracking-wider rounded-xl shadow-md disabled:opacity-50 interactive-hover flex items-center gap-2">
+                  {submitting ? <div className="size-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : null}
+                  {editingProject ? 'Guardar Cambios' : 'Crear Proyecto'}
+                </button>
+              </div>
+            </form>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Projects Grid */}
+      {filtered.length === 0 ? (
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center py-20 space-y-3">
+          <div className="text-5xl">🛠️</div>
+          <p className="font-dm-sans text-lg font-bold text-gray-700 dark:text-gray-300">No hay proyectos aquí aún</p>
+          <p className="font-inter text-sm text-gray-400">¡Empieza registrando tu primera idea creativa!</p>
+        </motion.div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+          <AnimatePresence>
+            {filtered.map((project) => {
+              const isExpanded = expandedId === project.id;
+              const doneTasks = project.tasks.filter(t => t.done).length;
+              const totalTasks = project.tasks.length;
+
+              return (
+                <motion.div
+                  key={project.id}
+                  layout
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.95 }}
+                  className="bg-white/80 dark:bg-gray-900/80 glass dark:dark-glass rounded-[2rem] overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col"
+                >
+                  {/* Card Header */}
+                  <div className="p-6 flex-1 space-y-4">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex items-center gap-3">
+                        <div className="size-12 rounded-2xl bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-2xl shrink-0">
+                          {project.emoji}
+                        </div>
+                        <div>
+                          <h3 className="font-dm-sans font-bold text-base text-black dark:text-white leading-tight">{project.name}</h3>
+                          <span className="font-syne text-[9px] font-bold uppercase tracking-wider text-gray-400">{project.category}</span>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-1 shrink-0">
+                        <button onClick={() => openEditForm(project)} className="p-1.5 text-gray-400 hover:text-black dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl transition-all">
+                          <HiOutlinePencil className="text-sm" />
+                        </button>
+                        <button onClick={() => deleteProject(project.id)} className="p-1.5 text-gray-300 dark:text-gray-600 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-xl transition-all">
+                          <HiOutlineTrash className="text-sm" />
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Status selector */}
+                    <div className="flex flex-wrap gap-1.5">
+                      {Object.entries(STATUS_CONFIG).map(([key, val]) => (
+                        <button
+                          key={key}
+                          onClick={() => updateStatus(project.id, key)}
+                          className={`flex items-center gap-1.5 px-3 py-1 rounded-xl text-[9px] font-syne font-bold uppercase tracking-wider transition-all ${
+                            project.status === key ? val.color : 'text-gray-400 hover:text-gray-600 dark:hover:text-gray-200'
+                          }`}
+                        >
+                          <span className={`size-1.5 rounded-full ${project.status === key ? val.dot : 'bg-gray-300 dark:bg-gray-600'}`} />
+                          {val.label}
+                        </button>
+                      ))}
+                    </div>
+
+                    {project.description && (
+                      <p className="font-inter text-sm text-gray-500 dark:text-gray-400 leading-relaxed line-clamp-2">{project.description}</p>
+                    )}
+
+                    {/* Progress bar */}
+                    {totalTasks > 0 && (
+                      <div className="space-y-1.5">
+                        <div className="flex justify-between items-center">
+                          <span className="font-syne text-[9px] font-bold uppercase tracking-widest text-gray-400">Progreso</span>
+                          <span className="font-dm-sans text-xs font-bold text-gray-600 dark:text-gray-300">{doneTasks}/{totalTasks}</span>
+                        </div>
+                        <div className="h-1.5 bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden">
+                          <motion.div
+                            initial={{ width: 0 }} animate={{ width: `${(doneTasks / totalTasks) * 100}%` }}
+                            className="h-full bg-[var(--vibrant-sky-blue)] rounded-full"
+                          />
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Expand/Collapse Tasks */}
+                  <div className="border-t border-gray-100/50 dark:border-gray-800/50">
+                    <button
+                      onClick={() => setExpandedId(isExpanded ? null : project.id)}
+                      className="w-full px-6 py-3 flex items-center justify-between text-xs font-syne font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400 hover:bg-gray-50/50 dark:hover:bg-gray-800/30 transition-all"
+                    >
+                      <span>Sub-tareas ({totalTasks})</span>
+                      {isExpanded ? <HiOutlineChevronUp /> : <HiOutlineChevronDown />}
+                    </button>
+
+                    <AnimatePresence>
+                      {isExpanded && (
+                        <motion.div
+                          initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }}
+                          className="overflow-hidden"
+                        >
+                          <div className="px-5 pb-5 space-y-2">
+                            {project.tasks.map(task => (
+                              <div key={task.id} className="flex items-center gap-3 group">
+                                <button onClick={() => toggleTask(project, task.id)} className="shrink-0">
+                                  {task.done
+                                    ? <HiOutlineCheckCircle className="text-emerald-500 text-lg" />
+                                    : <HiOutlineDotsCircleHorizontal className="text-gray-300 dark:text-gray-600 text-lg" />
+                                  }
+                                </button>
+                                <span className={`font-inter text-sm flex-1 ${task.done ? 'line-through text-gray-400' : 'text-gray-700 dark:text-gray-200'}`}>
+                                  {task.text}
+                                </span>
+                                <button onClick={() => deleteTask(project, task.id)} className="opacity-0 group-hover:opacity-100 p-1 text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-lg transition-all">
+                                  <HiX className="text-xs" />
+                                </button>
+                              </div>
+                            ))}
+
+                            <div className="flex gap-2 mt-3">
+                              <input
+                                placeholder="Nueva sub-tarea..."
+                                value={expandedId === project.id ? newTaskText : ''}
+                                onChange={e => setNewTaskText(e.target.value)}
+                                onKeyDown={e => e.key === 'Enter' && addTask(project)}
+                                className="flex-1 px-4 py-2 bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-xl text-sm outline-none focus:border-[var(--vibrant-sky-blue)] font-inter text-gray-900 dark:text-gray-100 placeholder-gray-400 transition-all"
+                              />
+                              <button
+                                onClick={() => addTask(project)}
+                                className="p-2.5 bg-black dark:bg-white text-white dark:text-black rounded-xl interactive-hover"
+                              >
+                                <HiOutlinePlus />
+                              </button>
+                            </div>
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
+                </motion.div>
+              );
+            })}
+          </AnimatePresence>
+        </div>
+      )}
+    </div>
+  );
+}

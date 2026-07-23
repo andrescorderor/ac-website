@@ -29,7 +29,9 @@ import {
   HiBell,
   HiOutlineSearch,
   HiMenuAlt2,
-  HiX
+  HiX,
+  HiOutlineColorSwatch,
+  HiOutlineCheckCircle
 } from 'react-icons/hi';
 
 const menuItems = [
@@ -41,6 +43,8 @@ const menuItems = [
   { icon: HiOutlineShoppingBag, label: 'Compras', path: '/admin/panel/compras' },
   { icon: HiOutlineCalendar, label: 'Fechas', path: '/admin/panel/recordatorios' },
   { icon: HiOutlineDocumentText, label: 'Notas', path: '/admin/panel/notas' },
+  { icon: HiOutlineColorSwatch, label: 'Proyectos', path: '/admin/panel/proyectos' },
+  { icon: HiOutlineCheckCircle, label: 'Checklist', path: '/admin/panel/checklist' },
 ];
 
 export default function DashboardLayout() {
