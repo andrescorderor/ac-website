@@ -64,6 +64,9 @@ export default function ChecklistMensual() {
 
   const currentMonthYear = toMonthYear(new Date());
   const isCurrentMonth = viewingMonth === currentMonthYear;
+  const isPastMonth = viewingMonth < currentMonthYear;
+  const isFutureMonth = viewingMonth > currentMonthYear;
+  const isReadOnly = isPastMonth;
 
   useEffect(() => { fetchData(); }, [viewingMonth]);
 
@@ -88,7 +91,7 @@ export default function ChecklistMensual() {
   const isCompleted = (itemId: string) => !!getLog(itemId)?.completed;
 
   const toggleComplete = async (item: ChecklistItem) => {
-    if (!isCurrentMonth) { toast.info('Solo puedes editar el mes actual'); return; }
+    if (isReadOnly) { toast.info('Los meses pasados son solo lectura'); return; }
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
 
@@ -239,10 +242,16 @@ export default function ChecklistMensual() {
           )}
         </div>
 
-        {!isCurrentMonth && (
+        {isPastMonth && (
           <div className="flex items-center gap-2 px-4 py-3 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900/50 rounded-2xl">
             <HiOutlineEye className="text-amber-500 shrink-0" />
-            <p className="font-inter text-xs text-amber-700 dark:text-amber-300">Estás viendo un mes anterior — solo modo lectura.</p>
+            <p className="font-inter text-xs text-amber-700 dark:text-amber-300">Estás viendo un mes pasado — solo modo lectura.</p>
+          </div>
+        )}
+        {isFutureMonth && (
+          <div className="flex items-center gap-2 px-4 py-3 bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-900/50 rounded-2xl">
+            <HiOutlineEye className="text-blue-500 shrink-0" />
+            <p className="font-inter text-xs text-blue-700 dark:text-blue-300">Estás viendo un mes futuro — puedes marcar ítems con anticipación.</p>
           </div>
         )}
       </div>
@@ -370,7 +379,7 @@ export default function ChecklistMensual() {
                           )}
                         </div>
 
-                        {isCurrentMonth && (
+                        {!isReadOnly && (
                           <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-all shrink-0">
                             <button onClick={() => openEdit(item)} className="p-1.5 text-gray-400 hover:text-black dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl transition-all">
                               <HiOutlinePencil className="text-sm" />

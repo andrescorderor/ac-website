@@ -15,7 +15,9 @@ import {
   HiOutlineEyeOff,
   HiOutlineDownload,
   HiOutlineBell,
-  HiOutlineTrash
+  HiOutlineTrash,
+  HiOutlineColorSwatch,
+  HiOutlineCheckCircle
 } from 'react-icons/hi';
 import { Link } from 'react-router-dom';
 import { useToast } from '@/components/common/ToastContext';
@@ -34,7 +36,9 @@ export default function DashboardHome() {
     shopping: 0,
     reminders: 0,
     bookmarks: 0,
-    notes: 0
+    notes: 0,
+    projects: 0,
+    checklist: 0,
   });
   const [pinnedItems, setPinnedItems] = useState<PinnedItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -60,7 +64,9 @@ export default function DashboardHome() {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
 
-    const [exp, tsk, vlt, dbt, shp, rem, bkm, nts] = await Promise.all([
+    const currentMonthYear = `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}`;
+
+    const [exp, tsk, vlt, dbt, shp, rem, bkm, nts, prj, chk] = await Promise.all([
       supabase.from('finance_expenses').select('amount'),
       supabase.from('tasks').select('id').eq('completed', false),
       supabase.from('vault_items').select('id'),
@@ -68,7 +74,9 @@ export default function DashboardHome() {
       supabase.from('shopping_list').select('id').eq('bought', false),
       supabase.from('reminders').select('id'),
       supabase.from('bookmarks').select('id'),
-      supabase.from('notes').select('id')
+      supabase.from('notes').select('id'),
+      supabase.from('creative_projects').select('id'),
+      supabase.from('monthly_checklist_logs').select('id').eq('month_year', currentMonthYear).eq('completed', true).eq('user_id', user.id),
     ]);
 
     setStats({
@@ -79,7 +87,9 @@ export default function DashboardHome() {
       shopping: shp.data?.length || 0,
       reminders: rem.data?.length || 0,
       bookmarks: bkm.data?.length || 0,
-      notes: nts.data?.length || 0
+      notes: nts.data?.length || 0,
+      projects: prj.data?.length || 0,
+      checklist: chk.data?.length || 0,
     });
     setLoading(false);
   };
@@ -228,6 +238,22 @@ export default function DashboardHome() {
       icon: HiOutlineDocumentText, 
       color: 'bg-emerald-500', 
       path: '/admin/panel/notas' 
+    },
+    { 
+      label: 'Proyectos Creativos', 
+      rawVal: stats.projects, 
+      isMonetary: false,
+      icon: HiOutlineColorSwatch, 
+      color: 'bg-violet-500', 
+      path: '/admin/panel/proyectos' 
+    },
+    { 
+      label: 'Checklist del Mes', 
+      rawVal: `${stats.checklist} completados`, 
+      isMonetary: false,
+      icon: HiOutlineCheckCircle, 
+      color: 'bg-teal-500', 
+      path: '/admin/panel/checklist' 
     },
   ];
 
