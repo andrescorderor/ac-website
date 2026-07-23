@@ -8,7 +8,11 @@ import {
   HiOutlineDocumentText,
   HiOutlineCreditCard,
   HiOutlineDotsCircleHorizontal,
-  HiOutlineSearch
+  HiOutlineSearch,
+  HiOutlineCalendar,
+  HiOutlineViewList,
+  HiChevronLeft,
+  HiChevronRight
 } from 'react-icons/hi';
 import { useToast } from '@/components/common/ToastContext';
 import { togglePinItem, isItemPinned } from '@/lib/pinned';
@@ -36,19 +40,41 @@ const categoryConfig: Record<string, { icon: any; color: string; badge: string }
   'otro': { icon: HiOutlineDotsCircleHorizontal, color: 'bg-gray-50 dark:bg-gray-800 text-gray-500 dark:text-gray-400', badge: 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300' },
 };
 
-function getDaysUntil(dateStr: string): number {
+function getNextOccurrenceDate(dateStr: string, recurring: boolean): Date {
+  if (!dateStr) return new Date();
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const parts = dateStr.split('-');
+  const year = parseInt(parts[0], 10);
+  const month = parseInt(parts[1], 10) - 1;
+  const day = parseInt(parts[2], 10);
+
+  const eventDate = new Date(year, month, day);
+
+  if (!recurring) return eventDate;
+
+  // For recurring annual events, calculate the next occurrence date in the current or next year
+  let nextDate = new Date(today.getFullYear(), month, day);
+  if (nextDate < today) {
+    nextDate = new Date(today.getFullYear() + 1, month, day);
+  }
+  return nextDate;
+}
+
+function getDaysUntil(dateStr: string, recurring: boolean = false): number {
   if (!dateStr) return 0;
   const today = new Date();
   today.setHours(0, 0, 0, 0);
-  const target = new Date(dateStr + 'T00:00:00');
+  const target = getNextOccurrenceDate(dateStr, recurring);
   const diff = target.getTime() - today.getTime();
   return Math.ceil(diff / (1000 * 60 * 60 * 24));
 }
 
-function formatDate(dateStr: string, timeStr?: string | null): string {
+function formatDate(dateStr: string, timeStr?: string | null, recurring: boolean = false): string {
   if (!dateStr) return 'Sin fecha';
-  const d = new Date(dateStr + 'T00:00:00');
-  const formattedDate = d.toLocaleDateString('es-MX', { day: 'numeric', month: 'long', year: 'numeric' });
+  const target = getNextOccurrenceDate(dateStr, recurring);
+  const formattedDate = target.toLocaleDateString('es-MX', { day: 'numeric', month: 'long', year: 'numeric' });
   if (timeStr) {
     return `${formattedDate} • ${timeStr} hrs`;
   }
@@ -56,6 +82,8 @@ function formatDate(dateStr: string, timeStr?: string | null): string {
 }
 
 export default function Recordatorios() {
+  const [viewMode, setViewMode] = useState<'list' | 'calendar'>('list');
+  const [currentMonth, setCurrentMonth] = useState<Date>(new Date());
   const [reminders, setReminders] = useState<Reminder[]>([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
@@ -160,9 +188,9 @@ export default function Recordatorios() {
     return matchesCat && matchesSearch;
   });
 
-  const upcoming = filtered.filter(r => { const d = getDaysUntil(r.date); return d >= 0 && d <= 30; });
-  const later = filtered.filter(r => getDaysUntil(r.date) > 30);
-  const past = filtered.filter(r => getDaysUntil(r.date) < 0);
+  const upcoming = filtered.filter(r => { const d = getDaysUntil(r.date, r.recurring); return d >= 0 && d <= 30; });
+  const later = filtered.filter(r => getDaysUntil(r.date, r.recurring) > 30);
+  const past = filtered.filter(r => !r.recurring && getDaysUntil(r.date, false) < 0);
 
   if (loading) return <div className="text-gray-400 font-syne uppercase tracking-widest text-xs">Cargando fechas...</div>;
 
@@ -188,6 +216,33 @@ export default function Recordatorios() {
               className="w-full pl-12 pr-6 py-3.5 bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl outline-none focus:ring-2 ring-gray-100 dark:ring-gray-700 font-inter text-sm shadow-sm transition-all text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500"
             />
             <HiOutlineSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-lg" />
+          </div>
+
+          <div className="flex items-center gap-2 bg-gray-100 dark:bg-gray-800 p-1 rounded-2xl border border-gray-200/50 dark:border-gray-700/50">
+            <button
+              onClick={() => setViewMode('list')}
+              className={`p-2.5 rounded-xl font-syne text-xs font-bold transition-all flex items-center gap-1.5 ${
+                viewMode === 'list'
+                  ? 'bg-white dark:bg-gray-900 text-black dark:text-white shadow-sm'
+                  : 'text-gray-500 dark:text-gray-400 hover:text-black dark:hover:text-white'
+              }`}
+              title="Vista en Lista"
+            >
+              <HiOutlineViewList className="text-lg" />
+              <span className="hidden sm:inline">Lista</span>
+            </button>
+            <button
+              onClick={() => setViewMode('calendar')}
+              className={`p-2.5 rounded-xl font-syne text-xs font-bold transition-all flex items-center gap-1.5 ${
+                viewMode === 'calendar'
+                  ? 'bg-white dark:bg-gray-900 text-black dark:text-white shadow-sm'
+                  : 'text-gray-500 dark:text-gray-400 hover:text-black dark:hover:text-white'
+              }`}
+              title="Vista en Calendario"
+            >
+              <HiOutlineCalendar className="text-lg" />
+              <span className="hidden sm:inline">Calendario</span>
+            </button>
           </div>
 
           <button 
@@ -348,61 +403,71 @@ export default function Recordatorios() {
         )}
       </AnimatePresence>
 
-      {/* Sections: Próximos (Next 30 days), Futuros, Pasados */}
-      <div className="space-y-10">
-        {/* Próximos (Próximos 30 días) */}
-        {upcoming.length > 0 && (
-          <div className="space-y-4">
-            <h3 className="font-syne text-xs font-bold uppercase tracking-widest text-emerald-600 dark:text-emerald-400 flex items-center gap-2">
-              <span className="size-2 rounded-full bg-emerald-500 animate-pulse" />
-              Próximos 30 Días
-            </h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {upcoming.map(r => <ReminderCard key={r.id} r={r} onDelete={deleteReminder} />)}
+      {/* Main View: Calendar or List */}
+      {viewMode === 'calendar' ? (
+        <CalendarView
+          reminders={filtered}
+          currentMonth={currentMonth}
+          setCurrentMonth={setCurrentMonth}
+          onDelete={deleteReminder}
+        />
+      ) : (
+        /* Sections: Próximos (Next 30 days), Futuros, Pasados */
+        <div className="space-y-10">
+          {/* Próximos (Próximos 30 días) */}
+          {upcoming.length > 0 && (
+            <div className="space-y-4">
+              <h3 className="font-syne text-xs font-bold uppercase tracking-widest text-emerald-600 dark:text-emerald-400 flex items-center gap-2">
+                <span className="size-2 rounded-full bg-emerald-500 animate-pulse" />
+                Próximos 30 Días
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {upcoming.map(r => <ReminderCard key={r.id} r={r} onDelete={deleteReminder} />)}
+              </div>
             </div>
-          </div>
-        )}
+          )}
 
-        {/* Más adelante */}
-        {later.length > 0 && (
-          <div className="space-y-4">
-            <h3 className="font-syne text-xs font-bold uppercase tracking-widest text-gray-400 dark:text-gray-500">
-              Más Adelante
-            </h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {later.map(r => <ReminderCard key={r.id} r={r} onDelete={deleteReminder} />)}
+          {/* Más adelante */}
+          {later.length > 0 && (
+            <div className="space-y-4">
+              <h3 className="font-syne text-xs font-bold uppercase tracking-widest text-gray-400 dark:text-gray-500">
+                Más Adelante
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {later.map(r => <ReminderCard key={r.id} r={r} onDelete={deleteReminder} />)}
+              </div>
             </div>
-          </div>
-        )}
+          )}
 
-        {/* Pasados */}
-        {past.length > 0 && (
-          <div className="space-y-4">
-            <h3 className="font-syne text-xs font-bold uppercase tracking-widest text-gray-400 dark:text-gray-500">
-              Fechas Pasadas
-            </h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 opacity-60">
-              {past.map(r => <ReminderCard key={r.id} r={r} onDelete={deleteReminder} />)}
+          {/* Pasados */}
+          {past.length > 0 && (
+            <div className="space-y-4">
+              <h3 className="font-syne text-xs font-bold uppercase tracking-widest text-gray-400 dark:text-gray-500">
+                Fechas Pasadas
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 opacity-60">
+                {past.map(r => <ReminderCard key={r.id} r={r} onDelete={deleteReminder} />)}
+              </div>
             </div>
-          </div>
-        )}
+          )}
 
-        {filtered.length === 0 && (
-          <div className="bg-white dark:bg-gray-900 rounded-[2rem] p-12 text-center border border-gray-100 dark:border-gray-800 shadow-sm space-y-3">
-            <p className="font-dm-sans text-lg font-bold text-gray-700 dark:text-gray-200">No hay fechas registradas</p>
-            <p className="font-inter text-sm text-gray-400 dark:text-gray-500">
-              Agrega eventos importantes para estar siempre al día.
-            </p>
-          </div>
-        )}
-      </div>
+          {filtered.length === 0 && (
+            <div className="bg-white dark:bg-gray-900 rounded-[2rem] p-12 text-center border border-gray-100 dark:border-gray-800 shadow-sm space-y-3">
+              <p className="font-dm-sans text-lg font-bold text-gray-700 dark:text-gray-200">No hay fechas registradas</p>
+              <p className="font-inter text-sm text-gray-400 dark:text-gray-500">
+                Agrega eventos importantes para estar siempre al día.
+              </p>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }
 
 function ReminderCard({ r, onDelete }: { r: Reminder; onDelete: (id: string) => void }) {
   const { toast } = useToast();
-  const days = getDaysUntil(r.date);
+  const days = getDaysUntil(r.date, r.recurring);
   const cfg = categoryConfig[r.category] || categoryConfig['Otro'];
   const Icon = cfg.icon;
 
@@ -419,9 +484,14 @@ function ReminderCard({ r, onDelete }: { r: Reminder; onDelete: (id: string) => 
               <span className={`px-2.5 py-0.5 rounded-full text-[9px] font-syne font-bold uppercase tracking-wider ${cfg.badge}`}>
                 {r.category}
               </span>
+              {r.recurring && (
+                <span className="px-2.5 py-0.5 rounded-full text-[9px] font-syne font-bold uppercase tracking-wider bg-purple-100 dark:bg-purple-950/60 text-purple-600 dark:text-purple-300">
+                  Anual 🔄
+                </span>
+              )}
             </div>
             <p className="font-inter text-sm text-gray-500 dark:text-gray-400 font-light">
-              {formatDate(r.date, r.time)}
+              {formatDate(r.date, r.time, r.recurring)}
             </p>
           </div>
         </div>
@@ -467,6 +537,186 @@ function ReminderCard({ r, onDelete }: { r: Reminder; onDelete: (id: string) => 
       {r.notes && (
         <div className="font-inter text-sm text-gray-600 dark:text-gray-300 font-light leading-relaxed whitespace-pre-wrap pt-3 border-t border-gray-50 dark:border-gray-800">
           {r.notes}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function CalendarView({
+  reminders,
+  currentMonth,
+  setCurrentMonth,
+  onDelete,
+}: {
+  reminders: Reminder[];
+  currentMonth: Date;
+  setCurrentMonth: React.Dispatch<React.SetStateAction<Date>>;
+  onDelete: (id: string) => void;
+}) {
+  const [selectedDayReminders, setSelectedDayReminders] = useState<{ dayNum: number; items: Reminder[] } | null>(null);
+
+  const year = currentMonth.getFullYear();
+  const month = currentMonth.getMonth();
+
+  const prevMonth = () => {
+    setCurrentMonth(new Date(year, month - 1, 1));
+    setSelectedDayReminders(null);
+  };
+  const nextMonth = () => {
+    setCurrentMonth(new Date(year, month + 1, 1));
+    setSelectedDayReminders(null);
+  };
+
+  const firstDayIndex = new Date(year, month, 1).getDay(); // 0 = Sun
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+  const monthName = currentMonth.toLocaleDateString('es-MX', { month: 'long', year: 'numeric' });
+
+  // Map reminders to days in current Month
+  const daysGrid = Array.from({ length: daysInMonth }, (_, i) => {
+    const dayNum = i + 1;
+    const dayReminders = reminders.filter((r) => {
+      if (!r.date) return false;
+      const occDate = getNextOccurrenceDate(r.date, r.recurring);
+      return occDate.getFullYear() === year && occDate.getMonth() === month && occDate.getDate() === dayNum;
+    });
+    return { dayNum, items: dayReminders };
+  });
+
+  const today = new Date();
+  const isCurrentMonthReal = today.getFullYear() === year && today.getMonth() === month;
+
+  return (
+    <div className="bg-white dark:bg-gray-900 rounded-[2rem] p-6 md:p-8 border border-gray-100 dark:border-gray-800 shadow-xl space-y-6">
+      {/* Calendar Header Navigation */}
+      <div className="flex items-center justify-between">
+        <h3 className="font-dm-sans text-xl font-bold capitalize text-black dark:text-white flex items-center gap-3">
+          <HiOutlineCalendar className="text-2xl text-[#FF2E93]" />
+          <span>{monthName}</span>
+        </h3>
+
+        <div className="flex items-center gap-2">
+          <button
+            onClick={prevMonth}
+            className="p-2.5 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-xl text-gray-700 dark:text-gray-300 transition-all"
+            title="Mes Anterior"
+          >
+            <HiChevronLeft className="text-xl" />
+          </button>
+          <button
+            onClick={() => {
+              setCurrentMonth(new Date());
+              setSelectedDayReminders(null);
+            }}
+            className="px-4 py-2 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-xl text-xs font-syne font-bold uppercase text-gray-700 dark:text-gray-300 transition-all"
+          >
+            Hoy
+          </button>
+          <button
+            onClick={nextMonth}
+            className="p-2.5 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-xl text-gray-700 dark:text-gray-300 transition-all"
+            title="Siguiente Mes"
+          >
+            <HiChevronRight className="text-xl" />
+          </button>
+        </div>
+      </div>
+
+      {/* Weekday Labels */}
+      <div className="grid grid-cols-7 gap-2 text-center">
+        {['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'].map((day) => (
+          <div key={day} className="font-syne text-[10px] font-bold uppercase tracking-wider text-gray-400 dark:text-gray-500 py-2">
+            {day}
+          </div>
+        ))}
+      </div>
+
+      {/* Days Grid */}
+      <div className="grid grid-cols-7 gap-2">
+        {/* Empty cells for starting day offset */}
+        {Array.from({ length: firstDayIndex }).map((_, idx) => (
+          <div key={`empty-${idx}`} className="h-24 md:h-28 rounded-2xl bg-gray-50/40 dark:bg-gray-800/20 border border-transparent" />
+        ))}
+
+        {/* Month Day Cells */}
+        {daysGrid.map(({ dayNum, items }) => {
+          const isToday = isCurrentMonthReal && today.getDate() === dayNum;
+          const isSelected = selectedDayReminders?.dayNum === dayNum;
+
+          return (
+            <div
+              key={dayNum}
+              onClick={() => items.length > 0 && setSelectedDayReminders({ dayNum, items })}
+              className={`h-24 md:h-28 p-2 rounded-2xl border transition-all flex flex-col justify-between cursor-pointer select-none overflow-hidden ${
+                isToday
+                  ? 'border-[#FF2E93] bg-[#FF2E93]/5 dark:bg-[#FF2E93]/10 shadow-sm'
+                  : isSelected
+                  ? 'border-black dark:border-white bg-gray-50 dark:bg-gray-800/80'
+                  : 'border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900/60 hover:border-gray-300 dark:hover:border-gray-700'
+              }`}
+            >
+              <div className="flex items-center justify-between">
+                <span
+                  className={`size-6 rounded-full flex items-center justify-center font-syne text-xs font-bold ${
+                    isToday
+                      ? 'bg-[#FF2E93] text-white shadow-md'
+                      : 'text-gray-700 dark:text-gray-300'
+                  }`}
+                >
+                  {dayNum}
+                </span>
+
+                {items.length > 0 && (
+                  <span className="px-1.5 py-0.5 rounded-md bg-purple-100 dark:bg-purple-950/80 text-purple-600 dark:text-purple-300 font-syne text-[9px] font-bold">
+                    {items.length}
+                  </span>
+                )}
+              </div>
+
+              {/* Event indicators/badges inside day cell */}
+              <div className="space-y-1 overflow-hidden">
+                {items.slice(0, 2).map((item) => {
+                  const cfg = categoryConfig[item.category] || categoryConfig['Otro'];
+                  return (
+                    <div
+                      key={item.id}
+                      className={`px-2 py-0.5 rounded-lg text-[9px] font-inter font-medium truncate flex items-center gap-1 ${cfg.badge}`}
+                    >
+                      <span className="truncate">{item.title}</span>
+                    </div>
+                  );
+                })}
+                {items.length > 2 && (
+                  <div className="text-[9px] font-syne font-bold text-gray-400 dark:text-gray-500 px-1">
+                    +{items.length - 2} más
+                  </div>
+                )}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Selected Day Reminders Drawer/Modal */}
+      {selectedDayReminders && (
+        <div className="pt-6 border-t border-gray-100 dark:border-gray-800 space-y-4">
+          <div className="flex items-center justify-between">
+            <h4 className="font-dm-sans text-base font-bold text-black dark:text-white flex items-center gap-2">
+              <span>Eventos para el día {selectedDayReminders.dayNum} de {monthName}</span>
+            </h4>
+            <button
+              onClick={() => setSelectedDayReminders(null)}
+              className="text-xs font-syne font-bold text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
+            >
+              Cerrar ✖
+            </button>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {selectedDayReminders.items.map((r) => (
+              <ReminderCard key={r.id} r={r} onDelete={onDelete} />
+            ))}
+          </div>
         </div>
       )}
     </div>

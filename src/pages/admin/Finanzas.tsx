@@ -134,7 +134,7 @@ export default function Finanzas() {
             Control de <span className="text-gradient">Finanzas</span>
           </h1>
           <p className="font-inter mt-2 text-[var(--dark-gray)] dark:text-gray-400 font-light text-sm">
-            Gestiona tus gastos fijos y presupuesto mensual.
+            Gestiona tu presupuesto mensual y tus gastos fijos/servicios recurrentes.
           </p>
         </div>
 
@@ -212,7 +212,14 @@ export default function Finanzas() {
         {(['comida', 'insumos', 'servicios'] as const).map((cat) => (
           <div key={cat} className="space-y-6">
             <div className="flex items-center justify-between">
-              <h2 className="font-dm-sans text-xl font-bold capitalize text-black dark:text-white">{cat}</h2>
+              <div className="flex items-center gap-2">
+                <h2 className="font-dm-sans text-xl font-bold capitalize text-black dark:text-white">{cat}</h2>
+                {cat === 'servicios' && (
+                  <span className="px-2 py-0.5 rounded-full bg-purple-100 dark:bg-purple-950/80 text-purple-600 dark:text-purple-300 font-syne text-[9px] font-bold uppercase tracking-wider">
+                    Recurrentes 🔄
+                  </span>
+                )}
+              </div>
               <span className="font-syne text-xs font-bold text-gray-400 dark:text-gray-500">
                 Total: {formatAmount(getCategoryTotal(cat))}
               </span>
