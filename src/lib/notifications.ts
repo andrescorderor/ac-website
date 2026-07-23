@@ -69,7 +69,21 @@ export async function scanAndNotifyUpcomingEvents() {
         const dateVal = r.date || r.event_date;
         if (!dateVal) continue;
 
-        const target = new Date(dateVal + 'T00:00:00');
+        const isRecurring = Boolean(r.recurring);
+        let target: Date;
+
+        if (isRecurring) {
+          const parts = dateVal.split('-');
+          const month = parseInt(parts[1], 10) - 1;
+          const day = parseInt(parts[2], 10);
+          target = new Date(today.getFullYear(), month, day);
+          if (target < today) {
+            target = new Date(today.getFullYear() + 1, month, day);
+          }
+        } else {
+          target = new Date(dateVal + 'T00:00:00');
+        }
+
         const diffDays = Math.ceil((target.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
         const eventId = `rem_${r.id}_${diffDays}`;
 
