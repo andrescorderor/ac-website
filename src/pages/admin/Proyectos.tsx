@@ -118,6 +118,10 @@ export default function Proyectos() {
     toast.success('Proyecto eliminado');
   };
 
+  const insertBullet = () => {
+    setForm(prev => ({ ...prev, description: prev.description + (prev.description ? '\n• ' : '• ') }));
+  };
+
   const updateStatus = async (id: string, status: string) => {
     await supabase.from('creative_projects').update({ status }).eq('id', id);
     setProjects(projects.map(p => p.id === id ? { ...p, status } : p));
@@ -260,11 +264,20 @@ export default function Proyectos() {
               </div>
 
               <div className="space-y-2">
-                <label className="font-syne text-[10px] font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">Descripción</label>
+                <div className="flex items-center justify-between">
+                  <label className="font-syne text-[10px] font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">Descripción</label>
+                  <button
+                    type="button"
+                    onClick={insertBullet}
+                    className="px-3 py-1 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-lg text-xs font-syne font-bold transition-all"
+                  >
+                    + Agregar Viñeta (•)
+                  </button>
+                </div>
                 <textarea
-                  rows={3} value={form.description} onChange={e => setForm({ ...form, description: e.target.value })}
-                  placeholder="¿De qué trata este proyecto?"
-                  className="w-full px-5 py-3.5 bg-white dark:bg-gray-800 border border-transparent focus:border-[var(--vibrant-sky-blue)] rounded-xl outline-none font-inter text-sm text-gray-900 dark:text-gray-100 placeholder-gray-400 transition-all shadow-sm resize-none"
+                  rows={4} value={form.description} onChange={e => setForm({ ...form, description: e.target.value })}
+                  placeholder="¿De qué trata este proyecto? (Puedes usar saltos de línea y viñetas)"
+                  className="w-full px-5 py-3.5 bg-white dark:bg-gray-800 border border-transparent focus:border-[var(--vibrant-sky-blue)] rounded-xl outline-none font-inter text-sm leading-relaxed text-gray-900 dark:text-gray-100 placeholder-gray-400 transition-all shadow-sm resize-none"
                 />
               </div>
 
@@ -366,7 +379,7 @@ export default function Proyectos() {
                     </div>
 
                     {project.description && (
-                      <p className="font-inter text-sm text-gray-500 dark:text-gray-400 leading-relaxed line-clamp-2">{project.description}</p>
+                      <p className="font-inter text-sm text-gray-600 dark:text-gray-300 font-light leading-relaxed whitespace-pre-wrap">{project.description}</p>
                     )}
 
                     {/* Progress bar */}
