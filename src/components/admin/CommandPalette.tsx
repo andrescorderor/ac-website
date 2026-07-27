@@ -103,17 +103,17 @@ function MarkdownRenderer({ content }: { content: string }) {
   const lines = content.split('\n');
 
   return (
-    <div className="space-y-2 font-inter text-sm leading-relaxed">
+    <div className="space-y-3 font-inter text-sm sm:text-base leading-relaxed sm:leading-7 tracking-normal text-gray-800 dark:text-gray-200">
       {lines.map((rawLine, idx) => {
         const line = rawLine.trim();
-        if (!line) return <div key={idx} className="h-1" />;
+        if (!line) return <div key={idx} className="h-2" />;
 
         // Final follow-up question (e.g. "¿Te gustaría que te ayude...?")
-        if (line.startsWith('¿') || (line.endsWith('?') && line.length < 120)) {
+        if (line.startsWith('¿') || (line.endsWith('?') && line.length < 130)) {
           return (
-            <div key={idx} className="mt-4 p-3 bg-indigo-50/80 dark:bg-indigo-950/40 rounded-xl border border-indigo-200/60 dark:border-indigo-900/50 text-indigo-900 dark:text-indigo-200 text-xs font-inter font-medium flex items-center gap-2">
-              <span className="text-sm">💡</span>
-              <div className="flex-1"><ParseInlineBold text={line} /></div>
+            <div key={idx} className="mt-5 p-3.5 bg-indigo-50/90 dark:bg-indigo-950/60 rounded-2xl border border-indigo-200/70 dark:border-indigo-900/60 text-indigo-900 dark:text-indigo-200 text-xs sm:text-sm font-inter font-medium flex items-start gap-2.5 shadow-sm">
+              <span className="text-base shrink-0 mt-0.5">💡</span>
+              <div className="flex-1 leading-relaxed"><ParseInlineBold text={line} /></div>
             </div>
           );
         }
@@ -121,10 +121,12 @@ function MarkdownRenderer({ content }: { content: string }) {
         // Section header (e.g. "Estilo La Michoacana:" or "**Estilo La Michoacana:**")
         if (line.endsWith(':') && line.length < 80 && !line.startsWith('-') && !line.startsWith('*')) {
           return (
-            <h4 key={idx} className="font-dm-sans font-bold text-sm text-indigo-600 dark:text-indigo-400 pt-3 pb-0.5 tracking-tight flex items-center gap-1.5">
-              <span className="size-1.5 rounded-full bg-indigo-500" />
-              <ParseInlineBold text={line} />
-            </h4>
+            <div key={idx} className="pt-4 pb-1">
+              <h4 className="font-dm-sans font-bold text-sm sm:text-base text-indigo-600 dark:text-indigo-400 tracking-tight flex items-center gap-2 pb-1.5 border-b border-indigo-100 dark:border-indigo-950/60">
+                <span className="size-2 rounded-full bg-indigo-500 shrink-0" />
+                <ParseInlineBold text={line} />
+              </h4>
+            </div>
           );
         }
 
@@ -132,11 +134,11 @@ function MarkdownRenderer({ content }: { content: string }) {
         const numberedMatch = line.match(/^(\d+)\.\s+(.*)/);
         if (numberedMatch) {
           return (
-            <div key={idx} className="flex items-start gap-2.5 pt-2">
-              <span className="flex items-center justify-center size-5 rounded-full bg-indigo-100 dark:bg-indigo-950/80 text-indigo-600 dark:text-indigo-400 font-dm-sans text-[11px] font-bold shrink-0 mt-0.5 shadow-sm">
+            <div key={idx} className="flex items-start gap-3 pt-2 pb-0.5">
+              <span className="flex items-center justify-center size-6 rounded-full bg-indigo-100 dark:bg-indigo-950 text-indigo-600 dark:text-indigo-400 font-dm-sans text-xs font-bold shrink-0 mt-0.5 shadow-sm">
                 {numberedMatch[1]}
               </span>
-              <div className="flex-1 text-gray-900 dark:text-gray-100 font-dm-sans">
+              <div className="flex-1 text-gray-900 dark:text-gray-100 font-dm-sans text-sm sm:text-base leading-snug">
                 <ParseInlineBold text={numberedMatch[2]} />
               </div>
             </div>
@@ -147,9 +149,9 @@ function MarkdownRenderer({ content }: { content: string }) {
         const bulletMatch = line.match(/^[\-\*]\s+(.*)/);
         if (bulletMatch) {
           return (
-            <div key={idx} className="flex items-start gap-2.5 pl-3">
-              <span className="size-1.5 rounded-full bg-indigo-400 dark:bg-indigo-500 shrink-0 mt-2" />
-              <div className="flex-1 text-gray-700 dark:text-gray-300">
+            <div key={idx} className="flex items-start gap-3 pl-3 py-1">
+              <span className="size-2 rounded-full bg-indigo-500 dark:bg-indigo-400 shrink-0 mt-2.5 shadow-xs" />
+              <div className="flex-1 text-gray-700 dark:text-gray-300 text-sm sm:text-base leading-relaxed">
                 <ParseInlineBold text={bulletMatch[1]} />
               </div>
             </div>
@@ -158,7 +160,7 @@ function MarkdownRenderer({ content }: { content: string }) {
 
         // Regular text line
         return (
-          <p key={idx} className="text-gray-800 dark:text-gray-200">
+          <p key={idx} className="text-gray-800 dark:text-gray-200 leading-relaxed">
             <ParseInlineBold text={line} />
           </p>
         );
