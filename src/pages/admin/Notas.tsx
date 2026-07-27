@@ -25,43 +25,7 @@ type Note = {
 
 const categories = ['Todas', 'General', 'Trabajo', 'Personal', 'Ideas', 'Importante'];
 
-/** Component to render note content with auto-linked URLs and strict overflow protection */
-function FormattedNoteContent({ content }: { content: string }) {
-  const lines = content.split('\n');
-
-  return (
-    <div className="font-inter text-sm text-gray-600 dark:text-gray-300 font-light leading-relaxed space-y-1.5 break-words [overflow-wrap:anywhere] overflow-hidden">
-      {lines.map((line, idx) => {
-        if (!line.trim()) return <div key={idx} className="h-1" />;
-
-        const urlRegex = /(https?:\/\/[^\s]+)/g;
-        const parts = line.split(urlRegex);
-
-        return (
-          <div key={idx} className="break-words [overflow-wrap:anywhere]">
-            {parts.map((part, i) => {
-              if (urlRegex.test(part)) {
-                return (
-                  <a
-                    key={i}
-                    href={part}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="text-blue-600 dark:text-blue-400 font-medium underline underline-offset-2 hover:text-blue-700 dark:hover:text-blue-300 break-all inline-flex items-center gap-1 my-0.5"
-                  >
-                    <span className="truncate max-w-[220px] sm:max-w-xs md:max-w-sm">{part}</span>
-                    <HiOutlineExternalLink className="text-xs shrink-0" />
-                  </a>
-                );
-              }
-              return part;
-            })}
-          </div>
-        );
-      })}
-    </div>
-  );
-}
+import AutoFormattedText from '@/components/common/AutoFormattedText';
 
 export default function Notas() {
   const [notes, setNotes] = useState<Note[]>([]);
@@ -459,7 +423,7 @@ export default function Notas() {
                 </div>
 
                 {note.content && (
-                  <FormattedNoteContent content={note.content} />
+                  <AutoFormattedText text={note.content} className="text-sm text-gray-600 dark:text-gray-300 font-light" />
                 )}
               </div>
 

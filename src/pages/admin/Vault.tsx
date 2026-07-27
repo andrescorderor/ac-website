@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { HiOutlinePlus, HiOutlineDuplicate, HiOutlineCheck, HiOutlineTrash } from 'react-icons/hi';
 import { useToast } from '@/components/common/ToastContext';
 import { togglePinItem, isItemPinned } from '@/lib/pinned';
+import AutoFormattedText from '@/components/common/AutoFormattedText';
 
 type VaultItem = {
   id: string;
@@ -254,7 +255,7 @@ export default function Vault() {
 
               <div className="mt-6 space-y-4">
                 <div className="bg-white dark:bg-gray-800 p-4 rounded-2xl border border-gray-100/50 dark:border-gray-700/50 relative overflow-hidden group/content shadow-inner">
-                  <p className="font-mono text-sm text-gray-600 dark:text-gray-300 break-all pr-8">{item.content}</p>
+                  <AutoFormattedText text={item.content} className="font-mono text-sm text-gray-600 dark:text-gray-300 pr-8" />
                 </div>
                 
                 <button 

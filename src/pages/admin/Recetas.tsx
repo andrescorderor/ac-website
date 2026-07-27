@@ -14,6 +14,7 @@ import {
 } from 'react-icons/hi';
 import { useToast } from '@/components/common/ToastContext';
 import { togglePinItem, isItemPinned } from '@/lib/pinned';
+import AutoFormattedText from '@/components/common/AutoFormattedText';
 
 type Ingredient = {
   id: string;
@@ -461,7 +462,7 @@ export default function Recetas() {
                     </div>
 
                     {recipe.description && (
-                      <p className="font-inter text-sm text-gray-600 dark:text-gray-300 font-light leading-relaxed whitespace-pre-wrap">{recipe.description}</p>
+                      <AutoFormattedText text={recipe.description} className="text-sm text-gray-600 dark:text-gray-300 font-light" />
                     )}
 
                     {/* Progress bar */}

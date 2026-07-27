@@ -16,6 +16,7 @@ import {
 } from 'react-icons/hi';
 import { useToast } from '@/components/common/ToastContext';
 import { togglePinItem, isItemPinned } from '@/lib/pinned';
+import AutoFormattedText from '@/components/common/AutoFormattedText';
 
 type Reminder = {
   id: string;
@@ -554,9 +555,7 @@ function ReminderCard({ r, onDelete }: { r: Reminder; onDelete: (id: string) => 
       </div>
 
       {r.notes && (
-        <div className="font-inter text-sm text-gray-600 dark:text-gray-300 font-light leading-relaxed whitespace-pre-wrap pt-3 border-t border-gray-100 dark:border-gray-800/50">
-          {r.notes}
-        </div>
+        <AutoFormattedText text={r.notes} className="text-sm text-gray-600 dark:text-gray-300 font-light pt-3 border-t border-gray-100 dark:border-gray-800/50" />
       )}
     </motion.div>
   );

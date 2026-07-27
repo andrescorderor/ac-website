@@ -5,6 +5,7 @@ import { HiOutlinePlus, HiOutlineTrash, HiOutlineCheckCircle, HiOutlineSearch } 
 import { MdOutlineCircle } from 'react-icons/md';
 import { useToast } from '@/components/common/ToastContext';
 import { togglePinItem, isItemPinned } from '@/lib/pinned';
+import AutoFormattedText from '@/components/common/AutoFormattedText';
 
 type Task = {
   id: string;
@@ -316,7 +317,7 @@ export default function Pendientes() {
                 </h4>
 
                 {task.description && (
-                  <p className="font-inter text-sm text-gray-500 dark:text-gray-400 font-light leading-relaxed">{task.description}</p>
+                  <AutoFormattedText text={task.description} className="text-sm text-gray-500 dark:text-gray-400 font-light" />
                 )}
 
                 {task.due_date && (
