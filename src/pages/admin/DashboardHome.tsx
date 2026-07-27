@@ -218,7 +218,7 @@ export default function DashboardHome() {
 
   const cards = [
     { 
-      label: 'Gastos Mensuales', 
+      label: 'Tesorería & Gastos 💰', 
       rawVal: `$${stats.expenses.toLocaleString()}`,
       isMonetary: true,
       icon: HiOutlineCurrencyDollar, 
@@ -226,7 +226,7 @@ export default function DashboardHome() {
       path: '/admin/panel/finanzas' 
     },
     { 
-      label: 'Tareas Pendientes', 
+      label: 'Misiones Activas (Quests) ⚔️', 
       rawVal: stats.tasks, 
       isMonetary: false,
       icon: HiOutlineClipboardList, 
@@ -234,7 +234,7 @@ export default function DashboardHome() {
       path: '/admin/panel/pendientes' 
     },
     { 
-      label: 'Cuentas por Cobrar', 
+      label: 'Recompensas Pendientes 🎯', 
       rawVal: `$${stats.debts.toLocaleString()}`, 
       isMonetary: true,
       icon: HiOutlineUserGroup, 
@@ -242,7 +242,7 @@ export default function DashboardHome() {
       path: '/admin/panel/deudas' 
     },
     { 
-      label: 'Textos en Bóveda', 
+      label: 'Pergaminos en Grimorio 🔒', 
       rawVal: stats.vault, 
       isMonetary: false,
       icon: HiOutlineLockClosed, 
@@ -250,7 +250,7 @@ export default function DashboardHome() {
       path: '/admin/panel/vault' 
     },
     { 
-      label: 'Lista de Compras', 
+      label: 'Inventario & Mercado 🛒', 
       rawVal: stats.shopping, 
       isMonetary: false,
       icon: HiOutlineShoppingBag, 
@@ -258,7 +258,7 @@ export default function DashboardHome() {
       path: '/admin/panel/compras' 
     },
     { 
-      label: 'Recordatorios', 
+      label: 'Eventos del Oráculo ⏳', 
       rawVal: stats.reminders, 
       isMonetary: false,
       icon: HiOutlineCalendar, 
@@ -266,7 +266,7 @@ export default function DashboardHome() {
       path: '/admin/panel/recordatorios' 
     },
     { 
-      label: 'Notas Importantes', 
+      label: 'Pergaminos de Lore 📜', 
       rawVal: stats.notes, 
       isMonetary: false,
       icon: HiOutlineDocumentText, 
@@ -274,7 +274,7 @@ export default function DashboardHome() {
       path: '/admin/panel/notas' 
     },
     { 
-      label: 'Proyectos Creativos', 
+      label: 'Habilidades & Crafting 🛠️', 
       rawVal: stats.projects, 
       isMonetary: false,
       icon: HiOutlineColorSwatch, 
@@ -282,7 +282,7 @@ export default function DashboardHome() {
       path: '/admin/panel/proyectos' 
     },
     { 
-      label: 'Checklist del Mes', 
+      label: 'Raids del Mes 🐲', 
       rawVal: `${stats.checklist} completados`, 
       isMonetary: false,
       icon: HiOutlineCheckCircle, 
@@ -290,7 +290,7 @@ export default function DashboardHome() {
       path: '/admin/panel/checklist' 
     },
     { 
-      label: 'Mis Recetas', 
+      label: 'Alquimia & Pociones 🧪', 
       rawVal: stats.recipes, 
       isMonetary: false,
       icon: HiOutlineBookOpen, 

@@ -11,6 +11,7 @@ import {
   scanAndNotifyUpcomingEvents 
 } from '@/lib/notifications';
 import CommandPalette from '@/components/admin/CommandPalette';
+import RpgPlayerHud from '@/components/admin/RpgPlayerHud';
 import { syncPinnedItemsWithSupabase } from '@/lib/pinned';
 import { 
   HiOutlineViewGrid, 
@@ -37,25 +38,25 @@ import {
 } from 'react-icons/hi';
 
 const menuItems = [
-  { icon: HiOutlineViewGrid, label: 'Inicio', path: '/admin/panel' },
-  { icon: HiOutlineCurrencyDollar, label: 'Finanzas', path: '/admin/panel/finanzas' },
-  { icon: HiOutlineClipboardList, label: 'Pendientes', path: '/admin/panel/pendientes' },
-  { icon: HiOutlineUserGroup, label: 'Deudas', path: '/admin/panel/deudas' },
-  { icon: HiOutlineLockClosed, label: 'Bóveda', path: '/admin/panel/vault' },
-  { icon: HiOutlineShoppingBag, label: 'Compras', path: '/admin/panel/compras' },
-  { icon: HiOutlineCalendar, label: 'Fechas', path: '/admin/panel/recordatorios' },
-  { icon: HiOutlineDocumentText, label: 'Notas', path: '/admin/panel/notas' },
-  { icon: HiOutlineColorSwatch, label: 'Proyectos', path: '/admin/panel/proyectos' },
-  { icon: HiOutlineCheckCircle, label: 'Checklist', path: '/admin/panel/checklist' },
-  { icon: HiOutlineBookOpen, label: 'Recetas', path: '/admin/panel/recetas' },
+  { icon: HiOutlineViewGrid, label: 'Héroe & HUD', path: '/admin/panel' },
+  { icon: HiOutlineCurrencyDollar, label: 'Tesorería & Botín', path: '/admin/panel/finanzas' },
+  { icon: HiOutlineClipboardList, label: 'Misiones (Quests)', path: '/admin/panel/pendientes' },
+  { icon: HiOutlineUserGroup, label: 'Recompensas & Deudas', path: '/admin/panel/deudas' },
+  { icon: HiOutlineLockClosed, label: 'Grimorio Secreto', path: '/admin/panel/vault' },
+  { icon: HiOutlineShoppingBag, label: 'Mercado de Objetos', path: '/admin/panel/compras' },
+  { icon: HiOutlineCalendar, label: 'Oráculo del Tiempo', path: '/admin/panel/recordatorios' },
+  { icon: HiOutlineDocumentText, label: 'Pergaminos & Lore', path: '/admin/panel/notas' },
+  { icon: HiOutlineColorSwatch, label: 'Árbol de Habilidades', path: '/admin/panel/proyectos' },
+  { icon: HiOutlineCheckCircle, label: 'Raids Mensuales', path: '/admin/panel/checklist' },
+  { icon: HiOutlineBookOpen, label: 'Alquimia & Pociones', path: '/admin/panel/recetas' },
 ];
 
 // Bottom nav shows only the most-used 5 modules for thumb-friendly mobile nav
 const bottomNavItems = [
-  { icon: HiOutlineViewGrid, label: 'Inicio', path: '/admin/panel' },
-  { icon: HiOutlineCurrencyDollar, label: 'Finanzas', path: '/admin/panel/finanzas' },
-  { icon: HiOutlineClipboardList, label: 'Tareas', path: '/admin/panel/pendientes' },
-  { icon: HiOutlineBookOpen, label: 'Recetas', path: '/admin/panel/recetas' },
+  { icon: HiOutlineViewGrid, label: 'HUD', path: '/admin/panel' },
+  { icon: HiOutlineCurrencyDollar, label: 'Botín', path: '/admin/panel/finanzas' },
+  { icon: HiOutlineClipboardList, label: 'Misiones', path: '/admin/panel/pendientes' },
+  { icon: HiOutlineBookOpen, label: 'Alquimia', path: '/admin/panel/recetas' },
   { icon: HiOutlineDotsHorizontal, label: 'Más', path: null },
 ];
 
@@ -460,6 +461,8 @@ function DashboardLayoutContent() {
           </div>
 
           <div className="flex items-center gap-4 shrink-0">
+            <RpgPlayerHud />
+
             <button
               onClick={handleToggleNotifications}
               className="flex items-center gap-2 px-4 py-2 bg-gray-100 dark:bg-gray-800 rounded-xl border border-gray-200/60 dark:border-gray-700/60 text-xs font-syne font-bold uppercase tracking-wider text-gray-700 dark:text-gray-200 hover:scale-105 active:scale-95 transition-all"

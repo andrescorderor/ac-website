@@ -7,6 +7,7 @@ import { useToast } from '@/components/common/ToastContext';
 import { togglePinItem, isItemPinned } from '@/lib/pinned';
 import { useSearchParams } from 'react-router-dom';
 import AutoFormattedText from '@/components/common/AutoFormattedText';
+import { addXp } from '@/lib/gamification';
 
 type Task = {
   id: string;
@@ -95,13 +96,19 @@ export default function Pendientes() {
 
   const toggleTask = async (id: string, currentStatus: boolean) => {
     try {
-      const { error } = await supabase.from('tasks').update({ completed: !currentStatus }).eq('id', id);
+      const isCompleting = !currentStatus;
+      const { error } = await supabase.from('tasks').update({ completed: isCompleting }).eq('id', id);
       if (error) throw error;
 
-      setTasks(tasks.map((t) => (t.id === id ? { ...t, completed: !currentStatus } : t)));
-      toast.info(!currentStatus ? 'Tarea completada 🎉' : 'Tarea reabierta');
+      setTasks(tasks.map((t) => (t.id === id ? { ...t, completed: isCompleting } : t)));
+      if (isCompleting) {
+        addXp(25, 'Misión completada');
+        toast.success('¡Misión Completada! ⚔️ +25 XP 🌟 | +12 🪙 Oro');
+      } else {
+        toast.info('Misión reabierta 🔄');
+      }
     } catch (err: any) {
-      toast.error('Error al actualizar tarea: ' + err.message);
+      toast.error('Error al actualizar misión: ' + err.message);
     }
   };
 
