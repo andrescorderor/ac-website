@@ -35,6 +35,7 @@ type SearchResult = {
   icon: React.ElementType;
   categoryLabel: string;
   badgeColor: string;
+  rawTitle?: string;
 };
 
 type ChatMessage = {
@@ -219,9 +220,12 @@ export default function CommandPalette({ isOpen, onClose }: CommandPaletteProps)
     }
   }, [aiChat, aiThinking, mode]);
 
-  const handleSelectResult = (path: string, title?: string) => {
+  const handleSelectResult = (path: string, item?: SearchResult) => {
     onClose();
-    const targetUrl = title ? `${path}?search=${encodeURIComponent(title)}` : path;
+    let cleanTitle = item?.rawTitle || item?.title || '';
+    // Strip leading emojis and whitespace
+    cleanTitle = cleanTitle.replace(/^[\u{1F600}-\u{1F64F}\u{1F300}-\u{1F5FF}\u{1F680}-\u{1F6FF}\u{1F1E0}-\u{1F1FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}\s]+/gu, '').trim();
+    const targetUrl = cleanTitle ? `${path}?search=${encodeURIComponent(cleanTitle)}` : path;
     navigate(targetUrl);
   };
 
@@ -240,7 +244,7 @@ export default function CommandPalette({ isOpen, onClose }: CommandPaletteProps)
       }
       if (e.key === 'Enter' && activeIndex >= 0 && results[activeIndex]) {
         const item = results[activeIndex];
-        handleSelectResult(item.path, item.title);
+        handleSelectResult(item.path, item);
       }
     };
     window.addEventListener('keydown', handle);
@@ -355,19 +359,19 @@ export default function CommandPalette({ isOpen, onClose }: CommandPaletteProps)
 
       prj.data?.forEach(p => {
         if (!term || p.name.toLowerCase().includes(term) || p.description?.toLowerCase().includes(term) || p.category?.toLowerCase().includes(term)) {
-          push({ id: p.id, type: 'project', title: `${p.emoji || '🎨'} ${p.name}`, subtitle: p.category, path: '/admin/panel/proyectos', icon: TYPE_META.project.icon, categoryLabel: TYPE_META.project.label, badgeColor: TYPE_META.project.color });
+          push({ id: p.id, type: 'project', title: `${p.emoji || '🎨'} ${p.name}`, subtitle: p.category, path: '/admin/panel/proyectos', icon: TYPE_META.project.icon, categoryLabel: TYPE_META.project.label, badgeColor: TYPE_META.project.color, rawTitle: p.name });
         }
       });
 
       chk.data?.forEach(c => {
         if (!term || c.title.toLowerCase().includes(term) || c.category?.toLowerCase().includes(term)) {
-          push({ id: c.id, type: 'checklist', title: c.title, subtitle: c.category, path: '/admin/panel/checklist', icon: TYPE_META.checklist.icon, categoryLabel: TYPE_META.checklist.label, badgeColor: TYPE_META.checklist.color });
+          push({ id: c.id, type: 'checklist', title: c.title, subtitle: c.category, path: '/admin/panel/checklist', icon: TYPE_META.checklist.icon, categoryLabel: TYPE_META.checklist.label, badgeColor: TYPE_META.checklist.color, rawTitle: c.title });
         }
       });
 
       rec.data?.forEach(r => {
         if (!term || r.name.toLowerCase().includes(term) || r.category?.toLowerCase().includes(term) || r.description?.toLowerCase().includes(term)) {
-          push({ id: r.id, type: 'recipe', title: `${r.emoji || '🍽️'} ${r.name}`, subtitle: r.category, path: '/admin/panel/recetas', icon: TYPE_META.recipe.icon, categoryLabel: TYPE_META.recipe.label, badgeColor: TYPE_META.recipe.color });
+          push({ id: r.id, type: 'recipe', title: `${r.emoji || '🍽️'} ${r.name}`, subtitle: r.category, path: '/admin/panel/recetas', icon: TYPE_META.recipe.icon, categoryLabel: TYPE_META.recipe.label, badgeColor: TYPE_META.recipe.color, rawTitle: r.name });
         }
       });
 
@@ -713,7 +717,7 @@ REGLAS OBLIGATORIAS:
                                 data-idx={globalIdx}
                                 initial={{ opacity: 0, y: 4 }}
                                 animate={{ opacity: 1, y: 0 }}
-                                onClick={() => handleSelectResult(res.path, res.title)}
+                                onClick={() => handleSelectResult(res.path, res)}
                                 onMouseEnter={() => setActiveIndex(globalIdx)}
                                 className={`group flex items-center justify-between gap-3 px-3 py-3 rounded-2xl cursor-pointer transition-all ${
                                   isActive
