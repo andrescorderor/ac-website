@@ -309,24 +309,45 @@ DATOS ACTUALES DEL PANEL DE ANDRÉS:
 Pregunta del usuario: "${promptText}"
 `.trim();
 
-      const response = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            contents: [{ parts: [{ text: systemContext }] }],
-          }),
+      const candidateModels = [
+        'gemini-2.0-flash',
+        'gemini-1.5-flash-latest',
+        'gemini-2.5-flash',
+        'gemini-1.5-pro',
+      ];
+
+      let answer = '';
+      let lastError = '';
+
+      for (const modelName of candidateModels) {
+        try {
+          const res = await fetch(
+            `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`,
+            {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                contents: [{ parts: [{ text: systemContext }] }],
+              }),
+            }
+          );
+          const data = await res.json();
+          if (data.candidates?.[0]?.content?.parts?.[0]?.text) {
+            answer = data.candidates[0].content.parts[0].text;
+            break;
+          }
+          if (data.error) {
+            lastError = data.error.message;
+          }
+        } catch (e: any) {
+          lastError = e.message;
         }
-      );
-
-      const data = await response.json();
-
-      if (data.error) {
-        throw new Error(data.error.message || 'Error en Gemini API');
       }
 
-      const answer = data.candidates?.[0]?.content?.parts?.[0]?.text || 'No pude procesar una respuesta.';
+      if (!answer) {
+        throw new Error(lastError || 'No se pudo conectar con ningún modelo de Gemini.');
+      }
+
       setAiChat([...newChat, { role: 'assistant', content: answer }]);
     } catch (err: any) {
       toast.error('Error al consultar IA: ' + err.message);
