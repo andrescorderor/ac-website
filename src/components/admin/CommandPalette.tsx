@@ -350,12 +350,18 @@ export default function CommandPalette({ isOpen, onClose }: CommandPaletteProps)
     toast.success('¡Gemini API Key guardada!');
   };
 
+  const getActiveApiKey = () => {
+    return import.meta.env.VITE_GEMINI_API_KEY || apiKey || localStorage.getItem('ac_gemini_api_key') || '';
+  };
+
   const handleAskAI = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
     const promptText = aiPrompt.trim();
     if (!promptText || aiThinking) return;
 
-    if (!apiKey) {
+    const currentKey = getActiveApiKey();
+
+    if (!currentKey) {
       setShowKeyConfig(true);
       return;
     }
@@ -420,7 +426,7 @@ ${chk.data?.map(c => `- ${c.title} [${c.category}]`).join('\n') || 'Ninguno'}
       // Dynamic Discovery via ListModels API
       let discoveredModels: string[] = [];
       try {
-        const listRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`);
+        const listRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${currentKey}`);
         const listData = await listRes.json();
         if (listData.models && Array.isArray(listData.models)) {
           discoveredModels = listData.models
@@ -460,7 +466,7 @@ REGLAS OBLIGATORIAS:
         for (const apiVer of ['v1beta', 'v1']) {
           try {
             const res = await fetch(
-              `https://generativelanguage.googleapis.com/${apiVer}/models/${modelName}:generateContent?key=${apiKey}`,
+              `https://generativelanguage.googleapis.com/${apiVer}/models/${modelName}:generateContent?key=${currentKey}`,
               {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -725,14 +731,14 @@ REGLAS OBLIGATORIAS:
             {mode === 'ai' && (
               <div className="flex-1 flex flex-col overflow-hidden min-h-[360px]">
                 {/* API Key Config Banner / Modal */}
-                {(!apiKey || showKeyConfig) && (
+                {(!getActiveApiKey() || showKeyConfig) && (
                   <div className="p-4 bg-amber-50/80 dark:bg-amber-950/40 border-b border-amber-200/50 dark:border-amber-900/40 space-y-3">
                     <div className="flex items-start justify-between gap-2">
                       <div className="flex items-center gap-2 text-amber-700 dark:text-amber-300 font-syne text-xs font-bold uppercase tracking-wider">
                         <HiOutlineKey className="text-base" />
                         <span>Configurar Gemini API Key (100% Gratis)</span>
                       </div>
-                      {apiKey && (
+                      {getActiveApiKey() && (
                         <button onClick={() => setShowKeyConfig(false)} className="text-xs text-gray-400 hover:text-gray-600">Ocultar</button>
                       )}
                     </div>
