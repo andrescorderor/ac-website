@@ -806,10 +806,10 @@ REGLAS OBLIGATORIAS:
                           </div>
                         )}
                         <div
-                          className={`max-w-[88%] px-4.5 py-3.5 rounded-2xl shadow-sm ${
+                          className={`shadow-sm ${
                             msg.role === 'user'
-                              ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-tr-none font-inter text-sm leading-relaxed border border-blue-500/20'
-                              : 'bg-gray-100/90 dark:bg-gray-900/90 text-gray-900 dark:text-gray-100 rounded-tl-none border border-gray-200/70 dark:border-gray-800/70'
+                              ? 'max-w-[85%] px-5 py-3.5 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-2xl rounded-tr-none font-inter text-sm leading-relaxed border border-blue-500/20'
+                              : 'max-w-[96%] p-6 sm:p-7 bg-gray-100/90 dark:bg-gray-900/90 text-gray-900 dark:text-gray-100 rounded-3xl rounded-tl-none border border-gray-200/70 dark:border-gray-800/70'
                           }`}
                         >
                           {msg.role === 'user' ? (
