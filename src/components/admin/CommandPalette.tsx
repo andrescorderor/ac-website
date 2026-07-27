@@ -278,41 +278,56 @@ export default function CommandPalette({ isOpen, onClose }: CommandPaletteProps)
     try {
       // Fetch full database snapshot for context
       const [exp, tsk, dbt, vlt, shp, rem, nts, prj, chk, rec] = await Promise.all([
-        supabase.from('finance_expenses').select('amount, category, date, concept').limit(30),
-        supabase.from('tasks').select('title, completed, due_date, status').limit(30),
-        supabase.from('debts').select('debtor_name, amount, concept, settled').limit(30),
-        supabase.from('vault_items').select('title, category').limit(30),
-        supabase.from('shopping_list').select('name, location, bought, quantity').limit(30),
-        supabase.from('reminders').select('title, category, date, time').limit(30),
-        supabase.from('notes').select('title, category, content').limit(30),
-        supabase.from('creative_projects').select('name, category, status, description').limit(30),
-        supabase.from('monthly_checklist_items').select('title, category').limit(30),
-        supabase.from('recipes').select('name, category, ingredients, description').limit(30),
+        supabase.from('finance_expenses').select('amount, category, date, concept').order('date', { ascending: false }).limit(25),
+        supabase.from('tasks').select('title, completed, due_date').order('created_at', { ascending: false }).limit(25),
+        supabase.from('debts').select('debtor_name, amount, concept, settled').order('created_at', { ascending: false }).limit(25),
+        supabase.from('vault_items').select('title, category').limit(25),
+        supabase.from('shopping_list').select('name, location, bought, quantity').limit(25),
+        supabase.from('reminders').select('title, category, date, time').order('date', { ascending: false }).limit(25),
+        supabase.from('notes').select('title, category, content').order('created_at', { ascending: false }).limit(25),
+        supabase.from('creative_projects').select('name, category, status, description').limit(25),
+        supabase.from('monthly_checklist_items').select('title, category').limit(25),
+        supabase.from('recipes').select('name, category, ingredients, description').limit(25),
       ]);
 
-      const systemContext = `
-Eres el Asistente Privado IA de Andrés en su panel personal. Tienes acceso completo de lectura a la base de datos de su panel.
-Responde de forma concisa, clara, estructurada con viñetas o listas y amigable en español.
+      const formattedContext = `
+📌 TAREAS:
+${tsk.data?.map(t => `- [${t.completed ? 'Completada' : 'Pendiente'}] ${t.title}${t.due_date ? ` (Vence: ${t.due_date})` : ''}`).join('\n') || 'Ninguna'}
 
-DATOS ACTUALES DEL PANEL DE ANDRÉS:
-- Tareas pendientes (${tsk.data?.filter(t => !t.completed).length || 0}): ${JSON.stringify(tsk.data || [])}
-- Gastos registrados: ${JSON.stringify(exp.data || [])}
-- Deudas / Cuentas por cobrar: ${JSON.stringify(dbt.data || [])}
-- Bóveda (títulos): ${JSON.stringify(vlt.data || [])}
-- Lista de compras: ${JSON.stringify(shp.data || [])}
-- Fechas/Recordatorios: ${JSON.stringify(rem.data || [])}
-- Notas importantes: ${JSON.stringify(nts.data || [])}
-- Proyectos creativos: ${JSON.stringify(prj.data || [])}
-- Checklist mensual: ${JSON.stringify(chk.data || [])}
-- Recetas guardadas: ${JSON.stringify(rec.data || [])}
+💰 DEUDAS / CUENTAS POR COBRAR:
+${dbt.data?.map(d => `- [${d.settled ? 'Cobrada' : 'Pendiente'}] ${d.debtor_name}: $${d.amount}${d.concept ? ` (${d.concept})` : ''}`).join('\n') || 'Ninguna'}
 
-Pregunta del usuario: "${promptText}"
+📊 GASTOS RECIENTES:
+${exp.data?.map(e => `- $${e.amount} [${e.category}] ${e.concept || ''} (${e.date})`).join('\n') || 'Ninguno'}
+
+🍽️ RECETAS GUARDADAS:
+${rec.data?.map(r => `- ${r.name} [Categoría: ${r.category}]${r.ingredients ? ` (Ingredientes: ${r.ingredients.map((i: any) => i.name).join(', ')})` : ''}`).join('\n') || 'Ninguna'}
+
+🎨 PROYECTOS CREATIVOS:
+${prj.data?.map(p => `- ${p.name} [Categoría: ${p.category}, Estado: ${p.status}]${p.description ? `: ${p.description}` : ''}`).join('\n') || 'Ninguno'}
+
+📅 FECHAS / RECORDATORIOS:
+${rem.data?.map(r => `- ${r.title} [${r.category}] Fecha: ${r.date || 'Sin fecha'}${r.time ? ` ${r.time}` : ''}`).join('\n') || 'Ninguno'}
+
+🔒 BÓVEDA (TÍTULOS):
+${vlt.data?.map(v => `- ${v.title} [${v.category}]`).join('\n') || 'Ninguno'}
+
+📝 NOTAS IMPORTANTES:
+${nts.data?.map(n => `- ${n.title} [${n.category}]: ${n.content?.slice(0, 100) || ''}`).join('\n') || 'Ninguna'}
+
+🛒 LISTA DE COMPRAS:
+${shp.data?.map(s => `- [${s.bought ? 'Comprado' : 'Por comprar'}] ${s.name}${s.location ? ` @ ${s.location}` : ''}`).join('\n') || 'Ninguna'}
+
+📋 CHECKLIST MENSUAL:
+${chk.data?.map(c => `- ${c.title} [${c.category}]`).join('\n') || 'Ninguno'}
 `.trim();
+
+      const userPromptBody = `DATOS ACTUALES DEL PANEL:\n${formattedContext}\n\nPREGUNTA DE ANDRÉS: "${promptText}"`;
 
       let answer = '';
       let lastError = '';
 
-      // 1. Dynamic Discovery via ListModels API
+      // Dynamic Discovery via ListModels API
       let discoveredModels: string[] = [];
       try {
         const listRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`);
@@ -323,10 +338,9 @@ Pregunta del usuario: "${promptText}"
             .map((m: any) => m.name.replace('models/', ''));
         }
       } catch (e) {
-        // Fallback to static list if ListModels is restricted
+        // Fallback
       }
 
-      // Priority candidates
       const fallbackList = [
         'gemini-2.0-flash',
         'gemini-2.0-flash-exp',
@@ -336,11 +350,23 @@ Pregunta del usuario: "${promptText}"
         'gemini-1.5-pro',
       ];
 
-      // Merge discovered models with fallback, keeping discovered first
       const candidateModels = Array.from(new Set([...discoveredModels, ...fallbackList]));
 
+      const requestPayload = {
+        system_instruction: {
+          parts: [{
+            text: `Eres el Asistente Privado de Andrés en su panel personal.
+REGLAS OBLIGATORIAS:
+1. Responde DIRECTAMENTE a Andrés en español con un tono humano, atento, útil y profesional.
+2. NUNCA escribas tu proceso de pensamiento, planeación, "thinking", razonamiento ni análisis interno en inglés ni en español.
+3. NO incluyas encabezados como "User:", "Context:", "Role:", "Input Data:", "Drafting the response:", etc.
+4. Responde con un formato limpio y estructurado usando viñetas o números cuando des listas.`
+          }]
+        },
+        contents: [{ parts: [{ text: userPromptBody }] }]
+      };
+
       for (const modelName of candidateModels) {
-        // Try v1beta first, then v1
         for (const apiVer of ['v1beta', 'v1']) {
           try {
             const res = await fetch(
@@ -348,9 +374,7 @@ Pregunta del usuario: "${promptText}"
               {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                  contents: [{ parts: [{ text: systemContext }] }],
-                }),
+                body: JSON.stringify(requestPayload),
               }
             );
             const data = await res.json();
@@ -369,10 +393,21 @@ Pregunta del usuario: "${promptText}"
       }
 
       if (!answer) {
-        throw new Error(lastError || 'No se pudo conectar con ningún modelo de Gemini.');
+        throw new Error(lastError || 'No se pudo obtener respuesta de la API.');
       }
 
-      setAiChat([...newChat, { role: 'assistant', content: answer }]);
+      // Sanitize any residual thinking/scratchpad text just in case
+      let cleanAnswer = answer;
+      if (cleanAnswer.includes('Drafting the response:') || cleanAnswer.includes('Drafting response:')) {
+        cleanAnswer = cleanAnswer.split(/Drafting (?:the )?response:/i).pop() || cleanAnswer;
+      }
+      cleanAnswer = cleanAnswer
+        .split('\n')
+        .filter(line => !/^\s*\*\s*(User|Context|Role|Input Data|User Question|I need to|Specifically|Constraint Check):/i.test(line))
+        .join('\n')
+        .trim();
+
+      setAiChat([...newChat, { role: 'assistant', content: cleanAnswer }]);
     } catch (err: any) {
       toast.error('Error al consultar IA: ' + err.message);
       setAiChat([...newChat, { role: 'assistant', content: '❌ Ocurrió un error al consultar la API de Gemini: ' + err.message }]);
