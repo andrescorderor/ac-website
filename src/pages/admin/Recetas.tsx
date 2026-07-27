@@ -182,7 +182,15 @@ export default function Recetas() {
 
   const filtered = recipes
     .filter(r => filterCategory === 'Todas' || r.category === filterCategory)
-    .filter(r => !searchTerm || r.name.toLowerCase().includes(searchTerm.toLowerCase()));
+    .filter(r => {
+      if (!searchTerm) return true;
+      const term = searchTerm.toLowerCase().trim();
+      const nameMatch = r.name.toLowerCase().includes(term);
+      const descMatch = r.description ? r.description.toLowerCase().includes(term) : false;
+      const catMatch = r.category ? r.category.toLowerCase().includes(term) : false;
+      const ingMatch = Array.isArray(r.ingredients) ? r.ingredients.some(ing => ing.name?.toLowerCase().includes(term)) : false;
+      return nameMatch || descMatch || catMatch || ingMatch;
+    });
 
   const handleTogglePin = (e: React.MouseEvent, recipe: Recipe) => {
     e.stopPropagation();
