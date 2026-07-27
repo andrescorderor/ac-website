@@ -263,16 +263,48 @@ export default function CommandPalette({ isOpen, onClose }: CommandPaletteProps)
     const term = searchTerm.toLowerCase().trim();
 
     try {
+      let notesQ = supabase.from('notes').select('*').order('created_at', { ascending: false });
+      let remindersQ = supabase.from('reminders').select('*').order('created_at', { ascending: false });
+      let tasksQ = supabase.from('tasks').select('*').order('created_at', { ascending: false });
+      let debtsQ = supabase.from('debts').select('*').order('created_at', { ascending: false });
+      let vaultQ = supabase.from('vault_items').select('*').order('created_at', { ascending: false });
+      let shoppingQ = supabase.from('shopping_list').select('*').order('created_at', { ascending: false });
+      let projectsQ = supabase.from('creative_projects').select('*').order('created_at', { ascending: false });
+      let checklistQ = supabase.from('monthly_checklist_items').select('*').order('created_at', { ascending: false });
+      let recipesQ = supabase.from('recipes').select('*').order('created_at', { ascending: false });
+
+      if (term) {
+        notesQ = notesQ.or(`title.ilike.%${term}%,content.ilike.%${term}%,category.ilike.%${term}%`).limit(50);
+        remindersQ = remindersQ.or(`title.ilike.%${term}%,category.ilike.%${term}%`).limit(50);
+        tasksQ = tasksQ.or(`title.ilike.%${term}%,description.ilike.%${term}%`).limit(50);
+        debtsQ = debtsQ.or(`debtor_name.ilike.%${term}%,concept.ilike.%${term}%`).limit(50);
+        vaultQ = vaultQ.or(`title.ilike.%${term}%,category.ilike.%${term}%`).limit(50);
+        shoppingQ = shoppingQ.or(`name.ilike.%${term}%,location.ilike.%${term}%`).limit(50);
+        projectsQ = projectsQ.or(`name.ilike.%${term}%,description.ilike.%${term}%,category.ilike.%${term}%`).limit(50);
+        checklistQ = checklistQ.or(`title.ilike.%${term}%,category.ilike.%${term}%`).limit(50);
+        recipesQ = recipesQ.or(`name.ilike.%${term}%,description.ilike.%${term}%,category.ilike.%${term}%`).limit(50);
+      } else {
+        notesQ = notesQ.limit(20);
+        remindersQ = remindersQ.limit(20);
+        tasksQ = tasksQ.limit(20);
+        debtsQ = debtsQ.limit(20);
+        vaultQ = vaultQ.limit(20);
+        shoppingQ = shoppingQ.limit(20);
+        projectsQ = projectsQ.limit(20);
+        checklistQ = checklistQ.limit(20);
+        recipesQ = recipesQ.limit(20);
+      }
+
       const [nts, rem, tsk, dbt, vlt, shp, prj, chk, rec] = await Promise.all([
-        supabase.from('notes').select('*').order('created_at', { ascending: false }).limit(12),
-        supabase.from('reminders').select('*').order('created_at', { ascending: false }).limit(12),
-        supabase.from('tasks').select('*').order('created_at', { ascending: false }).limit(12),
-        supabase.from('debts').select('*').order('created_at', { ascending: false }).limit(12),
-        supabase.from('vault_items').select('*').order('created_at', { ascending: false }).limit(12),
-        supabase.from('shopping_list').select('*').order('created_at', { ascending: false }).limit(12),
-        supabase.from('creative_projects').select('*').order('created_at', { ascending: false }).limit(12),
-        supabase.from('monthly_checklist_items').select('*').order('created_at', { ascending: false }).limit(12),
-        supabase.from('recipes').select('*').order('created_at', { ascending: false }).limit(12),
+        notesQ,
+        remindersQ,
+        tasksQ,
+        debtsQ,
+        vaultQ,
+        shoppingQ,
+        projectsQ,
+        checklistQ,
+        recipesQ,
       ]);
 
       const items: SearchResult[] = [];
