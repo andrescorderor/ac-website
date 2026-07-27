@@ -23,7 +23,6 @@ import Notas from '@pages/admin/Notas';
 import Proyectos from '@pages/admin/Proyectos';
 import ChecklistMensual from '@pages/admin/ChecklistMensual';
 import Recetas from '@pages/admin/Recetas';
-import Asistente from '@pages/admin/Asistente';
 
 registerSW({ immediate: true });
 
@@ -93,10 +92,6 @@ const router = createBrowserRouter([
       {
         path: 'recetas',
         element: <Recetas />,
-      },
-      {
-        path: 'asistente',
-        element: <Asistente />,
       },
     ],
   },

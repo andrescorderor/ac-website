@@ -42,7 +42,7 @@ The productivity hub is a mobile-optimized private dashboard with specialized mo
 ### ✨ Premium UX Design
 *   👁️ **Global Privacy Mode & Dark Mode Default:** One-click toggle to mask financial values and default high-contrast dark theme.
 *   📌 **Universal Pinned Items Section:** Pin any item (notes, reminders, tasks, debts, vault items, shopping items) directly from module cards or search, and view them on the main dashboard home.
-*   🔍 **Global Command Palette (`Ctrl + K` / `Cmd + K`):** Instant search modal covering all 9 modules simultaneously, with keyboard navigation (↑↓ Enter), result highlighting, category grouping, and skeleton loaders.
+*   🔍 **Global Command Palette (`Ctrl + K` / `Cmd + K`):** Dual-mode search modal covering all 9 modules simultaneously, keyboard navigation, result highlighting, category grouping, and **🤖 100% Free AI Assistant Mode** powered by Gemini 1.5 Flash to query live database context (tasks, debts, finances, recipes, etc.).
 *   🔔 **PWA Floating Push Notifications:** Native browser & mobile push alerts scanning upcoming reminders and pending tasks due today or in the next 2 days.
 *   ⚡ **Persistent Active Session Auto-Redirect:** Automatically detects existing login sessions on `https://andresmcorderor.netlify.app/` and redirects straight to the private dashboard.
 *   🌐 **Landing Page Navigation Link:** Easy "Ver Landing Page" link on login and panel navigation to view the public portfolio anytime.

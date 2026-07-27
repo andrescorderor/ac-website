@@ -16,6 +16,11 @@ import {
   HiOutlineCheckCircle,
   HiOutlineBookOpen,
   HiOutlineArrowRight,
+  HiSparkles,
+  HiOutlineSparkles,
+  HiOutlineKey,
+  HiOutlinePaperAirplane,
+  HiOutlineTrash,
 } from 'react-icons/hi';
 import { useToast } from '@/components/common/ToastContext';
 
@@ -30,6 +35,11 @@ type SearchResult = {
   icon: React.ElementType;
   categoryLabel: string;
   badgeColor: string;
+};
+
+type ChatMessage = {
+  role: 'user' | 'assistant';
+  content: string;
 };
 
 interface CommandPaletteProps {
@@ -70,16 +80,29 @@ function Highlight({ text, query }: { text: string; query: string }) {
 }
 
 export default function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
+  const [mode, setMode] = useState<'search' | 'ai'>('search');
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<SearchResult[]>([]);
   const [searching, setSearching] = useState(false);
   const [activeIndex, setActiveIndex] = useState(-1);
+
+  // AI Assistant State
+  const [apiKey, setApiKey] = useState<string>(() => {
+    return import.meta.env.VITE_GEMINI_API_KEY || localStorage.getItem('ac_gemini_api_key') || '';
+  });
+  const [tempApiKeyInput, setTempApiKeyInput] = useState('');
+  const [showKeyConfig, setShowKeyConfig] = useState(false);
+  const [aiPrompt, setAiPrompt] = useState('');
+  const [aiChat, setAiChat] = useState<ChatMessage[]>([]);
+  const [aiThinking, setAiThinking] = useState(false);
+
   const inputRef = useRef<HTMLInputElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
+  const chatEndRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  // Focus input and reset on open
+  // Focus input and reset search on open
   useEffect(() => {
     if (isOpen) {
       setQuery('');
@@ -92,15 +115,23 @@ export default function CommandPalette({ isOpen, onClose }: CommandPaletteProps)
 
   // Debounced search
   useEffect(() => {
+    if (mode !== 'search') return;
     const timer = setTimeout(() => {
       if (isOpen) searchAll(query);
     }, 220);
     return () => clearTimeout(timer);
-  }, [query, isOpen]);
+  }, [query, isOpen, mode]);
 
-  // Keyboard: Escape, arrows, Enter
+  // Scroll chat to bottom
   useEffect(() => {
-    if (!isOpen) return;
+    if (mode === 'ai') {
+      chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [aiChat, aiThinking, mode]);
+
+  // Keyboard navigation for search mode
+  useEffect(() => {
+    if (!isOpen || mode !== 'search') return;
     const handle = (e: KeyboardEvent) => {
       if (e.key === 'Escape') { onClose(); return; }
       if (e.key === 'ArrowDown') {
@@ -117,7 +148,17 @@ export default function CommandPalette({ isOpen, onClose }: CommandPaletteProps)
     };
     window.addEventListener('keydown', handle);
     return () => window.removeEventListener('keydown', handle);
-  }, [isOpen, results, activeIndex]);
+  }, [isOpen, mode, results, activeIndex]);
+
+  // Keyboard navigation for ESC in AI mode
+  useEffect(() => {
+    if (!isOpen || mode !== 'ai') return;
+    const handle = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') { onClose(); }
+    };
+    window.addEventListener('keydown', handle);
+    return () => window.removeEventListener('keydown', handle);
+  }, [isOpen, mode]);
 
   // Scroll active item into view
   useEffect(() => {
@@ -145,66 +186,56 @@ export default function CommandPalette({ isOpen, onClose }: CommandPaletteProps)
       ]);
 
       const items: SearchResult[] = [];
-
       const push = (r: SearchResult) => items.push(r);
 
-      // Notes
       nts.data?.forEach(n => {
         if (!term || n.title.toLowerCase().includes(term) || n.content?.toLowerCase().includes(term)) {
           push({ id: n.id, type: 'note', title: n.title, subtitle: n.category || n.content?.slice(0, 70), path: '/admin/panel/notas', icon: TYPE_META.note.icon, categoryLabel: TYPE_META.note.label, badgeColor: TYPE_META.note.color });
         }
       });
 
-      // Reminders
       rem.data?.forEach(r => {
         if (!term || r.title.toLowerCase().includes(term) || r.category?.toLowerCase().includes(term)) {
           push({ id: r.id, type: 'reminder', title: r.title, subtitle: `${r.date || r.event_date || 'Sin fecha'}${r.time ? ` · ${r.time}` : ''}`, path: '/admin/panel/recordatorios', icon: TYPE_META.reminder.icon, categoryLabel: TYPE_META.reminder.label, badgeColor: TYPE_META.reminder.color });
         }
       });
 
-      // Tasks
       tsk.data?.forEach(t => {
         if (!term || t.title.toLowerCase().includes(term) || t.description?.toLowerCase().includes(term)) {
           push({ id: t.id, type: 'task', title: t.title, subtitle: t.completed ? '✓ Completada' : t.due_date ? `Vence: ${t.due_date}` : 'Pendiente', path: '/admin/panel/pendientes', icon: TYPE_META.task.icon, categoryLabel: TYPE_META.task.label, badgeColor: TYPE_META.task.color });
         }
       });
 
-      // Debts
       dbt.data?.forEach(d => {
         if (!term || d.debtor_name.toLowerCase().includes(term) || d.concept?.toLowerCase().includes(term)) {
           push({ id: d.id, type: 'debt', title: d.debtor_name, subtitle: `$${d.amount}${d.concept ? ` · ${d.concept}` : ''}`, path: '/admin/panel/deudas', icon: TYPE_META.debt.icon, categoryLabel: TYPE_META.debt.label, badgeColor: TYPE_META.debt.color });
         }
       });
 
-      // Vault
       vlt.data?.forEach(v => {
         if (!term || v.title.toLowerCase().includes(term)) {
           push({ id: v.id, type: 'vault', title: v.title, subtitle: '🔒 Texto seguro en bóveda', path: '/admin/panel/vault', icon: TYPE_META.vault.icon, categoryLabel: TYPE_META.vault.label, badgeColor: TYPE_META.vault.color });
         }
       });
 
-      // Shopping
       shp.data?.forEach(s => {
         if (!term || s.name.toLowerCase().includes(term) || s.location?.toLowerCase().includes(term)) {
           push({ id: s.id, type: 'shopping', title: s.name, subtitle: `${s.bought ? '✓ Comprado' : 'Por comprar'}${s.location ? ` · ${s.location}` : ''}`, path: '/admin/panel/compras', icon: TYPE_META.shopping.icon, categoryLabel: TYPE_META.shopping.label, badgeColor: TYPE_META.shopping.color });
         }
       });
 
-      // Projects
       prj.data?.forEach(p => {
         if (!term || p.name.toLowerCase().includes(term) || p.description?.toLowerCase().includes(term) || p.category?.toLowerCase().includes(term)) {
           push({ id: p.id, type: 'project', title: `${p.emoji || '🎨'} ${p.name}`, subtitle: p.category, path: '/admin/panel/proyectos', icon: TYPE_META.project.icon, categoryLabel: TYPE_META.project.label, badgeColor: TYPE_META.project.color });
         }
       });
 
-      // Checklist items
       chk.data?.forEach(c => {
         if (!term || c.title.toLowerCase().includes(term) || c.category?.toLowerCase().includes(term)) {
           push({ id: c.id, type: 'checklist', title: c.title, subtitle: c.category, path: '/admin/panel/checklist', icon: TYPE_META.checklist.icon, categoryLabel: TYPE_META.checklist.label, badgeColor: TYPE_META.checklist.color });
         }
       });
 
-      // Recipes
       rec.data?.forEach(r => {
         if (!term || r.name.toLowerCase().includes(term) || r.category?.toLowerCase().includes(term) || r.description?.toLowerCase().includes(term)) {
           push({ id: r.id, type: 'recipe', title: `${r.emoji || '🍽️'} ${r.name}`, subtitle: r.category, path: '/admin/panel/recetas', icon: TYPE_META.recipe.icon, categoryLabel: TYPE_META.recipe.label, badgeColor: TYPE_META.recipe.color });
@@ -219,6 +250,91 @@ export default function CommandPalette({ isOpen, onClose }: CommandPaletteProps)
       setSearching(false);
     }
   }, []);
+
+  const saveApiKey = () => {
+    const key = tempApiKeyInput.trim();
+    if (!key) return;
+    localStorage.setItem('ac_gemini_api_key', key);
+    setApiKey(key);
+    setShowKeyConfig(false);
+    toast.success('¡Gemini API Key guardada!');
+  };
+
+  const handleAskAI = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    const promptText = aiPrompt.trim();
+    if (!promptText || aiThinking) return;
+
+    if (!apiKey) {
+      setShowKeyConfig(true);
+      return;
+    }
+
+    const newChat: ChatMessage[] = [...aiChat, { role: 'user', content: promptText }];
+    setAiChat(newChat);
+    setAiPrompt('');
+    setAiThinking(true);
+
+    try {
+      // Fetch full database snapshot for context
+      const [exp, tsk, dbt, vlt, shp, rem, nts, prj, chk, rec] = await Promise.all([
+        supabase.from('finance_expenses').select('amount, category, date, concept').limit(30),
+        supabase.from('tasks').select('title, completed, due_date, status').limit(30),
+        supabase.from('debts').select('debtor_name, amount, concept, settled').limit(30),
+        supabase.from('vault_items').select('title, category').limit(30),
+        supabase.from('shopping_list').select('name, location, bought, quantity').limit(30),
+        supabase.from('reminders').select('title, category, date, time').limit(30),
+        supabase.from('notes').select('title, category, content').limit(30),
+        supabase.from('creative_projects').select('name, category, status, description').limit(30),
+        supabase.from('monthly_checklist_items').select('title, category').limit(30),
+        supabase.from('recipes').select('name, category, ingredients, description').limit(30),
+      ]);
+
+      const systemContext = `
+Eres el Asistente Privado IA de Andrés en su panel personal. Tienes acceso completo de lectura a la base de datos de su panel.
+Responde de forma concisa, clara, estructurada con viñetas o listas y amigable en español.
+
+DATOS ACTUALES DEL PANEL DE ANDRÉS:
+- Tareas pendientes (${tsk.data?.filter(t => !t.completed).length || 0}): ${JSON.stringify(tsk.data || [])}
+- Gastos registrados: ${JSON.stringify(exp.data || [])}
+- Deudas / Cuentas por cobrar: ${JSON.stringify(dbt.data || [])}
+- Bóveda (títulos): ${JSON.stringify(vlt.data || [])}
+- Lista de compras: ${JSON.stringify(shp.data || [])}
+- Fechas/Recordatorios: ${JSON.stringify(rem.data || [])}
+- Notas importantes: ${JSON.stringify(nts.data || [])}
+- Proyectos creativos: ${JSON.stringify(prj.data || [])}
+- Checklist mensual: ${JSON.stringify(chk.data || [])}
+- Recetas guardadas: ${JSON.stringify(rec.data || [])}
+
+Pregunta del usuario: "${promptText}"
+`.trim();
+
+      const response = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            contents: [{ parts: [{ text: systemContext }] }],
+          }),
+        }
+      );
+
+      const data = await response.json();
+
+      if (data.error) {
+        throw new Error(data.error.message || 'Error en Gemini API');
+      }
+
+      const answer = data.candidates?.[0]?.content?.parts?.[0]?.text || 'No pude procesar una respuesta.';
+      setAiChat([...newChat, { role: 'assistant', content: answer }]);
+    } catch (err: any) {
+      toast.error('Error al consultar IA: ' + err.message);
+      setAiChat([...newChat, { role: 'assistant', content: '❌ Ocurrió un error al consultar la API de Gemini: ' + err.message }]);
+    } finally {
+      setAiThinking(false);
+    }
+  };
 
   const handleSelectResult = (path: string) => {
     onClose();
@@ -240,7 +356,6 @@ export default function CommandPalette({ isOpen, onClose }: CommandPaletteProps)
     return acc;
   }, {});
 
-  // Flat list for keyboard nav
   const flatResults = results;
 
   return (
@@ -262,71 +377,112 @@ export default function CommandPalette({ isOpen, onClose }: CommandPaletteProps)
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.96, y: -16 }}
             transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
-            className="relative w-full max-w-2xl bg-white dark:bg-gray-950 rounded-3xl border border-gray-200/60 dark:border-gray-800/60 shadow-[0_32px_80px_rgba(0,0,0,0.28)] overflow-hidden z-10"
+            className="relative w-full max-w-2xl bg-white dark:bg-gray-950 rounded-3xl border border-gray-200/60 dark:border-gray-800/60 shadow-[0_32px_80px_rgba(0,0,0,0.28)] overflow-hidden z-10 flex flex-col max-h-[85vh]"
           >
-            {/* Search Input */}
-            <div className="flex items-center gap-3 px-5 py-4 border-b border-gray-100 dark:border-gray-800">
-              {searching ? (
-                <div className="size-5 border-2 border-gray-300 dark:border-gray-600 border-t-[var(--vibrant-sky-blue)] rounded-full animate-spin shrink-0" />
-              ) : (
-                <HiOutlineSearch className="text-xl text-gray-400 dark:text-gray-500 shrink-0" />
+            {/* Header / Mode Selector */}
+            <div className="px-5 pt-4 pb-3 border-b border-gray-100 dark:border-gray-800/80 space-y-3">
+              <div className="flex items-center justify-between">
+                {/* Mode Tabs */}
+                <div className="flex items-center gap-1.5 p-1 bg-gray-100 dark:bg-gray-900 rounded-2xl">
+                  <button
+                    onClick={() => setMode('search')}
+                    className={`flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-xs font-syne font-bold uppercase tracking-wider transition-all ${
+                      mode === 'search'
+                        ? 'bg-white dark:bg-gray-800 text-black dark:text-white shadow-sm'
+                        : 'text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'
+                    }`}
+                  >
+                    <HiOutlineSearch className="text-sm" />
+                    <span>Buscador</span>
+                  </button>
+                  <button
+                    onClick={() => setMode('ai')}
+                    className={`flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-xs font-syne font-bold uppercase tracking-wider transition-all ${
+                      mode === 'ai'
+                        ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md'
+                        : 'text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'
+                    }`}
+                  >
+                    <HiSparkles className="text-sm text-amber-300 animate-pulse" />
+                    <span>Asistente IA</span>
+                  </button>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  {mode === 'ai' && (
+                    <button
+                      onClick={() => setShowKeyConfig(!showKeyConfig)}
+                      className="p-1.5 text-gray-400 hover:text-black dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl transition-all"
+                      title="Configurar Gemini API Key (100% Gratis)"
+                    >
+                      <HiOutlineKey className="text-base" />
+                    </button>
+                  )}
+                  <button
+                    onClick={onClose}
+                    className="p-1.5 text-gray-400 hover:text-black dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl transition-all"
+                  >
+                    <HiOutlineX className="text-base" />
+                  </button>
+                </div>
+              </div>
+
+              {/* Input for Search Mode */}
+              {mode === 'search' && (
+                <div className="flex items-center gap-3">
+                  {searching ? (
+                    <div className="size-5 border-2 border-gray-300 dark:border-gray-600 border-t-[var(--vibrant-sky-blue)] rounded-full animate-spin shrink-0" />
+                  ) : (
+                    <HiOutlineSearch className="text-xl text-gray-400 dark:text-gray-500 shrink-0" />
+                  )}
+                  <input
+                    ref={inputRef}
+                    type="text"
+                    value={query}
+                    onChange={e => setQuery(e.target.value)}
+                    placeholder="Buscar en todo el panel (Notas, Tareas, Fechas, Recetas...)"
+                    className="flex-1 bg-transparent font-inter text-base text-gray-900 dark:text-gray-100 outline-none placeholder-gray-400 dark:placeholder-gray-500"
+                  />
+                  {query && (
+                    <button onClick={() => setQuery('')} className="p-1 text-gray-400 hover:text-gray-700 dark:hover:text-gray-200">
+                      <HiOutlineX className="text-sm" />
+                    </button>
+                  )}
+                </div>
               )}
-              <input
-                ref={inputRef}
-                type="text"
-                value={query}
-                onChange={e => setQuery(e.target.value)}
-                placeholder="Buscar notas, tareas, fechas, recetas, proyectos..."
-                className="flex-1 bg-transparent font-inter text-base text-gray-900 dark:text-gray-100 outline-none placeholder-gray-400 dark:placeholder-gray-500"
-              />
-              {query && (
-                <button
-                  onClick={() => setQuery('')}
-                  className="p-1.5 text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-all"
-                >
-                  <HiOutlineX className="text-sm" />
-                </button>
-              )}
-              <button
-                onClick={onClose}
-                className="hidden sm:flex items-center gap-1.5 px-2.5 py-1.5 bg-gray-100 dark:bg-gray-800 rounded-lg text-[10px] font-syne font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 transition-all"
-              >
-                ESC
-              </button>
             </div>
 
-            {/* Results */}
-            <div ref={listRef} className="max-h-[62vh] overflow-y-auto scrollbar-none">
-              {searching ? (
-                <div className="p-6 space-y-3">
-                  {[1, 2, 3, 4].map(i => (
-                    <div key={i} className="flex items-center gap-3 p-3">
-                      <div className="skeleton size-10 rounded-xl shrink-0" />
-                      <div className="flex-1 space-y-2">
-                        <div className="skeleton h-4 w-3/5 rounded-lg" />
-                        <div className="skeleton h-3 w-2/5 rounded-lg" />
+            {/* ═══ MODE: SEARCH ═══ */}
+            {mode === 'search' && (
+              <div ref={listRef} className="flex-1 overflow-y-auto scrollbar-none min-h-[300px]">
+                {searching ? (
+                  <div className="p-6 space-y-3">
+                    {[1, 2, 3, 4].map(i => (
+                      <div key={i} className="flex items-center gap-3 p-3">
+                        <div className="skeleton size-10 rounded-xl shrink-0" />
+                        <div className="flex-1 space-y-2">
+                          <div className="skeleton h-4 w-3/5 rounded-lg" />
+                          <div className="skeleton h-3 w-2/5 rounded-lg" />
+                        </div>
                       </div>
-                    </div>
-                  ))}
-                </div>
-              ) : results.length === 0 ? (
-                <div className="py-16 text-center space-y-3">
-                  <div className="text-4xl">🔍</div>
-                  <p className="font-dm-sans font-bold text-gray-700 dark:text-gray-300">
-                    {query ? 'Sin resultados' : 'Empieza a escribir...'}
-                  </p>
-                  <p className="font-inter text-sm text-gray-400 dark:text-gray-500">
-                    {query
-                      ? `No se encontró nada para "${query}" en ningún módulo.`
-                      : 'Busca en notas, tareas, fechas, recetas y más.'}
-                  </p>
-                </div>
-              ) : (
-                <div className="p-3">
-                  {Object.entries(grouped).map(([category, items]) => {
-                    return (
+                    ))}
+                  </div>
+                ) : results.length === 0 ? (
+                  <div className="py-16 text-center space-y-3">
+                    <div className="text-4xl">🔍</div>
+                    <p className="font-dm-sans font-bold text-gray-700 dark:text-gray-300">
+                      {query ? 'Sin resultados' : 'Empieza a escribir...'}
+                    </p>
+                    <p className="font-inter text-sm text-gray-400 dark:text-gray-500 max-w-sm mx-auto">
+                      {query
+                        ? `No se encontró nada para "${query}" en ningún módulo.`
+                        : 'Busca en notas, tareas, fechas, recetas, proyectos y más.'}
+                    </p>
+                  </div>
+                ) : (
+                  <div className="p-3">
+                    {Object.entries(grouped).map(([category, items]) => (
                       <div key={category} className="mb-4">
-                        {/* Category header */}
                         <div className="px-3 py-1.5 mb-1">
                           <span className="font-syne text-[9px] font-bold uppercase tracking-widest text-gray-400 dark:text-gray-500">
                             {category} · {items.length}
@@ -355,12 +511,9 @@ export default function CommandPalette({ isOpen, onClose }: CommandPaletteProps)
                                 }`}
                               >
                                 <div className="flex items-center gap-3 min-w-0">
-                                  {/* Icon */}
-                                  <div className={`size-9 rounded-xl flex items-center justify-center shrink-0 ${res.badgeColor.replace('text-', 'text-').replace('bg-', 'bg-')}`}>
+                                  <div className={`size-9 rounded-xl flex items-center justify-center shrink-0 ${res.badgeColor}`}>
                                     <IconComp className="text-base" />
                                   </div>
-
-                                  {/* Text */}
                                   <div className="min-w-0">
                                     <p className="font-dm-sans font-bold text-sm text-gray-900 dark:text-gray-100 truncate leading-snug">
                                       <Highlight text={res.title} query={query} />
@@ -373,7 +526,6 @@ export default function CommandPalette({ isOpen, onClose }: CommandPaletteProps)
                                   </div>
                                 </div>
 
-                                {/* Actions */}
                                 <div className="flex items-center gap-1 shrink-0">
                                   <button
                                     onClick={e => handleTogglePin(e, res)}
@@ -393,32 +545,168 @@ export default function CommandPalette({ isOpen, onClose }: CommandPaletteProps)
                           })}
                         </div>
                       </div>
-                    );
-                  })}
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* ═══ MODE: AI ASSISTANT ═══ */}
+            {mode === 'ai' && (
+              <div className="flex-1 flex flex-col overflow-hidden min-h-[360px]">
+                {/* API Key Config Banner / Modal */}
+                {(!apiKey || showKeyConfig) && (
+                  <div className="p-4 bg-amber-50/80 dark:bg-amber-950/40 border-b border-amber-200/50 dark:border-amber-900/40 space-y-3">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex items-center gap-2 text-amber-700 dark:text-amber-300 font-syne text-xs font-bold uppercase tracking-wider">
+                        <HiOutlineKey className="text-base" />
+                        <span>Configurar Gemini API Key (100% Gratis)</span>
+                      </div>
+                      {apiKey && (
+                        <button onClick={() => setShowKeyConfig(false)} className="text-xs text-gray-400 hover:text-gray-600">Ocultar</button>
+                      )}
+                    </div>
+                    <p className="font-inter text-xs text-amber-800/80 dark:text-amber-300/80 leading-relaxed">
+                      Google ofrece llaves de API gratuitas con 15 consultas por minuto. Consigue la tuya en 1 clic en{' '}
+                      <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noreferrer" className="underline font-bold hover:text-amber-900 dark:hover:text-amber-100">
+                        Google AI Studio
+                      </a>{' '}
+                      y pégala aquí:
+                    </p>
+                    <div className="flex gap-2">
+                      <input
+                        type="password"
+                        placeholder="AIzaSy..."
+                        value={tempApiKeyInput}
+                        onChange={e => setTempApiKeyInput(e.target.value)}
+                        className="flex-1 px-4 py-2 bg-white dark:bg-gray-900 border border-amber-200 dark:border-amber-900 rounded-xl outline-none font-mono text-xs text-gray-900 dark:text-gray-100"
+                      />
+                      <button
+                        onClick={saveApiKey}
+                        className="px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white font-syne text-xs font-bold uppercase tracking-wider rounded-xl transition-all shadow-sm"
+                      >
+                        Guardar
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {/* Chat History */}
+                <div className="flex-1 overflow-y-auto p-4 space-y-4 scrollbar-none min-h-[220px]">
+                  {aiChat.length === 0 ? (
+                    <div className="py-12 text-center space-y-3">
+                      <div className="size-14 bg-indigo-100 dark:bg-indigo-950/60 rounded-3xl flex items-center justify-center text-indigo-600 dark:text-indigo-400 mx-auto text-2xl">
+                        <HiOutlineSparkles />
+                      </div>
+                      <p className="font-dm-sans font-bold text-base text-gray-900 dark:text-gray-100">
+                        ¡Hola! Soy tu asistente de panel personal.
+                      </p>
+                      <p className="font-inter text-xs text-gray-400 dark:text-gray-500 max-w-sm mx-auto leading-relaxed">
+                        Tengo acceso a la información de tus tareas, deudas, recetas, proyectos y finanzas para ayudarte a tomar decisiones o consultar datos.
+                      </p>
+                      <div className="flex flex-wrap justify-center gap-2 pt-2">
+                        {[
+                          '¿Qué deudas tengo pendientes?',
+                          '¿Qué tareas tengo para hoy?',
+                          'Dime ideas de cena con mis recetas',
+                          '¿Cuánto he gastado este mes?',
+                        ].map(q => (
+                          <button
+                            key={q}
+                            onClick={() => { setAiPrompt(q); }}
+                            className="px-3 py-1.5 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-xl text-xs font-inter transition-all"
+                          >
+                            {q}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  ) : (
+                    aiChat.map((msg, i) => (
+                      <motion.div
+                        key={i}
+                        initial={{ opacity: 0, y: 8 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className={`flex flex-col ${msg.role === 'user' ? 'items-end' : 'items-start'}`}
+                      >
+                        <div
+                          className={`max-w-[88%] px-4 py-3 rounded-2xl font-inter text-sm leading-relaxed whitespace-pre-wrap ${
+                            msg.role === 'user'
+                              ? 'bg-black dark:bg-white text-white dark:text-black rounded-br-none'
+                              : 'bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100 rounded-bl-none border border-gray-200/50 dark:border-gray-800/50'
+                          }`}
+                        >
+                          {msg.content}
+                        </div>
+                      </motion.div>
+                    ))
+                  )}
+
+                  {aiThinking && (
+                    <div className="flex items-center gap-2 text-xs font-syne font-bold uppercase tracking-wider text-indigo-500 dark:text-indigo-400 p-2">
+                      <div className="size-4 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin" />
+                      <span>Analizando tu información en el panel...</span>
+                    </div>
+                  )}
+
+                  <div ref={chatEndRef} />
                 </div>
-              )}
-            </div>
+
+                {/* Chat Input */}
+                <form onSubmit={handleAskAI} className="p-3 border-t border-gray-100 dark:border-gray-800 flex items-center gap-2 bg-gray-50/50 dark:bg-gray-900/50">
+                  <input
+                    type="text"
+                    value={aiPrompt}
+                    onChange={e => setAiPrompt(e.target.value)}
+                    placeholder="Hazle una consulta a tu información..."
+                    className="flex-1 px-4 py-2.5 bg-white dark:bg-gray-950 border border-gray-200/60 dark:border-gray-800 rounded-xl outline-none font-inter text-sm text-gray-900 dark:text-gray-100 placeholder-gray-400 transition-all"
+                  />
+                  {aiChat.length > 0 && (
+                    <button
+                      type="button"
+                      onClick={() => setAiChat([])}
+                      className="p-2.5 text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-xl transition-all"
+                      title="Borrar chat"
+                    >
+                      <HiOutlineTrash className="text-base" />
+                    </button>
+                  )}
+                  <button
+                    type="submit"
+                    disabled={!aiPrompt.trim() || aiThinking}
+                    className="p-2.5 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-40 text-white rounded-xl transition-all shadow-sm flex items-center justify-center shrink-0"
+                  >
+                    <HiOutlinePaperAirplane className="text-base rotate-90" />
+                  </button>
+                </form>
+              </div>
+            )}
 
             {/* Footer */}
-            <div className="px-5 py-3 bg-gray-50/60 dark:bg-gray-900/60 border-t border-gray-100 dark:border-gray-800/60 flex items-center justify-between">
-              <div className="flex items-center gap-3 text-[10px] font-syne font-bold uppercase tracking-widest text-gray-400 dark:text-gray-500">
-                <span className="flex items-center gap-1.5">
-                  <kbd className="px-1.5 py-0.5 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded text-[9px]">↑↓</kbd>
-                  Navegar
-                </span>
-                <span className="flex items-center gap-1.5">
-                  <kbd className="px-1.5 py-0.5 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded text-[9px]">↵</kbd>
-                  Abrir
-                </span>
-                <span className="flex items-center gap-1.5">
-                  <kbd className="px-1.5 py-0.5 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded text-[9px]">ESC</kbd>
-                  Cerrar
-                </span>
-              </div>
-              {results.length > 0 && (
-                <span className="text-[10px] font-syne font-bold uppercase tracking-widest text-gray-400 dark:text-gray-500">
-                  {results.length} resultado{results.length !== 1 ? 's' : ''}
-                </span>
+            <div className="px-5 py-3 bg-gray-50/60 dark:bg-gray-900/60 border-t border-gray-100 dark:border-gray-800/60 flex items-center justify-between text-[10px] font-syne font-bold uppercase tracking-widest text-gray-400 dark:text-gray-500">
+              {mode === 'search' ? (
+                <>
+                  <div className="flex items-center gap-3">
+                    <span className="flex items-center gap-1">
+                      <kbd className="px-1.5 py-0.5 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded text-[9px]">↑↓</kbd>
+                      Navegar
+                    </span>
+                    <span className="flex items-center gap-1">
+                      <kbd className="px-1.5 py-0.5 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded text-[9px]">↵</kbd>
+                      Abrir
+                    </span>
+                    <span className="flex items-center gap-1">
+                      <kbd className="px-1.5 py-0.5 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded text-[9px]">ESC</kbd>
+                      Cerrar
+                    </span>
+                  </div>
+                  {results.length > 0 && <span>{results.length} resultado{results.length !== 1 ? 's' : ''}</span>}
+                </>
+              ) : (
+                <div className="flex items-center justify-between w-full">
+                  <span>Asistente con IA (Gemini 1.5 Flash - 100% Gratis)</span>
+                  <span>ESC para cerrar</span>
+                </div>
               )}
             </div>
           </motion.div>

@@ -18,8 +18,7 @@ import {
   HiOutlineTrash,
   HiOutlineColorSwatch,
   HiOutlineCheckCircle,
-  HiOutlineBookOpen,
-  HiOutlineSparkles
+  HiOutlineBookOpen
 } from 'react-icons/hi';
 import { Link } from 'react-router-dom';
 import { useToast } from '@/components/common/ToastContext';
@@ -270,14 +269,6 @@ export default function DashboardHome() {
       icon: HiOutlineBookOpen, 
       color: 'bg-rose-500', 
       path: '/admin/panel/recetas' 
-    },
-    { 
-      label: 'Asistente IA', 
-      rawVal: 'Activo ✨', 
-      isMonetary: false,
-      icon: HiOutlineSparkles, 
-      color: 'bg-gradient-to-r from-blue-600 to-sky-500', 
-      path: '/admin/panel/asistente' 
     },
   ];
 
