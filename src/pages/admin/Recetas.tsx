@@ -144,6 +144,10 @@ export default function Recetas() {
     }
   };
 
+  const insertBullet = () => {
+    setForm(prev => ({ ...prev, description: (prev.description || '') + (prev.description ? '\n• ' : '• ') }));
+  };
+
   const deleteRecipe = async (id: string) => {
     const { error } = await supabase.from('recipes').delete().eq('id', id);
     if (error) { toast.error('Error al eliminar'); return; }
@@ -271,11 +275,20 @@ export default function Recetas() {
               </div>
 
               <div className="space-y-2">
-                <label className="font-syne text-[10px] font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">Descripción (Opcional)</label>
+                <div className="flex items-center justify-between">
+                  <label className="font-syne text-[10px] font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">Descripción (Opcional)</label>
+                  <button
+                    type="button"
+                    onClick={insertBullet}
+                    className="px-3 py-1 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-lg text-xs font-syne font-bold transition-all"
+                  >
+                    + Agregar Viñeta (•)
+                  </button>
+                </div>
                 <textarea
-                  rows={2} value={form.description} onChange={e => setForm({ ...form, description: e.target.value })}
-                  placeholder="Notas o instrucciones breves..."
-                  className="w-full px-5 py-3.5 bg-white dark:bg-gray-800 border border-transparent focus:border-[var(--vibrant-sky-blue)] rounded-xl outline-none font-inter text-sm text-gray-900 dark:text-gray-100 placeholder-gray-400 transition-all shadow-sm resize-none"
+                  rows={4} value={form.description} onChange={e => setForm({ ...form, description: e.target.value })}
+                  placeholder="Notas o instrucciones breves... (Puedes usar saltos de línea y viñetas)"
+                  className="w-full px-5 py-3.5 bg-white dark:bg-gray-800 border border-transparent focus:border-[var(--vibrant-sky-blue)] rounded-xl outline-none font-inter text-sm leading-relaxed text-gray-900 dark:text-gray-100 placeholder-gray-400 transition-all shadow-sm resize-none"
                 />
               </div>
 
@@ -405,7 +418,7 @@ export default function Recetas() {
                     </div>
 
                     {recipe.description && (
-                      <p className="font-inter text-sm text-gray-500 dark:text-gray-400 leading-relaxed line-clamp-2">{recipe.description}</p>
+                      <p className="font-inter text-sm text-gray-600 dark:text-gray-300 font-light leading-relaxed whitespace-pre-wrap">{recipe.description}</p>
                     )}
 
                     {/* Progress bar */}
