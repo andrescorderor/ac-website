@@ -52,7 +52,10 @@ const formatMonthLabel = (my: string) => {
 
 const EMPTY_FORM = { title: '', category: 'General', emoji: '✅' };
 
+import { useSearchParams } from 'react-router-dom';
+
 export default function ChecklistMensual() {
+  const [searchParams] = useSearchParams();
   const [items, setItems] = useState<ChecklistItem[]>([]);
   const [logs, setLogs] = useState<ChecklistLog[]>([]);
   const [loading, setLoading] = useState(true);
@@ -60,6 +63,15 @@ export default function ChecklistMensual() {
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingItem, setEditingItem] = useState<ChecklistItem | null>(null);
   const [form, setForm] = useState(EMPTY_FORM);
+  const [searchTerm, setSearchTerm] = useState(searchParams.get('search') || '');
+
+  useEffect(() => {
+    const queryParam = searchParams.get('search');
+    if (queryParam !== null) {
+      setSearchTerm(queryParam);
+    }
+  }, [searchParams]);
+
   const [submitting, setSubmitting] = useState(false);
   const { toast } = useToast();
 
@@ -172,7 +184,13 @@ export default function ChecklistMensual() {
   const progressPct = totalCount > 0 ? (completedCount / totalCount) * 100 : 0;
 
   const grouped = CATEGORIES
-    .map(cat => ({ cat, catItems: items.filter(i => i.category === cat) }))
+    .map(cat => ({
+      cat,
+      catItems: items.filter(i => 
+        i.category === cat &&
+        (!searchTerm || i.title.toLowerCase().includes(searchTerm.toLowerCase()))
+      )
+    }))
     .filter(g => g.catItems.length > 0);
 
   if (loading) return (

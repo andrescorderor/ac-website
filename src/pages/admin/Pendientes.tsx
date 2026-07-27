@@ -5,6 +5,7 @@ import { HiOutlinePlus, HiOutlineTrash, HiOutlineCheckCircle, HiOutlineSearch } 
 import { MdOutlineCircle } from 'react-icons/md';
 import { useToast } from '@/components/common/ToastContext';
 import { togglePinItem, isItemPinned } from '@/lib/pinned';
+import { useSearchParams } from 'react-router-dom';
 import AutoFormattedText from '@/components/common/AutoFormattedText';
 
 type Task = {
@@ -18,12 +19,22 @@ type Task = {
 type StatusFilter = 'pending' | 'completed' | 'all';
 
 export default function Pendientes() {
+  const [searchParams] = useSearchParams();
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [showAddForm, setShowAddForm] = useState(false);
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('pending');
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm, setSearchTerm] = useState(searchParams.get('search') || '');
+
+  useEffect(() => {
+    const queryParam = searchParams.get('search');
+    if (queryParam !== null) {
+      setSearchTerm(queryParam);
+      // Automatically show 'all' if searching for a specific item
+      if (queryParam) setStatusFilter('all');
+    }
+  }, [searchParams]);
   const [newTask, setNewTask] = useState({ title: '', description: '', due_date: '' });
   const { toast } = useToast();
 

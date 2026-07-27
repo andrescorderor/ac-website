@@ -14,6 +14,7 @@ import {
 } from 'react-icons/hi';
 import { useToast } from '@/components/common/ToastContext';
 import { togglePinItem, isItemPinned } from '@/lib/pinned';
+import { useSearchParams } from 'react-router-dom';
 import AutoFormattedText from '@/components/common/AutoFormattedText';
 
 type Ingredient = {
@@ -60,13 +61,22 @@ function getReferenceIcon(url: string) {
 }
 
 export default function Recetas() {
+  const [searchParams] = useSearchParams();
   const [recipes, setRecipes] = useState<Recipe[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [editingRecipe, setEditingRecipe] = useState<Recipe | null>(null);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [filterCategory, setFilterCategory] = useState('Todas');
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm, setSearchTerm] = useState(searchParams.get('search') || '');
+
+  useEffect(() => {
+    const queryParam = searchParams.get('search');
+    if (queryParam !== null) {
+      setSearchTerm(queryParam);
+    }
+  }, [searchParams]);
+
   const [form, setForm] = useState(EMPTY_FORM);
   const [ingredientForm, setIngredientForm] = useState(EMPTY_INGREDIENT);
   const [editIngredients, setEditIngredients] = useState<Ingredient[]>([]);

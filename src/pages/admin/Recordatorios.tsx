@@ -16,6 +16,7 @@ import {
 } from 'react-icons/hi';
 import { useToast } from '@/components/common/ToastContext';
 import { togglePinItem, isItemPinned } from '@/lib/pinned';
+import { useSearchParams } from 'react-router-dom';
 import AutoFormattedText from '@/components/common/AutoFormattedText';
 
 type Reminder = {
@@ -83,6 +84,7 @@ function formatDate(dateStr: string, timeStr?: string | null, recurring: boolean
 }
 
 export default function Recordatorios() {
+  const [searchParams] = useSearchParams();
   const [viewMode, setViewMode] = useState<'list' | 'calendar'>('list');
   const [currentMonth, setCurrentMonth] = useState<Date>(new Date());
   const [reminders, setReminders] = useState<Reminder[]>([]);
@@ -90,11 +92,18 @@ export default function Recordatorios() {
   const [submitting, setSubmitting] = useState(false);
   const [showAddForm, setShowAddForm] = useState(false);
   const [filterCat, setFilterCat] = useState<string>('all');
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm, setSearchTerm] = useState(searchParams.get('search') || '');
   const [newReminder, setNewReminder] = useState({
     title: '', date: '', time: '', category: 'Otro' as const, recurring: false, notes: ''
   });
   const { toast } = useToast();
+
+  useEffect(() => {
+    const queryParam = searchParams.get('search');
+    if (queryParam !== null) {
+      setSearchTerm(queryParam);
+    }
+  }, [searchParams]);
 
   useEffect(() => { fetchReminders(); }, []);
 

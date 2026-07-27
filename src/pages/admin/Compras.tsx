@@ -22,13 +22,24 @@ type ShoppingItem = {
   bought: boolean;
 };
 
+import { useSearchParams } from 'react-router-dom';
+
 export default function Compras() {
+  const [searchParams] = useSearchParams();
   const [items, setItems] = useState<ShoppingItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [showAddForm, setShowAddForm] = useState(false);
   const [filter, setFilter] = useState<'all' | 'pending' | 'bought'>('pending');
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm, setSearchTerm] = useState(searchParams.get('search') || '');
+
+  useEffect(() => {
+    const queryParam = searchParams.get('search');
+    if (queryParam !== null) {
+      setSearchTerm(queryParam);
+      if (queryParam) setFilter('all');
+    }
+  }, [searchParams]);
   const [newItem, setNewItem] = useState({
     name: '',
     location: '',

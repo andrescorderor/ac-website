@@ -25,16 +25,25 @@ type Note = {
 
 const categories = ['Todas', 'General', 'Trabajo', 'Personal', 'Ideas', 'Importante'];
 
+import { useSearchParams } from 'react-router-dom';
 import AutoFormattedText from '@/components/common/AutoFormattedText';
 
 export default function Notas() {
+  const [searchParams] = useSearchParams();
   const [notes, setNotes] = useState<Note[]>([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingNoteId, setEditingNoteId] = useState<string | null>(null);
   const [selectedCategory, setSelectedCategory] = useState('Todas');
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm, setSearchTerm] = useState(searchParams.get('search') || '');
+
+  useEffect(() => {
+    const queryParam = searchParams.get('search');
+    if (queryParam !== null) {
+      setSearchTerm(queryParam);
+    }
+  }, [searchParams]);
   const [newNote, setNewNote] = useState({
     title: '',
     content: '',

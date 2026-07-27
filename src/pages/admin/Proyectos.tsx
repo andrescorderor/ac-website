@@ -13,6 +13,7 @@ import {
 } from 'react-icons/hi';
 import { useToast } from '@/components/common/ToastContext';
 import { togglePinItem, isItemPinned } from '@/lib/pinned';
+import { useSearchParams } from 'react-router-dom';
 import AutoFormattedText from '@/components/common/AutoFormattedText';
 
 type Task = { id: string; text: string; done: boolean };
@@ -42,12 +43,22 @@ const EMOJIS = ['🛠️', '🎨', '🎵', '📝', '🚀', '🌍', '🎬', '📱
 const EMPTY_FORM = { name: '', description: '', category: 'Personal', status: 'idea', emoji: '🛠️', notes: '' };
 
 export default function Proyectos() {
+  const [searchParams] = useSearchParams();
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [editingProject, setEditingProject] = useState<Project | null>(null);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [filterStatus, setFilterStatus] = useState('all');
+  const [searchTerm, setSearchTerm] = useState(searchParams.get('search') || '');
+
+  useEffect(() => {
+    const queryParam = searchParams.get('search');
+    if (queryParam !== null) {
+      setSearchTerm(queryParam);
+    }
+  }, [searchParams]);
+
   const [form, setForm] = useState(EMPTY_FORM);
   const [newTaskText, setNewTaskText] = useState('');
   const [submitting, setSubmitting] = useState(false);
@@ -149,7 +160,10 @@ export default function Proyectos() {
     setProjects(projects.map(p => p.id === project.id ? { ...p, tasks: updatedTasks } : p));
   };
 
-  const filtered = filterStatus === 'all' ? projects : projects.filter(p => p.status === filterStatus);
+  const filtered = projects.filter(p => 
+    (filterStatus === 'all' || p.status === filterStatus) &&
+    (!searchTerm || p.name.toLowerCase().includes(searchTerm.toLowerCase()) || p.description?.toLowerCase().includes(searchTerm.toLowerCase()))
+  );
 
   if (loading) return (
     <div className="space-y-10 pb-20">

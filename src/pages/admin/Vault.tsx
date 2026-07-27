@@ -13,12 +13,22 @@ type VaultItem = {
   category: string;
 };
 
+import { useSearchParams } from 'react-router-dom';
+
 export default function Vault() {
+  const [searchParams] = useSearchParams();
   const [items, setItems] = useState<VaultItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [showAddForm, setShowAddForm] = useState(false);
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm, setSearchTerm] = useState(searchParams.get('search') || '');
+
+  useEffect(() => {
+    const queryParam = searchParams.get('search');
+    if (queryParam !== null) {
+      setSearchTerm(queryParam);
+    }
+  }, [searchParams]);
   const [newItem, setNewItem] = useState({ title: '', content: '', category: 'General' });
   const { toast } = useToast();
 

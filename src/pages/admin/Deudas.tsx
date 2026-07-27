@@ -15,12 +15,23 @@ type Debt = {
 
 type StatusFilter = 'pending' | 'settled' | 'all';
 
+import { useSearchParams } from 'react-router-dom';
+
 export default function Deudas() {
+  const [searchParams] = useSearchParams();
   const [debts, setDebts] = useState<Debt[]>([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('pending');
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm, setSearchTerm] = useState(searchParams.get('search') || '');
+
+  useEffect(() => {
+    const queryParam = searchParams.get('search');
+    if (queryParam !== null) {
+      setSearchTerm(queryParam);
+      if (queryParam) setStatusFilter('all');
+    }
+  }, [searchParams]);
   const [newDebt, setNewDebt] = useState({ debtor_name: '', amount: '', concept: '' });
   const { toast } = useToast();
 

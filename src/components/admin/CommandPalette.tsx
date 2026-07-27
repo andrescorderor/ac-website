@@ -219,6 +219,12 @@ export default function CommandPalette({ isOpen, onClose }: CommandPaletteProps)
     }
   }, [aiChat, aiThinking, mode]);
 
+  const handleSelectResult = (path: string, title?: string) => {
+    onClose();
+    const targetUrl = title ? `${path}?search=${encodeURIComponent(title)}` : path;
+    navigate(targetUrl);
+  };
+
   // Keyboard navigation for search mode
   useEffect(() => {
     if (!isOpen || mode !== 'search') return;
@@ -233,7 +239,8 @@ export default function CommandPalette({ isOpen, onClose }: CommandPaletteProps)
         setActiveIndex(i => Math.max(i - 1, -1));
       }
       if (e.key === 'Enter' && activeIndex >= 0 && results[activeIndex]) {
-        handleSelectResult(results[activeIndex].path);
+        const item = results[activeIndex];
+        handleSelectResult(item.path, item.title);
       }
     };
     window.addEventListener('keydown', handle);
@@ -544,10 +551,6 @@ REGLAS OBLIGATORIAS:
     }
   };
 
-  const handleSelectResult = (path: string) => {
-    onClose();
-    navigate(path);
-  };
 
   const handleTogglePin = (e: React.MouseEvent, res: SearchResult) => {
     e.stopPropagation();
@@ -710,7 +713,7 @@ REGLAS OBLIGATORIAS:
                                 data-idx={globalIdx}
                                 initial={{ opacity: 0, y: 4 }}
                                 animate={{ opacity: 1, y: 0 }}
-                                onClick={() => handleSelectResult(res.path)}
+                                onClick={() => handleSelectResult(res.path, res.title)}
                                 onMouseEnter={() => setActiveIndex(globalIdx)}
                                 className={`group flex items-center justify-between gap-3 px-3 py-3 rounded-2xl cursor-pointer transition-all ${
                                   isActive
