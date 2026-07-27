@@ -31,7 +31,8 @@ import {
   HiMenuAlt2,
   HiX,
   HiOutlineColorSwatch,
-  HiOutlineCheckCircle
+  HiOutlineCheckCircle,
+  HiOutlineBookOpen
 } from 'react-icons/hi';
 
 const menuItems = [
@@ -45,6 +46,7 @@ const menuItems = [
   { icon: HiOutlineDocumentText, label: 'Notas', path: '/admin/panel/notas' },
   { icon: HiOutlineColorSwatch, label: 'Proyectos', path: '/admin/panel/proyectos' },
   { icon: HiOutlineCheckCircle, label: 'Checklist', path: '/admin/panel/checklist' },
+  { icon: HiOutlineBookOpen, label: 'Recetas', path: '/admin/panel/recetas' },
 ];
 
 export default function DashboardLayout() {

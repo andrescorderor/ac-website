@@ -35,14 +35,13 @@ The productivity hub is a mobile-optimized private dashboard with specialized mo
 *   🛒 **Smart Shopping List:** Manage unbought items with priority, location tracking, and price estimates.
 *   📅 **Important Reminders:** Categorized dates & optional times (Birthdays, Documents, Payments) with proximity alerts and recurring support.
 *   💸 **Debt Tracker:** Monitor pending payments and collections with default pending filters.
-*   🎨 **Creative Projects (Proyectos Creativos):** Private portfolio to manage side projects, track progress with bullet-formatted descriptions, and organize sub-tasks.
+*   🎨 **Creative Projects (Proyectos Creativos):** Private portfolio to manage side projects, track progress, and organize sub-tasks.
 *   📋 **Monthly Checklist (Checklist Mensual):** Recurring habits and payments tracker that auto-resets every month with historical read-only view.
 
 ### ✨ Premium UX Design
 *   👁️ **Global Privacy Mode & Dark Mode Default:** One-click toggle to mask financial values and default high-contrast dark theme.
-*   📌 **Universal Pinned Items Section:** Pin any item (notes, reminders, tasks, debts, vault items, shopping items, projects, checklist) with cloud synchronization across devices (`user_pinned_items`).
-*   🔍 **Global Command Palette (`Ctrl + K` / `Cmd + K`):** Instant search modal accessible anywhere across the app to query all modules simultaneously.
-*   📲 **Mobile PWA Resiliency & Offline Fallback:** Workbox Service Worker optimization for seamless mobile data access, custom route fallbacks, and direct API passthrough for Supabase.
+*   📌 **Universal Pinned Items Section:** Pin any item (notes, reminders, tasks, debts, vault items, shopping items) directly from module cards or search, and view them on the main dashboard home.
+*   🔍 **Global Command Palette (`Ctrl + K` / `Cmd + K`):** Instant search modal accessible anywhere across the app to query all 8 modules simultaneously.
 *   🔔 **PWA Floating Push Notifications:** Native browser & mobile push alerts scanning upcoming reminders and pending tasks due today or in the next 2 days.
 *   ⚡ **Persistent Active Session Auto-Redirect:** Automatically detects existing login sessions on `https://andresmcorderor.netlify.app/` and redirects straight to the private dashboard.
 *   🌐 **Landing Page Navigation Link:** Easy "Ver Landing Page" link on login and panel navigation to view the public portfolio anytime.
