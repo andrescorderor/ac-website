@@ -72,12 +72,10 @@ export default function DashboardLayout() {
 function DashboardLayoutContent() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [mobileHeaderVisible, setMobileHeaderVisible] = useState(true);
   const [notifPermission, setNotifPermission] = useState<string>(getNotificationPermissionState());
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
-  const lastScrollY = useRef(0);
   const mainRef = useRef<HTMLDivElement>(null);
   const { isDarkMode, toggleDarkMode } = useTheme();
   const { toast } = useToast();
@@ -96,24 +94,6 @@ function DashboardLayoutContent() {
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, []);
-
-  useEffect(() => {
-    const el = mainRef.current;
-    if (!el) return;
-
-    const handleScroll = () => {
-      const currentY = el.scrollTop;
-      if (currentY > lastScrollY.current && currentY > 60) {
-        setMobileHeaderVisible(false);
-      } else {
-        setMobileHeaderVisible(true);
-      }
-      lastScrollY.current = currentY;
-    };
-
-    el.addEventListener('scroll', handleScroll, { passive: true });
-    return () => el.removeEventListener('scroll', handleScroll);
   }, []);
 
   const checkUser = async () => {
@@ -294,11 +274,9 @@ function DashboardLayoutContent() {
         </div>
       </aside>
 
-      {/* ═══ Mobile Header (auto-hide on scroll) ═══ */}
+      {/* ═══ Mobile Header ═══ */}
       <div 
-        className={`lg:hidden fixed top-0 left-0 right-0 h-16 bg-white/70 dark:bg-black/70 backdrop-blur-2xl border-b border-gray-200/50 dark:border-gray-800/50 flex items-center justify-between px-4 z-50 transition-transform duration-300 shadow-sm ${
-          mobileHeaderVisible ? 'translate-y-0' : '-translate-y-full'
-        }`}
+        className="lg:hidden fixed top-0 left-0 right-0 h-16 bg-white/80 dark:bg-black/80 backdrop-blur-2xl border-b border-gray-200/50 dark:border-gray-800/50 flex items-center justify-between px-4 z-50 transition-all duration-300 shadow-xs"
       >
         <div className="flex items-center gap-2.5">
           <div className="size-9 bg-black dark:bg-white text-white dark:text-black rounded-xl flex items-center justify-center text-sm font-bold shadow-lg">AC</div>
