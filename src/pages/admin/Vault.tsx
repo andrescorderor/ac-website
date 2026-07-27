@@ -13,6 +13,8 @@ type VaultItem = {
   category: string;
 };
 
+const CATEGORIES = ['Todas', 'General', 'Passwords', 'IDs', 'Tarjetas', 'Personal', 'Otro'];
+
 import { useSearchParams } from 'react-router-dom';
 
 export default function Vault() {
@@ -21,6 +23,7 @@ export default function Vault() {
   const [loading, setLoading] = useState(true);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [showAddForm, setShowAddForm] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState('Todas');
   const [searchTerm, setSearchTerm] = useState(searchParams.get('search') || '');
 
   useEffect(() => {
@@ -52,51 +55,38 @@ export default function Vault() {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
 
-    try {
-      let { data, error } = await supabase
-        .from('vault_items')
-        .insert([{ 
-          user_id: user.id, 
-          title: newItem.title, 
-          content: newItem.content, 
-          category: newItem.category 
-        }])
-        .select();
+    if (!newItem.title.trim() || !newItem.content.trim()) {
+      toast.error('Todos los campos son obligatorios');
+      return;
+    }
 
-      // If category column is missing in Supabase table schema, fallback to inserting without category
-      if (error && (error.message.includes("category") || error.code === 'PGRST204')) {
-        const fallbackRes = await supabase
-          .from('vault_items')
-          .insert([{ 
-            user_id: user.id, 
-            title: newItem.title, 
-            content: newItem.content 
-          }])
-          .select();
-        data = fallbackRes.data;
-        error = fallbackRes.error;
-      }
+    try {
+      const { data, error } = await supabase
+        .from('vault_items')
+        .insert([
+          {
+            user_id: user.id,
+            title: newItem.title.trim(),
+            content: newItem.content.trim(),
+            category: newItem.category,
+          },
+        ])
+        .select();
 
       if (error) throw error;
 
-      if (data) {
-        setItems([data[0], ...items]);
-        setNewItem({ title: '', content: '', category: 'General' });
-        setShowAddForm(false);
-        toast.success('Texto guardado en bóveda');
-      }
+      if (data) setItems([data[0], ...items]);
+      setNewItem({ title: '', content: '', category: 'General' });
+      setShowAddForm(false);
+      toast.success('Texto guardado en la bóveda');
     } catch (err: any) {
-      toast.error('Error al guardar: ' + err.message);
+      toast.error('Error al guardar en la bóveda: ' + err.message);
     }
   };
 
   const deleteItem = async (id: string) => {
     try {
-      const { error } = await supabase
-        .from('vault_items')
-        .delete()
-        .eq('id', id);
-
+      const { error } = await supabase.from('vault_items').delete().eq('id', id);
       if (error) throw error;
 
       setItems(items.filter(item => item.id !== id));
@@ -114,8 +104,8 @@ export default function Vault() {
   };
 
   const filteredItems = items.filter(item => 
-    item.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    item.content.toLowerCase().includes(searchTerm.toLowerCase())
+    (selectedCategory === 'Todas' || item.category === selectedCategory) &&
+    (!searchTerm || item.title.toLowerCase().includes(searchTerm.toLowerCase()) || item.content.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
   if (loading) return (
@@ -169,6 +159,23 @@ export default function Vault() {
           </button>
         </div>
       </header>
+
+      {/* Category Pills */}
+      <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
+        {CATEGORIES.map((cat) => (
+          <button
+            key={cat}
+            onClick={() => setSelectedCategory(cat)}
+            className={`px-5 py-2.5 rounded-2xl text-xs font-syne font-bold uppercase tracking-wider transition-all whitespace-nowrap ${
+              selectedCategory === cat
+                ? 'bg-black dark:bg-white text-white dark:text-black shadow-md'
+                : 'bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-300 border border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700'
+            }`}
+          >
+            {cat}
+          </button>
+        ))}
+      </div>
 
       <AnimatePresence>
         {showAddForm && (

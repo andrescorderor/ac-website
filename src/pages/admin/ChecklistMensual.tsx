@@ -11,6 +11,7 @@ import {
   HiChevronLeft,
   HiChevronRight,
   HiOutlineEye,
+  HiOutlineSearch,
 } from 'react-icons/hi';
 import { useToast } from '@/components/common/ToastContext';
 import { togglePinItem, isItemPinned } from '@/lib/pinned';
@@ -33,6 +34,7 @@ type ChecklistLog = {
 };
 
 const CATEGORIES = ['General', 'Pagos', 'Hogar', 'Trabajo', 'Salud', 'Rutinas'];
+const CATEGORIES_WITH_ALL = ['Todas', ...CATEGORIES];
 const CATEGORY_COLORS: Record<string, string> = {
   General:  'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300',
   Pagos:    'bg-red-100 dark:bg-red-950/60 text-red-600 dark:text-red-300',
@@ -62,6 +64,7 @@ export default function ChecklistMensual() {
   const [viewingMonth, setViewingMonth] = useState(toMonthYear(new Date()));
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingItem, setEditingItem] = useState<ChecklistItem | null>(null);
+  const [filterCategory, setFilterCategory] = useState('Todas');
   const [form, setForm] = useState(EMPTY_FORM);
   const [searchTerm, setSearchTerm] = useState(searchParams.get('search') || '');
 
@@ -183,7 +186,7 @@ export default function ChecklistMensual() {
   const totalCount = items.length;
   const progressPct = totalCount > 0 ? (completedCount / totalCount) * 100 : 0;
 
-  const grouped = CATEGORIES
+  const grouped = (filterCategory === 'Todas' ? CATEGORIES : [filterCategory])
     .map(cat => ({
       cat,
       catItems: items.filter(i => 
@@ -221,15 +224,45 @@ export default function ChecklistMensual() {
             Tus pendientes y pagos recurrentes del mes. Se reinicia automáticamente cada mes.
           </p>
         </div>
-        <motion.button
-          whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
-          onClick={() => { setEditingItem(null); setForm(EMPTY_FORM); setShowAddForm(true); }}
-          className="px-6 py-3.5 bg-black dark:bg-white text-white dark:text-black font-syne text-xs font-bold uppercase tracking-wider rounded-2xl shadow-lg flex items-center gap-2 shrink-0"
-        >
-          <HiOutlinePlus className="text-lg" />
-          Añadir Ítem
-        </motion.button>
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4">
+          <div className="relative flex-1 sm:w-64">
+            <input
+              type="text"
+              placeholder="Buscar en checklist..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full pl-12 pr-6 py-3.5 bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl outline-none focus:ring-2 ring-gray-100 dark:ring-gray-700 font-inter text-sm shadow-sm transition-all text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500"
+            />
+            <HiOutlineSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-lg" />
+          </div>
+
+          <motion.button
+            whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
+            onClick={() => { setEditingItem(null); setForm(EMPTY_FORM); setShowAddForm(true); }}
+            className="px-6 py-3.5 bg-black dark:bg-white text-white dark:text-black font-syne text-xs font-bold uppercase tracking-wider rounded-2xl shadow-lg flex items-center justify-center gap-2 shrink-0"
+          >
+            <HiOutlinePlus className="text-lg" />
+            Añadir Ítem
+          </motion.button>
+        </div>
       </header>
+
+      {/* Category Pills */}
+      <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
+        {CATEGORIES_WITH_ALL.map((cat) => (
+          <button
+            key={cat}
+            onClick={() => setFilterCategory(cat)}
+            className={`px-5 py-2.5 rounded-2xl text-xs font-syne font-bold uppercase tracking-wider transition-all whitespace-nowrap ${
+              filterCategory === cat
+                ? 'bg-black dark:bg-white text-white dark:text-black shadow-md'
+                : 'bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-300 border border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700'
+            }`}
+          >
+            {cat}
+          </button>
+        ))}
+      </div>
 
       {/* Month Navigation */}
       <div className="bg-white/80 dark:bg-gray-900/80 glass dark:dark-glass rounded-[2rem] p-6 space-y-5">

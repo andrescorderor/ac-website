@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
-import { HiOutlinePlus, HiOutlineTrash, HiOutlineSave, HiOutlineEye, HiOutlineEyeOff } from 'react-icons/hi';
+import { HiOutlinePlus, HiOutlineTrash, HiOutlineSave, HiOutlineEye, HiOutlineEyeOff, HiOutlineSearch } from 'react-icons/hi';
 import { useToast } from '@/components/common/ToastContext';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -11,6 +11,13 @@ type Expense = {
   amount: number;
 };
 
+const CATEGORIES_MAP: Record<string, string> = {
+  Todas: 'Todas las categorías',
+  comida: 'Supermercado & Alimentación',
+  insumos: 'Insumos & Casa',
+  servicios: 'Servicios & Suscripciones',
+};
+
 export default function Finanzas() {
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [salary, setSalary] = useState<number>(0);
@@ -18,6 +25,8 @@ export default function Finanzas() {
   const [savingSalary, setSavingSalary] = useState(false);
   const [submittingCat, setSubmittingCat] = useState<string | null>(null);
   const [isPrivacyMode, setIsPrivacyMode] = useState(true);
+  const [filterCategory, setFilterCategory] = useState('Todas');
+  const [searchTerm, setSearchTerm] = useState('');
   const [newExpense, setNewExpense] = useState({ concept: '', amount: '', category: 'comida' });
   const { toast } = useToast();
 
@@ -228,8 +237,39 @@ export default function Finanzas() {
         ))}
       </div>
 
+      {/* Search Bar & Category Filter Pills */}
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
+        <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
+          {Object.entries(CATEGORIES_MAP).map(([catKey]) => (
+            <button
+              key={catKey}
+              onClick={() => setFilterCategory(catKey)}
+              className={`px-5 py-2.5 rounded-2xl text-xs font-syne font-bold uppercase tracking-wider transition-all whitespace-nowrap ${
+                filterCategory === catKey
+                  ? 'bg-black dark:bg-white text-white dark:text-black shadow-md'
+                  : 'bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-300 border border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700'
+              }`}
+            >
+              {catKey === 'Todas' ? 'Todas' : catKey}
+            </button>
+          ))}
+        </div>
+
+        <div className="relative flex-1 sm:w-64">
+          <input
+            type="text"
+            placeholder="Buscar en gastos..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full pl-12 pr-6 py-3.5 bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl outline-none focus:ring-2 ring-gray-100 dark:ring-gray-700 font-inter text-sm shadow-sm transition-all text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500"
+          />
+          <HiOutlineSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-lg" />
+        </div>
+      </div>
+
+      {/* Expenses Columns */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {(['comida', 'insumos', 'servicios'] as const).map((cat, catIndex) => (
+        {(['comida', 'insumos', 'servicios'] as const).filter(c => filterCategory === 'Todas' || filterCategory === c).map((cat, catIndex) => (
           <motion.div 
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
@@ -254,7 +294,7 @@ export default function Finanzas() {
             <div className="bg-white/80 dark:bg-gray-900/80 glass dark:dark-glass rounded-[2rem] overflow-hidden shadow-sm flex flex-col">
               <div className="flex-1 p-2 md:p-4 space-y-2 max-h-[400px] overflow-y-auto scrollbar-thin">
                 <AnimatePresence>
-                  {expenses.filter((e) => e.category === cat).map((exp) => (
+                  {expenses.filter((e) => e.category === cat && (!searchTerm || e.concept.toLowerCase().includes(searchTerm.toLowerCase()))).map((exp) => (
                     <motion.div 
                       layout
                       initial={{ opacity: 0, y: 10 }}
@@ -278,7 +318,7 @@ export default function Finanzas() {
                       </button>
                     </motion.div>
                   ))}
-                  {expenses.filter((e) => e.category === cat).length === 0 && (
+                  {expenses.filter((e) => e.category === cat && (!searchTerm || e.concept.toLowerCase().includes(searchTerm.toLowerCase()))).length === 0 && (
                     <motion.div 
                       initial={{ opacity: 0 }} animate={{ opacity: 1 }}
                       className="p-8 text-center text-xs text-gray-400 dark:text-gray-500 font-inter"
