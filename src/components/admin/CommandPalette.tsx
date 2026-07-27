@@ -59,8 +59,8 @@ const TYPE_META: Record<ResultType, { label: string; icon: React.ElementType; co
   recipe:    { label: 'Receta',        icon: HiOutlineBookOpen,      color: 'bg-rose-100 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300' },
 };
 
-/** Highlight matching substring with <mark> */
-function Highlight({ text, query }: { text: string; query: string }) {
+/** Component to highlight search matches */
+function HighlightText({ text, query }: { text: string; query: string }) {
   if (!query.trim()) return <>{text}</>;
   const regex = new RegExp(`(${query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
   const parts = text.split(regex);
@@ -76,6 +76,73 @@ function Highlight({ text, query }: { text: string; query: string }) {
         )
       )}
     </>
+  );
+}
+
+/** Component to parse inline **bold** text */
+function ParseInlineBold({ text }: { text: string }) {
+  const parts = text.split(/(\*\*.*?\*\*)/g);
+  return (
+    <>
+      {parts.map((part, i) => {
+        if (part.startsWith('**') && part.endsWith('**')) {
+          return (
+            <strong key={i} className="font-dm-sans font-bold text-gray-950 dark:text-white">
+              {part.slice(2, -2)}
+            </strong>
+          );
+        }
+        return part;
+      })}
+    </>
+  );
+}
+
+/** Component to render structured Markdown responses gracefully */
+function MarkdownRenderer({ content }: { content: string }) {
+  const lines = content.split('\n');
+
+  return (
+    <div className="space-y-1.5 font-inter text-sm leading-relaxed">
+      {lines.map((line, idx) => {
+        if (!line.trim()) return <div key={idx} className="h-1" />;
+
+        // Numbered item (e.g., "1. **Horchata La Michoacana**")
+        const numberedMatch = line.match(/^(\d+)\.\s+(.*)/);
+        if (numberedMatch) {
+          return (
+            <div key={idx} className="flex items-start gap-2 pt-1.5">
+              <span className="flex items-center justify-center size-5 rounded-full bg-indigo-100 dark:bg-indigo-950/80 text-indigo-600 dark:text-indigo-400 font-dm-sans text-[11px] font-bold shrink-0 mt-0.5 shadow-sm">
+                {numberedMatch[1]}
+              </span>
+              <div className="flex-1 text-gray-900 dark:text-gray-100">
+                <ParseInlineBold text={numberedMatch[2]} />
+              </div>
+            </div>
+          );
+        }
+
+        // Bullet item (e.g., "- **Ingredientes:** Leche...")
+        const bulletMatch = line.match(/^[\-\*]\s+(.*)/);
+        if (bulletMatch) {
+          return (
+            <div key={idx} className="flex items-start gap-2.5 pl-2">
+              <span className="size-1.5 rounded-full bg-indigo-500 shrink-0 mt-2" />
+              <div className="flex-1 text-gray-700 dark:text-gray-300">
+                <ParseInlineBold text={bulletMatch[1]} />
+              </div>
+            </div>
+          );
+        }
+
+        // Regular text line
+        return (
+          <p key={idx} className="text-gray-800 dark:text-gray-200">
+            <ParseInlineBold text={line} />
+          </p>
+        );
+      })}
+    </div>
   );
 }
 
@@ -596,11 +663,11 @@ REGLAS OBLIGATORIAS:
                                   </div>
                                   <div className="min-w-0">
                                     <p className="font-dm-sans font-bold text-sm text-gray-900 dark:text-gray-100 truncate leading-snug">
-                                      <Highlight text={res.title} query={query} />
+                                      <HighlightText text={res.title} query={query} />
                                     </p>
                                     {res.subtitle && (
                                       <p className="font-inter text-xs text-gray-500 dark:text-gray-400 truncate mt-0.5">
-                                        <Highlight text={res.subtitle} query={query} />
+                                        <HighlightText text={res.subtitle} query={query} />
                                       </p>
                                     )}
                                   </div>
@@ -710,13 +777,17 @@ REGLAS OBLIGATORIAS:
                         className={`flex flex-col ${msg.role === 'user' ? 'items-end' : 'items-start'}`}
                       >
                         <div
-                          className={`max-w-[88%] px-4 py-3 rounded-2xl font-inter text-sm leading-relaxed whitespace-pre-wrap ${
+                          className={`max-w-[92%] px-4.5 py-3.5 rounded-2xl ${
                             msg.role === 'user'
-                              ? 'bg-black dark:bg-white text-white dark:text-black rounded-br-none'
-                              : 'bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100 rounded-bl-none border border-gray-200/50 dark:border-gray-800/50'
+                              ? 'bg-black dark:bg-white text-white dark:text-black rounded-br-none font-inter text-sm leading-relaxed whitespace-pre-wrap'
+                              : 'bg-gray-100 dark:bg-gray-900/90 text-gray-900 dark:text-gray-100 rounded-bl-none border border-gray-200/60 dark:border-gray-800/60 shadow-sm'
                           }`}
                         >
-                          {msg.content}
+                          {msg.role === 'user' ? (
+                            msg.content
+                          ) : (
+                            <MarkdownRenderer content={msg.content} />
+                          )}
                         </div>
                       </motion.div>
                     ))
