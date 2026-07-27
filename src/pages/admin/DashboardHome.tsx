@@ -184,6 +184,7 @@ export default function DashboardHome() {
       case 'shopping': return 'bg-green-100 dark:bg-green-950/60 text-green-600 dark:text-green-300';
       case 'project': return 'bg-violet-100 dark:bg-violet-950/60 text-violet-600 dark:text-violet-300';
       case 'checklist': return 'bg-teal-100 dark:bg-teal-950/60 text-teal-600 dark:text-teal-300';
+      case 'recipe': return 'bg-rose-100 dark:bg-rose-950/60 text-rose-600 dark:text-rose-300';
       default: return 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300';
     }
   };
