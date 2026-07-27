@@ -271,7 +271,36 @@ export default function DashboardHome() {
     },
   ];
 
-  if (loading) return <div className="text-gray-400 font-syne uppercase tracking-widest text-xs">Cargando dashboard...</div>;
+  if (loading) return (
+    <div className="space-y-12 pb-16">
+      {/* Header skeleton */}
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+        <div className="space-y-3">
+          <div className="skeleton h-10 w-64" />
+          <div className="skeleton h-4 w-80" />
+        </div>
+        <div className="flex gap-3">
+          <div className="skeleton h-11 w-36 rounded-2xl" />
+          <div className="skeleton h-11 w-36 rounded-2xl" />
+          <div className="skeleton h-11 w-36 rounded-2xl" />
+        </div>
+      </div>
+      {/* Pinned section skeleton */}
+      <div className="space-y-4">
+        <div className="skeleton h-7 w-40" />
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {[1,2,3].map(i => <div key={i} className="skeleton h-28 rounded-3xl" />)}
+        </div>
+      </div>
+      {/* Cards skeleton */}
+      <div className="space-y-4">
+        <div className="skeleton h-7 w-28" />
+        <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {[1,2,3,4,5,6,7,8].map(i => <div key={i} className="skeleton h-32 rounded-[2rem]" />)}
+        </div>
+      </div>
+    </div>
+  );
 
   return (
     <div className="space-y-12 pb-16">
@@ -285,43 +314,43 @@ export default function DashboardHome() {
           </p>
         </div>
 
-        <div className="flex flex-wrap items-center gap-3">
+        <div className="flex items-center gap-2 overflow-x-auto scrollbar-none pb-1">
           <button
             onClick={handleTestNotification}
-            className="flex items-center gap-2.5 px-4 py-3 bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm text-xs font-syne font-bold uppercase tracking-wider text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 active:scale-95 transition-all"
+            className="flex items-center gap-2 px-3 py-2.5 bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm text-xs font-syne font-bold uppercase tracking-wider text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 active:scale-95 transition-all shrink-0"
             title="Activar o probar notificaciones flotantes en tu celular/PC"
           >
-            <HiOutlineBell className="text-lg text-amber-500" />
-            <span>Notificaciones</span>
+            <HiOutlineBell className="text-base text-amber-500" />
+            <span className="hidden sm:block">Notificaciones</span>
           </button>
 
           <button
             onClick={exportBackup}
             disabled={exporting}
-            className="flex items-center gap-2.5 px-4 py-3 bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm text-xs font-syne font-bold uppercase tracking-wider text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 active:scale-95 transition-all disabled:opacity-50"
+            className="flex items-center gap-2 px-3 py-2.5 bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm text-xs font-syne font-bold uppercase tracking-wider text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 active:scale-95 transition-all disabled:opacity-50 shrink-0"
             title="Descargar una copia de seguridad en JSON con todos tus datos"
           >
             {exporting ? (
               <div className="size-4 border-2 border-gray-400 border-t-black dark:border-t-white rounded-full animate-spin" />
             ) : (
-              <HiOutlineDownload className="text-lg text-blue-500" />
+              <HiOutlineDownload className="text-base text-blue-500" />
             )}
-            <span>Exportar Respaldo</span>
+            <span className="hidden sm:block">Respaldo</span>
           </button>
 
           <button
             onClick={() => setIsPrivacyMode(!isPrivacyMode)}
-            className="flex items-center gap-2.5 px-4 py-3 bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm text-xs font-syne font-bold uppercase tracking-wider text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 active:scale-95 transition-all"
+            className="flex items-center gap-2 px-3 py-2.5 bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm text-xs font-syne font-bold uppercase tracking-wider text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 active:scale-95 transition-all shrink-0"
           >
             {isPrivacyMode ? (
               <>
-                <HiOutlineEyeOff className="text-lg text-gray-400" />
-                <span>Mostrar Montos</span>
+                <HiOutlineEyeOff className="text-base text-gray-400" />
+                <span className="hidden sm:block">Mostrar</span>
               </>
             ) : (
               <>
-                <HiOutlineEye className="text-lg text-emerald-500" />
-                <span>Modo Privacidad</span>
+                <HiOutlineEye className="text-base text-emerald-500" />
+                <span className="hidden sm:block">Privacidad</span>
               </>
             )}
           </button>

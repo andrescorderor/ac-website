@@ -32,7 +32,8 @@ import {
   HiX,
   HiOutlineColorSwatch,
   HiOutlineCheckCircle,
-  HiOutlineBookOpen
+  HiOutlineBookOpen,
+  HiOutlineDotsHorizontal
 } from 'react-icons/hi';
 
 const menuItems = [
@@ -47,6 +48,15 @@ const menuItems = [
   { icon: HiOutlineColorSwatch, label: 'Proyectos', path: '/admin/panel/proyectos' },
   { icon: HiOutlineCheckCircle, label: 'Checklist', path: '/admin/panel/checklist' },
   { icon: HiOutlineBookOpen, label: 'Recetas', path: '/admin/panel/recetas' },
+];
+
+// Bottom nav shows only the most-used 5 modules for thumb-friendly mobile nav
+const bottomNavItems = [
+  { icon: HiOutlineViewGrid, label: 'Inicio', path: '/admin/panel' },
+  { icon: HiOutlineCurrencyDollar, label: 'Finanzas', path: '/admin/panel/finanzas' },
+  { icon: HiOutlineClipboardList, label: 'Tareas', path: '/admin/panel/pendientes' },
+  { icon: HiOutlineBookOpen, label: 'Recetas', path: '/admin/panel/recetas' },
+  { icon: HiOutlineDotsHorizontal, label: 'Más', path: null },
 ];
 
 export default function DashboardLayout() {
@@ -175,12 +185,13 @@ function DashboardLayoutContent() {
           </AnimatePresence>
         </div>
 
-        <nav className="flex-1 px-3 space-y-1.5 overflow-y-auto scrollbar-thin">
+        <nav className="flex-1 px-3 space-y-1.5 overflow-y-auto scrollbar-none">
           {menuItems.map((item) => (
             <Link
               key={item.path}
               to={item.path}
-              className={`flex items-center transition-all duration-300 interactive-hover ${
+              title={!isSidebarOpen ? item.label : undefined}
+              className={`group relative flex items-center transition-all duration-300 interactive-hover ${
                 isSidebarOpen 
                   ? 'gap-4 px-4 py-3.5 rounded-2xl' 
                   : 'justify-center w-12 h-12 mx-auto rounded-2xl'
@@ -191,6 +202,12 @@ function DashboardLayoutContent() {
               }`}
             >
               <item.icon className="text-2xl shrink-0" />
+              {/* Tooltip when collapsed */}
+              {!isSidebarOpen && (
+                <span className="pointer-events-none absolute left-full ml-3 px-3 py-1.5 bg-gray-900 dark:bg-white text-white dark:text-black text-xs font-syne font-bold uppercase tracking-widest rounded-xl whitespace-nowrap opacity-0 group-hover:opacity-100 transition-all duration-200 shadow-xl z-50">
+                  {item.label}
+                </span>
+              )}
               <AnimatePresence>
                 {isSidebarOpen && (
                   <motion.span 
@@ -487,10 +504,59 @@ function DashboardLayoutContent() {
           </div>
         </header>
 
-        <div className="p-5 md:p-8 lg:p-12 pt-20 lg:pt-8 max-w-7xl mx-auto min-h-screen">
-          <Outlet />
+        <div className="p-5 md:p-8 lg:p-12 pt-20 pb-bottom-nav lg:pt-8 lg:pb-8 max-w-7xl mx-auto min-h-screen">
+          <motion.div
+            key={location.pathname}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.25, ease: 'easeOut' }}
+          >
+            <Outlet />
+          </motion.div>
         </div>
       </main>
+
+      {/* ═══ Mobile Bottom Navigation Bar ═══ */}
+      <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-white/85 dark:bg-gray-950/90 backdrop-blur-2xl border-t border-gray-200/50 dark:border-gray-800/50 shadow-[0_-4px_32px_rgba(0,0,0,0.08)]" style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
+        <div className="flex items-center justify-around px-2 py-2">
+          {bottomNavItems.map((item) => {
+            const isActive = item.path && location.pathname === item.path;
+            if (!item.path) {
+              // "Más" button opens mobile sidebar
+              return (
+                <button
+                  key="mas"
+                  onClick={() => setIsSidebarOpen(true)}
+                  className="flex flex-col items-center gap-1 px-3 py-2 rounded-2xl transition-all active:scale-90 text-gray-400 dark:text-gray-500"
+                >
+                  <item.icon className="text-xl" />
+                  <span className="font-syne text-[9px] font-bold uppercase tracking-widest">{item.label}</span>
+                </button>
+              );
+            }
+            return (
+              <Link
+                key={item.path}
+                to={item.path}
+                className={`flex flex-col items-center gap-1 px-3 py-2 rounded-2xl transition-all active:scale-90 ${
+                  isActive
+                    ? 'text-black dark:text-white'
+                    : 'text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'
+                }`}
+              >
+                {isActive && (
+                  <motion.div
+                    layoutId="bottomNavIndicator"
+                    className="absolute -top-0.5 w-8 h-0.5 bg-black dark:bg-white rounded-full"
+                  />
+                )}
+                <item.icon className={`text-xl transition-transform ${isActive ? 'scale-110' : ''}`} />
+                <span className={`font-syne text-[9px] font-bold uppercase tracking-widest transition-all ${isActive ? 'opacity-100' : 'opacity-60'}`}>{item.label}</span>
+              </Link>
+            );
+          })}
+        </div>
+      </nav>
     </div>
   );
 }
