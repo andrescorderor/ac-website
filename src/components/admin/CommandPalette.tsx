@@ -98,24 +98,45 @@ function ParseInlineBold({ text }: { text: string }) {
   );
 }
 
-/** Component to render structured Markdown responses gracefully */
+/** Component to render structured Markdown responses gracefully with UX polish */
 function MarkdownRenderer({ content }: { content: string }) {
   const lines = content.split('\n');
 
   return (
-    <div className="space-y-1.5 font-inter text-sm leading-relaxed">
-      {lines.map((line, idx) => {
-        if (!line.trim()) return <div key={idx} className="h-1" />;
+    <div className="space-y-2 font-inter text-sm leading-relaxed">
+      {lines.map((rawLine, idx) => {
+        const line = rawLine.trim();
+        if (!line) return <div key={idx} className="h-1" />;
+
+        // Final follow-up question (e.g. "¿Te gustaría que te ayude...?")
+        if (line.startsWith('¿') || (line.endsWith('?') && line.length < 120)) {
+          return (
+            <div key={idx} className="mt-4 p-3 bg-indigo-50/80 dark:bg-indigo-950/40 rounded-xl border border-indigo-200/60 dark:border-indigo-900/50 text-indigo-900 dark:text-indigo-200 text-xs font-inter font-medium flex items-center gap-2">
+              <span className="text-sm">💡</span>
+              <div className="flex-1"><ParseInlineBold text={line} /></div>
+            </div>
+          );
+        }
+
+        // Section header (e.g. "Estilo La Michoacana:" or "**Estilo La Michoacana:**")
+        if (line.endsWith(':') && line.length < 80 && !line.startsWith('-') && !line.startsWith('*')) {
+          return (
+            <h4 key={idx} className="font-dm-sans font-bold text-sm text-indigo-600 dark:text-indigo-400 pt-3 pb-0.5 tracking-tight flex items-center gap-1.5">
+              <span className="size-1.5 rounded-full bg-indigo-500" />
+              <ParseInlineBold text={line} />
+            </h4>
+          );
+        }
 
         // Numbered item (e.g., "1. **Horchata La Michoacana**")
         const numberedMatch = line.match(/^(\d+)\.\s+(.*)/);
         if (numberedMatch) {
           return (
-            <div key={idx} className="flex items-start gap-2 pt-1.5">
+            <div key={idx} className="flex items-start gap-2.5 pt-2">
               <span className="flex items-center justify-center size-5 rounded-full bg-indigo-100 dark:bg-indigo-950/80 text-indigo-600 dark:text-indigo-400 font-dm-sans text-[11px] font-bold shrink-0 mt-0.5 shadow-sm">
                 {numberedMatch[1]}
               </span>
-              <div className="flex-1 text-gray-900 dark:text-gray-100">
+              <div className="flex-1 text-gray-900 dark:text-gray-100 font-dm-sans">
                 <ParseInlineBold text={numberedMatch[2]} />
               </div>
             </div>
@@ -126,8 +147,8 @@ function MarkdownRenderer({ content }: { content: string }) {
         const bulletMatch = line.match(/^[\-\*]\s+(.*)/);
         if (bulletMatch) {
           return (
-            <div key={idx} className="flex items-start gap-2.5 pl-2">
-              <span className="size-1.5 rounded-full bg-indigo-500 shrink-0 mt-2" />
+            <div key={idx} className="flex items-start gap-2.5 pl-3">
+              <span className="size-1.5 rounded-full bg-indigo-400 dark:bg-indigo-500 shrink-0 mt-2" />
               <div className="flex-1 text-gray-700 dark:text-gray-300">
                 <ParseInlineBold text={bulletMatch[1]} />
               </div>
@@ -774,17 +795,23 @@ REGLAS OBLIGATORIAS:
                         key={i}
                         initial={{ opacity: 0, y: 8 }}
                         animate={{ opacity: 1, y: 0 }}
-                        className={`flex flex-col ${msg.role === 'user' ? 'items-end' : 'items-start'}`}
+                        className={`flex flex-col ${msg.role === 'user' ? 'items-end' : 'items-start'} space-y-1.5`}
                       >
+                        {msg.role === 'assistant' && (
+                          <div className="flex items-center gap-1.5 text-[10px] font-syne font-bold uppercase tracking-widest text-indigo-500 dark:text-indigo-400 px-1">
+                            <HiSparkles className="text-xs" />
+                            <span>Asistente IA</span>
+                          </div>
+                        )}
                         <div
-                          className={`max-w-[92%] px-4.5 py-3.5 rounded-2xl ${
+                          className={`max-w-[88%] px-4.5 py-3.5 rounded-2xl shadow-sm ${
                             msg.role === 'user'
-                              ? 'bg-black dark:bg-white text-white dark:text-black rounded-br-none font-inter text-sm leading-relaxed whitespace-pre-wrap'
-                              : 'bg-gray-100 dark:bg-gray-900/90 text-gray-900 dark:text-gray-100 rounded-bl-none border border-gray-200/60 dark:border-gray-800/60 shadow-sm'
+                              ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-tr-none font-inter text-sm leading-relaxed border border-blue-500/20'
+                              : 'bg-gray-100/90 dark:bg-gray-900/90 text-gray-900 dark:text-gray-100 rounded-tl-none border border-gray-200/70 dark:border-gray-800/70'
                           }`}
                         >
                           {msg.role === 'user' ? (
-                            msg.content
+                            <span className="whitespace-pre-wrap">{msg.content}</span>
                           ) : (
                             <MarkdownRenderer content={msg.content} />
                           )}

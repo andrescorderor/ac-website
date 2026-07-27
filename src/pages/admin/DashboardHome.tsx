@@ -57,8 +57,35 @@ export default function DashboardHome() {
     return () => window.removeEventListener('ac_pinned_changed', handlePinnedChanged);
   }, []);
 
-  const loadPinned = () => {
-    setPinnedItems(getPinnedItems());
+  const loadPinned = async () => {
+    const rawItems = getPinnedItems();
+    if (rawItems.length === 0) {
+      setPinnedItems([]);
+      return;
+    }
+
+    try {
+      const [doneTasks, settledDebts, boughtShopping] = await Promise.all([
+        supabase.from('tasks').select('id').eq('completed', true),
+        supabase.from('debts').select('id').eq('settled', true),
+        supabase.from('shopping_list').select('id').eq('bought', true),
+      ]);
+
+      const doneTaskIds = new Set(doneTasks.data?.map(t => t.id) || []);
+      const settledDebtIds = new Set(settledDebts.data?.map(d => d.id) || []);
+      const boughtShoppingIds = new Set(boughtShopping.data?.map(s => s.id) || []);
+
+      const activePinned = rawItems.filter(item => {
+        if (item.type === 'task' && doneTaskIds.has(item.id)) return false;
+        if (item.type === 'debt' && settledDebtIds.has(item.id)) return false;
+        if (item.type === 'shopping' && boughtShoppingIds.has(item.id)) return false;
+        return true;
+      });
+
+      setPinnedItems(activePinned);
+    } catch {
+      setPinnedItems(rawItems);
+    }
     syncPinnedItemsWithSupabase();
   };
 
