@@ -134,7 +134,7 @@ export default function Vault() {
   );
 
   return (
-    <div className="space-y-12 pb-20">
+    <div className="space-y-12 pb-28 sm:pb-20">
       <header className="flex flex-col sm:flex-row sm:items-end justify-between gap-6">
         <div>
           <h1 className="font-dm-sans text-3xl md:text-4xl font-bold tracking-tight text-[var(--black)] dark:text-white">

@@ -181,7 +181,7 @@ export default function Proyectos() {
   );
 
   return (
-    <div className="space-y-10 pb-20">
+    <div className="space-y-10 pb-28 sm:pb-20">
       {/* Header */}
       <header className="flex flex-col sm:flex-row sm:items-end justify-between gap-6">
         <div>
