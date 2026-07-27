@@ -126,7 +126,20 @@ export default function Finanzas() {
     return `$${val.toLocaleString()}`;
   };
 
-  if (loading) return <div className="text-gray-400 font-syne uppercase tracking-widest text-xs">Cargando finanzas...</div>;
+  if (loading) return (
+    <div className="space-y-10 pb-20">
+      <div className="flex justify-between items-end">
+        <div className="space-y-3">
+          <div className="skeleton h-10 w-48" />
+          <div className="skeleton h-4 w-72" />
+        </div>
+        <div className="skeleton h-12 w-36 rounded-2xl" />
+      </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        {[1, 2, 3, 4].map(i => <div key={i} className="skeleton h-32 rounded-[2rem]" />)}
+      </div>
+    </div>
+  );
 
   return (
     <div className="space-y-12 pb-20">

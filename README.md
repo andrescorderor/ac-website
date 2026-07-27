@@ -48,7 +48,9 @@ The productivity hub is a mobile-optimized private dashboard with specialized mo
 *   🌐 **Landing Page Navigation Link:** Easy "Ver Landing Page" link on login and panel navigation to view the public portfolio anytime.
 *   🔔 **Toast Alert System:** Real-time feedback notifications for creation, edit, and deletion actions.
 *   ⏳ **Submit Protection:** Loading indicators and button locking during async operations to prevent duplicate submissions.
-*   📱 **Auto-Hide Navigation & Responsive Layouts:** Mobile-optimized headers and square responsive sidebar navigation.
+*   📱 **Mobile Bottom Navigation Bar & Smooth Transitions:** Dedicated 5-item bottom tab bar on mobile devices, smooth page transitions, and auto-hiding headers.
+*   💀 **Unified Skeleton Loaders:** Animated shimmer loading states across all 9 modules and the home dashboard replacing raw text placeholders.
+*   📌 **Smart Pinned Items Filtering:** Automatically hides completed tasks, settled debts, and bought shopping list items from the home dashboard pinned section.
 *   🚀 **Database Keep-Alive & Auto-Backups:** Automated GitHub Actions workflows for database pinging and bi-monthly JSON backups.
 
 ---

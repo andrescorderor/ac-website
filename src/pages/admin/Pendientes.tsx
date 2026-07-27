@@ -120,7 +120,20 @@ export default function Pendientes() {
     return matchesStatus && matchesSearch;
   });
 
-  if (loading) return <div className="text-gray-400 font-syne uppercase tracking-widest text-xs">Cargando tareas...</div>;
+  if (loading) return (
+    <div className="max-w-4xl mx-auto space-y-10 pb-20">
+      <div className="flex justify-between items-end">
+        <div className="space-y-3">
+          <div className="skeleton h-10 w-48" />
+          <div className="skeleton h-4 w-72" />
+        </div>
+        <div className="skeleton h-12 w-36 rounded-2xl" />
+      </div>
+      <div className="space-y-4">
+        {[1, 2, 3, 4, 5].map(i => <div key={i} className="skeleton h-20 rounded-2xl" />)}
+      </div>
+    </div>
+  );
 
   return (
     <div className="max-w-4xl mx-auto space-y-12 pb-20">

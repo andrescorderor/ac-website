@@ -13,6 +13,7 @@ import {
   HiOutlineSearch,
 } from 'react-icons/hi';
 import { useToast } from '@/components/common/ToastContext';
+import { togglePinItem, isItemPinned } from '@/lib/pinned';
 
 type Ingredient = {
   id: string;
@@ -172,7 +173,38 @@ export default function Recetas() {
     .filter(r => filterCategory === 'Todas' || r.category === filterCategory)
     .filter(r => !searchTerm || r.name.toLowerCase().includes(searchTerm.toLowerCase()));
 
-  if (loading) return <div className="text-gray-400 font-syne uppercase tracking-widest text-xs">Cargando recetas...</div>;
+  const handleTogglePin = (e: React.MouseEvent, recipe: Recipe) => {
+    e.stopPropagation();
+    const isNowPinned = togglePinItem({
+      id: recipe.id,
+      type: 'recipe',
+      title: `${recipe.emoji} ${recipe.name}`,
+      subtitle: recipe.category,
+      path: '/admin/panel/recetas',
+    });
+
+    if (isNowPinned) {
+      toast.success('¡Receta fijada en el inicio! 📌');
+    } else {
+      toast.info('Receta desfijada del inicio');
+    }
+    setRecipes([...recipes]);
+  };
+
+  if (loading) return (
+    <div className="space-y-10 pb-20">
+      <div className="flex justify-between items-end">
+        <div className="space-y-3">
+          <div className="skeleton h-10 w-48" />
+          <div className="skeleton h-4 w-72" />
+        </div>
+        <div className="skeleton h-12 w-36 rounded-2xl" />
+      </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+        {[1, 2, 3, 4, 5, 6].map(i => <div key={i} className="skeleton h-48 rounded-[2rem]" />)}
+      </div>
+    </div>
+  );
 
   return (
     <div className="space-y-10 pb-20">
@@ -408,6 +440,17 @@ export default function Recetas() {
                         </div>
                       </div>
                       <div className="flex items-center gap-1 shrink-0">
+                        <button
+                          onClick={e => handleTogglePin(e, recipe)}
+                          className={`p-1.5 rounded-xl transition-all ${
+                            isItemPinned(recipe.id)
+                              ? 'text-amber-500 bg-amber-50 dark:bg-amber-950/40'
+                              : 'text-gray-300 dark:text-gray-600 hover:text-amber-500 hover:bg-amber-50 dark:hover:bg-amber-950/30'
+                          }`}
+                          title={isItemPinned(recipe.id) ? 'Desfijar del inicio' : 'Fijar en el inicio'}
+                        >
+                          <span className="text-sm">{isItemPinned(recipe.id) ? '📌' : '📍'}</span>
+                        </button>
                         <button onClick={() => openEditForm(recipe)} className="p-1.5 text-gray-400 hover:text-black dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl transition-all">
                           <HiOutlinePencil className="text-sm" />
                         </button>

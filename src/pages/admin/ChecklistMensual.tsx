@@ -175,7 +175,21 @@ export default function ChecklistMensual() {
     .map(cat => ({ cat, catItems: items.filter(i => i.category === cat) }))
     .filter(g => g.catItems.length > 0);
 
-  if (loading) return <div className="text-gray-400 font-syne uppercase tracking-widest text-xs">Cargando checklist...</div>;
+  if (loading) return (
+    <div className="max-w-4xl mx-auto space-y-10 pb-20">
+      <div className="flex justify-between items-end">
+        <div className="space-y-3">
+          <div className="skeleton h-10 w-48" />
+          <div className="skeleton h-4 w-72" />
+        </div>
+        <div className="skeleton h-12 w-36 rounded-2xl" />
+      </div>
+      <div className="skeleton h-24 rounded-3xl" />
+      <div className="space-y-4">
+        {[1, 2, 3, 4].map(i => <div key={i} className="skeleton h-20 rounded-2xl" />)}
+      </div>
+    </div>
+  );
 
   return (
     <div className="space-y-10 pb-20 max-w-3xl mx-auto">
