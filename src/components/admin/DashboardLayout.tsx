@@ -166,42 +166,39 @@ function DashboardLayoutContent() {
         </div>
 
         <nav className="flex-1 px-3 space-y-1.5 overflow-y-auto scrollbar-none">
-          {menuItems.map((item) => (
-            <Link
-              key={item.path}
-              to={item.path}
-              title={!isSidebarOpen ? item.label : undefined}
-              className={`group relative flex items-center transition-all duration-300 interactive-hover ${
-                isSidebarOpen 
-                  ? 'gap-4 px-4 py-3.5 rounded-2xl' 
-                  : 'justify-center w-12 h-12 mx-auto rounded-2xl'
-              } ${
-                location.pathname === item.path 
-                  ? 'bg-black dark:bg-white text-white dark:text-black shadow-lg shadow-black/10 dark:shadow-white/10' 
-                  : 'text-gray-500 dark:text-gray-400 hover:bg-gray-100/80 dark:hover:bg-gray-800/60 hover:text-black dark:hover:text-white'
-              }`}
-            >
-              <item.icon className="text-2xl shrink-0" />
-              {/* Tooltip when collapsed */}
-              {!isSidebarOpen && (
-                <span className="pointer-events-none absolute left-full ml-3 px-3 py-1.5 bg-gray-900 dark:bg-white text-white dark:text-black text-xs font-syne font-bold uppercase tracking-widest rounded-xl whitespace-nowrap opacity-0 group-hover:opacity-100 transition-all duration-200 shadow-xl z-50">
-                  {item.label}
-                </span>
-              )}
-              <AnimatePresence>
-                {isSidebarOpen && (
-                  <motion.span 
-                    initial={{ opacity: 0, width: 0 }}
-                    animate={{ opacity: 1, width: 'auto' }}
-                    exit={{ opacity: 0, width: 0 }}
-                    className="font-syne text-xs font-bold uppercase tracking-widest overflow-hidden whitespace-nowrap"
-                  >
+        {menuItems.map((item) => {
+            const isActive = location.pathname === item.path;
+            return (
+              <div key={item.path} className="group relative">
+                <Link
+                  to={item.path}
+                  title={!isSidebarOpen ? item.label : undefined}
+                  className={`flex items-center transition-all duration-300 interactive-hover ${
+                    isSidebarOpen 
+                      ? 'gap-4 px-4 py-3.5 rounded-2xl w-full' 
+                      : 'justify-center w-12 h-12 mx-auto rounded-2xl'
+                  } ${
+                    isActive
+                      ? 'bg-black dark:bg-white text-white dark:text-black shadow-lg shadow-black/10 dark:shadow-white/10' 
+                      : 'text-gray-500 dark:text-gray-400 hover:bg-gray-100/80 dark:hover:bg-gray-800/60 hover:text-black dark:hover:text-white'
+                  }`}
+                >
+                  <item.icon className="text-2xl shrink-0" />
+                  {isSidebarOpen && (
+                    <span className="font-syne text-xs font-bold uppercase tracking-widest whitespace-nowrap">
+                      {item.label}
+                    </span>
+                  )}
+                </Link>
+                {/* Tooltip only when sidebar is collapsed — outside the Link to avoid overflow clip */}
+                {!isSidebarOpen && (
+                  <span className="pointer-events-none absolute left-[56px] top-1/2 -translate-y-1/2 px-3 py-1.5 bg-gray-900 dark:bg-white text-white dark:text-black text-xs font-syne font-bold uppercase tracking-widest rounded-xl whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-150 shadow-xl z-[999]">
                     {item.label}
-                  </motion.span>
+                  </span>
                 )}
-              </AnimatePresence>
-            </Link>
-          ))}
+              </div>
+            );
+          })}
         </nav>
 
         <div className="p-3 border-t border-gray-100 dark:border-gray-800/80 shrink-0 space-y-2">

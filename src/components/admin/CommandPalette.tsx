@@ -274,15 +274,19 @@ export default function CommandPalette({ isOpen, onClose }: CommandPaletteProps)
   const searchAll = useCallback(async (searchTerm: string) => {
     setSearching(true);
     const term = searchTerm.toLowerCase().trim();
+    // Normalize diacritics so "matricula" matches "Matrícula", "cafe" matches "café", etc.
+    const termNorm = term.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
 
     try {
       let notesQ = supabase.from('notes').select('*').order('created_at', { ascending: false });
       let remindersQ = supabase.from('reminders').select('*').order('created_at', { ascending: false });
       let tasksQ = supabase.from('tasks').select('*').order('created_at', { ascending: false });
       let debtsQ = supabase.from('debts').select('*').order('created_at', { ascending: false });
+      // Vault: always load all user items and filter client-side (avoids accent/diacritic mismatch in DB ilike)
       let vaultQ = supabase.from('vault_items').select('*').order('created_at', { ascending: false });
       let shoppingQ = supabase.from('shopping_list').select('*').order('created_at', { ascending: false });
       let projectsQ = supabase.from('creative_projects').select('*').order('created_at', { ascending: false });
+
       let checklistQ = supabase.from('monthly_checklist_items').select('*').order('created_at', { ascending: false });
       let recipesQ = supabase.from('recipes').select('*').order('created_at', { ascending: false });
       let financeQ = supabase.from('finance_expenses').select('*').order('created_at', { ascending: false });
@@ -352,7 +356,12 @@ export default function CommandPalette({ isOpen, onClose }: CommandPaletteProps)
       });
 
       vlt.data?.forEach(v => {
-        if (!term || v.title.toLowerCase().includes(term) || v.content?.toLowerCase().includes(term) || v.category?.toLowerCase().includes(term)) {
+        // Normalize diacritics in both the field and the search term for robust accent-insensitive matching
+        const normalize = (s: string) => s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+        const titleNorm = normalize(v.title);
+        const contentNorm = v.content ? normalize(v.content) : '';
+        const catNorm = v.category ? normalize(v.category) : '';
+        if (!termNorm || titleNorm.includes(termNorm) || contentNorm.includes(termNorm) || catNorm.includes(termNorm)) {
           push({ id: v.id, type: 'vault', title: v.title, subtitle: v.category ? `${v.category} · ${v.content?.slice(0, 50)}...` : (v.content?.slice(0, 70) || '🔒 Texto seguro en bóveda'), path: '/admin/panel/vault', icon: TYPE_META.vault.icon, categoryLabel: TYPE_META.vault.label, badgeColor: TYPE_META.vault.color, rawTitle: v.title });
         }
       });
