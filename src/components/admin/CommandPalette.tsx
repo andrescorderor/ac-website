@@ -282,8 +282,8 @@ export default function CommandPalette({ isOpen, onClose }: CommandPaletteProps)
       let remindersQ = supabase.from('reminders').select('*').order('created_at', { ascending: false });
       let tasksQ = supabase.from('tasks').select('*').order('created_at', { ascending: false });
       let debtsQ = supabase.from('debts').select('*').order('created_at', { ascending: false });
-      // Vault: always load all user items and filter client-side (avoids accent/diacritic mismatch in DB ilike)
-      let vaultQ = supabase.from('vault_items').select('*').order('created_at', { ascending: false });
+      // Vault: always load ALL items — filtered 100% client-side with accent-insensitive comparison
+      const vaultQ = supabase.from('vault_items').select('*').order('created_at', { ascending: false }).limit(500);
       let shoppingQ = supabase.from('shopping_list').select('*').order('created_at', { ascending: false });
       let projectsQ = supabase.from('creative_projects').select('*').order('created_at', { ascending: false });
 
@@ -296,7 +296,7 @@ export default function CommandPalette({ isOpen, onClose }: CommandPaletteProps)
         remindersQ = remindersQ.or(`title.ilike.%${term}%,category.ilike.%${term}%`).limit(50);
         tasksQ = tasksQ.or(`title.ilike.%${term}%,description.ilike.%${term}%`).limit(50);
         debtsQ = debtsQ.or(`debtor_name.ilike.%${term}%,concept.ilike.%${term}%`).limit(50);
-        vaultQ = vaultQ.or(`title.ilike.%${term}%,content.ilike.%${term}%,category.ilike.%${term}%`).limit(50);
+        // vault has no server-side filter — all items already loaded above
         shoppingQ = shoppingQ.or(`name.ilike.%${term}%,location.ilike.%${term}%`).limit(50);
         projectsQ = projectsQ.or(`name.ilike.%${term}%,description.ilike.%${term}%,category.ilike.%${term}%`).limit(50);
         checklistQ = checklistQ.or(`title.ilike.%${term}%,category.ilike.%${term}%`).limit(50);
@@ -307,7 +307,6 @@ export default function CommandPalette({ isOpen, onClose }: CommandPaletteProps)
         remindersQ = remindersQ.limit(20);
         tasksQ = tasksQ.limit(20);
         debtsQ = debtsQ.limit(20);
-        vaultQ = vaultQ.limit(20);
         shoppingQ = shoppingQ.limit(20);
         projectsQ = projectsQ.limit(20);
         checklistQ = checklistQ.limit(20);

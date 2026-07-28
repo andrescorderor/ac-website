@@ -169,34 +169,26 @@ function DashboardLayoutContent() {
         {menuItems.map((item) => {
             const isActive = location.pathname === item.path;
             return (
-              <div key={item.path} className="group relative">
-                <Link
-                  to={item.path}
-                  title={!isSidebarOpen ? item.label : undefined}
-                  className={`flex items-center transition-all duration-300 interactive-hover ${
-                    isSidebarOpen 
-                      ? 'gap-4 px-4 py-3.5 rounded-2xl w-full' 
-                      : 'justify-center w-12 h-12 mx-auto rounded-2xl'
-                  } ${
-                    isActive
-                      ? 'bg-black dark:bg-white text-white dark:text-black shadow-lg shadow-black/10 dark:shadow-white/10' 
-                      : 'text-gray-500 dark:text-gray-400 hover:bg-gray-100/80 dark:hover:bg-gray-800/60 hover:text-black dark:hover:text-white'
-                  }`}
-                >
-                  <item.icon className="text-2xl shrink-0" />
-                  {isSidebarOpen && (
-                    <span className="font-syne text-xs font-bold uppercase tracking-widest whitespace-nowrap">
-                      {item.label}
-                    </span>
-                  )}
-                </Link>
-                {/* Tooltip only when sidebar is collapsed — outside the Link to avoid overflow clip */}
-                {!isSidebarOpen && (
-                  <span className="pointer-events-none absolute left-[56px] top-1/2 -translate-y-1/2 px-3 py-1.5 bg-gray-900 dark:bg-white text-white dark:text-black text-xs font-syne font-bold uppercase tracking-widest rounded-xl whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-150 shadow-xl z-[999]">
+              <Link
+                key={item.path}
+                to={item.path}
+                className={`flex items-center transition-all duration-300 interactive-hover ${
+                  isSidebarOpen 
+                    ? 'gap-4 px-4 py-3.5 rounded-2xl' 
+                    : 'justify-center w-12 h-12 mx-auto rounded-2xl'
+                } ${
+                  isActive
+                    ? 'bg-black dark:bg-white text-white dark:text-black shadow-lg shadow-black/10 dark:shadow-white/10' 
+                    : 'text-gray-500 dark:text-gray-400 hover:bg-gray-100/80 dark:hover:bg-gray-800/60 hover:text-black dark:hover:text-white'
+                }`}
+              >
+                <item.icon className="text-2xl shrink-0" />
+                {isSidebarOpen && (
+                  <span className="font-syne text-xs font-bold uppercase tracking-widest whitespace-nowrap">
                     {item.label}
                   </span>
                 )}
-              </div>
+              </Link>
             );
           })}
         </nav>
