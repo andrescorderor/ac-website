@@ -15,6 +15,7 @@ import {
   HiOutlineColorSwatch,
   HiOutlineCheckCircle,
   HiOutlineBookOpen,
+  HiOutlineCurrencyDollar,
   HiOutlineArrowRight,
   HiSparkles,
   HiOutlineSparkles,
@@ -24,7 +25,7 @@ import {
 } from 'react-icons/hi';
 import { useToast } from '@/components/common/ToastContext';
 
-type ResultType = 'note' | 'task' | 'debt' | 'vault' | 'shopping' | 'reminder' | 'project' | 'checklist' | 'recipe';
+type ResultType = 'note' | 'task' | 'debt' | 'vault' | 'shopping' | 'reminder' | 'project' | 'checklist' | 'recipe' | 'finance';
 
 type SearchResult = {
   id: string;
@@ -58,6 +59,7 @@ const TYPE_META: Record<ResultType, { label: string; icon: React.ElementType; co
   project:   { label: 'Proyecto',      icon: HiOutlineColorSwatch,   color: 'bg-violet-100 dark:bg-violet-950/60 text-violet-700 dark:text-violet-300' },
   checklist: { label: 'Checklist',     icon: HiOutlineCheckCircle,   color: 'bg-teal-100 dark:bg-teal-950/60 text-teal-700 dark:text-teal-300' },
   recipe:    { label: 'Receta',        icon: HiOutlineBookOpen,      color: 'bg-rose-100 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300' },
+  finance:   { label: 'Gasto',         icon: HiOutlineCurrencyDollar,color: 'bg-blue-100 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300' },
 };
 
 /** Component to highlight search matches */
@@ -283,17 +285,19 @@ export default function CommandPalette({ isOpen, onClose }: CommandPaletteProps)
       let projectsQ = supabase.from('creative_projects').select('*').order('created_at', { ascending: false });
       let checklistQ = supabase.from('monthly_checklist_items').select('*').order('created_at', { ascending: false });
       let recipesQ = supabase.from('recipes').select('*').order('created_at', { ascending: false });
+      let financeQ = supabase.from('finance_expenses').select('*').order('created_at', { ascending: false });
 
       if (term) {
         notesQ = notesQ.or(`title.ilike.%${term}%,content.ilike.%${term}%,category.ilike.%${term}%`).limit(50);
         remindersQ = remindersQ.or(`title.ilike.%${term}%,category.ilike.%${term}%`).limit(50);
         tasksQ = tasksQ.or(`title.ilike.%${term}%,description.ilike.%${term}%`).limit(50);
         debtsQ = debtsQ.or(`debtor_name.ilike.%${term}%,concept.ilike.%${term}%`).limit(50);
-        vaultQ = vaultQ.or(`title.ilike.%${term}%,category.ilike.%${term}%`).limit(50);
+        vaultQ = vaultQ.or(`title.ilike.%${term}%,content.ilike.%${term}%,category.ilike.%${term}%`).limit(50);
         shoppingQ = shoppingQ.or(`name.ilike.%${term}%,location.ilike.%${term}%`).limit(50);
         projectsQ = projectsQ.or(`name.ilike.%${term}%,description.ilike.%${term}%,category.ilike.%${term}%`).limit(50);
         checklistQ = checklistQ.or(`title.ilike.%${term}%,category.ilike.%${term}%`).limit(50);
         recipesQ = recipesQ.or(`name.ilike.%${term}%,description.ilike.%${term}%,category.ilike.%${term}%`).limit(50);
+        financeQ = financeQ.or(`concept.ilike.%${term}%,category.ilike.%${term}%`).limit(50);
       } else {
         notesQ = notesQ.limit(20);
         remindersQ = remindersQ.limit(20);
@@ -304,9 +308,10 @@ export default function CommandPalette({ isOpen, onClose }: CommandPaletteProps)
         projectsQ = projectsQ.limit(20);
         checklistQ = checklistQ.limit(20);
         recipesQ = recipesQ.limit(20);
+        financeQ = financeQ.limit(20);
       }
 
-      const [nts, rem, tsk, dbt, vlt, shp, prj, chk, rec] = await Promise.all([
+      const [nts, rem, tsk, dbt, vlt, shp, prj, chk, rec, fin] = await Promise.all([
         notesQ,
         remindersQ,
         tasksQ,
@@ -316,44 +321,45 @@ export default function CommandPalette({ isOpen, onClose }: CommandPaletteProps)
         projectsQ,
         checklistQ,
         recipesQ,
+        financeQ,
       ]);
 
       const items: SearchResult[] = [];
       const push = (r: SearchResult) => items.push(r);
 
       nts.data?.forEach(n => {
-        if (!term || n.title.toLowerCase().includes(term) || n.content?.toLowerCase().includes(term)) {
-          push({ id: n.id, type: 'note', title: n.title, subtitle: n.category || n.content?.slice(0, 70), path: '/admin/panel/notas', icon: TYPE_META.note.icon, categoryLabel: TYPE_META.note.label, badgeColor: TYPE_META.note.color });
+        if (!term || n.title.toLowerCase().includes(term) || n.content?.toLowerCase().includes(term) || n.category?.toLowerCase().includes(term)) {
+          push({ id: n.id, type: 'note', title: n.title, subtitle: n.category || n.content?.slice(0, 70), path: '/admin/panel/notas', icon: TYPE_META.note.icon, categoryLabel: TYPE_META.note.label, badgeColor: TYPE_META.note.color, rawTitle: n.title });
         }
       });
 
       rem.data?.forEach(r => {
         if (!term || r.title.toLowerCase().includes(term) || r.category?.toLowerCase().includes(term)) {
-          push({ id: r.id, type: 'reminder', title: r.title, subtitle: `${r.date || r.event_date || 'Sin fecha'}${r.time ? ` · ${r.time}` : ''}`, path: '/admin/panel/recordatorios', icon: TYPE_META.reminder.icon, categoryLabel: TYPE_META.reminder.label, badgeColor: TYPE_META.reminder.color });
+          push({ id: r.id, type: 'reminder', title: r.title, subtitle: `${r.date || r.event_date || 'Sin fecha'}${r.time ? ` · ${r.time}` : ''}`, path: '/admin/panel/recordatorios', icon: TYPE_META.reminder.icon, categoryLabel: TYPE_META.reminder.label, badgeColor: TYPE_META.reminder.color, rawTitle: r.title });
         }
       });
 
       tsk.data?.forEach(t => {
         if (!term || t.title.toLowerCase().includes(term) || t.description?.toLowerCase().includes(term)) {
-          push({ id: t.id, type: 'task', title: t.title, subtitle: t.completed ? '✓ Completada' : t.due_date ? `Vence: ${t.due_date}` : 'Pendiente', path: '/admin/panel/pendientes', icon: TYPE_META.task.icon, categoryLabel: TYPE_META.task.label, badgeColor: TYPE_META.task.color });
+          push({ id: t.id, type: 'task', title: t.title, subtitle: t.completed ? '✓ Completada' : t.due_date ? `Vence: ${t.due_date}` : 'Pendiente', path: '/admin/panel/pendientes', icon: TYPE_META.task.icon, categoryLabel: TYPE_META.task.label, badgeColor: TYPE_META.task.color, rawTitle: t.title });
         }
       });
 
       dbt.data?.forEach(d => {
         if (!term || d.debtor_name.toLowerCase().includes(term) || d.concept?.toLowerCase().includes(term)) {
-          push({ id: d.id, type: 'debt', title: d.debtor_name, subtitle: `$${d.amount}${d.concept ? ` · ${d.concept}` : ''}`, path: '/admin/panel/deudas', icon: TYPE_META.debt.icon, categoryLabel: TYPE_META.debt.label, badgeColor: TYPE_META.debt.color });
+          push({ id: d.id, type: 'debt', title: d.debtor_name, subtitle: `$${d.amount}${d.concept ? ` · ${d.concept}` : ''}`, path: '/admin/panel/deudas', icon: TYPE_META.debt.icon, categoryLabel: TYPE_META.debt.label, badgeColor: TYPE_META.debt.color, rawTitle: d.debtor_name });
         }
       });
 
       vlt.data?.forEach(v => {
-        if (!term || v.title.toLowerCase().includes(term)) {
-          push({ id: v.id, type: 'vault', title: v.title, subtitle: '🔒 Texto seguro en bóveda', path: '/admin/panel/vault', icon: TYPE_META.vault.icon, categoryLabel: TYPE_META.vault.label, badgeColor: TYPE_META.vault.color });
+        if (!term || v.title.toLowerCase().includes(term) || v.content?.toLowerCase().includes(term) || v.category?.toLowerCase().includes(term)) {
+          push({ id: v.id, type: 'vault', title: v.title, subtitle: v.category ? `${v.category} · ${v.content?.slice(0, 50)}...` : (v.content?.slice(0, 70) || '🔒 Texto seguro en bóveda'), path: '/admin/panel/vault', icon: TYPE_META.vault.icon, categoryLabel: TYPE_META.vault.label, badgeColor: TYPE_META.vault.color, rawTitle: v.title });
         }
       });
 
       shp.data?.forEach(s => {
         if (!term || s.name.toLowerCase().includes(term) || s.location?.toLowerCase().includes(term)) {
-          push({ id: s.id, type: 'shopping', title: s.name, subtitle: `${s.bought ? '✓ Comprado' : 'Por comprar'}${s.location ? ` · ${s.location}` : ''}`, path: '/admin/panel/compras', icon: TYPE_META.shopping.icon, categoryLabel: TYPE_META.shopping.label, badgeColor: TYPE_META.shopping.color });
+          push({ id: s.id, type: 'shopping', title: s.name, subtitle: `${s.bought ? '✓ Comprado' : 'Por comprar'}${s.location ? ` · ${s.location}` : ''}`, path: '/admin/panel/compras', icon: TYPE_META.shopping.icon, categoryLabel: TYPE_META.shopping.label, badgeColor: TYPE_META.shopping.color, rawTitle: s.name });
         }
       });
 
@@ -372,6 +378,12 @@ export default function CommandPalette({ isOpen, onClose }: CommandPaletteProps)
       rec.data?.forEach(r => {
         if (!term || r.name.toLowerCase().includes(term) || r.category?.toLowerCase().includes(term) || r.description?.toLowerCase().includes(term)) {
           push({ id: r.id, type: 'recipe', title: `${r.emoji || '🍽️'} ${r.name}`, subtitle: r.category, path: '/admin/panel/recetas', icon: TYPE_META.recipe.icon, categoryLabel: TYPE_META.recipe.label, badgeColor: TYPE_META.recipe.color, rawTitle: r.name });
+        }
+      });
+
+      fin.data?.forEach(f => {
+        if (!term || f.concept.toLowerCase().includes(term) || f.category?.toLowerCase().includes(term)) {
+          push({ id: f.id, type: 'finance', title: f.concept, subtitle: `$${f.amount} · ${f.category}`, path: '/admin/panel/finanzas', icon: TYPE_META.finance.icon, categoryLabel: TYPE_META.finance.label, badgeColor: TYPE_META.finance.color, rawTitle: f.concept });
         }
       });
 
