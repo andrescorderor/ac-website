@@ -160,6 +160,14 @@ export default function Recetas() {
     setForm(prev => ({ ...prev, description: (prev.description || '') + (prev.description ? '\n• ' : '• ') }));
   };
 
+  const insertBold = () => {
+    setForm(prev => ({ ...prev, description: (prev.description || '') + '**texto en negrita**' }));
+  };
+
+  const insertNumberList = () => {
+    setForm(prev => ({ ...prev, description: (prev.description || '') + (prev.description ? '\n1. ' : '1. ') }));
+  };
+
   const deleteRecipe = async (id: string) => {
     const { error } = await supabase.from('recipes').delete().eq('id', id);
     if (error) { toast.error('Error al eliminar'); return; }
@@ -326,15 +334,31 @@ export default function Recetas() {
               </div>
 
               <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <label className="font-syne text-[10px] font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">Descripción (Opcional)</label>
-                  <button
-                    type="button"
-                    onClick={insertBullet}
-                    className="px-3 py-1 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-lg text-xs font-syne font-bold transition-all"
-                  >
-                    + Agregar Viñeta (•)
-                  </button>
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                  <label className="font-syne text-[10px] font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">Descripción & Preparación (Soporta Markdown)</label>
+                  <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-none pb-1 sm:pb-0">
+                    <button
+                      type="button"
+                      onClick={insertBold}
+                      className="px-2.5 py-1 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-lg text-xs font-syne font-bold transition-all shrink-0"
+                    >
+                      **Negrita**
+                    </button>
+                    <button
+                      type="button"
+                      onClick={insertNumberList}
+                      className="px-2.5 py-1 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-lg text-xs font-syne font-bold transition-all shrink-0"
+                    >
+                      1. Lista
+                    </button>
+                    <button
+                      type="button"
+                      onClick={insertBullet}
+                      className="px-2.5 py-1 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-lg text-xs font-syne font-bold transition-all shrink-0"
+                    >
+                      • Viñeta
+                    </button>
+                  </div>
                 </div>
                 <textarea
                   rows={4} value={form.description} onChange={e => setForm({ ...form, description: e.target.value })}
