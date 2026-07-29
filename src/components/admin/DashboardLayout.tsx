@@ -24,7 +24,6 @@ import {
   HiOutlineLogout,
   HiOutlineSun,
   HiOutlineMoon,
-  HiOutlineGlobeAlt,
   HiOutlineBell,
   HiBell,
   HiOutlineSearch,
@@ -232,23 +231,6 @@ function DashboardLayoutContent() {
             )}
           </button>
 
-          <Link
-            to="/"
-            className={`flex items-center transition-all duration-300 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 ${
-              isSidebarOpen 
-                ? 'w-full gap-4 px-4 py-3.5 rounded-2xl' 
-                : 'justify-center w-12 h-12 mx-auto rounded-2xl'
-            }`}
-            title="Ir a Landing Page Principal"
-          >
-            <HiOutlineGlobeAlt className="text-2xl shrink-0" />
-            {isSidebarOpen && (
-              <span className="font-syne text-xs font-bold uppercase tracking-widest text-gray-800 dark:text-gray-200 whitespace-nowrap">
-                Ver Landing Page
-              </span>
-            )}
-          </Link>
-
           <button
             onClick={handleLogout}
             className={`flex items-center transition-all duration-300 text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 ${
@@ -380,16 +362,6 @@ function DashboardLayoutContent() {
             </span>
           </button>
 
-          <Link
-            to="/"
-            onClick={() => setIsSidebarOpen(false)}
-            className="w-full flex items-center gap-4 px-4 py-3 rounded-xl text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-all active:scale-[0.98]"
-          >
-            <HiOutlineGlobeAlt className="text-xl" />
-            <span className="font-syne text-[11px] font-bold uppercase tracking-widest text-gray-800 dark:text-gray-200">
-              Ver Landing Page
-            </span>
-          </Link>
 
           <button
             onClick={handleLogout}
