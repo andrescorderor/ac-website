@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
+import { motion } from 'framer-motion';
 import { HiOutlinePlus, HiOutlineTrash, HiOutlineSearch } from 'react-icons/hi';
 import { useToast } from '@/components/common/ToastContext';
 import { togglePinItem, isItemPinned } from '@/lib/pinned';
@@ -131,7 +132,7 @@ export default function Deudas() {
   });
 
   if (loading) return (
-    <div className="max-w-4xl mx-auto space-y-10 pb-20">
+    <div className="space-y-10 pb-20">
       <div className="flex justify-between items-end">
         <div className="space-y-3">
           <div className="skeleton h-10 w-48" />
@@ -147,8 +148,8 @@ export default function Deudas() {
   );
 
   return (
-    <div className="max-w-4xl mx-auto space-y-12 pb-28 sm:pb-20">
-      <header className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+    <div className="space-y-12 pb-28 sm:pb-20">
+      <header className="flex flex-col sm:flex-row sm:items-end justify-between gap-6">
         <div>
           <h1 className="font-dm-sans text-3xl md:text-4xl font-bold tracking-tight text-[var(--black)] dark:text-white">
             Cuentas por <span className="text-gradient">Cobrar</span>
@@ -285,7 +286,13 @@ export default function Deudas() {
                 </tr>
               ) : (
                 filteredDebts.map((debt) => (
-                  <tr key={debt.id} className="group hover:bg-gray-50/50 dark:hover:bg-gray-800/50 transition-colors">
+                  <motion.tr 
+                    key={debt.id} 
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    className="group hover:bg-gray-50/50 dark:hover:bg-gray-800/50 transition-colors"
+                  >
                     <td className="px-6 py-4">
                       <button
                         onClick={() => toggleSettled(debt.id, debt.settled)}
@@ -335,7 +342,7 @@ export default function Deudas() {
                         </button>
                       </div>
                     </td>
-                  </tr>
+                  </motion.tr>
                 ))
               )}
             </tbody>

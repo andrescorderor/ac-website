@@ -197,7 +197,7 @@ export default function ChecklistMensual() {
     .filter(g => g.catItems.length > 0);
 
   if (loading) return (
-    <div className="max-w-4xl mx-auto space-y-10 pb-20">
+    <div className="space-y-10 pb-20">
       <div className="flex justify-between items-end">
         <div className="space-y-3">
           <div className="skeleton h-10 w-48" />
@@ -213,7 +213,7 @@ export default function ChecklistMensual() {
   );
 
   return (
-    <div className="space-y-10 pb-28 sm:pb-20 max-w-3xl mx-auto">
+    <div className="space-y-12 pb-28 sm:pb-20">
       {/* Header */}
       <header className="flex flex-col sm:flex-row sm:items-end justify-between gap-6">
         <div>

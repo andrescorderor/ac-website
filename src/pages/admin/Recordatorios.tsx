@@ -203,7 +203,7 @@ export default function Recordatorios() {
   const past = filtered.filter(r => !r.recurring && getDaysUntil(r.date, false) < 0);
 
   if (loading) return (
-    <div className="max-w-5xl mx-auto space-y-10 pb-20">
+    <div className="space-y-10 pb-20">
       <div className="flex justify-between items-end">
         <div className="space-y-3">
           <div className="skeleton h-10 w-48" />
@@ -218,8 +218,8 @@ export default function Recordatorios() {
   );
 
   return (
-    <div className="max-w-5xl mx-auto space-y-12 pb-28 sm:pb-20">
-      <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-8">
+    <div className="space-y-12 pb-28 sm:pb-20">
+      <header className="flex flex-col sm:flex-row sm:items-end justify-between gap-6">
         <div className="flex-1">
           <h1 className="font-dm-sans text-3xl md:text-4xl font-bold tracking-tight text-[var(--black)] dark:text-white">
             Fechas <span className="text-gradient">Importantes</span>

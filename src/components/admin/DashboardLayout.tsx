@@ -362,7 +362,6 @@ function DashboardLayoutContent() {
             </span>
           </button>
 
-
           <button
             onClick={handleLogout}
             className="w-full flex items-center gap-4 px-4 py-3 rounded-xl text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 transition-all active:scale-[0.98]"
@@ -477,7 +476,7 @@ function DashboardLayoutContent() {
               <Link
                 key={item.path}
                 to={item.path}
-                className={`flex flex-col items-center gap-1 px-3 py-2 rounded-2xl transition-all active:scale-90 ${
+                className={`relative flex flex-col items-center gap-1 px-3 py-2 rounded-2xl transition-all active:scale-90 ${
                   isActive
                     ? 'text-black dark:text-white'
                     : 'text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'

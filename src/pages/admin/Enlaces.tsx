@@ -91,16 +91,29 @@ export default function Enlaces() {
   // Get unique categories from data
   const usedCategories = [...new Set(bookmarks.map(b => b.category))];
 
-  if (loading) return <div className="text-gray-400 font-syne uppercase tracking-widest text-xs">Cargando...</div>;
+  if (loading) return (
+    <div className="space-y-10 pb-20">
+      <div className="flex justify-between items-end">
+        <div className="space-y-3">
+          <div className="skeleton h-10 w-48" />
+          <div className="skeleton h-4 w-72" />
+        </div>
+        <div className="skeleton h-12 w-36 rounded-2xl" />
+      </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {[1, 2, 3, 4, 5, 6].map(i => <div key={i} className="skeleton h-20 rounded-2xl" />)}
+      </div>
+    </div>
+  );
 
   return (
-    <div className="max-w-5xl mx-auto space-y-12 pb-20">
-      <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-8">
+    <div className="space-y-12 pb-28 sm:pb-20">
+      <header className="flex flex-col sm:flex-row sm:items-end justify-between gap-6">
         <div className="flex-1">
-          <h1 className="font-dm-sans text-4xl font-bold tracking-tight text-[var(--black)]">
+          <h1 className="font-dm-sans text-3xl md:text-4xl font-bold tracking-tight text-[var(--black)] dark:text-white">
             Enlaces <span className="text-gradient">Rápidos</span>
           </h1>
-          <p className="font-inter mt-2 text-[var(--dark-gray)] font-light">
+          <p className="font-inter mt-2 text-[var(--dark-gray)] dark:text-gray-400 font-light text-sm">
             Tus portales y herramientas favoritas a un clic de distancia.
           </p>
         </div>
@@ -111,7 +124,7 @@ export default function Enlaces() {
               placeholder="Buscar enlace..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-12 pr-6 py-4 bg-white border border-gray-100 rounded-2xl outline-none focus:ring-2 ring-gray-100 font-inter text-sm shadow-sm"
+              className="w-full pl-12 pr-6 py-3.5 bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl outline-none focus:ring-2 ring-gray-100 dark:ring-gray-700 font-inter text-sm shadow-sm transition-all text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500"
             />
             <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">
               <svg xmlns="http://www.w3.org/2000/svg" className="size-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -119,12 +132,14 @@ export default function Enlaces() {
               </svg>
             </div>
           </div>
-          <button
+          <motion.button
+            whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
             onClick={() => setShowAddForm(!showAddForm)}
-            className="p-4 bg-black text-white rounded-2xl hover:scale-105 active:scale-95 transition-all shadow-lg"
+            className="px-6 py-3.5 bg-black dark:bg-white text-white dark:text-black font-syne text-xs font-bold uppercase tracking-wider rounded-2xl shadow-lg flex items-center gap-2 shrink-0"
           >
-            <HiOutlinePlus className="text-2xl" />
-          </button>
+            <HiOutlinePlus className="text-lg" />
+            Nuevo Enlace
+          </motion.button>
         </div>
       </header>
 
@@ -133,7 +148,7 @@ export default function Enlaces() {
         <button
           onClick={() => setFilterCat('all')}
           className={`px-5 py-2.5 rounded-2xl font-syne text-[10px] font-bold uppercase tracking-widest transition-all ${
-            filterCat === 'all' ? 'bg-black text-white shadow-lg' : 'bg-white text-gray-400 border border-gray-100 hover:text-black'
+            filterCat === 'all' ? 'bg-black dark:bg-white text-white dark:text-black shadow-lg' : 'bg-white dark:bg-gray-800 text-gray-400 dark:text-gray-500 border border-gray-100 dark:border-gray-700 hover:text-black dark:hover:text-white'
           }`}
         >
           Todos
@@ -143,7 +158,7 @@ export default function Enlaces() {
             key={cat}
             onClick={() => setFilterCat(cat)}
             className={`px-5 py-2.5 rounded-2xl font-syne text-[10px] font-bold uppercase tracking-widest transition-all ${
-              filterCat === cat ? 'bg-black text-white shadow-lg' : 'bg-white text-gray-400 border border-gray-100 hover:text-black'
+              filterCat === cat ? 'bg-black dark:bg-white text-white dark:text-black shadow-lg' : 'bg-white dark:bg-gray-800 text-gray-400 dark:text-gray-500 border border-gray-100 dark:border-gray-700 hover:text-black dark:hover:text-white'
             }`}
           >
             {cat}
@@ -159,7 +174,7 @@ export default function Enlaces() {
             exit={{ opacity: 0, height: 0 }}
             className="overflow-hidden"
           >
-            <div className="bg-white p-8 rounded-[2.5rem] border border-gray-100 shadow-xl mb-8">
+            <div className="bg-white dark:bg-gray-900 p-8 rounded-[2.5rem] border border-gray-100 dark:border-gray-800 shadow-xl mb-8">
               <form onSubmit={handleAdd} className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div className="space-y-2">
                   <label className="font-syne text-[10px] font-bold uppercase tracking-widest text-gray-400">Nombre</label>
@@ -167,7 +182,7 @@ export default function Enlaces() {
                     value={newBookmark.title}
                     onChange={(e) => setNewBookmark({...newBookmark, title: e.target.value})}
                     placeholder="Ej: Portal Bancario"
-                    className="w-full px-6 py-4 rounded-2xl bg-gray-50 border-none outline-none focus:ring-2 ring-gray-100 font-inter"
+                    className="w-full px-6 py-4 rounded-2xl bg-gray-50 dark:bg-gray-800 border-none outline-none focus:ring-2 ring-gray-100 dark:ring-gray-700 font-inter text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500"
                     required
                   />
                 </div>
@@ -177,7 +192,7 @@ export default function Enlaces() {
                     value={newBookmark.url}
                     onChange={(e) => setNewBookmark({...newBookmark, url: e.target.value})}
                     placeholder="ejemplo.com"
-                    className="w-full px-6 py-4 rounded-2xl bg-gray-50 border-none outline-none focus:ring-2 ring-gray-100 font-inter"
+                    className="w-full px-6 py-4 rounded-2xl bg-gray-50 dark:bg-gray-800 border-none outline-none focus:ring-2 ring-gray-100 dark:ring-gray-700 font-inter text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500"
                     required
                   />
                 </div>
@@ -186,7 +201,7 @@ export default function Enlaces() {
                   <select
                     value={newBookmark.category}
                     onChange={(e) => setNewBookmark({...newBookmark, category: e.target.value})}
-                    className="w-full px-6 py-4 rounded-2xl bg-gray-50 border-none outline-none focus:ring-2 ring-gray-100 font-inter appearance-none cursor-pointer"
+                    className="w-full px-6 py-4 rounded-2xl bg-gray-50 dark:bg-gray-800 border-none outline-none focus:ring-2 ring-gray-100 dark:ring-gray-700 font-inter appearance-none cursor-pointer text-gray-900 dark:text-gray-100"
                   >
                     {defaultCategories.map(cat => (
                       <option key={cat} value={cat}>{cat}</option>
@@ -195,7 +210,7 @@ export default function Enlaces() {
                 </div>
                 <button
                   type="submit"
-                  className="md:col-span-3 py-4 bg-black text-white rounded-2xl font-syne font-bold uppercase tracking-widest hover:bg-gray-800 transition-all shadow-lg"
+                  className="md:col-span-3 py-4 bg-black dark:bg-white text-white dark:text-black rounded-2xl font-syne font-bold uppercase tracking-widest hover:bg-gray-800 dark:hover:bg-gray-200 transition-all shadow-lg"
                 >
                   Guardar Enlace
                 </button>
@@ -206,7 +221,7 @@ export default function Enlaces() {
       </AnimatePresence>
 
       {Object.keys(grouped).length === 0 ? (
-        <div className="text-center py-20 text-gray-400 font-inter font-light italic">
+        <div className="text-center py-20 text-gray-400 dark:text-gray-500 font-inter font-light italic">
           No hay enlaces guardados.
         </div>
       ) : (
@@ -223,9 +238,9 @@ export default function Enlaces() {
                   href={link.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="group bg-white p-6 rounded-[2rem] border border-gray-100 shadow-sm hover:shadow-xl hover:border-gray-200 hover:-translate-y-1 transition-all duration-500 flex items-center gap-5 cursor-pointer"
+                  className="group bg-white dark:bg-gray-900 p-6 rounded-[2rem] border border-gray-100 dark:border-gray-800 shadow-sm hover:shadow-xl hover:border-gray-200 dark:hover:border-gray-700 hover:-translate-y-1 transition-all duration-500 flex items-center gap-5 cursor-pointer"
                 >
-                  <div className="size-14 shrink-0 rounded-2xl bg-gray-50 flex items-center justify-center overflow-hidden group-hover:bg-black group-hover:text-white transition-all duration-500">
+                  <div className="size-14 shrink-0 rounded-2xl bg-gray-50 dark:bg-gray-800 flex items-center justify-center overflow-hidden group-hover:bg-black dark:group-hover:bg-white group-hover:text-white dark:group-hover:text-black transition-all duration-500">
                     <img 
                       src={`https://www.google.com/s2/favicons?domain=${getDomain(link.url)}&sz=32`}
                       alt=""
@@ -235,12 +250,12 @@ export default function Enlaces() {
                     <HiOutlineExternalLink className="text-2xl hidden group-hover:block" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <h3 className="font-dm-sans font-bold text-lg text-black truncate">{link.title}</h3>
+                    <h3 className="font-dm-sans font-bold text-lg text-black dark:text-white truncate">{link.title}</h3>
                     <p className="font-inter text-xs text-gray-400 truncate">{getDomain(link.url)}</p>
                   </div>
                   <button
                     onClick={(e) => { e.preventDefault(); e.stopPropagation(); deleteBookmark(link.id); }}
-                    className="p-2 text-gray-200 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all opacity-0 group-hover:opacity-100 shrink-0"
+                    className="p-2 text-gray-200 dark:text-gray-600 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-xl transition-all opacity-0 group-hover:opacity-100 shrink-0"
                   >
                     <HiOutlineTrash />
                   </button>
