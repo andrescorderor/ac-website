@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { supabase } from '@/lib/supabase';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -156,40 +156,72 @@ export default function Recetas() {
     }
   };
 
-  const insertBullet = () => {
-    setForm(prev => {
-      const text = prev.description || '';
-      if (!text) return { ...prev, description: '• ' };
-      const lines = text.split('\n');
-      const lastLine = lines[lines.length - 1];
-      if (lastLine.startsWith('• ')) {
-        return { ...prev, description: text + '\n• ' };
+  const descTextareaRef = useRef<HTMLTextAreaElement | null>(null);
+
+  const insertAtCursor = (
+    formatter: (selectedText: string, beforeText: string) => { textToInsert: string; cursorOffset?: number }
+  ) => {
+    const el = descTextareaRef.current;
+    const currentVal = form.description || '';
+
+    if (!el) {
+      const res = formatter('', currentVal);
+      setForm(prev => ({ ...prev, description: currentVal + res.textToInsert }));
+      return;
+    }
+
+    const start = el.selectionStart || 0;
+    const end = el.selectionEnd || 0;
+    const before = currentVal.substring(0, start);
+    const selected = currentVal.substring(start, end);
+    const after = currentVal.substring(end);
+
+    const { textToInsert, cursorOffset } = formatter(selected, before);
+
+    const newVal = before + textToInsert + after;
+    setForm(prev => ({ ...prev, description: newVal }));
+
+    setTimeout(() => {
+      if (el) {
+        el.focus();
+        const newCursorPos = cursorOffset !== undefined ? start + cursorOffset : start + textToInsert.length;
+        el.setSelectionRange(newCursorPos, newCursorPos);
       }
-      return { ...prev, description: text.endsWith('\n') ? text + '• ' : text + '\n• ' };
+    }, 10);
+  };
+
+  const insertBullet = () => {
+    insertAtCursor((_, before) => {
+      const needsNewline = before.length > 0 && !before.endsWith('\n');
+      const prefix = needsNewline ? '\n• ' : '• ';
+      return { textToInsert: prefix };
     });
   };
 
   const insertBold = () => {
-    setForm(prev => ({ ...prev, description: (prev.description || '') + '**texto**' }));
+    insertAtCursor((selected) => {
+      if (selected) {
+        return { textToInsert: `**${selected}**` };
+      }
+      return { textToInsert: '**texto**', cursorOffset: 2 }; // coloca el cursor entre ** y **
+    });
   };
 
   const insertHeading = () => {
-    setForm(prev => {
-      const text = prev.description || '';
-      const prefix = text && !text.endsWith('\n') ? '\n\n### ' : '### ';
-      return { ...prev, description: text + prefix + 'Título de sección' };
+    insertAtCursor((selected, before) => {
+      const needsNewline = before.length > 0 && !before.endsWith('\n');
+      const prefix = needsNewline ? '\n\n### ' : '### ';
+      const text = selected || 'Título de sección';
+      return { textToInsert: `${prefix}${text}` };
     });
   };
 
   const insertNumberList = () => {
-    setForm(prev => {
-      const text = prev.description || '';
-      if (!text) return { ...prev, description: '1. ' };
+    insertAtCursor((_, before) => {
+      const needsNewline = before.length > 0 && !before.endsWith('\n');
       
-      const lines = text.split('\n');
+      const lines = before.split('\n');
       let nextNum = 1;
-      
-      // Buscar el último número en la lista para autoincrementar (ej: 1 -> 2 -> 3)
       for (let i = lines.length - 1; i >= 0; i--) {
         const match = lines[i].trim().match(/^(\d+)[\.\)]\s+/);
         if (match) {
@@ -198,8 +230,8 @@ export default function Recetas() {
         }
       }
 
-      const prefix = text.endsWith('\n') ? `${nextNum}. ` : `\n${nextNum}. `;
-      return { ...prev, description: text + prefix };
+      const prefix = needsNewline ? `\n${nextNum}. ` : `${nextNum}. `;
+      return { textToInsert: prefix };
     });
   };
 
@@ -408,6 +440,7 @@ export default function Recetas() {
                   </div>
                 </div>
                 <textarea
+                  ref={descTextareaRef}
                   rows={4} value={form.description} onChange={e => setForm({ ...form, description: e.target.value })}
                   placeholder="Notas o instrucciones breves... (Puedes usar saltos de línea y viñetas)"
                   className="w-full px-5 py-3.5 bg-white dark:bg-gray-800 border border-transparent focus:border-[var(--vibrant-sky-blue)] rounded-xl outline-none font-inter text-sm leading-relaxed text-gray-900 dark:text-gray-100 placeholder-gray-400 transition-all shadow-sm resize-none"

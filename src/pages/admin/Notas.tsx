@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { supabase } from '@/lib/supabase';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
@@ -158,8 +158,81 @@ export default function Notas() {
     toast.success('Contenido copiado al portapapeles');
   };
 
+  const contentTextareaRef = useRef<HTMLTextAreaElement | null>(null);
+
+  const insertAtCursor = (
+    formatter: (selectedText: string, beforeText: string) => { textToInsert: string; cursorOffset?: number }
+  ) => {
+    const el = contentTextareaRef.current;
+    const currentVal = newNote.content || '';
+
+    if (!el) {
+      const res = formatter('', currentVal);
+      setNewNote(prev => ({ ...prev, content: currentVal + res.textToInsert }));
+      return;
+    }
+
+    const start = el.selectionStart || 0;
+    const end = el.selectionEnd || 0;
+    const before = currentVal.substring(0, start);
+    const selected = currentVal.substring(start, end);
+    const after = currentVal.substring(end);
+
+    const { textToInsert, cursorOffset } = formatter(selected, before);
+
+    const newVal = before + textToInsert + after;
+    setNewNote(prev => ({ ...prev, content: newVal }));
+
+    setTimeout(() => {
+      if (el) {
+        el.focus();
+        const newCursorPos = cursorOffset !== undefined ? start + cursorOffset : start + textToInsert.length;
+        el.setSelectionRange(newCursorPos, newCursorPos);
+      }
+    }, 10);
+  };
+
   const insertBullet = () => {
-    setNewNote(prev => ({ ...prev, content: prev.content + (prev.content ? '\n• ' : '• ') }));
+    insertAtCursor((_, before) => {
+      const needsNewline = before.length > 0 && !before.endsWith('\n');
+      const prefix = needsNewline ? '\n• ' : '• ';
+      return { textToInsert: prefix };
+    });
+  };
+
+  const insertBold = () => {
+    insertAtCursor((selected) => {
+      if (selected) {
+        return { textToInsert: `**${selected}**` };
+      }
+      return { textToInsert: '**texto**', cursorOffset: 2 };
+    });
+  };
+
+  const insertHeading = () => {
+    insertAtCursor((selected, before) => {
+      const needsNewline = before.length > 0 && !before.endsWith('\n');
+      const prefix = needsNewline ? '\n\n### ' : '### ';
+      const text = selected || 'Título de sección';
+      return { textToInsert: `${prefix}${text}` };
+    });
+  };
+
+  const insertNumberList = () => {
+    insertAtCursor((_, before) => {
+      const needsNewline = before.length > 0 && !before.endsWith('\n');
+      const lines = before.split('\n');
+      let nextNum = 1;
+      for (let i = lines.length - 1; i >= 0; i--) {
+        const match = lines[i].trim().match(/^(\d+)[\.\)]\s+/);
+        if (match) {
+          nextNum = parseInt(match[1], 10) + 1;
+          break;
+        }
+      }
+      const prefix = needsNewline ? `\n${nextNum}. ` : `${nextNum}. `;
+      return { textToInsert: prefix };
+    });
   };
 
   const filteredNotes = notes.filter((n) => {
@@ -291,19 +364,48 @@ export default function Notas() {
               </div>
 
               <div>
-                <div className="flex items-center justify-between mb-2">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2">
                   <label className="block font-syne text-[10px] font-bold uppercase tracking-widest text-[var(--gray)] dark:text-gray-400">
-                    Contenido de la Nota (Opcional)
+                    Contenido de la Nota (Soporta Markdown)
                   </label>
-                  <button
-                    type="button"
-                    onClick={insertBullet}
-                    className="px-3 py-1 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-lg text-xs font-syne font-bold transition-all"
-                  >
-                    + Agregar Viñeta (•)
-                  </button>
+                  <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-none pb-1 sm:pb-0">
+                    <button
+                      type="button"
+                      onClick={insertHeading}
+                      className="px-2.5 py-1 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-lg text-xs font-syne font-bold transition-all shrink-0 flex items-center gap-1"
+                      title="Agregar título de sección"
+                    >
+                      <span className="text-sky-500 font-bold">H3</span>
+                      <span>Sección</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={insertBold}
+                      className="px-2.5 py-1 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-lg text-xs font-syne font-bold transition-all shrink-0"
+                      title="Texto en negrita"
+                    >
+                      <strong>B</strong> Negrita
+                    </button>
+                    <button
+                      type="button"
+                      onClick={insertNumberList}
+                      className="px-2.5 py-1 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-lg text-xs font-syne font-bold transition-all shrink-0"
+                      title="Lista numerada (1., 2., 3...)"
+                    >
+                      1. Paso
+                    </button>
+                    <button
+                      type="button"
+                      onClick={insertBullet}
+                      className="px-2.5 py-1 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-lg text-xs font-syne font-bold transition-all shrink-0"
+                      title="Viñeta de punto"
+                    >
+                      • Viñeta
+                    </button>
+                  </div>
                 </div>
                 <textarea
+                  ref={contentTextareaRef}
                   rows={5}
                   placeholder="Escribe tu nota aquí... (Puedes usar saltos de línea y viñetas)"
                   value={newNote.content}
