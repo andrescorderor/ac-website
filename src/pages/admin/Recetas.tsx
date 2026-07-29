@@ -157,15 +157,50 @@ export default function Recetas() {
   };
 
   const insertBullet = () => {
-    setForm(prev => ({ ...prev, description: (prev.description || '') + (prev.description ? '\n• ' : '• ') }));
+    setForm(prev => {
+      const text = prev.description || '';
+      if (!text) return { ...prev, description: '• ' };
+      const lines = text.split('\n');
+      const lastLine = lines[lines.length - 1];
+      if (lastLine.startsWith('• ')) {
+        return { ...prev, description: text + '\n• ' };
+      }
+      return { ...prev, description: text.endsWith('\n') ? text + '• ' : text + '\n• ' };
+    });
   };
 
   const insertBold = () => {
-    setForm(prev => ({ ...prev, description: (prev.description || '') + '**texto en negrita**' }));
+    setForm(prev => ({ ...prev, description: (prev.description || '') + '**texto**' }));
+  };
+
+  const insertHeading = () => {
+    setForm(prev => {
+      const text = prev.description || '';
+      const prefix = text && !text.endsWith('\n') ? '\n\n### ' : '### ';
+      return { ...prev, description: text + prefix + 'Título de sección' };
+    });
   };
 
   const insertNumberList = () => {
-    setForm(prev => ({ ...prev, description: (prev.description || '') + (prev.description ? '\n1. ' : '1. ') }));
+    setForm(prev => {
+      const text = prev.description || '';
+      if (!text) return { ...prev, description: '1. ' };
+      
+      const lines = text.split('\n');
+      let nextNum = 1;
+      
+      // Buscar el último número en la lista para autoincrementar (ej: 1 -> 2 -> 3)
+      for (let i = lines.length - 1; i >= 0; i--) {
+        const match = lines[i].trim().match(/^(\d+)[\.\)]\s+/);
+        if (match) {
+          nextNum = parseInt(match[1], 10) + 1;
+          break;
+        }
+      }
+
+      const prefix = text.endsWith('\n') ? `${nextNum}. ` : `\n${nextNum}. `;
+      return { ...prev, description: text + prefix };
+    });
   };
 
   const deleteRecipe = async (id: string) => {
@@ -339,22 +374,34 @@ export default function Recetas() {
                   <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-none pb-1 sm:pb-0">
                     <button
                       type="button"
+                      onClick={insertHeading}
+                      className="px-2.5 py-1 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-lg text-xs font-syne font-bold transition-all shrink-0 flex items-center gap-1"
+                      title="Agregar título de sección"
+                    >
+                      <span className="text-sky-500 font-bold">H3</span>
+                      <span>Sección</span>
+                    </button>
+                    <button
+                      type="button"
                       onClick={insertBold}
                       className="px-2.5 py-1 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-lg text-xs font-syne font-bold transition-all shrink-0"
+                      title="Texto en negrita"
                     >
-                      **Negrita**
+                      <strong>B</strong> Negrita
                     </button>
                     <button
                       type="button"
                       onClick={insertNumberList}
                       className="px-2.5 py-1 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-lg text-xs font-syne font-bold transition-all shrink-0"
+                      title="Lista numerada (1., 2., 3...)"
                     >
-                      1. Lista
+                      1. Paso
                     </button>
                     <button
                       type="button"
                       onClick={insertBullet}
                       className="px-2.5 py-1 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-lg text-xs font-syne font-bold transition-all shrink-0"
+                      title="Viñeta de punto"
                     >
                       • Viñeta
                     </button>
