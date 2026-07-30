@@ -320,8 +320,9 @@ export default function Notas() {
       </div>
 
       {/* Add / Edit Modal */}
-      <AnimatePresence>
-        {showAddForm && (createPortal(
+      {createPortal(
+        <AnimatePresence>
+          {showAddForm && (
           <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 sm:p-6 overflow-y-auto bg-black/60 backdrop-blur-sm">
             <motion.div
               initial={{ opacity: 0, scale: 0.95, y: 20 }}
@@ -469,8 +470,10 @@ export default function Notas() {
               </form>
             </motion.div>
           </div>
-        , document.body))}
-      </AnimatePresence>
+        )}
+        </AnimatePresence>,
+        document.body
+      )}
 
       {/* Notes Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

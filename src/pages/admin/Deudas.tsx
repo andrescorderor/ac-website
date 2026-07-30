@@ -176,8 +176,9 @@ export default function Deudas() {
       </header>
 
       {/* Add Debt Modal */}
-      <AnimatePresence>
-        {showAddForm && (createPortal(
+      {createPortal(
+        <AnimatePresence>
+          {showAddForm && (
           <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 sm:p-6 overflow-y-auto bg-black/60 backdrop-blur-sm">
             <motion.div
               initial={{ opacity: 0, scale: 0.95, y: 20 }}
@@ -259,8 +260,10 @@ export default function Deudas() {
               </form>
             </motion.div>
           </div>
-        , document.body))}
-      </AnimatePresence>
+        )}
+        </AnimatePresence>,
+        document.body
+      )}
 
       {/* Filter Tabs & Search */}
       <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">

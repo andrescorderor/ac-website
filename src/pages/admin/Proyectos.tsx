@@ -311,8 +311,9 @@ export default function Proyectos() {
       </div>
 
       {/* Add/Edit Modal */}
-      <AnimatePresence>
-        {showForm && (createPortal(
+      {createPortal(
+        <AnimatePresence>
+          {showForm && (
           <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 sm:p-6 overflow-y-auto bg-black/60 backdrop-blur-sm">
             <motion.form
               initial={{ opacity: 0, scale: 0.95, y: 20 }}
@@ -443,8 +444,10 @@ export default function Proyectos() {
               </div>
             </motion.form>
           </div>
-        , document.body))}
-      </AnimatePresence>
+        )}
+        </AnimatePresence>,
+        document.body
+      )}
 
       {/* Projects Grid */}
       {filtered.length === 0 ? (

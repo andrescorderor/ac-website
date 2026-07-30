@@ -372,8 +372,9 @@ export default function Recordatorios() {
       </div>
 
       {/* Add / Edit Modal */}
-      <AnimatePresence>
-        {showAddForm && (createPortal(
+      {createPortal(
+        <AnimatePresence>
+          {showAddForm && (
           <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 sm:p-6 overflow-y-auto bg-black/60 backdrop-blur-sm">
             <motion.div
               initial={{ opacity: 0, scale: 0.95, y: 20 }}
@@ -533,8 +534,10 @@ export default function Recordatorios() {
               </form>
             </motion.div>
           </div>
-        , document.body))}
-      </AnimatePresence>
+        )}
+        </AnimatePresence>,
+        document.body
+      )}
 
       {/* Main View: Calendar or List */}
       {viewMode === 'calendar' ? (
