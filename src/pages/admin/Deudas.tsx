@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
-import { motion } from 'framer-motion';
-import { HiOutlinePlus, HiOutlineTrash, HiOutlineSearch } from 'react-icons/hi';
+import { motion, AnimatePresence } from 'framer-motion';
+import { HiOutlinePlus, HiOutlineTrash, HiOutlineSearch, HiX } from 'react-icons/hi';
 import { useToast } from '@/components/common/ToastContext';
 import { togglePinItem, isItemPinned } from '@/lib/pinned';
 
@@ -23,6 +23,7 @@ export default function Deudas() {
   const [debts, setDebts] = useState<Debt[]>([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+  const [showAddForm, setShowAddForm] = useState(false);
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('pending');
   const [searchTerm, setSearchTerm] = useState(searchParams.get('search') || '');
 
@@ -158,67 +159,107 @@ export default function Deudas() {
             Lleva el control de quién te debe dinero y por qué.
           </p>
         </div>
-        <div className="bg-white dark:bg-gray-900 px-6 md:px-8 py-4 rounded-2xl md:rounded-3xl border border-gray-100 dark:border-gray-800 shadow-sm flex flex-col items-start md:items-end">
-          <p className="font-syne text-[10px] font-bold uppercase tracking-widest text-gray-400 dark:text-gray-500">Total Pendiente</p>
-          <p className="font-dm-sans text-2xl md:text-3xl font-bold text-red-500 dark:text-red-400">${totalPending.toLocaleString()}</p>
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4">
+          <div className="bg-white dark:bg-gray-900 px-6 py-3 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm flex flex-col items-start sm:items-end">
+            <p className="font-syne text-[10px] font-bold uppercase tracking-widest text-gray-400 dark:text-gray-500">Total Pendiente</p>
+            <p className="font-dm-sans text-2xl font-bold text-red-500 dark:text-red-400">${totalPending.toLocaleString()}</p>
+          </div>
+          <button
+            onClick={() => setShowAddForm(true)}
+            className="px-6 py-3.5 bg-black dark:bg-white text-white dark:text-black font-syne text-xs font-bold uppercase tracking-wider rounded-2xl hover:scale-105 active:scale-95 transition-all shadow-md flex items-center justify-center gap-2 shrink-0"
+          >
+            <HiOutlinePlus className="text-lg" />
+            <span>Nueva Cuenta</span>
+          </button>
         </div>
       </header>
 
-      {/* Add Form */}
-      <div className="bg-white dark:bg-gray-900 p-5 md:p-8 rounded-[2rem] md:rounded-[2.5rem] border border-gray-100 dark:border-gray-800 shadow-sm">
-        <h3 className="font-dm-sans text-lg font-bold text-black dark:text-white mb-4">Registrar Nueva Cuenta por Cobrar</h3>
-        <form onSubmit={handleAddDebt} className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
-          <div className="space-y-2 md:col-span-1">
-            <label className="font-syne text-[10px] font-bold uppercase tracking-widest text-gray-400 dark:text-gray-500">Deudor</label>
-            <input
-              value={newDebt.debtor_name}
-              onChange={(e) => setNewDebt({ ...newDebt, debtor_name: e.target.value })}
-              placeholder="Nombre"
-              className="w-full px-4 py-3 rounded-xl bg-gray-50 dark:bg-gray-800 border border-gray-100 dark:border-gray-700 outline-none focus:ring-2 ring-gray-100 dark:ring-gray-700 text-sm font-inter text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500"
-              required
-            />
-          </div>
-          <div className="space-y-2 md:col-span-1">
-            <label className="font-syne text-[10px] font-bold uppercase tracking-widest text-gray-400 dark:text-gray-500">Concepto</label>
-            <input
-              value={newDebt.concept}
-              onChange={(e) => setNewDebt({ ...newDebt, concept: e.target.value })}
-              placeholder="Préstamo, trabajo, etc."
-              className="w-full px-4 py-3 rounded-xl bg-gray-50 dark:bg-gray-800 border border-gray-100 dark:border-gray-700 outline-none focus:ring-2 ring-gray-100 dark:ring-gray-700 text-sm font-inter text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500"
-            />
-          </div>
-          <div className="space-y-2 md:col-span-1">
-            <label className="font-syne text-[10px] font-bold uppercase tracking-widest text-gray-400 dark:text-gray-500">Monto ($)</label>
-            <input
-              type="number"
-              value={newDebt.amount}
-              onChange={(e) => setNewDebt({ ...newDebt, amount: e.target.value })}
-              placeholder="0.00"
-              className="w-full px-4 py-3 rounded-xl bg-gray-50 dark:bg-gray-800 border border-gray-100 dark:border-gray-700 outline-none focus:ring-2 ring-gray-100 dark:ring-gray-700 text-sm font-dm-sans font-bold text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500"
-              required
-            />
-          </div>
-          <div className="md:col-span-1">
-            <button
-              type="submit"
-              disabled={submitting}
-              className="w-full py-3 px-6 bg-black dark:bg-white text-white dark:text-black font-syne text-xs font-bold uppercase tracking-wider rounded-xl hover:scale-105 active:scale-95 transition-all shadow-md flex items-center justify-center gap-2 disabled:opacity-50"
+      {/* Add Debt Modal */}
+      <AnimatePresence>
+        {showAddForm && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 overflow-y-auto bg-black/60 backdrop-blur-sm">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              className="bg-white dark:bg-gray-900 rounded-[2.5rem] p-6 sm:p-8 max-w-xl w-full border border-gray-100 dark:border-gray-800 shadow-2xl space-y-6 my-8"
             >
-              {submitting ? (
-                <>
-                  <div className="size-4 border-2 border-white/30 dark:border-black/30 border-t-white dark:border-t-black rounded-full animate-spin" />
-                  <span>Guardando...</span>
-                </>
-              ) : (
-                <>
-                  <HiOutlinePlus className="text-base" />
-                  <span>Agregar</span>
-                </>
-              )}
-            </button>
+              <div className="flex items-center justify-between">
+                <div>
+                  <h2 className="font-dm-sans text-2xl font-bold text-gray-900 dark:text-white">Registrar Nueva Cuenta por Cobrar</h2>
+                  <p className="font-inter text-xs text-gray-400">Registra el deudor, concepto y monto correspondiente.</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setShowAddForm(false)}
+                  className="p-2 rounded-xl text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 transition-all"
+                >
+                  <HiX className="text-xl" />
+                </button>
+              </div>
+
+              <form onSubmit={(e) => { handleAddDebt(e); setShowAddForm(false); }} className="space-y-6">
+                <div className="space-y-4">
+                  <div>
+                    <label className="block font-syne text-[10px] font-bold uppercase tracking-widest text-gray-400 dark:text-gray-500 mb-2">Deudor *</label>
+                    <input
+                      value={newDebt.debtor_name}
+                      onChange={(e) => setNewDebt({ ...newDebt, debtor_name: e.target.value })}
+                      placeholder="Nombre del deudor"
+                      className="w-full px-5 py-3.5 rounded-xl bg-gray-50 dark:bg-gray-800/80 border border-gray-100 dark:border-gray-700 outline-none focus:ring-2 ring-gray-100 dark:ring-gray-700 text-sm font-inter text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="block font-syne text-[10px] font-bold uppercase tracking-widest text-gray-400 dark:text-gray-500 mb-2">Concepto (Opcional)</label>
+                    <input
+                      value={newDebt.concept}
+                      onChange={(e) => setNewDebt({ ...newDebt, concept: e.target.value })}
+                      placeholder="Préstamo, trabajo, etc."
+                      className="w-full px-5 py-3.5 rounded-xl bg-gray-50 dark:bg-gray-800/80 border border-gray-100 dark:border-gray-700 outline-none focus:ring-2 ring-gray-100 dark:ring-gray-700 text-sm font-inter text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block font-syne text-[10px] font-bold uppercase tracking-widest text-gray-400 dark:text-gray-500 mb-2">Monto ($) *</label>
+                    <input
+                      type="number"
+                      value={newDebt.amount}
+                      onChange={(e) => setNewDebt({ ...newDebt, amount: e.target.value })}
+                      placeholder="0.00"
+                      className="w-full px-5 py-3.5 rounded-xl bg-gray-50 dark:bg-gray-800/80 border border-gray-100 dark:border-gray-700 outline-none focus:ring-2 ring-gray-100 dark:ring-gray-700 text-sm font-dm-sans font-bold text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500"
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div className="flex justify-end gap-3 pt-4">
+                  <button
+                    type="button"
+                    onClick={() => setShowAddForm(false)}
+                    className="px-6 py-3 font-syne text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl transition-all"
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={submitting}
+                    className="px-8 py-3 bg-black dark:bg-white text-white dark:text-black font-syne text-xs font-bold uppercase tracking-wider rounded-xl hover:scale-105 active:scale-95 transition-all shadow-md disabled:opacity-50 flex items-center justify-center gap-2"
+                  >
+                    {submitting ? (
+                      <>
+                        <div className="size-4 border-2 border-white/30 dark:border-black/30 border-t-white dark:border-t-black rounded-full animate-spin" />
+                        <span>Guardando...</span>
+                      </>
+                    ) : (
+                      <span>Guardar Registro</span>
+                    )}
+                  </button>
+                </div>
+              </form>
+            </motion.div>
           </div>
-        </form>
-      </div>
+        )}
+      </AnimatePresence>
 
       {/* Filter Tabs & Search */}
       <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">

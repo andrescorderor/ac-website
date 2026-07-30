@@ -7,7 +7,8 @@ import {
   HiOutlineCheckCircle, 
   HiOutlineLocationMarker,
   HiOutlineTag,
-  HiOutlineSearch
+  HiOutlineSearch,
+  HiX
 } from 'react-icons/hi';
 import { MdOutlineCircle } from 'react-icons/md';
 import { useToast } from '@/components/common/ToastContext';
@@ -215,107 +216,98 @@ export default function Compras() {
         ))}
       </div>
 
-      {/* Add Item Modal / Form */}
+      {/* Add Item Modal */}
       <AnimatePresence>
         {showAddForm && (
-          <motion.form
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            onSubmit={handleAddItem}
-            className="bg-white dark:bg-gray-900 p-6 md:p-8 rounded-[2rem] border border-gray-100 dark:border-gray-800 shadow-xl space-y-6"
-          >
-            <h3 className="font-dm-sans text-xl font-bold text-[var(--black)] dark:text-white">Agregar Artículo a la Lista</h3>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="md:col-span-2">
-                <label className="block font-syne text-[10px] font-bold uppercase tracking-widest text-[var(--gray)] dark:text-gray-400 mb-2">
-                  Nombre del Artículo *
-                </label>
-                <input
-                  type="text"
-                  required
-                  placeholder="Ej. Leche de almendras, Cable HDMI..."
-                  value={newItem.name}
-                  onChange={(e) => setNewItem({ ...newItem, name: e.target.value })}
-                  className="w-full px-5 py-3.5 bg-gray-50/50 dark:bg-gray-800/80 border border-gray-100 dark:border-gray-700 rounded-xl outline-none focus:border-gray-300 dark:focus:border-gray-500 font-inter text-sm text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500"
-                />
-              </div>
-
-              <div>
-                <label className="block font-syne text-[10px] font-bold uppercase tracking-widest text-[var(--gray)] dark:text-gray-400 mb-2">
-                  Lugar / Tienda (Opcional)
-                </label>
-                <input
-                  type="text"
-                  placeholder="Ej. Walmart, Amazon, Supermercado"
-                  value={newItem.location}
-                  onChange={(e) => setNewItem({ ...newItem, location: e.target.value })}
-                  className="w-full px-5 py-3.5 bg-gray-50/50 dark:bg-gray-800/80 border border-gray-100 dark:border-gray-700 rounded-xl outline-none focus:border-gray-300 dark:focus:border-gray-500 font-inter text-sm text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500"
-                />
-              </div>
-
-              <div>
-                <label className="block font-syne text-[10px] font-bold uppercase tracking-widest text-[var(--gray)] dark:text-gray-400 mb-2">
-                  Precio Estimado ($)
-                </label>
-                <input
-                  type="number"
-                  step="0.01"
-                  placeholder="0.00"
-                  value={newItem.price}
-                  onChange={(e) => setNewItem({ ...newItem, price: e.target.value })}
-                  className="w-full px-5 py-3.5 bg-gray-50/50 dark:bg-gray-800/80 border border-gray-100 dark:border-gray-700 rounded-xl outline-none focus:border-gray-300 dark:focus:border-gray-500 font-dm-sans font-bold text-sm text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500"
-                />
-              </div>
-
-              <div className="md:col-span-2">
-                <label className="block font-syne text-[10px] font-bold uppercase tracking-widest text-[var(--gray)] dark:text-gray-400 mb-2">
-                  Prioridad
-                </label>
-                <div className="flex gap-3">
-                  {(['Baja', 'Media', 'Alta'] as const).map((p) => (
-                    <button
-                      type="button"
-                      key={p}
-                      onClick={() => setNewItem({ ...newItem, priority: p })}
-                      className={`flex-1 py-3 rounded-xl font-syne text-xs font-bold uppercase tracking-wider transition-all border ${
-                        newItem.priority === p 
-                          ? 'bg-black dark:bg-white text-white dark:text-black border-black dark:border-white shadow-sm' 
-                          : 'bg-gray-50 dark:bg-gray-800 text-gray-500 dark:text-gray-300 border-gray-100 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-700'
-                      }`}
-                    >
-                      {p}
-                    </button>
-                  ))}
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 overflow-y-auto bg-black/60 backdrop-blur-sm">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              className="bg-white dark:bg-gray-900 rounded-[2.5rem] p-6 sm:p-8 max-w-2xl w-full border border-gray-100 dark:border-gray-800 shadow-2xl space-y-6 my-8"
+            >
+              <div className="flex items-center justify-between">
+                <div>
+                  <h2 className="font-dm-sans text-2xl font-bold text-gray-900 dark:text-white">Agregar Artículo a la Lista</h2>
+                  <p className="font-inter text-xs text-gray-400">Registra artículos pendientes por comprar con prioridad y lugar.</p>
                 </div>
+                <button
+                  type="button"
+                  onClick={() => setShowAddForm(false)}
+                  className="p-2 rounded-xl text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 transition-all"
+                >
+                  <HiX className="text-xl" />
+                </button>
               </div>
-            </div>
 
-            <div className="flex justify-end gap-3 pt-4">
-              <button
-                type="button"
-                onClick={() => setShowAddForm(false)}
-                className="px-6 py-3 font-syne text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl transition-all"
-              >
-                Cancelar
-              </button>
-              <button
-                type="submit"
-                disabled={submitting}
-                className="px-8 py-3 bg-black dark:bg-white text-white dark:text-black font-syne text-xs font-bold uppercase tracking-wider rounded-xl hover:scale-105 active:scale-95 transition-all shadow-md disabled:opacity-50 flex items-center gap-2"
-              >
-                {submitting ? (
-                  <>
-                    <div className="size-4 border-2 border-white/30 dark:border-black/30 border-t-white dark:border-t-black rounded-full animate-spin" />
-                    <span>Guardando...</span>
-                  </>
-                ) : (
-                  <span>Guardar Artículo</span>
-                )}
-              </button>
-            </div>
-          </motion.form>
+              <form onSubmit={handleAddItem} className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                  <div className="space-y-2">
+                    <label className="font-syne text-[10px] font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">Artículo *</label>
+                    <input
+                      required
+                      value={newItem.name}
+                      onChange={e => setNewItem({ ...newItem, name: e.target.value })}
+                      placeholder="Ej. Leche de almendras, Cable HDMI..."
+                      className="w-full px-5 py-3.5 bg-gray-50 dark:bg-gray-800/80 border border-transparent focus:border-[var(--vibrant-sky-blue)] rounded-xl outline-none font-inter text-sm text-gray-900 dark:text-gray-100 placeholder-gray-400 transition-all shadow-sm"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="font-syne text-[10px] font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">Lugar / Tienda</label>
+                    <input
+                      value={newItem.location}
+                      onChange={e => setNewItem({ ...newItem, location: e.target.value })}
+                      placeholder="Ej. Supermercado, Amazon, Farmacia..."
+                      className="w-full px-5 py-3.5 bg-gray-50 dark:bg-gray-800/80 border border-transparent focus:border-[var(--vibrant-sky-blue)] rounded-xl outline-none font-inter text-sm text-gray-900 dark:text-gray-100 placeholder-gray-400 transition-all shadow-sm"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                  <div className="space-y-2">
+                    <label className="font-syne text-[10px] font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">Precio Estimado ($)</label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      value={newItem.price}
+                      onChange={e => setNewItem({ ...newItem, price: e.target.value })}
+                      placeholder="0.00"
+                      className="w-full px-5 py-3.5 bg-gray-50 dark:bg-gray-800/80 border border-transparent focus:border-[var(--vibrant-sky-blue)] rounded-xl outline-none font-inter text-sm text-gray-900 dark:text-gray-100 placeholder-gray-400 transition-all shadow-sm"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="font-syne text-[10px] font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">Prioridad</label>
+                    <select
+                      value={newItem.priority}
+                      onChange={e => setNewItem({ ...newItem, priority: e.target.value as 'Baja' | 'Media' | 'Alta' })}
+                      className="w-full px-5 py-3.5 bg-gray-50 dark:bg-gray-800/80 border border-transparent focus:border-[var(--vibrant-sky-blue)] rounded-xl outline-none font-inter text-sm text-gray-900 dark:text-gray-100 transition-all shadow-sm"
+                    >
+                      <option value="Alta" className="dark:bg-gray-800">Alta 🔴</option>
+                      <option value="Media" className="dark:bg-gray-800">Media 🟠</option>
+                      <option value="Baja" className="dark:bg-gray-800">Baja ⚪</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="flex justify-end gap-3 pt-4">
+                  <button
+                    type="button"
+                    onClick={() => setShowAddForm(false)}
+                    className="px-6 py-3.5 rounded-xl font-syne text-xs font-bold uppercase tracking-wider text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800 transition-all"
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={submitting}
+                    className="px-8 py-3.5 bg-black dark:bg-white text-white dark:text-black font-syne text-xs font-bold uppercase tracking-wider rounded-xl shadow-lg hover:scale-105 active:scale-95 transition-all disabled:opacity-50"
+                  >
+                    {submitting ? 'Guardando...' : 'Guardar Artículo'}
+                  </button>
+                </div>
+              </form>
+            </motion.div>
+          </div>
         )}
       </AnimatePresence>
 

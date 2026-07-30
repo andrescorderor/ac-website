@@ -8,7 +8,8 @@ import {
   HiOutlineExternalLink, 
   HiOutlineSearch,
   HiOutlineClipboardCopy,
-  HiOutlinePencil
+  HiOutlinePencil,
+  HiX,
 } from 'react-icons/hi';
 import { useToast } from '@/components/common/ToastContext';
 import { togglePinItem, isItemPinned } from '@/lib/pinned';
@@ -317,141 +318,156 @@ export default function Notas() {
         ))}
       </div>
 
-      {/* Add / Edit Form */}
+      {/* Add / Edit Modal */}
       <AnimatePresence>
         {showAddForm && (
-          <motion.form
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            onSubmit={handleSaveNote}
-            className="bg-white dark:bg-gray-900 p-6 md:p-8 rounded-[2rem] border border-gray-100 dark:border-gray-800 shadow-xl space-y-6"
-          >
-            <h3 className="font-dm-sans text-xl font-bold text-[var(--black)] dark:text-white">
-              {editingNoteId ? 'Editar Nota' : 'Crear Nueva Nota'}
-            </h3>
-
-            <div className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="md:col-span-2">
-                  <label className="block font-syne text-[10px] font-bold uppercase tracking-widest text-[var(--gray)] dark:text-gray-400 mb-2">
-                    Título de la Nota *
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="Ej. Resumen de reunión, Pasos para despliegue..."
-                    value={newNote.title}
-                    onChange={(e) => setNewNote({ ...newNote, title: e.target.value })}
-                    className="w-full px-5 py-3.5 bg-gray-50/50 dark:bg-gray-800/80 border border-gray-100 dark:border-gray-700 rounded-xl outline-none focus:border-gray-300 dark:focus:border-gray-500 font-inter text-sm text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500"
-                  />
-                </div>
-
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 overflow-y-auto bg-black/60 backdrop-blur-sm">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              className="bg-white dark:bg-gray-900 rounded-[2.5rem] p-6 sm:p-8 max-w-2xl w-full border border-gray-100 dark:border-gray-800 shadow-2xl space-y-6 my-8"
+            >
+              <div className="flex items-center justify-between">
                 <div>
-                  <label className="block font-syne text-[10px] font-bold uppercase tracking-widest text-[var(--gray)] dark:text-gray-400 mb-2">
-                    Categoría
-                  </label>
-                  <select
-                    value={newNote.category}
-                    onChange={(e) => setNewNote({ ...newNote, category: e.target.value })}
-                    className="w-full px-5 py-3.5 bg-gray-50/50 dark:bg-gray-800/80 border border-gray-100 dark:border-gray-700 rounded-xl outline-none focus:border-gray-300 dark:focus:border-gray-500 font-inter text-sm text-gray-900 dark:text-gray-100"
-                  >
-                    {categories.filter(c => c !== 'Todas').map(c => (
-                      <option key={c} value={c} className="dark:bg-gray-800">{c}</option>
-                    ))}
-                  </select>
+                  <h2 className="font-dm-sans text-2xl font-bold text-gray-900 dark:text-white">
+                    {editingNoteId ? 'Editar Nota' : 'Crear Nueva Nota'}
+                  </h2>
+                  <p className="font-inter text-xs text-gray-400">Guarda apuntes con formato Markdown y enlaces de referencia.</p>
                 </div>
+                <button
+                  type="button"
+                  onClick={handleCancelForm}
+                  className="p-2 rounded-xl text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 transition-all"
+                >
+                  <HiX className="text-xl" />
+                </button>
               </div>
 
-              <div>
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2">
-                  <label className="block font-syne text-[10px] font-bold uppercase tracking-widest text-[var(--gray)] dark:text-gray-400">
-                    Contenido de la Nota (Soporta Markdown)
-                  </label>
-                  <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-none pb-1 sm:pb-0">
-                    <button
-                      type="button"
-                      onClick={insertHeading}
-                      className="px-2.5 py-1 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-lg text-xs font-syne font-bold transition-all shrink-0 flex items-center gap-1"
-                      title="Agregar título de sección"
-                    >
-                      <span className="text-sky-500 font-bold">H3</span>
-                      <span>Sección</span>
-                    </button>
-                    <button
-                      type="button"
-                      onClick={insertBold}
-                      className="px-2.5 py-1 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-lg text-xs font-syne font-bold transition-all shrink-0"
-                      title="Texto en negrita"
-                    >
-                      <strong>B</strong> Negrita
-                    </button>
-                    <button
-                      type="button"
-                      onClick={insertNumberList}
-                      className="px-2.5 py-1 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-lg text-xs font-syne font-bold transition-all shrink-0"
-                      title="Lista numerada (1., 2., 3...)"
-                    >
-                      1. Paso
-                    </button>
-                    <button
-                      type="button"
-                      onClick={insertBullet}
-                      className="px-2.5 py-1 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-lg text-xs font-syne font-bold transition-all shrink-0"
-                      title="Viñeta de punto"
-                    >
-                      • Viñeta
-                    </button>
+              <form onSubmit={handleSaveNote} className="space-y-6">
+                <div className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="md:col-span-2">
+                      <label className="block font-syne text-[10px] font-bold uppercase tracking-widest text-[var(--gray)] dark:text-gray-400 mb-2">
+                        Título de la Nota *
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        placeholder="Ej. Resumen de reunión, Pasos para despliegue..."
+                        value={newNote.title}
+                        onChange={(e) => setNewNote({ ...newNote, title: e.target.value })}
+                        className="w-full px-5 py-3.5 bg-gray-50/50 dark:bg-gray-800/80 border border-gray-100 dark:border-gray-700 rounded-xl outline-none focus:border-gray-300 dark:focus:border-gray-500 font-inter text-sm text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block font-syne text-[10px] font-bold uppercase tracking-widest text-[var(--gray)] dark:text-gray-400 mb-2">
+                        Categoría
+                      </label>
+                      <select
+                        value={newNote.category}
+                        onChange={(e) => setNewNote({ ...newNote, category: e.target.value })}
+                        className="w-full px-5 py-3.5 bg-gray-50/50 dark:bg-gray-800/80 border border-gray-100 dark:border-gray-700 rounded-xl outline-none focus:border-gray-300 dark:focus:border-gray-500 font-inter text-sm text-gray-900 dark:text-gray-100"
+                      >
+                        {categories.filter(c => c !== 'Todas').map(c => (
+                          <option key={c} value={c} className="dark:bg-gray-800">{c}</option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+
+                  <div>
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2">
+                      <label className="block font-syne text-[10px] font-bold uppercase tracking-widest text-[var(--gray)] dark:text-gray-400">
+                        Contenido de la Nota (Soporta Markdown)
+                      </label>
+                      <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-none pb-1 sm:pb-0">
+                        <button
+                          type="button"
+                          onClick={insertHeading}
+                          className="px-2.5 py-1 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-lg text-xs font-syne font-bold transition-all shrink-0 flex items-center gap-1"
+                          title="Agregar título de sección"
+                        >
+                          <span className="text-sky-500 font-bold">H3</span>
+                          <span>Sección</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={insertBold}
+                          className="px-2.5 py-1 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-lg text-xs font-syne font-bold transition-all shrink-0"
+                          title="Texto en negrita"
+                        >
+                          <strong>B</strong> Negrita
+                        </button>
+                        <button
+                          type="button"
+                          onClick={insertNumberList}
+                          className="px-2.5 py-1 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-lg text-xs font-syne font-bold transition-all shrink-0"
+                          title="Lista numerada (1., 2., 3...)"
+                        >
+                          1. Paso
+                        </button>
+                        <button
+                          type="button"
+                          onClick={insertBullet}
+                          className="px-2.5 py-1 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-lg text-xs font-syne font-bold transition-all shrink-0"
+                          title="Viñeta de punto"
+                        >
+                          • Viñeta
+                        </button>
+                      </div>
+                    </div>
+                    <textarea
+                      ref={contentTextareaRef}
+                      rows={5}
+                      placeholder="Escribe tu nota aquí... (Puedes usar saltos de línea y viñetas)"
+                      value={newNote.content}
+                      onChange={(e) => setNewNote({ ...newNote, content: e.target.value })}
+                      className="w-full px-5 py-3.5 bg-gray-50/50 dark:bg-gray-800/80 border border-gray-100 dark:border-gray-700 rounded-xl outline-none focus:border-gray-300 dark:focus:border-gray-500 font-inter text-sm leading-relaxed text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block font-syne text-[10px] font-bold uppercase tracking-widest text-[var(--gray)] dark:text-gray-400 mb-2">
+                      Enlace Relacionado (Opcional)
+                    </label>
+                    <input
+                      type="url"
+                      placeholder="https://ejemplo.com"
+                      value={newNote.url}
+                      onChange={(e) => setNewNote({ ...newNote, url: e.target.value })}
+                      className="w-full px-5 py-3.5 bg-gray-50/50 dark:bg-gray-800/80 border border-gray-100 dark:border-gray-700 rounded-xl outline-none focus:border-gray-300 dark:focus:border-gray-500 font-inter text-sm text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500"
+                    />
                   </div>
                 </div>
-                <textarea
-                  ref={contentTextareaRef}
-                  rows={5}
-                  placeholder="Escribe tu nota aquí... (Puedes usar saltos de línea y viñetas)"
-                  value={newNote.content}
-                  onChange={(e) => setNewNote({ ...newNote, content: e.target.value })}
-                  className="w-full px-5 py-3.5 bg-gray-50/50 dark:bg-gray-800/80 border border-gray-100 dark:border-gray-700 rounded-xl outline-none focus:border-gray-300 dark:focus:border-gray-500 font-inter text-sm leading-relaxed text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500"
-                />
-              </div>
 
-              <div>
-                <label className="block font-syne text-[10px] font-bold uppercase tracking-widest text-[var(--gray)] dark:text-gray-400 mb-2">
-                  Enlace Relacionado (Opcional)
-                </label>
-                <input
-                  type="url"
-                  placeholder="https://ejemplo.com"
-                  value={newNote.url}
-                  onChange={(e) => setNewNote({ ...newNote, url: e.target.value })}
-                  className="w-full px-5 py-3.5 bg-gray-50/50 dark:bg-gray-800/80 border border-gray-100 dark:border-gray-700 rounded-xl outline-none focus:border-gray-300 dark:focus:border-gray-500 font-inter text-sm text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500"
-                />
-              </div>
-            </div>
-
-            <div className="flex justify-end gap-3 pt-4">
-              <button
-                type="button"
-                onClick={handleCancelForm}
-                className="px-6 py-3 font-syne text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl transition-all"
-              >
-                Cancelar
-              </button>
-              <button
-                type="submit"
-                disabled={submitting}
-                className="px-8 py-3 bg-black dark:bg-white text-white dark:text-black font-syne text-xs font-bold uppercase tracking-wider rounded-xl hover:scale-105 active:scale-95 transition-all shadow-md disabled:opacity-50 flex items-center gap-2"
-              >
-                {submitting ? (
-                  <>
-                    <div className="size-4 border-2 border-white/30 dark:border-black/30 border-t-white dark:border-t-black rounded-full animate-spin" />
-                    <span>Guardando...</span>
-                  </>
-                ) : (
-                  <span>{editingNoteId ? 'Actualizar Nota' : 'Guardar Nota'}</span>
-                )}
-              </button>
-            </div>
-          </motion.form>
+                <div className="flex justify-end gap-3 pt-4">
+                  <button
+                    type="button"
+                    onClick={handleCancelForm}
+                    className="px-6 py-3 font-syne text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl transition-all"
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={submitting}
+                    className="px-8 py-3 bg-black dark:bg-white text-white dark:text-black font-syne text-xs font-bold uppercase tracking-wider rounded-xl hover:scale-105 active:scale-95 transition-all shadow-md disabled:opacity-50 flex items-center gap-2"
+                  >
+                    {submitting ? (
+                      <>
+                        <div className="size-4 border-2 border-white/30 dark:border-black/30 border-t-white dark:border-t-black rounded-full animate-spin" />
+                        <span>Guardando...</span>
+                      </>
+                    ) : (
+                      <span>{editingNoteId ? 'Actualizar Nota' : 'Guardar Nota'}</span>
+                    )}
+                  </button>
+                </div>
+              </form>
+            </motion.div>
+          </div>
         )}
       </AnimatePresence>
 

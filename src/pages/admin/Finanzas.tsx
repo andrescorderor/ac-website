@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
-import { HiOutlinePlus, HiOutlineTrash, HiOutlineSave, HiOutlineEye, HiOutlineEyeOff, HiOutlineSearch } from 'react-icons/hi';
+import { HiOutlinePlus, HiOutlineTrash, HiOutlineSave, HiOutlineEye, HiOutlineEyeOff, HiOutlineSearch, HiX } from 'react-icons/hi';
 import { useToast } from '@/components/common/ToastContext';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -25,6 +25,8 @@ export default function Finanzas() {
   const [savingSalary, setSavingSalary] = useState(false);
   const [submittingCat, setSubmittingCat] = useState<string | null>(null);
   const [isPrivacyMode, setIsPrivacyMode] = useState(true);
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [modalCat, setModalCat] = useState<'comida' | 'insumos' | 'servicios'>('comida');
   const [filterCategory, setFilterCategory] = useState('Todas');
   const [searchTerm, setSearchTerm] = useState('');
   const [newExpense, setNewExpense] = useState({ concept: '', amount: '', category: 'comida' });
@@ -163,6 +165,14 @@ export default function Finanzas() {
         </div>
 
         <div className="flex flex-wrap items-center gap-4">
+          <button
+            onClick={() => setShowAddModal(true)}
+            className="flex items-center gap-2 px-5 py-3 bg-black dark:bg-white text-white dark:text-black rounded-2xl font-syne text-xs font-bold uppercase tracking-wider hover:scale-105 active:scale-95 transition-all shadow-md shrink-0"
+          >
+            <HiOutlinePlus className="text-lg" />
+            <span>Nuevo Gasto</span>
+          </button>
+
           <motion.button
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
@@ -328,43 +338,104 @@ export default function Finanzas() {
                   )}
                 </AnimatePresence>
               </div>
+            </div>
+          </motion.div>
+        ))}
+      </div>
 
-              <div className="p-3 md:p-4 bg-gray-50/30 dark:bg-gray-800/30 border-t border-gray-50 dark:border-gray-800">
-                <div className="flex flex-col gap-2">
-                  <input
-                    placeholder="Concepto"
-                    value={newExpense.category === cat ? newExpense.concept : ''}
-                    onChange={(e) => setNewExpense({ ...newExpense, concept: e.target.value, category: cat })}
-                    className="flex-1 px-4 py-3 bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-xl text-sm outline-none focus:border-[var(--vibrant-sky-blue)] dark:focus:border-[var(--vibrant-sky-blue)] font-inter text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 transition-colors"
-                  />
-                  <div className="flex gap-2">
-                      <input
-                        type="number"
-                        placeholder="$0"
-                        value={newExpense.category === cat ? newExpense.amount : ''}
-                        onChange={(e) => setNewExpense({ ...newExpense, amount: e.target.value, category: cat })}
-                        className="flex-1 px-4 py-3 bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-xl text-sm outline-none focus:border-[var(--vibrant-sky-blue)] dark:focus:border-[var(--vibrant-sky-blue)] text-right font-dm-sans font-bold text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 transition-colors"
-                      />
-                      <motion.button
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
-                        onClick={() => handleAddExpense(cat)}
-                        disabled={submittingCat === cat}
-                        className="px-5 py-3 bg-black dark:bg-white text-white dark:text-black rounded-xl transition-all shrink-0 font-syne text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-2 disabled:opacity-50"
-                      >
-                      {submittingCat === cat ? (
-                        <div className="size-4 border-2 border-white/30 dark:border-black/30 border-t-white dark:border-t-black rounded-full animate-spin" />
-                      ) : (
-                        <HiOutlinePlus className="text-base" />
-                      )}
-                      </motion.button>
-                    </div>
+      {/* Add Expense Modal */}
+      <AnimatePresence>
+        {showAddModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 overflow-y-auto bg-black/60 backdrop-blur-sm">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              className="bg-white dark:bg-gray-900 rounded-[2.5rem] p-6 sm:p-8 max-w-lg w-full border border-gray-100 dark:border-gray-800 shadow-2xl space-y-6 my-8"
+            >
+              <div className="flex items-center justify-between">
+                <div>
+                  <h2 className="font-dm-sans text-2xl font-bold text-gray-900 dark:text-white">Registrar Gasto</h2>
+                  <p className="font-inter text-xs text-gray-400">Ingresa la información de tu nuevo gasto financiero.</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setShowAddModal(false)}
+                  className="p-2 rounded-xl text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 transition-all"
+                >
+                  <HiX className="text-xl" />
+                </button>
+              </div>
+
+              <form onSubmit={async (e) => {
+                e.preventDefault();
+                await handleAddExpense(modalCat);
+                setShowAddModal(false);
+              }} className="space-y-6">
+                <div className="space-y-4">
+                  <div>
+                    <label className="block font-syne text-[10px] font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400 mb-2">Categoría</label>
+                    <select
+                      value={modalCat}
+                      onChange={(e) => {
+                        const val = e.target.value as 'comida' | 'insumos' | 'servicios';
+                        setModalCat(val);
+                        setNewExpense({ ...newExpense, category: val });
+                      }}
+                      className="w-full px-5 py-3.5 bg-gray-50 dark:bg-gray-800/80 border border-gray-100 dark:border-gray-700 rounded-xl outline-none font-inter text-sm text-gray-900 dark:text-gray-100 capitalize"
+                    >
+                      <option value="comida" className="dark:bg-gray-800">Comida 🍔</option>
+                      <option value="insumos" className="dark:bg-gray-800">Insumos 🛒</option>
+                      <option value="servicios" className="dark:bg-gray-800">Servicios ⚡</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block font-syne text-[10px] font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400 mb-2">Concepto del Gasto *</label>
+                    <input
+                      required
+                      placeholder="Ej. Mercado semanal, Internet, Uber..."
+                      value={newExpense.concept}
+                      onChange={(e) => setNewExpense({ ...newExpense, concept: e.target.value, category: modalCat })}
+                      className="w-full px-5 py-3.5 bg-gray-50 dark:bg-gray-800/80 border border-gray-100 dark:border-gray-700 rounded-xl outline-none font-inter text-sm text-gray-900 dark:text-gray-100 placeholder-gray-400"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block font-syne text-[10px] font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400 mb-2">Monto ($) *</label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      required
+                      placeholder="0.00"
+                      value={newExpense.amount}
+                      onChange={(e) => setNewExpense({ ...newExpense, amount: e.target.value, category: modalCat })}
+                      className="w-full px-5 py-3.5 bg-gray-50 dark:bg-gray-800/80 border border-gray-100 dark:border-gray-700 rounded-xl outline-none font-dm-sans font-bold text-sm text-gray-900 dark:text-gray-100 placeholder-gray-400"
+                    />
                   </div>
                 </div>
-              </div>
+
+                <div className="flex justify-end gap-3 pt-4">
+                  <button
+                    type="button"
+                    onClick={() => setShowAddModal(false)}
+                    className="px-6 py-3 font-syne text-xs font-bold uppercase tracking-wider text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl transition-all"
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={submittingCat === modalCat}
+                    className="px-8 py-3 bg-black dark:bg-white text-white dark:text-black font-syne text-xs font-bold uppercase tracking-wider rounded-xl shadow-lg hover:scale-105 active:scale-95 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+                  >
+                    {submittingCat === modalCat ? 'Guardando...' : 'Guardar Gasto'}
+                  </button>
+                </div>
+              </form>
             </motion.div>
-          ))}
-      </div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
