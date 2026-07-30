@@ -361,7 +361,7 @@ export default function Recetas() {
                 initial={{ opacity: 0, scale: 0.95, y: 20 }}
                 animate={{ opacity: 1, scale: 1, y: 0 }}
                 exit={{ opacity: 0, scale: 0.95, y: 20 }}
-                className="bg-white dark:bg-gray-900 rounded-[2.5rem] p-6 sm:p-8 max-h-[85vh] overflow-y-auto max-w-2xl w-full border-none shadow-2xl space-y-6 my-8"
+                className="bg-white dark:bg-gray-900 rounded-[2.5rem] p-5 sm:p-6 max-w-xl w-full border-none shadow-2xl space-y-4 my-4"
               >
                 <div className="flex items-center justify-between">
                   <h3 className="font-dm-sans text-xl font-bold text-black dark:text-white">
@@ -372,83 +372,82 @@ export default function Recetas() {
                   </button>
                 </div>
 
-                <form onSubmit={handleSubmit} className="space-y-6">
+                <form onSubmit={handleSubmit} className="space-y-3.5">
                   {/* Emoji selector */}
-                  <div className="space-y-2">
+                  <div className="space-y-1">
                     <label className="font-syne text-[10px] font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">Ícono</label>
-                    <div className="flex flex-wrap gap-2">
+                    <div className="flex flex-wrap gap-1.5">
                       {EMOJIS.map(e => (
                         <button key={e} type="button" onClick={() => setForm({ ...form, emoji: e })}
-                          className={`size-10 text-xl rounded-xl border-2 transition-all ${form.emoji === e ? 'border-black dark:border-white scale-110 bg-gray-100 dark:bg-gray-800' : 'border-transparent hover:border-gray-200 dark:hover:border-gray-700'}`}
+                          className={`size-8 text-base rounded-xl border-2 transition-all ${form.emoji === e ? 'border-black dark:border-white scale-105 bg-gray-100 dark:bg-gray-800' : 'border-transparent hover:border-gray-200 dark:hover:border-gray-700'}`}
                         >{e}</button>
                       ))}
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                    <div className="space-y-2">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div className="space-y-1">
                       <label className="font-syne text-[10px] font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">Nombre *</label>
                       <input
                         required value={form.name} onChange={e => setForm({ ...form, name: e.target.value })}
-                        placeholder="Ej. Pasta carbonara, Smoothie verde..."
-                        className="w-full px-5 py-3.5 bg-white dark:bg-gray-800 border border-transparent focus:border-[var(--vibrant-sky-blue)] rounded-xl outline-none font-inter text-sm text-gray-900 dark:text-gray-100 placeholder-gray-400 transition-all shadow-sm"
+                        placeholder="Ej. Pasta carbonara..."
+                        className="w-full px-4 py-2.5 bg-white dark:bg-gray-800 border border-transparent focus:border-[var(--vibrant-sky-blue)] rounded-xl outline-none font-inter text-sm text-gray-900 dark:text-gray-100 placeholder-gray-400 transition-all shadow-sm"
                       />
                     </div>
-                    <div className="space-y-2">
+                    <div className="space-y-1">
                       <label className="font-syne text-[10px] font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">Categoría</label>
                       <select
                         value={form.category} onChange={e => setForm({ ...form, category: e.target.value })}
-                        className="w-full px-5 py-3.5 bg-white dark:bg-gray-800 border border-transparent focus:border-[var(--vibrant-sky-blue)] rounded-xl outline-none font-inter text-sm text-gray-900 dark:text-gray-100 transition-all shadow-sm"
+                        className="w-full px-4 py-2.5 bg-white dark:bg-gray-800 border border-transparent focus:border-[var(--vibrant-sky-blue)] rounded-xl outline-none font-inter text-sm text-gray-900 dark:text-gray-100 transition-all shadow-sm"
                       >
                         {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
                       </select>
                     </div>
                   </div>
 
-                  <div className="space-y-2">
-                    <div className="space-y-2 mb-3">
-                      <label className="font-syne text-[10px] font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">Descripción & Preparación (Soporta Markdown)</label>
-                      <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-none pb-1 sm:pb-0">
+                  <div className="space-y-1">
+                    <div className="flex items-center justify-between gap-2 mb-1">
+                      <label className="font-syne text-[10px] font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">Instrucciones (Markdown)</label>
+                      <div className="flex items-center gap-1">
                         <button
                           type="button"
                           onClick={insertHeading}
-                          className="px-2.5 py-1 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-lg text-xs font-syne font-bold transition-all shrink-0 flex items-center gap-1"
-                          title="Agregar título de sección"
+                          className="px-2 py-0.5 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 rounded text-[10px] font-syne font-bold"
+                          title="Título"
                         >
-                          <span className="text-sky-500 font-bold">H3</span>
-                          <span>Sección</span>
+                          H3
                         </button>
                         <button
                           type="button"
                           onClick={insertBold}
-                          className="px-2.5 py-1 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-lg text-xs font-syne font-bold transition-all shrink-0"
-                          title="Texto en negrita"
+                          className="px-2 py-0.5 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 rounded text-[10px] font-syne font-bold"
+                          title="Negrita"
                         >
-                          <strong>B</strong> Negrita
+                          B
                         </button>
                         <button
                           type="button"
                           onClick={insertNumberList}
-                          className="px-2.5 py-1 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-lg text-xs font-syne font-bold transition-all shrink-0"
-                          title="Lista numerada (1., 2., 3...)"
+                          className="px-2 py-0.5 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 rounded text-[10px] font-syne font-bold"
+                          title="Lista 1,2,3"
                         >
-                          1. Paso
+                          1.
                         </button>
                         <button
                           type="button"
                           onClick={insertBullet}
-                          className="px-2.5 py-1 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-lg text-xs font-syne font-bold transition-all shrink-0"
-                          title="Viñeta de punto"
+                          className="px-2 py-0.5 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 rounded text-[10px] font-syne font-bold"
+                          title="Viñeta"
                         >
-                          • Viñeta
+                          •
                         </button>
                       </div>
                     </div>
                     <textarea
                       ref={descTextareaRef}
-                      rows={4} value={form.description} onChange={e => setForm({ ...form, description: e.target.value })}
-                      placeholder="Notas o instrucciones breves... (Puedes usar saltos de línea y viñetas)"
-                      className="w-full px-5 py-3.5 bg-white dark:bg-gray-800 border border-transparent focus:border-[var(--vibrant-sky-blue)] rounded-xl outline-none font-inter text-sm leading-relaxed text-gray-900 dark:text-gray-100 placeholder-gray-400 transition-all shadow-sm resize-none"
+                      rows={2} value={form.description} onChange={e => setForm({ ...form, description: e.target.value })}
+                      placeholder="Instrucciones de preparación..."
+                      className="w-full px-4 py-2 bg-white dark:bg-gray-800 border border-transparent focus:border-[var(--vibrant-sky-blue)] rounded-xl outline-none font-inter text-sm leading-relaxed text-gray-900 dark:text-gray-100 placeholder-gray-400 transition-all shadow-sm resize-none"
                     />
                   </div>
 
