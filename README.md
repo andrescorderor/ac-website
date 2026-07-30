@@ -19,39 +19,42 @@
 ## 🚀 Overview
 
 This repository hosts a dual-purpose platform:
-1.  **Professional Portfolio:** A high-end landing page showcasing my engineering background, skills, and achievements.
-2.  **Personal Panel PWA:** A private, secure productivity suite designed for daily life management.
+1. **Professional Portfolio:** A high-end landing page showcasing my engineering background, skills, and achievements.
+2. **Personal Panel PWA:** A private, secure productivity suite designed for daily life management.
 
 ---
 
-## 🛠️ Personal Panel PWA - Features
+## 🛠️ Personal Panel PWA - Core Modules
 
-The productivity hub is a mobile-optimized private dashboard with specialized modules:
+The productivity hub is a mobile-optimized private dashboard with 11 specialized modules:
 
-*   📊 **Finance Manager:** Track monthly expenses, manage salary, and toggle **Privacy Mode** to mask sensitive monetary values.
+*   📊 **Finance Manager (Finanzas):** Track monthly expenses, manage salary, category breakdown, and toggle **Privacy Mode** to mask sensitive monetary values.
 *   ✅ **Task Management (Pendientes):** Effective task list with default pending filter, status tabs, and real-time search.
 *   📝 **Important Notes (Notas Importantes):** Create and edit rich notes with optional bullet formatting, categories, and reference links.
-*   🔐 **Secure Vault:** Encrypted-access storage for sensitive texts (IDs, cards) with quick copy-to-clipboard functionality.
-*   🛒 **Smart Shopping List:** Manage unbought items with priority, location tracking, and price estimates.
-*   📅 **Important Reminders:** Categorized dates & optional times (Birthdays, Documents, Payments) with proximity alerts and recurring support.
-*   💸 **Debt Tracker:** Monitor pending payments and collections with default pending filters.
+*   🪴 **Plant Care Tracker (Mis Plantas):** Monitor watering schedules, species details, location recommendations, and watering logs.
+*   🔗 **Bookmarks & Quick Links (Enlaces Rápidos):** Organize web tools, portals, and categories for fast access.
+*   🔐 **Secure Vault (Bóveda de Textos):** Encrypted-access storage for sensitive texts (IDs, cards) with quick copy-to-clipboard functionality.
+*   🛒 **Smart Shopping List (Lista de Compras):** Manage unbought items with priority, location tracking, and price estimates.
+*   📅 **Important Reminders (Fechas Importantes):** Categorized dates & optional times (Birthdays, Documents, Payments) with proximity alerts and recurring support.
+*   💸 **Debt Tracker (Mis Deudas):** Monitor pending payments and collections with default pending filters.
 *   🎨 **Creative Projects (Proyectos Creativos):** Private portfolio to manage side projects, track progress, and organize sub-tasks.
 *   📋 **Monthly Checklist (Checklist Mensual):** Recurring habits and payments tracker that auto-resets every month with historical read-only view.
 *   🍽️ **Recipe Book (Mis Recetas):** Recipe manager with ingredient purchase checklists, video/social media reference links, and bullet formatting.
 
-### ✨ Premium UX Design
+---
+
+## ✨ Design System & Master UX Specs
+
 *   👁️ **Global Privacy Mode & Dark Mode Default:** One-click toggle to mask financial values and default high-contrast dark theme.
-*   📌 **Universal Pinned Items Section:** Pin any item (notes, reminders, tasks, debts, vault items, shopping items) directly from module cards or search, and view them on the main dashboard home.
-*   🔍 **Global Command Palette (`Ctrl + K` / `Cmd + K`):** Dual-mode search modal covering all 9 modules simultaneously, keyboard navigation, result highlighting, category grouping, and **🤖 100% Free AI Assistant Mode** powered by Gemini 1.5 Flash to query live database context (tasks, debts, finances, recipes, etc.).
+*   🪟 **Universal Portal Floating Modals:** Every form across all 11 modules utilizes a React `createPortal` modal system rendered directly into `document.body` with fixed backdrop blurs (`backdrop-blur-sm`), smooth entrance animations, and full z-index isolation.
+*   🔽 **Custom UI Select Dropdowns (`CustomSelect`):** Native ugly dropdowns replaced with interactive custom Framer Motion dropdown components and native `color-scheme: dark` fallback support.
+*   🎨 **Unified Glassmorphism Card System:** Borderless dark glass aesthetic (`dark-glass`) across all 11 modules with consistent shadow effects, hover scaling, and rounded corners (`rounded-[2rem]`).
+*   📌 **Universal Pinned Items System:** Pin any item (notes, reminders, tasks, debts, vault items, shopping items, projects) directly from module cards or search, and view them on the main dashboard home.
+*   🔍 **Global Command Palette (`Ctrl + K` / `Cmd + K`):** Dual-mode search modal covering all modules simultaneously, keyboard navigation, result highlighting, category grouping, and **🤖 100% Free AI Assistant Mode** powered by Gemini 1.5 Flash to query live database context.
 *   🔔 **PWA Floating Push Notifications:** Native browser & mobile push alerts scanning upcoming reminders and pending tasks due today or in the next 2 days.
-*   ⚡ **Persistent Active Session Auto-Redirect:** Automatically detects existing login sessions on `https://andresmcorderor.netlify.app/` and redirects straight to the private dashboard.
-*   🌐 **Landing Page Navigation Link:** Easy "Ver Landing Page" link on login and panel navigation to view the public portfolio anytime.
-*   🔔 **Toast Alert System:** Real-time feedback notifications for creation, edit, and deletion actions.
-*   ⏳ **Submit Protection:** Loading indicators and button locking during async operations to prevent duplicate submissions.
-*   📱 **Mobile Bottom Navigation Bar & Smooth Transitions:** Dedicated 5-item bottom tab bar on mobile devices, smooth page transitions, and auto-hiding headers.
-*   💀 **Unified Skeleton Loaders:** Animated shimmer loading states across all 9 modules and the home dashboard replacing raw text placeholders.
-*   📌 **Smart Pinned Items Filtering:** Automatically hides completed tasks, settled debts, and bought shopping list items from the home dashboard pinned section.
-*   🚀 **Database Keep-Alive & Auto-Backups:** Automated GitHub Actions workflows for database pinging and bi-monthly JSON backups.
+*   📱 **Mobile-First Responsiveness & Navigation:** Dedicated mobile bottom tab bar, safe area padding, responsive viewport scaling, and auto-scrolling container limits.
+*   💀 **Unified Skeleton Loaders & Loaders:** Animated shimmer loading states and smooth spinners across all modules.
+*   💾 **Automated Database Backups:** GitHub Actions automation performing daily database pinging and bi-monthly automated JSON backups.
 
 ---
 
