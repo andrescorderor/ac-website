@@ -161,7 +161,7 @@ export default function Deudas() {
           </p>
         </div>
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4">
-          <div className="bg-white dark:bg-gray-900 px-6 py-3 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm flex flex-col items-start sm:items-end">
+          <div className="bg-white dark:bg-gray-900 px-6 py-3 rounded-2xl border-none shadow-sm flex flex-col items-start sm:items-end">
             <p className="font-syne text-[10px] font-bold uppercase tracking-widest text-gray-400 dark:text-gray-500">Total Pendiente</p>
             <p className="font-dm-sans text-2xl font-bold text-red-500 dark:text-red-400">${totalPending.toLocaleString()}</p>
           </div>
@@ -184,7 +184,7 @@ export default function Deudas() {
               initial={{ opacity: 0, scale: 0.95, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              className="bg-white dark:bg-gray-900 rounded-[2.5rem] p-6 sm:p-8 max-w-xl w-full border border-gray-100 dark:border-gray-800 shadow-2xl space-y-6 my-8"
+              className="bg-white dark:bg-gray-900 rounded-[2.5rem] p-6 sm:p-8 max-w-xl w-full border-none shadow-2xl space-y-6 my-8"
             >
               <div className="flex items-center justify-between">
                 <div>
@@ -300,7 +300,7 @@ export default function Deudas() {
       </div>
 
       {/* Debts Table / List */}
-      <div className="bg-white dark:bg-gray-900 rounded-[2rem] border border-gray-100 dark:border-gray-800 overflow-hidden shadow-sm">
+      <div className="bg-white dark:bg-gray-900 rounded-[2rem] border-none overflow-hidden shadow-sm">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead className="bg-gray-50/50 dark:bg-gray-800/50">

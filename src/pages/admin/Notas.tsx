@@ -329,7 +329,7 @@ export default function Notas() {
               initial={{ opacity: 0, scale: 0.95, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              className="bg-white dark:bg-gray-900 rounded-[2.5rem] p-6 sm:p-8 max-w-2xl w-full border border-gray-100 dark:border-gray-800 shadow-2xl space-y-6 my-8"
+              className="bg-white dark:bg-gray-900 rounded-[2.5rem] p-6 sm:p-8 max-w-2xl w-full border-none shadow-2xl space-y-6 my-8"
             >
               <div className="flex items-center justify-between">
                 <div>
@@ -475,7 +475,7 @@ export default function Notas() {
       {/* Notes Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {filteredNotes.length === 0 ? (
-          <div className="col-span-full bg-white dark:bg-gray-900 rounded-[2rem] p-12 text-center border border-gray-100 dark:border-gray-800 shadow-sm space-y-3">
+          <div className="col-span-full bg-white dark:bg-gray-900 rounded-[2rem] p-12 text-center border-none shadow-sm space-y-3">
             <HiOutlineDocumentText className="text-4xl text-gray-300 dark:text-gray-600 mx-auto" />
             <p className="font-dm-sans text-lg font-bold text-gray-700 dark:text-gray-200">No hay notas en esta sección</p>
             <p className="font-inter text-sm text-gray-400 dark:text-gray-500">
@@ -490,7 +490,7 @@ export default function Notas() {
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
-              className="group bg-white dark:bg-gray-900 p-6 md:p-8 rounded-[2rem] border border-gray-100 dark:border-gray-800 shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col justify-between gap-6 overflow-hidden relative"
+              className="group bg-white dark:bg-gray-900 p-6 md:p-8 rounded-[2rem] border-none shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col justify-between gap-6 overflow-hidden relative"
             >
               <div className="space-y-4">
                 <div className="flex items-start justify-between gap-4">

@@ -405,7 +405,7 @@ export default function Plantas() {
               initial={{ opacity: 0, scale: 0.95, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              className="bg-white dark:bg-gray-900 rounded-[2.5rem] p-6 sm:p-8 max-w-2xl w-full border border-gray-100 dark:border-gray-800 shadow-2xl space-y-6 my-8"
+              className="bg-white dark:bg-gray-900 rounded-[2.5rem] p-6 sm:p-8 max-w-2xl w-full border-none shadow-2xl space-y-6 my-8"
             >
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
@@ -581,7 +581,7 @@ export default function Plantas() {
 
       {/* Grid of Plant Cards */}
       {filteredPlants.length === 0 ? (
-        <div className="text-center py-20 bg-white dark:bg-gray-900/50 rounded-[2.5rem] border border-gray-100 dark:border-gray-800 p-8 space-y-3">
+        <div className="text-center py-20 bg-white dark:bg-gray-900/50 rounded-[2.5rem] border-none p-8 space-y-3">
           <div className="text-5xl">🪴</div>
           <h3 className="font-dm-sans text-lg font-bold text-gray-900 dark:text-white">No se encontraron plantas</h3>
           <p className="font-inter text-sm text-gray-400 dark:text-gray-500 max-w-sm mx-auto">
@@ -603,7 +603,7 @@ export default function Plantas() {
                 initial={{ opacity: 0, y: 15 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -15 }}
-                className="group bg-white/80 dark:bg-gray-900/80 glass dark:dark-glass p-6 rounded-[2rem] border border-gray-100/50 dark:border-gray-800/80 shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col justify-between space-y-5 overflow-hidden relative"
+                className="group bg-white/80 dark:bg-gray-900/80 glass dark:dark-glass p-6 rounded-[2rem] border-none shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col justify-between space-y-5 overflow-hidden relative"
               >
                 <div className="space-y-4">
                   <div className="flex items-start justify-between gap-3">

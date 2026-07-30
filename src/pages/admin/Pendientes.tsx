@@ -214,7 +214,7 @@ export default function Pendientes() {
               initial={{ opacity: 0, scale: 0.95, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              className="bg-white dark:bg-gray-900 rounded-[2.5rem] p-6 sm:p-8 max-w-xl w-full border border-gray-100 dark:border-gray-800 shadow-2xl space-y-6 my-8"
+              className="bg-white dark:bg-gray-900 rounded-[2.5rem] p-6 sm:p-8 max-w-xl w-full border-none shadow-2xl space-y-6 my-8"
             >
               <div className="flex items-center justify-between">
                 <div>
@@ -306,7 +306,7 @@ export default function Pendientes() {
       {/* Task List */}
       <div className="space-y-4">
         {filteredTasks.length === 0 ? (
-          <div className="bg-white dark:bg-gray-900 rounded-[2rem] p-12 text-center border border-gray-100 dark:border-gray-800 shadow-sm space-y-3">
+          <div className="bg-white dark:bg-gray-900 rounded-[2rem] p-12 text-center border-none shadow-sm space-y-3">
             <p className="font-dm-sans text-lg font-bold text-gray-700 dark:text-gray-200">No hay tareas aquí</p>
             <p className="font-inter text-sm text-gray-400 dark:text-gray-500">
               {statusFilter === 'pending'
@@ -322,7 +322,7 @@ export default function Pendientes() {
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95 }}
-              className={`group p-6 bg-white/80 dark:bg-gray-900/80 glass dark:dark-glass rounded-[2rem] border border-gray-100/50 dark:border-gray-800/80 shadow-sm hover:shadow-xl transition-all duration-300 flex items-start gap-4 ${
+              className={`group p-6 bg-white/80 dark:bg-gray-900/80 glass dark:dark-glass rounded-[2rem] border-none shadow-sm hover:shadow-xl transition-all duration-300 flex items-start gap-4 ${
                 task.completed ? 'opacity-60' : ''
               }`}
             >

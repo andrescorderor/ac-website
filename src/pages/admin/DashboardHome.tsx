@@ -443,7 +443,7 @@ export default function DashboardHome() {
                 >
                   <Link
                     to={item.path}
-                    className="group block p-5 bg-white dark:bg-gray-900 rounded-3xl border border-gray-100 dark:border-gray-800 hover:border-amber-300 dark:hover:border-amber-700/60 shadow-sm hover:shadow-lg transition-all relative overflow-hidden"
+                    className="group block p-5 bg-white dark:bg-gray-900 rounded-3xl border-none hover:border-amber-300 dark:hover:border-amber-700/60 shadow-sm hover:shadow-lg transition-all relative overflow-hidden"
                   >
                     <div className="flex items-start justify-between gap-3">
                       <span className={`px-2.5 py-1 rounded-full text-[9px] font-syne font-bold uppercase tracking-wider ${getItemBadge(item.type)}`}>
@@ -495,7 +495,7 @@ export default function DashboardHome() {
               >
                 <Link 
                   to={card.path}
-                  className="group block bg-white dark:bg-gray-900/90 p-5 md:p-8 rounded-[2rem] md:rounded-[2.5rem] border border-gray-100 dark:border-gray-800 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-500"
+                  className="group block bg-white dark:bg-gray-900/90 p-5 md:p-8 rounded-[2rem] md:rounded-[2.5rem] border-none shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-500"
                 >
                   <div className="flex justify-between items-start">
                     <div className={`p-3 md:p-4 rounded-xl md:rounded-2xl ${card.color} text-white shadow-lg`}>

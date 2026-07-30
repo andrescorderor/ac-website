@@ -177,7 +177,7 @@ export default function Enlaces() {
                 initial={{ opacity: 0, scale: 0.95, y: 20 }}
                 animate={{ opacity: 1, scale: 1, y: 0 }}
                 exit={{ opacity: 0, scale: 0.95, y: 20 }}
-                className="bg-white dark:bg-gray-900 rounded-[2.5rem] p-6 sm:p-8 max-w-2xl w-full border border-gray-100 dark:border-gray-800 shadow-2xl space-y-6 my-8"
+                className="bg-white dark:bg-gray-900 rounded-[2.5rem] p-6 sm:p-8 max-w-2xl w-full border-none shadow-2xl space-y-6 my-8"
               >
                 <div className="flex items-center justify-between">
                   <div>
@@ -271,7 +271,7 @@ export default function Enlaces() {
                   href={link.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="group bg-white dark:bg-gray-900 p-6 rounded-[2rem] border border-gray-100 dark:border-gray-800 shadow-sm hover:shadow-xl hover:border-gray-200 dark:hover:border-gray-700 hover:-translate-y-1 transition-all duration-500 flex items-center gap-5 cursor-pointer"
+                  className="group bg-white dark:bg-gray-900 p-6 rounded-[2rem] border-none shadow-sm hover:shadow-xl hover:border-gray-200 dark:hover:border-gray-700 hover:-translate-y-1 transition-all duration-500 flex items-center gap-5 cursor-pointer"
                 >
                   <div className="size-14 shrink-0 rounded-2xl bg-gray-50 dark:bg-gray-800 flex items-center justify-center overflow-hidden group-hover:bg-black dark:group-hover:bg-white group-hover:text-white dark:group-hover:text-black transition-all duration-500">
                     <img 
