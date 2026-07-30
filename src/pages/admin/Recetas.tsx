@@ -473,25 +473,25 @@ export default function Recetas() {
                     )}
 
                     {/* Add ingredient row */}
-                    <div className="flex gap-2">
+                    <div className="flex flex-wrap sm:flex-nowrap gap-2">
                       <input
                         placeholder="Ingrediente..."
                         value={ingredientForm.name}
                         onChange={e => setIngredientForm({ ...ingredientForm, name: e.target.value })}
                         onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), addIngredientToForm())}
-                        className="flex-1 px-4 py-3 bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-xl outline-none focus:border-[var(--vibrant-sky-blue)] font-inter text-sm text-gray-900 dark:text-gray-100 placeholder-gray-400 transition-all shadow-sm"
+                        className="flex-1 min-w-[140px] px-3.5 py-2.5 bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-xl outline-none focus:border-[var(--vibrant-sky-blue)] font-inter text-sm text-gray-900 dark:text-gray-100 placeholder-gray-400 transition-all shadow-sm"
                       />
                       <input
                         placeholder="Cantidad"
                         value={ingredientForm.quantity}
                         onChange={e => setIngredientForm({ ...ingredientForm, quantity: e.target.value })}
                         onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), addIngredientToForm())}
-                        className="w-28 px-4 py-3 bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-xl outline-none focus:border-[var(--vibrant-sky-blue)] font-inter text-sm text-gray-900 dark:text-gray-100 placeholder-gray-400 transition-all shadow-sm"
+                        className="w-24 sm:w-28 px-3 py-2.5 bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-xl outline-none focus:border-[var(--vibrant-sky-blue)] font-inter text-sm text-gray-900 dark:text-gray-100 placeholder-gray-400 transition-all shadow-sm shrink-0"
                       />
                       <button
                         type="button"
                         onClick={addIngredientToForm}
-                        className="px-4 py-3 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-xl transition-all font-syne text-xs font-bold uppercase tracking-wider text-gray-700 dark:text-gray-200 flex items-center gap-1.5 shrink-0"
+                        className="px-4 py-2.5 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-xl transition-all font-syne text-xs font-bold uppercase tracking-wider text-gray-700 dark:text-gray-200 flex items-center justify-center gap-1.5 shrink-0 ml-auto sm:ml-0"
                       >
                         <HiOutlinePlus />
                         Añadir

@@ -430,7 +430,7 @@ export default function Recordatorios() {
                     </select>
                   </div>
 
-                  <div className="md:col-span-3">
+                  <div className="col-span-full">
                     <label className="block font-syne text-[10px] font-bold uppercase tracking-widest text-[var(--gray)] dark:text-gray-400 mb-2">
                       Fecha del Evento *
                     </label>
@@ -439,7 +439,7 @@ export default function Recordatorios() {
                       required
                       value={newReminder.date}
                       onChange={(e) => setNewReminder({ ...newReminder, date: e.target.value })}
-                      className="w-full px-5 py-3.5 bg-gray-50/50 dark:bg-gray-800/80 border border-gray-100 dark:border-gray-700 rounded-xl outline-none focus:border-gray-300 dark:focus:border-gray-500 font-inter text-sm text-gray-900 dark:text-gray-100"
+                      className="w-full min-w-0 max-w-full px-5 py-3.5 bg-gray-50/50 dark:bg-gray-800/80 border border-gray-100 dark:border-gray-700 rounded-xl outline-none focus:border-gray-300 dark:focus:border-gray-500 font-inter text-sm text-gray-900 dark:text-gray-100"
                     />
                   </div>
 

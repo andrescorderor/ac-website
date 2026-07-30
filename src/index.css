@@ -140,6 +140,13 @@ body {
   transition: outline 0.2s ease;
 }
 
+/* ═══ Standardized Responsive Form Control Utilities ═══ */
+input[type="date"] {
+  min-width: 0;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
 /* ═══ Custom Scrollbar ═══ */
 ::-webkit-scrollbar { width: 6px; height: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }

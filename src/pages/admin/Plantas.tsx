@@ -491,7 +491,7 @@ export default function Plantas() {
                       required
                       value={form.last_watered_at}
                       onChange={e => setForm({ ...form, last_watered_at: e.target.value })}
-                      className="w-full px-5 py-3.5 bg-gray-50 dark:bg-gray-800/80 border border-transparent focus:border-[var(--vibrant-sky-blue)] rounded-xl outline-none font-inter text-sm text-gray-900 dark:text-gray-100 transition-all shadow-sm"
+                      className="w-full min-w-0 max-w-full px-5 py-3.5 bg-gray-50 dark:bg-gray-800/80 border border-transparent focus:border-[var(--vibrant-sky-blue)] rounded-xl outline-none font-inter text-sm text-gray-900 dark:text-gray-100 transition-all shadow-sm"
                     />
                   </div>
                   <div className="space-y-2">
