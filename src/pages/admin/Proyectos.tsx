@@ -389,7 +389,7 @@ export default function Proyectos() {
                 <div className="space-y-2">
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                     <label className="font-syne text-[10px] font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">Descripción (Soporta Markdown)</label>
-                    <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-none pb-1 sm:pb-0">
+                    <div className="flex flex-wrap items-center gap-1.5 pt-1 sm:pt-0">
                       <button
                         type="button"
                         onClick={insertHeading}

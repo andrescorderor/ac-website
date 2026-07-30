@@ -384,7 +384,7 @@ export default function Notas() {
                       <label className="block font-syne text-[10px] font-bold uppercase tracking-widest text-[var(--gray)] dark:text-gray-400">
                         Contenido de la Nota (Soporta Markdown)
                       </label>
-                      <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-none pb-1 sm:pb-0">
+                      <div className="flex flex-wrap items-center gap-1.5 pt-1 sm:pt-0">
                         <button
                           type="button"
                           onClick={insertHeading}
