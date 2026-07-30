@@ -507,9 +507,9 @@ export default function Plantas() {
 
                 {/* Cursor-aware Notes Editor */}
                 <div className="space-y-2">
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                  <div className="space-y-2 mb-3">
                     <label className="font-syne text-[10px] font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">Notas de Cuidado & Recomendaciones (Soporta Markdown)</label>
-                    <div className="flex flex-wrap items-center gap-1.5 pt-1 sm:pt-0">
+                    <div className="flex flex-wrap items-center gap-1.5">
                       <button
                         type="button"
                         onClick={insertHeading}
@@ -603,7 +603,7 @@ export default function Plantas() {
                 initial={{ opacity: 0, y: 15 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -15 }}
-                className="group p-6 bg-white/80 dark:bg-gray-900/80 glass dark:dark-glass rounded-[2rem] border border-gray-100/50 dark:border-gray-800/80 shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col justify-between space-y-5 relative overflow-hidden"
+                className="group bg-white/80 dark:bg-gray-900/80 glass dark:dark-glass p-6 rounded-[2rem] border border-gray-100/50 dark:border-gray-800/80 shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col justify-between space-y-5 overflow-hidden relative"
               >
                 <div className="space-y-4">
                   <div className="flex items-start justify-between gap-3">

@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import CustomSelect from '@/components/common/CustomSelect';
 import { createPortal } from 'react-dom';
 import { supabase } from '@/lib/supabase';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -367,24 +368,20 @@ export default function Notas() {
                       <label className="block font-syne text-[10px] font-bold uppercase tracking-widest text-[var(--gray)] dark:text-gray-400 mb-2">
                         Categoría
                       </label>
-                      <select
+                      <CustomSelect
                         value={newNote.category}
-                        onChange={(e) => setNewNote({ ...newNote, category: e.target.value })}
-                        className="w-full px-5 py-3.5 bg-gray-50/50 dark:bg-gray-800/80 border border-gray-100 dark:border-gray-700 rounded-xl outline-none focus:border-gray-300 dark:focus:border-gray-500 font-inter text-sm text-gray-900 dark:text-gray-100"
-                      >
-                        {categories.filter(c => c !== 'Todas').map(c => (
-                          <option key={c} value={c} className="dark:bg-gray-800">{c}</option>
-                        ))}
-                      </select>
+                        onChange={(val) => setNewNote({ ...newNote, category: val })}
+                        options={categories.filter(c => c !== 'Todas').map(c => ({ value: c, label: c }))}
+                      />
                     </div>
                   </div>
 
                   <div>
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2">
+                    <div className="space-y-2 mb-3">
                       <label className="block font-syne text-[10px] font-bold uppercase tracking-widest text-[var(--gray)] dark:text-gray-400">
                         Contenido de la Nota (Soporta Markdown)
                       </label>
-                      <div className="flex flex-wrap items-center gap-1.5 pt-1 sm:pt-0">
+                      <div className="flex flex-wrap items-center gap-1.5">
                         <button
                           type="button"
                           onClick={insertHeading}
@@ -493,7 +490,7 @@ export default function Notas() {
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
-              className="group p-6 md:p-8 bg-white/80 dark:bg-gray-900/80 glass dark:dark-glass rounded-[2rem] border border-gray-100/50 dark:border-gray-800/80 shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col justify-between gap-6 relative"
+              className="group bg-white dark:bg-gray-900 p-6 md:p-8 rounded-[2rem] border border-gray-100 dark:border-gray-800 shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col justify-between gap-6 overflow-hidden relative"
             >
               <div className="space-y-4">
                 <div className="flex items-start justify-between gap-4">

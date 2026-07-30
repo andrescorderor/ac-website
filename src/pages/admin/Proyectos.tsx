@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { supabase } from '@/lib/supabase';
 import { motion, AnimatePresence } from 'framer-motion';
+import CustomSelect from '@/components/common/CustomSelect';
 import {
   HiOutlinePlus,
   HiOutlineTrash,
@@ -366,30 +367,26 @@ export default function Proyectos() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <label className="font-syne text-[10px] font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">Estado</label>
-                    <select
-                      value={form.status} onChange={e => setForm({ ...form, status: e.target.value as any })}
-                      className="w-full px-5 py-3.5 bg-gray-50 dark:bg-gray-800/80 border border-transparent focus:border-[var(--vibrant-sky-blue)] rounded-xl outline-none font-inter text-sm text-gray-900 dark:text-gray-100 transition-all shadow-sm"
-                    >
-                      {Object.entries(STATUS_CONFIG).map(([k, v]) => (
-                        <option key={k} value={k} className="dark:bg-gray-800">{v.label}</option>
-                      ))}
-                    </select>
+                    <CustomSelect
+                      value={form.status}
+                      onChange={val => setForm({ ...form, status: val as any })}
+                      options={Object.entries(STATUS_CONFIG).map(([k, v]) => ({ value: k, label: v.label }))}
+                    />
                   </div>
                   <div className="space-y-2">
                     <label className="font-syne text-[10px] font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">Categoría</label>
-                    <select
-                      value={form.category} onChange={e => setForm({ ...form, category: e.target.value })}
-                      className="w-full px-5 py-3.5 bg-gray-50 dark:bg-gray-800/80 border border-transparent focus:border-[var(--vibrant-sky-blue)] rounded-xl outline-none font-inter text-sm text-gray-900 dark:text-gray-100 transition-all shadow-sm"
-                    >
-                      {CATEGORIES.map(c => <option key={c} value={c} className="dark:bg-gray-800">{c}</option>)}
-                    </select>
+                    <CustomSelect
+                      value={form.category}
+                      onChange={val => setForm({ ...form, category: val })}
+                      options={CATEGORIES.map(c => ({ value: c, label: c }))}
+                    />
                   </div>
                 </div>
 
                 <div className="space-y-2">
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                  <div className="space-y-2 mb-3">
                     <label className="font-syne text-[10px] font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">Descripción (Soporta Markdown)</label>
-                    <div className="flex flex-wrap items-center gap-1.5 pt-1 sm:pt-0">
+                    <div className="flex flex-wrap items-center gap-1.5">
                       <button
                         type="button"
                         onClick={insertHeading}
@@ -471,10 +468,10 @@ export default function Proyectos() {
                   initial={{ opacity: 0, scale: 0.95 }}
                   animate={{ opacity: 1, scale: 1 }}
                   exit={{ opacity: 0, scale: 0.95 }}
-                  className="bg-white/80 dark:bg-gray-900/80 glass dark:dark-glass rounded-[2rem] overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col"
+                  className="group bg-white/80 dark:bg-gray-900/80 glass dark:dark-glass p-6 rounded-[2rem] border border-gray-100/50 dark:border-gray-800/80 shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col justify-between overflow-hidden relative"
                 >
                   {/* Card Header */}
-                  <div className="p-6 flex-1 space-y-4">
+                  <div className="flex-1 space-y-4">
                     <div className="flex items-start justify-between gap-3">
                       <div className="flex items-center gap-3">
                         <div className="size-12 rounded-2xl bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-2xl shrink-0">
@@ -569,7 +566,7 @@ export default function Proyectos() {
                           initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }}
                           className="overflow-hidden"
                         >
-                          <div className="px-5 pb-5 space-y-2">
+                          <div className="pb-5 space-y-2">
                             {project.tasks.map(task => (
                               <div key={task.id} className="flex items-center gap-3 group">
                                 <button onClick={() => toggleTask(project, task.id)} className="shrink-0">

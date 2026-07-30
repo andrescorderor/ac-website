@@ -6,6 +6,10 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  color-scheme: light dark;
+}
+
 /* Color Variables & Semantic Colors */
 :root {
   --black: #0a0a0a;

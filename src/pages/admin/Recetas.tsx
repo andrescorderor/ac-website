@@ -401,7 +401,7 @@ export default function Recetas() {
               </div>
 
               <div className="space-y-2">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <div className="space-y-2 mb-3">
                   <label className="font-syne text-[10px] font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">Descripción & Preparación (Soporta Markdown)</label>
                   <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-none pb-1 sm:pb-0">
                     <button
@@ -546,7 +546,7 @@ export default function Recetas() {
                   initial={{ opacity: 0, scale: 0.95 }}
                   animate={{ opacity: 1, scale: 1 }}
                   exit={{ opacity: 0, scale: 0.95 }}
-                  className="bg-white/80 dark:bg-gray-900/80 glass dark:dark-glass rounded-[2rem] overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col"
+                  className="group bg-white/80 dark:bg-gray-900/80 glass dark:dark-glass p-6 md:p-8 rounded-[2rem] border border-gray-100/50 dark:border-gray-800/80 shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col justify-between overflow-hidden relative"
                 >
                   {/* Card Header */}
                   <div className="p-6 space-y-4 flex-1">

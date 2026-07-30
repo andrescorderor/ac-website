@@ -613,7 +613,7 @@ function ReminderCard({ r, onDelete }: { r: Reminder; onDelete: (id: string) => 
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -10 }}
-      className="p-6 bg-white/80 dark:bg-gray-900/80 glass dark:dark-glass rounded-[2rem] shadow-sm flex flex-col justify-between gap-4 group hover:shadow-lg hover:-translate-y-1 transition-all duration-300"
+      className="group bg-white/80 dark:bg-gray-900/80 glass dark:dark-glass p-6 rounded-[2rem] border border-gray-100/50 dark:border-gray-800/80 shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col justify-between overflow-hidden relative"
     >
       <div className="flex items-start justify-between gap-4">
         <div className="flex items-start gap-4">
