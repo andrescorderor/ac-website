@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { supabase } from '@/lib/supabase';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
@@ -218,8 +219,8 @@ export default function Compras() {
 
       {/* Add Item Modal */}
       <AnimatePresence>
-        {showAddForm && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 overflow-y-auto bg-black/60 backdrop-blur-sm">
+        {showAddForm && (createPortal(
+          <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 sm:p-6 overflow-y-auto bg-black/60 backdrop-blur-sm">
             <motion.div
               initial={{ opacity: 0, scale: 0.95, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -308,7 +309,7 @@ export default function Compras() {
               </form>
             </motion.div>
           </div>
-        )}
+        , document.body))}
       </AnimatePresence>
 
       {/* Grid of Shopping Items */}
