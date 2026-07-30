@@ -318,8 +318,8 @@ export default function Pendientes() {
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95 }}
-              className={`group p-6 bg-white dark:bg-gray-900 rounded-[2.25rem] border border-gray-100 dark:border-gray-800 transition-all duration-300 flex items-start gap-4 shadow-sm hover:shadow-lg ${
-                task.completed ? 'bg-gray-50/50 dark:bg-gray-800/40 opacity-60' : ''
+              className={`group p-6 bg-white/80 dark:bg-gray-900/80 glass dark:dark-glass rounded-[2rem] border border-gray-100/50 dark:border-gray-800/80 shadow-sm hover:shadow-xl transition-all duration-300 flex items-start gap-4 ${
+                task.completed ? 'opacity-60' : ''
               }`}
             >
               <button

@@ -330,8 +330,8 @@ export default function Compras() {
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
-              className={`group p-6 bg-white dark:bg-gray-900 rounded-[2.25rem] border border-gray-100 dark:border-gray-800 shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col justify-between gap-4 relative overflow-hidden ${
-                item.bought ? 'bg-gray-50/50 dark:bg-gray-800/40 opacity-60' : ''
+              className={`group p-6 bg-white/80 dark:bg-gray-900/80 glass dark:dark-glass rounded-[2rem] border border-gray-100/50 dark:border-gray-800/80 shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col justify-between gap-4 relative overflow-hidden ${
+                item.bought ? 'opacity-60' : ''
               }`}
             >
               <div className="space-y-3">
