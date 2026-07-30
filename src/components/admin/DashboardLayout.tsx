@@ -244,6 +244,12 @@ function DashboardLayoutContent() {
             <HiOutlineLogout className="text-2xl shrink-0" />
             {isSidebarOpen && <span className="font-syne text-xs font-bold uppercase tracking-widest">Salir</span>}
           </button>
+
+          <div className="text-center select-none pt-1">
+            <span className="font-syne text-[9px] font-bold tracking-widest text-gray-400 dark:text-gray-600 block">
+              {isSidebarOpen ? 'VERSIÓN v1.185.0' : 'v1.185'}
+            </span>
+          </div>
         </div>
       </aside>
 
@@ -371,6 +377,12 @@ function DashboardLayoutContent() {
             <HiOutlineLogout className="text-xl" />
             <span className="font-syne text-[11px] font-bold uppercase tracking-widest">Cerrar Sesión</span>
           </button>
+
+          <div className="text-center select-none pt-2">
+            <span className="font-syne text-[9px] font-bold tracking-widest text-gray-400 dark:text-gray-600 block">
+              VERSIÓN v1.185.0
+            </span>
+          </div>
         </div>
       </motion.aside>
 

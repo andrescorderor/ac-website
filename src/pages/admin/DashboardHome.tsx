@@ -45,10 +45,35 @@ export default function DashboardHome() {
     plants: 0,
   });
   const [pinnedItems, setPinnedItems] = useState<PinnedItem[]>([]);
+  const [pinnedFilter, setPinnedFilter] = useState<string>('all');
+  const [isPinnedCollapsed, setIsPinnedCollapsed] = useState<boolean>(true);
   const [loading, setLoading] = useState(true);
   const [exporting, setExporting] = useState(false);
   const [isPrivacyMode, setIsPrivacyMode] = useState(true);
   const { toast } = useToast();
+
+  const translateType = (type: string) => {
+    switch (type) {
+      case 'note': return 'Notas 📝';
+      case 'reminder': return 'Fechas 📅';
+      case 'task': return 'Tareas ✅';
+      case 'debt': return 'Deudas 💸';
+      case 'vault': return 'Bóveda 🔒';
+      case 'shopping': return 'Compras 🛒';
+      case 'project': return 'Proyectos 🎨';
+      case 'checklist': return 'Habits 📋';
+      case 'recipe': return 'Recetas 🍽️';
+      case 'plant': return 'Plantas 🪴';
+      default: return type;
+    }
+  };
+
+  const filteredPinned = pinnedItems.filter(
+    (item) => pinnedFilter === 'all' || item.type === pinnedFilter
+  );
+  
+  const displayedPinned = isPinnedCollapsed ? filteredPinned.slice(0, 6) : filteredPinned;
+  const activeTypes = Array.from(new Set(pinnedItems.map((item) => item.type)));
 
   useEffect(() => {
     fetchStats();
@@ -411,7 +436,7 @@ export default function DashboardHome() {
 
       {/* 📌 Pinned Elements Section */}
       <section className="space-y-4">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <h2 className="font-dm-sans text-xl font-bold text-[var(--black)] dark:text-white flex items-center gap-2">
             <span>📌</span>
             <span>Elementos Fijados</span>
@@ -421,7 +446,44 @@ export default function DashboardHome() {
               </span>
             )}
           </h2>
+          
+          {pinnedItems.length > 6 && (
+            <button 
+              onClick={() => setIsPinnedCollapsed(!isPinnedCollapsed)} 
+              className="text-left font-syne text-[10px] font-bold uppercase tracking-widest text-[var(--vibrant-sky-blue)] hover:underline active:scale-95 transition-all shrink-0"
+            >
+              {isPinnedCollapsed ? `Mostrar Todo (${filteredPinned.length})` : 'Contraer Listado'}
+            </button>
+          )}
         </div>
+
+        {pinnedItems.length > 0 && (
+          <div className="flex flex-wrap gap-1.5 pb-2">
+            <button
+              onClick={() => setPinnedFilter('all')}
+              className={`px-3 py-1 rounded-xl text-[10px] font-syne font-bold uppercase tracking-wider transition-all ${
+                pinnedFilter === 'all'
+                  ? 'bg-amber-500 text-white shadow-sm'
+                  : 'bg-white dark:bg-gray-900 text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800'
+              }`}
+            >
+              Todos
+            </button>
+            {activeTypes.map((type) => (
+              <button
+                key={type}
+                onClick={() => setPinnedFilter(type)}
+                className={`px-3 py-1 rounded-xl text-[10px] font-syne font-bold uppercase tracking-wider transition-all ${
+                  pinnedFilter === type
+                    ? 'bg-amber-500 text-white shadow-sm'
+                    : 'bg-white dark:bg-gray-900 text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800'
+                }`}
+              >
+                {translateType(type)}
+              </button>
+            ))}
+          </div>
+        )}
 
         {pinnedItems.length === 0 ? (
           <div className="bg-white dark:bg-gray-900/60 rounded-[2rem] p-6 md:p-8 border border-dashed border-gray-200 dark:border-gray-800 text-center space-y-2">
@@ -430,49 +492,66 @@ export default function DashboardHome() {
               Puedes fijar cualquier nota, recordatorio, tarea o dato importante usando el icono 📍 desde la búsqueda global (<kbd className="px-1.5 py-0.5 bg-gray-100 dark:bg-gray-800 rounded">Ctrl + K</kbd>).
             </p>
           </div>
+        ) : filteredPinned.length === 0 ? (
+          <div className="bg-white dark:bg-gray-900/60 rounded-[2rem] p-6 md:p-8 border border-dashed border-gray-200 dark:border-gray-800 text-center">
+            <p className="font-dm-sans text-sm font-bold text-gray-500 dark:text-gray-400">No hay elementos fijados para esta categoría.</p>
+          </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            <AnimatePresence>
-              {pinnedItems.map((item) => (
-                <motion.div
-                  key={item.id}
-                  layout
-                  initial={{ opacity: 0, scale: 0.95 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.95 }}
-                >
-                  <Link
-                    to={item.path}
-                    className="group block p-5 bg-white dark:bg-gray-900 rounded-3xl border-none hover:border-amber-300 dark:hover:border-amber-700/60 shadow-sm hover:shadow-lg transition-all relative overflow-hidden"
+          <div className="space-y-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              <AnimatePresence>
+                {displayedPinned.map((item) => (
+                  <motion.div
+                    key={item.id}
+                    layout
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.95 }}
                   >
-                    <div className="flex items-start justify-between gap-3">
-                      <span className={`px-2.5 py-1 rounded-full text-[9px] font-syne font-bold uppercase tracking-wider ${getItemBadge(item.type)}`}>
-                        {item.type}
-                      </span>
+                    <Link
+                      to={item.path}
+                      className="group block p-5 bg-white dark:bg-gray-900 rounded-3xl border-none hover:border-amber-300 dark:hover:border-amber-700/60 shadow-sm hover:shadow-lg transition-all relative overflow-hidden"
+                    >
+                      <div className="flex items-start justify-between gap-3">
+                        <span className={`px-2.5 py-1 rounded-full text-[9px] font-syne font-bold uppercase tracking-wider ${getItemBadge(item.type)}`}>
+                          {translateType(item.type)}
+                        </span>
 
-                      <button
-                        onClick={(e) => handleUnpin(item.id, e)}
-                        className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-xl transition-all"
-                        title="Desfijar del inicio"
-                      >
-                        <HiOutlineTrash className="text-sm" />
-                      </button>
-                    </div>
+                        <button
+                          onClick={(e) => handleUnpin(item.id, e)}
+                          className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-xl transition-all"
+                          title="Desfijar del inicio"
+                        >
+                          <HiOutlineTrash className="text-sm" />
+                        </button>
+                      </div>
 
-                    <div className="mt-3 space-y-1">
-                      <h4 className="font-dm-sans font-bold text-base text-gray-900 dark:text-gray-100 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors line-clamp-1">
-                        {item.title}
-                      </h4>
-                      {item.subtitle && (
-                        <p className="font-inter text-xs text-gray-500 dark:text-gray-400 line-clamp-2">
-                          {item.subtitle}
-                        </p>
-                      )}
-                    </div>
-                  </Link>
-                </motion.div>
-              ))}
-            </AnimatePresence>
+                      <div className="mt-3 space-y-1">
+                        <h4 className="font-dm-sans font-bold text-base text-gray-900 dark:text-gray-100 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors line-clamp-1">
+                          {item.title}
+                        </h4>
+                        {item.subtitle && (
+                          <p className="font-inter text-xs text-gray-500 dark:text-gray-400 line-clamp-2">
+                            {item.subtitle}
+                          </p>
+                        )}
+                      </div>
+                    </Link>
+                  </motion.div>
+                ))}
+              </AnimatePresence>
+            </div>
+            
+            {filteredPinned.length > 6 && (
+              <div className="flex justify-center">
+                <button
+                  onClick={() => setIsPinnedCollapsed(!isPinnedCollapsed)}
+                  className="px-5 py-2 bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 rounded-xl font-syne text-[10px] font-bold uppercase tracking-wider text-gray-700 dark:text-gray-300 transition-all active:scale-95"
+                >
+                  {isPinnedCollapsed ? `Mostrar ${filteredPinned.length - 6} más` : 'Mostrar menos'}
+                </button>
+              </div>
+            )}
           </div>
         )}
       </section>

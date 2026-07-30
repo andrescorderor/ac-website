@@ -447,7 +447,7 @@ export default function CommandPalette({ isOpen, onClose }: CommandPaletteProps)
 
     try {
       // Fetch full database snapshot for context
-      const [exp, tsk, dbt, vlt, shp, rem, nts, prj, chk, rec] = await Promise.all([
+      const [exp, tsk, dbt, vlt, shp, rem, nts, prj, chk, rec, plt, bkm] = await Promise.all([
         supabase.from('finance_expenses').select('amount, category, date, concept').order('date', { ascending: false }).limit(25),
         supabase.from('tasks').select('title, completed, due_date').order('created_at', { ascending: false }).limit(25),
         supabase.from('debts').select('debtor_name, amount, concept, settled').order('created_at', { ascending: false }).limit(25),
@@ -458,6 +458,8 @@ export default function CommandPalette({ isOpen, onClose }: CommandPaletteProps)
         supabase.from('creative_projects').select('name, category, status, description').limit(25),
         supabase.from('monthly_checklist_items').select('title, category').limit(25),
         supabase.from('recipes').select('name, category, ingredients, description').limit(25),
+        supabase.from('plants').select('nickname, species, location, watering_frequency_days, last_watered_at').limit(25),
+        supabase.from('bookmarks').select('title, url, category').limit(25),
       ]);
 
       const formattedContext = `
@@ -490,6 +492,12 @@ ${shp.data?.map(s => `- [${s.bought ? 'Comprado' : 'Por comprar'}] ${s.name}${s.
 
 📋 CHECKLIST MENSUAL:
 ${chk.data?.map(c => `- ${c.title} [${c.category}]`).join('\n') || 'Ninguno'}
+
+🪴 MIS PLANTAS:
+${plt.data?.map(p => `- ${p.nickname} (${p.species}) en ${p.location || 'Sin ubicación'}. Riego: cada ${p.watering_frequency_days} días. Último riego: ${p.last_watered_at || 'Sin fecha'}`).join('\n') || 'Ninguna'}
+
+🔗 ENLACES / MARCADORES:
+${bkm.data?.map(b => `- ${b.title} [Categoría: ${b.category || 'General'}]: ${b.url}`).join('\n') || 'Ninguno'}
 `.trim();
 
       const userPromptBody = `DATOS ACTUALES DEL PANEL:\n${formattedContext}\n\nPREGUNTA DE ANDRÉS: "${promptText}"`;
@@ -607,14 +615,14 @@ REGLAS OBLIGATORIAS:
   return (
     <AnimatePresence>
       {isOpen && (
-        <div className="fixed inset-0 z-[200] flex items-start justify-center pt-12 md:pt-20 px-4">
+        <div className="fixed inset-0 z-[200] flex items-start justify-center pt-0 md:pt-20 px-0 md:px-4">
           {/* Backdrop */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
-            className="fixed inset-0 bg-black/65 backdrop-blur-lg"
+            className="fixed inset-0 bg-black/65 backdrop-blur-lg hidden md:block"
           />
 
           {/* Panel */}
@@ -623,7 +631,7 @@ REGLAS OBLIGATORIAS:
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.96, y: -16 }}
             transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
-            className="relative w-full max-w-2xl bg-white dark:bg-gray-950 rounded-3xl border border-gray-200/60 dark:border-gray-800/60 shadow-[0_32px_80px_rgba(0,0,0,0.28)] overflow-hidden z-10 flex flex-col max-h-[85vh]"
+            className="relative w-full h-full md:h-auto md:max-w-2xl bg-white dark:bg-gray-950 rounded-none md:rounded-3xl border-none md:border md:border-gray-200/60 md:dark:border-gray-800/60 shadow-none md:shadow-[0_32px_80px_rgba(0,0,0,0.28)] overflow-hidden z-10 flex flex-col max-h-screen md:max-h-[85vh]"
           >
             {/* Header / Mode Selector */}
             <div className="px-5 pt-4 pb-3 border-b border-gray-100 dark:border-gray-800/80 space-y-3">
