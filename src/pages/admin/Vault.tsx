@@ -292,7 +292,7 @@ export default function Vault() {
               </div>
 
               <div className="mt-6 space-y-4">
-                <div className="bg-white dark:bg-gray-800 p-4 rounded-2xl border border-gray-100/50 dark:border-gray-700/50 relative overflow-hidden group/content shadow-inner">
+                <div className="bg-white dark:bg-gray-800/80 p-4 rounded-2xl relative overflow-hidden group/content shadow-inner">
                   <AutoFormattedText text={item.content} className="font-mono text-sm text-gray-600 dark:text-gray-300 pr-8" />
                 </div>
                 
@@ -301,7 +301,7 @@ export default function Vault() {
                   className={`w-full flex items-center justify-center gap-2 py-3 rounded-2xl font-syne text-[10px] font-bold uppercase tracking-widest transition-all interactive-hover ${
                     copiedId === item.id 
                     ? 'bg-green-500 text-white shadow-lg shadow-green-100 dark:shadow-green-900/20' 
-                    : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-black dark:hover:bg-white hover:text-white dark:hover:text-black hover:shadow-lg border border-gray-100 dark:border-gray-700'
+                    : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-black dark:hover:bg-white hover:text-white dark:hover:text-black hover:shadow-lg'
                   }`}
                 >
                   {copiedId === item.id ? (

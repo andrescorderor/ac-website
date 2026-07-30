@@ -257,7 +257,7 @@ export default function ChecklistMensual() {
             className={`px-5 py-2.5 rounded-2xl text-xs font-syne font-bold uppercase tracking-wider transition-all whitespace-nowrap ${
               filterCategory === cat
                 ? 'bg-black dark:bg-white text-white dark:text-black shadow-md'
-                : 'bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-300 border border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700'
+                : 'bg-white/80 dark:bg-gray-800/80 text-gray-500 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
             }`}
           >
             {cat}
