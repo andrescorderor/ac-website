@@ -138,7 +138,7 @@ export default function DashboardHome() {
         return;
       }
 
-      const [exp, sal, tsk, dbt, vlt, shp, rem, nts] = await Promise.all([
+      const [exp, sal, tsk, dbt, vlt, shp, rem, nts, bkm, prj, chkItems, chkLogs, rec, plt] = await Promise.all([
         supabase.from('finance_expenses').select('*'),
         supabase.from('finance_salary').select('*'),
         supabase.from('tasks').select('*'),
@@ -147,10 +147,16 @@ export default function DashboardHome() {
         supabase.from('shopping_list').select('*'),
         supabase.from('reminders').select('*'),
         supabase.from('notes').select('*'),
+        supabase.from('bookmarks').select('*'),
+        supabase.from('creative_projects').select('*'),
+        supabase.from('monthly_checklist_items').select('*'),
+        supabase.from('monthly_checklist_logs').select('*'),
+        supabase.from('recipes').select('*'),
+        supabase.from('plants').select('*'),
       ]);
 
       const backupObj = {
-        version: '1.0',
+        version: '2.0',
         exported_at: new Date().toISOString(),
         user_email: user.email,
         tables: {
@@ -162,6 +168,12 @@ export default function DashboardHome() {
           shopping_list: shp.data || [],
           reminders: rem.data || [],
           notes: nts.data || [],
+          bookmarks: bkm.data || [],
+          creative_projects: prj.data || [],
+          monthly_checklist_items: chkItems.data || [],
+          monthly_checklist_logs: chkLogs.data || [],
+          recipes: rec.data || [],
+          plants: plt.data || [],
         }
       };
 
