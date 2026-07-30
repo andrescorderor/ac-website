@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { supabase } from '@/lib/supabase';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -323,12 +324,17 @@ export default function ChecklistMensual() {
       </div>
 
       {/* Add/Edit Form */}
-      <AnimatePresence>
-        {showAddForm && (
-          <motion.div
-            initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}
-            className="bg-white/80 dark:bg-gray-900/80 glass dark:dark-glass p-6 rounded-[2rem] shadow-xl space-y-5"
-          >
+      {createPortal(
+        <AnimatePresence>
+          {showAddForm && (
+            <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 sm:p-6 overflow-y-auto bg-black/60 backdrop-blur-sm">
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.95, y: 20 }}
+                className="bg-white dark:bg-gray-900 rounded-[2.5rem] p-6 sm:p-8 max-w-xl w-full border border-gray-100 dark:border-gray-800 shadow-2xl space-y-6 my-8"
+              >
+                
             <div className="flex items-center justify-between">
               <h3 className="font-dm-sans text-lg font-bold text-black dark:text-white">
                 {editingItem ? 'Editar Ítem' : 'Nuevo Ítem del Checklist'}
@@ -378,9 +384,13 @@ export default function ChecklistMensual() {
                 </button>
               </div>
             </form>
-          </motion.div>
-        )}
-      </AnimatePresence>
+          
+              </motion.div>
+            </div>
+          )}
+        </AnimatePresence>,
+        document.body
+      )}
 
       {/* Checklist Groups */}
       {items.length === 0 ? (

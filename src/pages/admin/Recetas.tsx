@@ -549,7 +549,7 @@ export default function Recetas() {
                   className="group bg-white/80 dark:bg-gray-900/80 glass dark:dark-glass p-6 md:p-8 rounded-[2rem] border border-gray-100/50 dark:border-gray-800/80 shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col justify-between overflow-hidden relative"
                 >
                   {/* Card Header */}
-                  <div className="p-6 space-y-4 flex-1">
+                  <div className="space-y-4 flex-1">
                     <div className="flex items-start justify-between gap-3">
                       <div className="flex items-center gap-3">
                         <div className="size-12 rounded-2xl bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-2xl shrink-0">
@@ -619,7 +619,7 @@ export default function Recetas() {
 
                   {/* Expandable Ingredient Checklist */}
                   {totalCount > 0 && (
-                    <div className="border-t border-gray-100/50 dark:border-gray-800/50">
+                    <div className="border-t border-gray-100/50 dark:border-gray-800/50 -mx-6 md:-mx-8 -mb-6 md:-mb-8 mt-4">
                       <button
                         onClick={() => setExpandedId(isExpanded ? null : recipe.id)}
                         className="w-full px-6 py-3 flex items-center justify-between text-xs font-syne font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400 hover:bg-gray-50/50 dark:hover:bg-gray-800/30 transition-all"

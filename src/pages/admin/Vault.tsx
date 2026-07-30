@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { supabase } from '@/lib/supabase';
 import { motion, AnimatePresence } from 'framer-motion';
-import { HiOutlinePlus, HiOutlineDuplicate, HiOutlineCheck, HiOutlineTrash } from 'react-icons/hi';
+import { HiOutlinePlus, HiOutlineDuplicate, HiOutlineCheck, HiOutlineTrash, HiX } from 'react-icons/hi';
 import { useToast } from '@/components/common/ToastContext';
 import { togglePinItem, isItemPinned } from '@/lib/pinned';
 import AutoFormattedText from '@/components/common/AutoFormattedText';
@@ -177,14 +178,30 @@ export default function Vault() {
         ))}
       </div>
 
-      <AnimatePresence>
-        {showAddForm && (
-          <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            className="bg-white/80 dark:bg-gray-900/80 glass dark:dark-glass p-8 rounded-[2.5rem] shadow-xl"
-          >
+      {createPortal(
+        <AnimatePresence>
+          {showAddForm && (
+            <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 sm:p-6 overflow-y-auto bg-black/60 backdrop-blur-sm">
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.95, y: 20 }}
+                className="bg-white dark:bg-gray-900 rounded-[2.5rem] p-6 sm:p-8 max-w-xl w-full border border-gray-100 dark:border-gray-800 shadow-2xl space-y-6 my-8"
+              >
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h2 className="font-dm-sans text-2xl font-bold text-gray-900 dark:text-white">Agregar Texto a la Bóveda</h2>
+                    <p className="font-inter text-xs text-gray-400">Guarda información sensible o útil para copiar rápido.</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setShowAddForm(false)}
+                    className="p-2 rounded-xl text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 transition-all"
+                  >
+                    <HiX className="text-xl" />
+                  </button>
+                </div>
+                
             <form onSubmit={handleAddItem} className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2">
@@ -215,9 +232,13 @@ export default function Vault() {
                 Guardar Texto
               </button>
             </form>
-          </motion.div>
-        )}
-      </AnimatePresence>
+          
+              </motion.div>
+            </div>
+          )}
+        </AnimatePresence>,
+        document.body
+      )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {filteredItems.length === 0 ? (

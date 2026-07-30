@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { supabase } from '@/lib/supabase';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   HiOutlinePlus, 
   HiOutlineTrash, 
-  HiOutlineExternalLink
+  HiOutlineExternalLink,
+  HiX
 } from 'react-icons/hi';
 
 type Bookmark = {
@@ -166,59 +168,90 @@ export default function Enlaces() {
         ))}
       </div>
 
-      <AnimatePresence>
-        {showAddForm && (
-          <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            exit={{ opacity: 0, height: 0 }}
-            className="overflow-hidden"
-          >
-            <div className="bg-white dark:bg-gray-900 p-8 rounded-[2.5rem] border border-gray-100 dark:border-gray-800 shadow-xl mb-8">
-              <form onSubmit={handleAdd} className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="space-y-2">
-                  <label className="font-syne text-[10px] font-bold uppercase tracking-widest text-gray-400">Nombre</label>
-                  <input
-                    value={newBookmark.title}
-                    onChange={(e) => setNewBookmark({...newBookmark, title: e.target.value})}
-                    placeholder="Ej: Portal Bancario"
-                    className="w-full px-6 py-4 rounded-2xl bg-gray-50 dark:bg-gray-800 border-none outline-none focus:ring-2 ring-gray-100 dark:ring-gray-700 font-inter text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500"
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <label className="font-syne text-[10px] font-bold uppercase tracking-widest text-gray-400">URL</label>
-                  <input
-                    value={newBookmark.url}
-                    onChange={(e) => setNewBookmark({...newBookmark, url: e.target.value})}
-                    placeholder="ejemplo.com"
-                    className="w-full px-6 py-4 rounded-2xl bg-gray-50 dark:bg-gray-800 border-none outline-none focus:ring-2 ring-gray-100 dark:ring-gray-700 font-inter text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500"
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <label className="font-syne text-[10px] font-bold uppercase tracking-widest text-gray-400">Categoría</label>
-                  <select
-                    value={newBookmark.category}
-                    onChange={(e) => setNewBookmark({...newBookmark, category: e.target.value})}
-                    className="w-full px-6 py-4 rounded-2xl bg-gray-50 dark:bg-gray-800 border-none outline-none focus:ring-2 ring-gray-100 dark:ring-gray-700 font-inter appearance-none cursor-pointer text-gray-900 dark:text-gray-100"
+      {/* Add Bookmark Modal */}
+      {createPortal(
+        <AnimatePresence>
+          {showAddForm && (
+            <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 sm:p-6 overflow-y-auto bg-black/60 backdrop-blur-sm">
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.95, y: 20 }}
+                className="bg-white dark:bg-gray-900 rounded-[2.5rem] p-6 sm:p-8 max-w-2xl w-full border border-gray-100 dark:border-gray-800 shadow-2xl space-y-6 my-8"
+              >
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h2 className="font-dm-sans text-2xl font-bold text-gray-900 dark:text-white">Nuevo Marcador</h2>
+                    <p className="font-inter text-xs text-gray-400">Guarda enlaces rápidos para tus herramientas diarias.</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setShowAddForm(false)}
+                    className="p-2 rounded-xl text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 transition-all"
                   >
-                    {defaultCategories.map(cat => (
-                      <option key={cat} value={cat}>{cat}</option>
-                    ))}
-                  </select>
+                    <HiX className="text-xl" />
+                  </button>
                 </div>
-                <button
-                  type="submit"
-                  className="md:col-span-3 py-4 bg-black dark:bg-white text-white dark:text-black rounded-2xl font-syne font-bold uppercase tracking-widest hover:bg-gray-800 dark:hover:bg-gray-200 transition-all shadow-lg"
-                >
-                  Guardar Enlace
-                </button>
-              </form>
+
+                <form onSubmit={handleAdd} className="space-y-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <label className="font-syne text-[10px] font-bold uppercase tracking-widest text-gray-400">Nombre *</label>
+                      <input
+                        value={newBookmark.title}
+                        onChange={(e) => setNewBookmark({...newBookmark, title: e.target.value})}
+                        placeholder="Ej: Portal Bancario"
+                        className="w-full px-5 py-3.5 rounded-xl bg-gray-50/50 dark:bg-gray-800/80 border border-gray-100 dark:border-gray-700 outline-none font-inter text-sm text-gray-900 dark:text-gray-100 placeholder-gray-400"
+                        required
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="font-syne text-[10px] font-bold uppercase tracking-widest text-gray-400">URL *</label>
+                      <input
+                        value={newBookmark.url}
+                        onChange={(e) => setNewBookmark({...newBookmark, url: e.target.value})}
+                        placeholder="ejemplo.com"
+                        className="w-full px-5 py-3.5 rounded-xl bg-gray-50/50 dark:bg-gray-800/80 border border-gray-100 dark:border-gray-700 outline-none font-inter text-sm text-gray-900 dark:text-gray-100 placeholder-gray-400"
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="font-syne text-[10px] font-bold uppercase tracking-widest text-gray-400">Categoría</label>
+                    <select
+                      value={newBookmark.category}
+                      onChange={(e) => setNewBookmark({...newBookmark, category: e.target.value})}
+                      className="w-full px-5 py-3.5 rounded-xl bg-gray-50/50 dark:bg-gray-800/80 border border-gray-100 dark:border-gray-700 outline-none font-inter text-sm text-gray-900 dark:text-gray-100"
+                    >
+                      {defaultCategories.map(cat => (
+                        <option key={cat} value={cat}>{cat}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="flex justify-end gap-3 pt-4">
+                    <button
+                      type="button"
+                      onClick={() => setShowAddForm(false)}
+                      className="px-6 py-3 font-syne text-xs font-bold uppercase tracking-wider text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl transition-all"
+                    >
+                      Cancelar
+                    </button>
+                    <button
+                      type="submit"
+                      className="px-8 py-3 bg-black dark:bg-white text-white dark:text-black font-syne text-xs font-bold uppercase tracking-wider rounded-xl shadow-lg hover:scale-105 active:scale-95 transition-all"
+                    >
+                      Guardar Marcador
+                    </button>
+                  </div>
+                </form>
+              </motion.div>
             </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+          )}
+        </AnimatePresence>,
+        document.body
+      )}
 
       {Object.keys(grouped).length === 0 ? (
         <div className="text-center py-20 text-gray-400 dark:text-gray-500 font-inter font-light italic">
