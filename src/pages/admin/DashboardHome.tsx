@@ -18,7 +18,8 @@ import {
   HiOutlineTrash,
   HiOutlineColorSwatch,
   HiOutlineCheckCircle,
-  HiOutlineBookOpen
+  HiOutlineBookOpen,
+  HiOutlineSparkles,
 } from 'react-icons/hi';
 import { Link } from 'react-router-dom';
 import { useToast } from '@/components/common/ToastContext';
@@ -41,6 +42,7 @@ export default function DashboardHome() {
     projects: 0,
     checklist: 0,
     recipes: 0,
+    plants: 0,
   });
   const [pinnedItems, setPinnedItems] = useState<PinnedItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -95,7 +97,7 @@ export default function DashboardHome() {
 
     const currentMonthYear = `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}`;
 
-    const [exp, tsk, vlt, dbt, shp, rem, bkm, nts, prj, chk, rec] = await Promise.all([
+    const [exp, tsk, vlt, dbt, shp, rem, bkm, nts, prj, chk, rec, plt] = await Promise.all([
       supabase.from('finance_expenses').select('amount'),
       supabase.from('tasks').select('id').eq('completed', false),
       supabase.from('vault_items').select('id'),
@@ -107,6 +109,7 @@ export default function DashboardHome() {
       supabase.from('creative_projects').select('id'),
       supabase.from('monthly_checklist_logs').select('id').eq('month_year', currentMonthYear).eq('completed', true).eq('user_id', user.id),
       supabase.from('recipes').select('id'),
+      supabase.from('plants').select('id'),
     ]);
 
     setStats({
@@ -121,6 +124,7 @@ export default function DashboardHome() {
       projects: prj.data?.length || 0,
       checklist: chk.data?.length || 0,
       recipes: rec.data?.length || 0,
+      plants: plt?.data?.length || 0,
     });
     setLoading(false);
   };
@@ -296,6 +300,14 @@ export default function DashboardHome() {
       icon: HiOutlineBookOpen, 
       color: 'bg-rose-500', 
       path: '/admin/panel/recetas' 
+    },
+    { 
+      label: 'Jardín & Plantas', 
+      rawVal: stats.plants, 
+      isMonetary: false,
+      icon: HiOutlineSparkles, 
+      color: 'bg-emerald-600', 
+      path: '/admin/panel/plantas' 
     },
   ];
 

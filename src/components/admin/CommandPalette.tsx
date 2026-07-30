@@ -25,7 +25,7 @@ import {
 } from 'react-icons/hi';
 import { useToast } from '@/components/common/ToastContext';
 
-type ResultType = 'note' | 'task' | 'debt' | 'vault' | 'shopping' | 'reminder' | 'project' | 'checklist' | 'recipe' | 'finance';
+type ResultType = 'note' | 'task' | 'debt' | 'vault' | 'shopping' | 'reminder' | 'project' | 'checklist' | 'recipe' | 'finance' | 'plant';
 
 type SearchResult = {
   id: string;
@@ -60,6 +60,7 @@ const TYPE_META: Record<ResultType, { label: string; icon: React.ElementType; co
   checklist: { label: 'Checklist',     icon: HiOutlineCheckCircle,   color: 'bg-teal-100 dark:bg-teal-950/60 text-teal-700 dark:text-teal-300' },
   recipe:    { label: 'Receta',        icon: HiOutlineBookOpen,      color: 'bg-rose-100 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300' },
   finance:   { label: 'Gasto',         icon: HiOutlineCurrencyDollar,color: 'bg-blue-100 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300' },
+  plant:     { label: 'Planta',        icon: HiOutlineSparkles,      color: 'bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300' },
 };
 
 /** Component to highlight search matches */
@@ -290,6 +291,7 @@ export default function CommandPalette({ isOpen, onClose }: CommandPaletteProps)
       let checklistQ = supabase.from('monthly_checklist_items').select('*').order('created_at', { ascending: false });
       let recipesQ = supabase.from('recipes').select('*').order('created_at', { ascending: false });
       let financeQ = supabase.from('finance_expenses').select('*').order('created_at', { ascending: false });
+      let plantsQ = supabase.from('plants').select('*').order('created_at', { ascending: false });
 
       if (term) {
         notesQ = notesQ.or(`title.ilike.%${term}%,content.ilike.%${term}%,category.ilike.%${term}%`).limit(50);
@@ -302,6 +304,7 @@ export default function CommandPalette({ isOpen, onClose }: CommandPaletteProps)
         checklistQ = checklistQ.or(`title.ilike.%${term}%,category.ilike.%${term}%`).limit(50);
         recipesQ = recipesQ.or(`name.ilike.%${term}%,description.ilike.%${term}%,category.ilike.%${term}%`).limit(50);
         financeQ = financeQ.or(`concept.ilike.%${term}%,category.ilike.%${term}%`).limit(50);
+        plantsQ = plantsQ.or(`nickname.ilike.%${term}%,species.ilike.%${term}%,location.ilike.%${term}%,notes.ilike.%${term}%`).limit(50);
       } else {
         notesQ = notesQ.limit(20);
         remindersQ = remindersQ.limit(20);
@@ -312,9 +315,10 @@ export default function CommandPalette({ isOpen, onClose }: CommandPaletteProps)
         checklistQ = checklistQ.limit(20);
         recipesQ = recipesQ.limit(20);
         financeQ = financeQ.limit(20);
+        plantsQ = plantsQ.limit(20);
       }
 
-      const [nts, rem, tsk, dbt, vlt, shp, prj, chk, rec, fin] = await Promise.all([
+      const [nts, rem, tsk, dbt, vlt, shp, prj, chk, rec, fin, plt] = await Promise.all([
         notesQ,
         remindersQ,
         tasksQ,
@@ -325,6 +329,7 @@ export default function CommandPalette({ isOpen, onClose }: CommandPaletteProps)
         checklistQ,
         recipesQ,
         financeQ,
+        plantsQ,
       ]);
 
       const items: SearchResult[] = [];
@@ -392,6 +397,12 @@ export default function CommandPalette({ isOpen, onClose }: CommandPaletteProps)
       fin.data?.forEach(f => {
         if (!term || f.concept.toLowerCase().includes(term) || f.category?.toLowerCase().includes(term)) {
           push({ id: f.id, type: 'finance', title: f.concept, subtitle: `$${f.amount} · ${f.category}`, path: '/admin/panel/finanzas', icon: TYPE_META.finance.icon, categoryLabel: TYPE_META.finance.label, badgeColor: TYPE_META.finance.color, rawTitle: f.concept });
+        }
+      });
+
+      plt.data?.forEach(p => {
+        if (!term || p.nickname.toLowerCase().includes(term) || p.species.toLowerCase().includes(term) || p.notes?.toLowerCase().includes(term)) {
+          push({ id: p.id, type: 'plant', title: `${p.emoji || '🪴'} ${p.nickname}`, subtitle: `${p.species}${p.location ? ` · ${p.location}` : ''}`, path: '/admin/panel/plantas', icon: TYPE_META.plant.icon, categoryLabel: TYPE_META.plant.label, badgeColor: TYPE_META.plant.color, rawTitle: p.nickname });
         }
       });
 

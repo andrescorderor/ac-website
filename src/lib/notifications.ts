@@ -132,6 +132,40 @@ export async function scanAndNotifyUpcomingEvents() {
       }
     }
 
+    // Scan plants watering schedules
+    const { data: plants } = await supabase.from('plants').select('*');
+    if (plants && plants.length > 0) {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      for (const p of plants) {
+        if (!p.last_watered_at || !p.watering_frequency_days) continue;
+
+        const parts = p.last_watered_at.split('-');
+        const wateredDate = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
+        wateredDate.setHours(0, 0, 0, 0);
+
+        const nextWatering = new Date(wateredDate);
+        nextWatering.setDate(nextWatering.getDate() + p.watering_frequency_days);
+
+        const diffDays = Math.ceil((nextWatering.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+        const plantNotifId = `plant_${p.id}_${diffDays}`;
+
+        if (diffDays <= 1 && !notifiedSet.has(plantNotifId)) {
+          let msg = '';
+          if (diffDays <= 0) msg = `¡Es hora de regar a ${p.nickname}! (${p.species})`;
+          else msg = `Mañana toca regar a ${p.nickname} (${p.species})`;
+
+          sendBrowserNotification(`${p.emoji || '🪴'} Riego de Planta: ${p.nickname}`, {
+            body: `${msg}. Frecuencia: cada ${p.watering_frequency_days} días.`,
+            tag: plantNotifId,
+          });
+
+          notifiedSet.add(plantNotifId);
+        }
+      }
+    }
+
     localStorage.setItem(notifiedKey, JSON.stringify(Array.from(notifiedSet)));
   } catch (err) {
     console.error('Error al escanear eventos para notificaciones:', err);

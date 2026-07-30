@@ -32,6 +32,7 @@ import {
   HiOutlineColorSwatch,
   HiOutlineCheckCircle,
   HiOutlineBookOpen,
+  HiOutlineSparkles,
   HiOutlineDotsHorizontal
 } from 'react-icons/hi';
 
@@ -47,6 +48,7 @@ const menuItems = [
   { icon: HiOutlineColorSwatch, label: 'Proyectos', path: '/admin/panel/proyectos' },
   { icon: HiOutlineCheckCircle, label: 'Checklist', path: '/admin/panel/checklist' },
   { icon: HiOutlineBookOpen, label: 'Recetas', path: '/admin/panel/recetas' },
+  { icon: HiOutlineSparkles, label: 'Plantas', path: '/admin/panel/plantas' },
 ];
 
 // Bottom nav shows only the most-used 5 modules for thumb-friendly mobile nav
