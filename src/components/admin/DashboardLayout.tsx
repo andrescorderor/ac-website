@@ -71,7 +71,7 @@ export default function DashboardLayout() {
 }
 
 function DashboardLayoutContent() {
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [loading, setLoading] = useState(true);
   const [notifPermission, setNotifPermission] = useState<string>(getNotificationPermissionState());
   const [isSearchOpen, setIsSearchOpen] = useState(false);
@@ -144,51 +144,34 @@ function DashboardLayoutContent() {
 
       {/* ═══ Desktop Sidebar ═══ */}
       <aside 
-        className={`hidden lg:flex flex-col h-screen sticky top-0 bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl border-r border-gray-200/50 dark:border-gray-800/50 transition-all duration-500 ease-[0.16,1,0.3,1] ${
-          isSidebarOpen ? 'w-72' : 'w-24'
-        }`}
+        className="hidden lg:flex flex-col h-screen sticky top-0 w-72 shrink-0 bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl border-r border-gray-200/50 dark:border-gray-800/50 transition-all duration-300"
       >
         <div className="p-6 flex items-center gap-4 shrink-0">
           <div className="size-10 shrink-0 bg-black dark:bg-white text-white dark:text-black rounded-xl flex items-center justify-center font-bold">
             AC
           </div>
-          <AnimatePresence>
-            {isSidebarOpen && (
-              <motion.span 
-                initial={{ opacity: 0, x: -10 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -10 }}
-                className="font-dm-sans font-bold text-xl tracking-tight whitespace-nowrap text-black dark:text-white"
-              >
-                Panel Privado
-              </motion.span>
-            )}
-          </AnimatePresence>
+          <span className="font-dm-sans font-bold text-xl tracking-tight whitespace-nowrap text-black dark:text-white">
+            Panel Privado
+          </span>
         </div>
 
         <nav className="flex-1 px-3 space-y-1.5 overflow-y-auto scrollbar-none">
-        {menuItems.map((item) => {
+          {menuItems.map((item) => {
             const isActive = location.pathname === item.path;
             return (
               <Link
                 key={item.path}
                 to={item.path}
-                className={`flex items-center transition-all duration-300 interactive-hover ${
-                  isSidebarOpen 
-                    ? 'gap-4 px-4 py-3.5 rounded-2xl' 
-                    : 'justify-center w-12 h-12 mx-auto rounded-2xl'
-                } ${
+                className={`flex items-center gap-4 px-4 py-3.5 rounded-2xl transition-all duration-300 interactive-hover ${
                   isActive
                     ? 'bg-black dark:bg-white text-white dark:text-black shadow-lg shadow-black/10 dark:shadow-white/10' 
                     : 'text-gray-500 dark:text-gray-400 hover:bg-gray-100/80 dark:hover:bg-gray-800/60 hover:text-black dark:hover:text-white'
                 }`}
               >
                 <item.icon className="text-2xl shrink-0" />
-                {isSidebarOpen && (
-                  <span className="font-syne text-xs font-bold uppercase tracking-widest whitespace-nowrap">
-                    {item.label}
-                  </span>
-                )}
+                <span className="font-syne text-xs font-bold uppercase tracking-widest whitespace-nowrap">
+                  {item.label}
+                </span>
               </Link>
             );
           })}
@@ -197,11 +180,7 @@ function DashboardLayoutContent() {
         <div className="p-3 border-t border-gray-100 dark:border-gray-800/80 shrink-0 space-y-2">
           <button
             onClick={handleToggleNotifications}
-            className={`flex items-center transition-all duration-300 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 ${
-              isSidebarOpen 
-                ? 'w-full gap-4 px-4 py-3.5 rounded-2xl' 
-                : 'justify-center w-12 h-12 mx-auto rounded-2xl'
-            }`}
+            className="w-full flex items-center gap-4 px-4 py-3.5 rounded-2xl transition-all duration-300 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
             title="Activar o probar notificaciones PWA"
           >
             {notifPermission === 'granted' ? (
@@ -209,45 +188,33 @@ function DashboardLayoutContent() {
             ) : (
               <HiOutlineBell className="text-2xl shrink-0 text-amber-500 animate-bounce" />
             )}
-            {isSidebarOpen && (
-              <span className="font-syne text-xs font-bold uppercase tracking-widest text-gray-800 dark:text-gray-200 whitespace-nowrap">
-                {notifPermission === 'granted' ? 'Notificaciones' : 'Activar Alertas'}
-              </span>
-            )}
+            <span className="font-syne text-xs font-bold uppercase tracking-widest text-gray-800 dark:text-gray-200 whitespace-nowrap">
+              {notifPermission === 'granted' ? 'Notificaciones' : 'Activar Alertas'}
+            </span>
           </button>
 
           <button
             onClick={toggleDarkMode}
-            className={`flex items-center transition-all duration-300 text-gray-700 dark:text-amber-400 hover:bg-gray-100 dark:hover:bg-gray-800 ${
-              isSidebarOpen 
-                ? 'w-full gap-4 px-4 py-3.5 rounded-2xl' 
-                : 'justify-center w-12 h-12 mx-auto rounded-2xl'
-            }`}
+            className="w-full flex items-center gap-4 px-4 py-3.5 rounded-2xl transition-all duration-300 text-gray-700 dark:text-amber-400 hover:bg-gray-100 dark:hover:bg-gray-800"
             title={isDarkMode ? 'Cambiar a Modo Claro' : 'Cambiar a Modo Oscuro'}
           >
             {isDarkMode ? <HiOutlineSun className="text-2xl shrink-0 text-amber-400" /> : <HiOutlineMoon className="text-2xl shrink-0 text-gray-700" />}
-            {isSidebarOpen && (
-              <span className="font-syne text-xs font-bold uppercase tracking-widest text-gray-800 dark:text-gray-200">
-                {isDarkMode ? 'Modo Claro' : 'Modo Oscuro'}
-              </span>
-            )}
+            <span className="font-syne text-xs font-bold uppercase tracking-widest text-gray-800 dark:text-gray-200">
+              {isDarkMode ? 'Modo Claro' : 'Modo Oscuro'}
+            </span>
           </button>
 
           <button
             onClick={handleLogout}
-            className={`flex items-center transition-all duration-300 text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 ${
-              isSidebarOpen 
-                ? 'w-full gap-4 px-4 py-3.5 rounded-2xl' 
-                : 'justify-center w-12 h-12 mx-auto rounded-2xl'
-            }`}
+            className="w-full flex items-center gap-4 px-4 py-3.5 rounded-2xl transition-all duration-300 text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30"
           >
             <HiOutlineLogout className="text-2xl shrink-0" />
-            {isSidebarOpen && <span className="font-syne text-xs font-bold uppercase tracking-widest">Salir</span>}
+            <span className="font-syne text-xs font-bold uppercase tracking-widest">Salir</span>
           </button>
 
           <div className="text-center select-none pt-1">
             <span className="font-syne text-[9px] font-bold tracking-widest text-gray-400 dark:text-gray-600 block">
-              {isSidebarOpen ? 'VERSIÓN v1.188.0' : 'v1.188'}
+              VERSIÓN v1.189.0
             </span>
           </div>
         </div>
@@ -380,7 +347,7 @@ function DashboardLayoutContent() {
 
           <div className="text-center select-none pt-2">
             <span className="font-syne text-[9px] font-bold tracking-widest text-gray-400 dark:text-gray-600 block">
-              VERSIÓN v1.188.0
+              VERSIÓN v1.189.0
             </span>
           </div>
         </div>
@@ -391,12 +358,6 @@ function DashboardLayoutContent() {
         {/* Desktop Top Bar */}
         <header className="hidden lg:flex h-16 items-center justify-between px-12 bg-white/90 dark:bg-[#111827]/90 backdrop-blur-xl border-b border-gray-100 dark:border-gray-800/80 sticky top-0 z-30 transition-all duration-300 gap-6 shadow-xs">
           <div className="flex items-center gap-4 flex-1">
-            <button 
-              onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-              className="p-2 hover:bg-gray-100/80 dark:hover:bg-gray-800/80 rounded-xl transition-colors text-gray-700 dark:text-gray-300 interactive-hover"
-            >
-              <HiMenuAlt2 className="text-xl" />
-            </button>
 
             {/* Desktop Command Palette Search Bar */}
             <button
