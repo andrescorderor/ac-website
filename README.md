@@ -34,7 +34,7 @@ The productivity hub is a mobile-optimized private dashboard with 11 specialized
 *   🪴 **Plant Care Tracker (Mis Plantas):** Monitor watering schedules, species details, location recommendations, and watering logs.
 *   🔗 **Bookmarks & Quick Links (Enlaces Rápidos):** Organize web tools, portals, and categories for fast access.
 *   🔐 **Secure Vault (Bóveda de Textos):** Encrypted-access storage for sensitive texts (IDs, cards) with quick copy-to-clipboard functionality.
-*   🛒 **Smart Shopping List (Lista de Compras):** Manage unbought items with priority, location tracking, and price estimates.
+*   🛒 **Smart Shopping List (Lista de Compras):** Manage regular items alongside a **Mandado Quincenal 🥗** routine (bi-weekly diet & consumables) with one-click quincenal renewal (`Renovar Quincena 🥗`), category filtering (`Hasta que se acabe 📦`), price estimates, and priorities.
 *   📅 **Important Reminders (Fechas Importantes):** Categorized dates & optional times (Birthdays, Documents, Payments) with proximity alerts and recurring support.
 *   💸 **Debt Tracker (Mis Deudas):** Monitor pending payments and collections with default pending filters.
 *   🎨 **Creative Projects (Proyectos Creativos):** Private portfolio to manage side projects, track progress, organize sub-tasks, and filter dynamically by status and project category/type.
@@ -43,9 +43,9 @@ The productivity hub is a mobile-optimized private dashboard with 11 specialized
 
 ---
 
-## ✨ Design System & Master UX Specs (v1.189.0)
+## ✨ Design System & Master UX Specs (v1.190.0)
 
-*   🏷️ **Automatic Commit-Based Versioning (`v1.189.0`):** Live versioning indicator displayed seamlessly in desktop and mobile sidebars.
+*   🏷️ **Automatic Commit-Based Versioning (`v1.190.0`):** Live versioning indicator displayed seamlessly in desktop and mobile sidebars.
 *   👁️ **Global Privacy Mode & Dark Mode Default:** One-click toggle to mask financial values and default high-contrast dark theme.
 *   🪟 **Universal Portal Floating Modals:** Every form across all 11 modules utilizes a React `createPortal` modal system rendered directly into `document.body` with fixed backdrop blurs (`backdrop-blur-sm`), smooth entrance animations, and full z-index isolation.
 *   🔤 **Unified Button Design System:** Harmonized action buttons, filter pills, and modal submit/cancel triggers across all 11 modules (`font-syne text-xs font-bold uppercase tracking-wider`).

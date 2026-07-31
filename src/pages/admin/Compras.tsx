@@ -9,6 +9,7 @@ import {
   HiOutlineLocationMarker,
   HiOutlineTag,
   HiOutlineSearch,
+  HiOutlineRefresh,
   HiX
 } from 'react-icons/hi';
 import { MdOutlineCircle } from 'react-icons/md';
@@ -21,6 +22,8 @@ type ShoppingItem = {
   location: string | null;
   price: number | null;
   priority: 'Baja' | 'Media' | 'Alta';
+  type?: 'quincenal' | 'ocasional';
+  category?: string | null;
   bought: boolean;
 };
 
@@ -33,6 +36,7 @@ export default function Compras() {
   const [submitting, setSubmitting] = useState(false);
   const [showAddForm, setShowAddForm] = useState(false);
   const [filter, setFilter] = useState<'all' | 'pending' | 'bought'>('pending');
+  const [typeFilter, setTypeFilter] = useState<'all' | 'quincenal' | 'ocasional'>('all');
   const [searchTerm, setSearchTerm] = useState(searchParams.get('search') || '');
 
   useEffect(() => {
@@ -42,11 +46,13 @@ export default function Compras() {
       if (queryParam) setFilter('all');
     }
   }, [searchParams]);
+
   const [newItem, setNewItem] = useState({
     name: '',
     location: '',
     price: '',
     priority: 'Media' as 'Baja' | 'Media' | 'Alta',
+    type: 'quincenal' as 'quincenal' | 'ocasional',
   });
   const { toast } = useToast();
 
@@ -65,6 +71,14 @@ export default function Compras() {
     setLoading(false);
   };
 
+  const getItemType = (item: ShoppingItem): 'quincenal' | 'ocasional' => {
+    if (item.type === 'quincenal' || item.type === 'ocasional') return item.type;
+    if (item.category === 'quincenal' || item.category === 'ocasional') return item.category as 'quincenal' | 'ocasional';
+    if (item.location?.includes('Quincenal') || item.name.includes('[Quincenal]')) return 'quincenal';
+    if (item.location?.includes('Ocasional') || item.location?.includes('Agotarse')) return 'ocasional';
+    return 'quincenal';
+  };
+
   const handleAddItem = async (e: React.FormEvent) => {
     e.preventDefault();
     const { data: { user } } = await supabase.auth.getUser();
@@ -77,29 +91,60 @@ export default function Compras() {
 
     setSubmitting(true);
     try {
-      const { data, error } = await supabase.from('shopping_list').insert([
-        {
-          user_id: user.id,
-          name: newItem.name.trim(),
-          location: newItem.location.trim() || null,
-          price: newItem.price ? parseFloat(newItem.price) : null,
-          priority: newItem.priority,
-          bought: false,
-        },
-      ]).select();
+      const payload: any = {
+        user_id: user.id,
+        name: newItem.name.trim(),
+        location: newItem.location.trim() || (newItem.type === 'quincenal' ? 'Mandado Quincenal 🥗' : 'Hasta Agotarse 📦'),
+        price: newItem.price ? parseFloat(newItem.price) : null,
+        priority: newItem.priority,
+        type: newItem.type,
+        bought: false,
+      };
+
+      let { data, error } = await supabase.from('shopping_list').insert([payload]).select();
+
+      if (error && error.message?.includes('type')) {
+        delete payload.type;
+        const res = await supabase.from('shopping_list').insert([payload]).select();
+        data = res.data;
+        error = res.error;
+      }
 
       if (error) throw error;
 
       if (data) {
-        setItems([data[0], ...items]);
-        setNewItem({ name: '', location: '', price: '', priority: 'Media' });
+        setItems([{ ...data[0], type: newItem.type }, ...items]);
+        setNewItem({ name: '', location: '', price: '', priority: 'Media', type: 'quincenal' });
         setShowAddForm(false);
-        toast.success('Artículo agregado');
+        toast.success('Artículo agregado a la lista de compras');
       }
     } catch (err: any) {
       toast.error('Error al agregar artículo: ' + err.message);
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  const handleRenewQuincenal = async () => {
+    const quincenalItems = items.filter((i) => getItemType(i) === 'quincenal');
+    if (quincenalItems.length === 0) {
+      toast.info('No tienes artículos registrados en tu Mandado Quincenal 🥗');
+      return;
+    }
+
+    try {
+      const quincenalIds = quincenalItems.map((i) => i.id);
+      const { error } = await supabase
+        .from('shopping_list')
+        .update({ bought: false })
+        .in('id', quincenalIds);
+
+      if (error) throw error;
+
+      setItems(items.map((i) => (getItemType(i) === 'quincenal' ? { ...i, bought: false } : i)));
+      toast.success(`🥗 ¡Mandado quincenal renovado! ${quincenalItems.length} productos listos para comprar.`);
+    } catch (err: any) {
+      toast.error('Error al renovar mandado quincenal: ' + err.message);
     }
   };
 
@@ -130,10 +175,13 @@ export default function Compras() {
   const filteredItems = items.filter((i) => {
     const matchesFilter =
       filter === 'all' ? true : filter === 'pending' ? !i.bought : i.bought;
+    const itemType = getItemType(i);
+    const matchesType =
+      typeFilter === 'all' ? true : itemType === typeFilter;
     const matchesSearch =
       i.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       (i.location && i.location.toLowerCase().includes(searchTerm.toLowerCase()));
-    return matchesFilter && matchesSearch;
+    return matchesFilter && matchesType && matchesSearch;
   });
 
   const getPriorityBadge = (p: string) => {
@@ -170,12 +218,12 @@ export default function Compras() {
             Lista de <span className="text-gradient">Compras</span>
           </h1>
           <p className="font-inter mt-2 text-[var(--dark-gray)] dark:text-gray-400 font-light text-sm">
-            Controla lo que necesitas adquirir, precios estimados y prioridades.
+            Gestiona tu mandado quincenal de dieta y consumo junto a tus productos eventuales.
           </p>
         </div>
 
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4">
-          <div className="relative flex-1 sm:w-64">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+          <div className="relative flex-1 sm:w-60">
             <input 
               type="text"
               placeholder="Buscar artículo..."
@@ -186,9 +234,18 @@ export default function Compras() {
             <HiOutlineSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-lg" />
           </div>
 
+          <button
+            onClick={handleRenewQuincenal}
+            className="px-5 py-3.5 bg-emerald-600 hover:bg-emerald-700 text-white font-syne text-xs font-bold uppercase tracking-wider rounded-2xl transition-all shadow-md flex items-center justify-center gap-2 shrink-0 interactive-hover"
+            title="Marca como pendientes todos los productos del mandado quincenal para la nueva quincena"
+          >
+            <HiOutlineRefresh className="text-lg" />
+            <span>Renovar Quincena 🥗</span>
+          </button>
+
           <button 
             onClick={() => setShowAddForm(!showAddForm)}
-            className="px-6 py-3.5 bg-black dark:bg-white text-white dark:text-black font-syne text-xs font-bold uppercase tracking-wider rounded-2xl hover:scale-105 active:scale-95 transition-all shadow-md flex items-center justify-center gap-2"
+            className="px-6 py-3.5 bg-black dark:bg-white text-white dark:text-black font-syne text-xs font-bold uppercase tracking-wider rounded-2xl hover:scale-105 active:scale-95 transition-all shadow-md flex items-center justify-center gap-2 shrink-0"
           >
             <HiOutlinePlus className="text-lg" />
             <span>Agregar Artículo</span>
@@ -196,25 +253,51 @@ export default function Compras() {
         </div>
       </header>
 
-      {/* Filter Tabs */}
-      <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
-        {[
-          { id: 'pending', label: `Por Comprar (${items.filter(i => !i.bought).length})` },
-          { id: 'bought', label: `Comprados (${items.filter(i => i.bought).length})` },
-          { id: 'all', label: `Todos (${items.length})` },
-        ].map((tab) => (
-          <button
-            key={tab.id}
-            onClick={() => setFilter(tab.id as 'all' | 'pending' | 'bought')}
-            className={`px-5 py-2.5 rounded-2xl text-xs font-syne font-bold uppercase tracking-wider transition-all whitespace-nowrap ${
-              filter === tab.id 
-                ? 'bg-black dark:bg-white text-white dark:text-black shadow-md' 
-                : 'bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-300 border border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700'
-            }`}
-          >
-            {tab.label}
-          </button>
-        ))}
+      {/* Filter Tabs & Routine Category Pills */}
+      <div className="space-y-3">
+        {/* Status Filter */}
+        <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
+          <span className="font-syne text-[10px] font-bold uppercase tracking-widest text-gray-400 mr-1 shrink-0">Estado:</span>
+          {[
+            { id: 'pending', label: `Por Comprar (${items.filter(i => !i.bought).length})` },
+            { id: 'bought', label: `Comprados (${items.filter(i => i.bought).length})` },
+            { id: 'all', label: `Todos (${items.length})` },
+          ].map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => setFilter(tab.id as 'all' | 'pending' | 'bought')}
+              className={`px-5 py-2.5 rounded-2xl text-xs font-syne font-bold uppercase tracking-wider transition-all whitespace-nowrap ${
+                filter === tab.id 
+                  ? 'bg-black dark:bg-white text-white dark:text-black shadow-md' 
+                  : 'bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-300 border border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700'
+              }`}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
+
+        {/* Purchase Type Filter (Mandado Quincenal vs Ocasional) */}
+        <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
+          <span className="font-syne text-[10px] font-bold uppercase tracking-widest text-gray-400 mr-1 shrink-0">Tipo:</span>
+          {[
+            { id: 'all', label: 'Todas las Compras' },
+            { id: 'quincenal', label: `Mandado Quincenal (Dieta) 🥗 (${items.filter(i => getItemType(i) === 'quincenal').length})` },
+            { id: 'ocasional', label: `Hasta que se acabe 📦 (${items.filter(i => getItemType(i) === 'ocasional').length})` },
+          ].map((t) => (
+            <button
+              key={t.id}
+              onClick={() => setTypeFilter(t.id as any)}
+              className={`px-4 py-2 rounded-2xl text-xs font-syne font-bold uppercase tracking-wider transition-all whitespace-nowrap ${
+                typeFilter === t.id
+                  ? 'bg-emerald-600 text-white shadow-md'
+                  : 'bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-300 border border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700'
+              }`}
+            >
+              {t.label}
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* Add Item Modal */}
@@ -265,7 +348,18 @@ export default function Compras() {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+                  <div className="space-y-2">
+                    <label className="font-syne text-[10px] font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">Tipo de Compra *</label>
+                    <select
+                      value={newItem.type}
+                      onChange={e => setNewItem({ ...newItem, type: e.target.value as 'quincenal' | 'ocasional' })}
+                      className="w-full px-5 py-3.5 bg-gray-50 dark:bg-gray-800/80 border border-transparent focus:border-[var(--vibrant-sky-blue)] rounded-xl outline-none font-inter text-sm text-gray-900 dark:text-gray-100 transition-all shadow-sm"
+                    >
+                      <option value="quincenal" className="dark:bg-gray-800">Mandado Quincenal (Dieta) 🥗</option>
+                      <option value="ocasional" className="dark:bg-gray-800">Hasta que se acabe 📦</option>
+                    </select>
+                  </div>
                   <div className="space-y-2">
                     <label className="font-syne text-[10px] font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">Precio Estimado ($)</label>
                     <input
@@ -356,9 +450,19 @@ export default function Compras() {
                     </h4>
                   </div>
 
-                  <span className={`px-2.5 py-1 rounded-full text-[9px] font-syne font-bold uppercase tracking-wider border shrink-0 ${getPriorityBadge(item.priority)}`}>
-                    {item.priority}
-                  </span>
+                  <div className="flex items-center gap-1.5 shrink-0 flex-wrap justify-end">
+                    <span className={`px-2.5 py-1 rounded-full text-[9px] font-syne font-bold uppercase tracking-wider ${
+                      getItemType(item) === 'quincenal'
+                        ? 'bg-emerald-100 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-300'
+                        : 'bg-indigo-100 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-300'
+                    }`}>
+                      {getItemType(item) === 'quincenal' ? '🥗 Quincenal' : '📦 Agotamiento'}
+                    </span>
+
+                    <span className={`px-2.5 py-1 rounded-full text-[9px] font-syne font-bold uppercase tracking-wider border ${getPriorityBadge(item.priority)}`}>
+                      {item.priority}
+                    </span>
+                  </div>
                 </div>
 
                 {(item.location || item.price !== null) && (
