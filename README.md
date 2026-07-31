@@ -37,22 +37,24 @@ The productivity hub is a mobile-optimized private dashboard with 11 specialized
 *   🛒 **Smart Shopping List (Lista de Compras):** Manage unbought items with priority, location tracking, and price estimates.
 *   📅 **Important Reminders (Fechas Importantes):** Categorized dates & optional times (Birthdays, Documents, Payments) with proximity alerts and recurring support.
 *   💸 **Debt Tracker (Mis Deudas):** Monitor pending payments and collections with default pending filters.
-*   🎨 **Creative Projects (Proyectos Creativos):** Private portfolio to manage side projects, track progress, and organize sub-tasks.
+*   🎨 **Creative Projects (Proyectos Creativos):** Private portfolio to manage side projects, track progress, organize sub-tasks, and filter dynamically by status and project category/type.
 *   📋 **Monthly Checklist (Checklist Mensual):** Recurring habits and payments tracker that auto-resets every month with historical read-only view.
 *   🍽️ **Recipe Book (Mis Recetas):** Recipe manager with ingredient purchase checklists, video/social media reference links, and bullet formatting.
 
 ---
 
-## ✨ Design System & Master UX Specs
+## ✨ Design System & Master UX Specs (v1.188.0)
 
+*   🏷️ **Automatic Commit-Based Versioning (`v1.188.0`):** Live versioning indicator displayed seamlessly in desktop and mobile sidebars.
 *   👁️ **Global Privacy Mode & Dark Mode Default:** One-click toggle to mask financial values and default high-contrast dark theme.
 *   🪟 **Universal Portal Floating Modals:** Every form across all 11 modules utilizes a React `createPortal` modal system rendered directly into `document.body` with fixed backdrop blurs (`backdrop-blur-sm`), smooth entrance animations, and full z-index isolation.
+*   🔤 **Unified Button Design System:** Harmonized action buttons, filter pills, and modal submit/cancel triggers across all 11 modules (`font-syne text-xs font-bold uppercase tracking-wider`).
+*   📱 **Full-Screen Mobile Search & AI Chat:** Command Palette modal (`Ctrl + K`) scales to full-screen on mobile devices for seamless queries and Gemini Flash 1.5 chat interaction.
 *   🔽 **Custom UI Select Dropdowns (`CustomSelect`):** Native ugly dropdowns replaced with interactive custom Framer Motion dropdown components and native `color-scheme: dark` fallback support.
 *   🎨 **Unified Glassmorphism Card System:** Borderless dark glass aesthetic (`dark-glass`) across all 11 modules with consistent shadow effects, hover scaling, and rounded corners (`rounded-[2rem]`).
-*   📌 **Universal Pinned Items System:** Pin any item (notes, reminders, tasks, debts, vault items, shopping items, projects) directly from module cards or search, and view them on the main dashboard home.
-*   🔍 **Global Command Palette (`Ctrl + K` / `Cmd + K`):** Dual-mode search modal covering all modules simultaneously, keyboard navigation, result highlighting, category grouping, and **🤖 100% Free AI Assistant Mode** powered by Gemini 1.5 Flash to query live database context.
-*   🔔 **PWA Floating Push Notifications:** Native browser & mobile push alerts scanning upcoming reminders and pending tasks due today or in the next 2 days.
-*   📱 **Mobile-First Responsiveness & Navigation:** Dedicated mobile bottom tab bar, safe area padding, responsive viewport scaling, and auto-scrolling container limits.
+*   📌 **Universal Pinned Items System:** Filter and collapse/expand pinned items (notes, reminders, tasks, debts, vault items, shopping items, projects, plants) directly from the dashboard home.
+*   🔍 **Global Command Palette (`Ctrl + K` / `Cmd + K`):** Dual-mode search modal covering all 11 modules simultaneously, keyboard navigation, result highlighting, category grouping, and **🤖 100% Free AI Assistant Mode** powered by Gemini 1.5 Flash to query live database context.
+*   🔔 **PWA Floating Push Notifications:** Native browser & mobile push alerts scanning upcoming reminders, pending tasks, and plant watering schedules.
 *   💀 **Unified Skeleton Loaders & Loaders:** Animated shimmer loading states and smooth spinners across all modules.
 *   💾 **Automated Database Backups:** GitHub Actions automation performing daily database pinging and bi-monthly automated JSON backups.
 

@@ -247,7 +247,7 @@ function DashboardLayoutContent() {
 
           <div className="text-center select-none pt-1">
             <span className="font-syne text-[9px] font-bold tracking-widest text-gray-400 dark:text-gray-600 block">
-              {isSidebarOpen ? 'VERSIÓN v1.185.0' : 'v1.185'}
+              {isSidebarOpen ? 'VERSIÓN v1.188.0' : 'v1.188'}
             </span>
           </div>
         </div>
@@ -380,7 +380,7 @@ function DashboardLayoutContent() {
 
           <div className="text-center select-none pt-2">
             <span className="font-syne text-[9px] font-bold tracking-widest text-gray-400 dark:text-gray-600 block">
-              VERSIÓN v1.185.0
+              VERSIÓN v1.188.0
             </span>
           </div>
         </div>
