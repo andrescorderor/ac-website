@@ -53,6 +53,7 @@ export default function Proyectos() {
   const [editingProject, setEditingProject] = useState<Project | null>(null);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [filterStatus, setFilterStatus] = useState('all');
+  const [filterCategory, setFilterCategory] = useState('all');
   const [searchTerm, setSearchTerm] = useState(searchParams.get('search') || '');
 
   useEffect(() => {
@@ -238,6 +239,7 @@ export default function Proyectos() {
 
   const filtered = projects.filter(p => 
     (filterStatus === 'all' || p.status === filterStatus) &&
+    (filterCategory === 'all' || p.category === filterCategory) &&
     (!searchTerm || p.name.toLowerCase().includes(searchTerm.toLowerCase()) || p.description?.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
@@ -291,24 +293,46 @@ export default function Proyectos() {
         </div>
       </header>
 
-      {/* Status Filter Pills */}
-      <div className="flex items-center gap-2 flex-wrap">
-        {[
-          { key: 'all', label: 'Todos' },
-          ...Object.entries(STATUS_CONFIG).map(([key, val]) => ({ key, label: val.label }))
-        ].map(({ key, label }) => (
-          <button
-            key={key}
-            onClick={() => setFilterStatus(key)}
-            className={`px-4 py-2 rounded-2xl text-xs font-syne font-bold uppercase tracking-wider transition-all ${
-              filterStatus === key
-                ? 'bg-black dark:bg-white text-white dark:text-black shadow-md'
-                : 'bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-400 border border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700'
-            }`}
-          >
-            {label}
-          </button>
-        ))}
+      {/* Filters (Status & Category) */}
+      <div className="space-y-3">
+        {/* Status Filter */}
+        <div className="flex items-center gap-2 flex-wrap">
+          <span className="font-syne text-[10px] font-bold uppercase tracking-widest text-gray-400 mr-1">Estado:</span>
+          {[
+            { key: 'all', label: 'Todos' },
+            ...Object.entries(STATUS_CONFIG).map(([key, val]) => ({ key, label: val.label }))
+          ].map(({ key, label }) => (
+            <button
+              key={key}
+              onClick={() => setFilterStatus(key)}
+              className={`px-4 py-2 rounded-2xl text-xs font-syne font-bold uppercase tracking-wider transition-all whitespace-nowrap ${
+                filterStatus === key
+                  ? 'bg-black dark:bg-white text-white dark:text-black shadow-md'
+                  : 'bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-400 border border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700'
+              }`}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+
+        {/* Category / Type Filter */}
+        <div className="flex items-center gap-2 flex-wrap">
+          <span className="font-syne text-[10px] font-bold uppercase tracking-widest text-gray-400 mr-1">Tipo:</span>
+          {['all', ...CATEGORIES].map((cat) => (
+            <button
+              key={cat}
+              onClick={() => setFilterCategory(cat)}
+              className={`px-4 py-2 rounded-2xl text-xs font-syne font-bold uppercase tracking-wider transition-all whitespace-nowrap ${
+                filterCategory === cat
+                  ? 'bg-black dark:bg-white text-white dark:text-black shadow-md'
+                  : 'bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-400 border border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700'
+              }`}
+            >
+              {cat === 'all' ? 'Todas' : cat}
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* Add/Edit Modal */}
