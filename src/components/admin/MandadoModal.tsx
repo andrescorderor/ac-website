@@ -29,6 +29,7 @@ export default function MandadoModal({ isOpen, onClose }: MandadoModalProps) {
   const [showAddForm, setShowAddForm] = useState(false);
 
   const [inputName, setInputName] = useState('');
+  const [inputQuantity, setInputQuantity] = useState('');
   const [inputLocation, setInputLocation] = useState('');
   const [inputPrice, setInputPrice] = useState('');
   const [inputType, setInputType] = useState<'quincenal' | 'ocasional'>('quincenal');
@@ -82,6 +83,17 @@ export default function MandadoModal({ isOpen, onClose }: MandadoModalProps) {
     return 'comida';
   };
 
+  const getItemQuantity = (item: ShoppingItem): string | null => {
+    if ((item as any).quantity !== undefined && (item as any).quantity !== null && String((item as any).quantity).trim() !== '') {
+      return String((item as any).quantity);
+    }
+    if (item.location) {
+      const match = item.location.match(/Cant:\s*([^—|]+)/i);
+      if (match) return match[1].trim();
+    }
+    return null;
+  };
+
   const rawQuincenalList = items.filter(isMandadoItem);
 
   const quincenalList = rawQuincenalList
@@ -109,12 +121,13 @@ export default function MandadoModal({ isOpen, onClose }: MandadoModalProps) {
     if (!user) return;
 
     try {
+      const cantText = inputQuantity.trim() ? ` | Cant: ${inputQuantity.trim()}` : '';
       const storeText = inputLocation.trim();
       const catText = inputCategory === 'comida' ? '🍔 Comida' : '🛒 Insumos';
       const freqText = inputType === 'quincenal' ? '🥗 Quincenal' : '📦 Hasta Agotar';
       const locText = storeText
-        ? `${catText} | ${freqText} — ${storeText}`
-        : `${catText} | ${freqText}`;
+        ? `${catText} | ${freqText}${cantText} — ${storeText}`
+        : `${catText} | ${freqText}${cantText}`;
 
       const itemPrice = inputPrice ? parseFloat(inputPrice) : null;
 
@@ -123,6 +136,7 @@ export default function MandadoModal({ isOpen, onClose }: MandadoModalProps) {
         name: inputName.trim(),
         location: locText,
         price: itemPrice,
+        quantity: inputQuantity.trim() || null,
         priority: 'Media',
         type: inputType,
         category: inputCategory,
@@ -131,7 +145,8 @@ export default function MandadoModal({ isOpen, onClose }: MandadoModalProps) {
 
       let { data, error } = await supabase.from('shopping_list').insert([payload]).select();
 
-      if (error && (error.message?.includes('type') || error.message?.includes('category'))) {
+      if (error && (error.message?.includes('quantity') || error.message?.includes('type') || error.message?.includes('category'))) {
+        delete payload.quantity;
         delete payload.type;
         delete payload.category;
         const res = await supabase.from('shopping_list').insert([payload]).select();
@@ -142,8 +157,9 @@ export default function MandadoModal({ isOpen, onClose }: MandadoModalProps) {
       if (error) throw error;
 
       if (data) {
-        setItems([{ ...data[0], type: inputType, category: inputCategory }, ...items]);
+        setItems([{ ...data[0], type: inputType, category: inputCategory, quantity: inputQuantity.trim() || null }, ...items]);
         setInputName('');
+        setInputQuantity('');
         setInputLocation('');
         setInputPrice('');
         setShowAddForm(false);
@@ -481,6 +497,17 @@ export default function MandadoModal({ isOpen, onClose }: MandadoModalProps) {
                 </div>
 
                 <div>
+                  <label className="block font-syne text-[9px] font-bold uppercase tracking-widest text-gray-400 mb-1">Cantidad</label>
+                  <input
+                    type="text"
+                    placeholder="ej. 1, 2, 500g, 1 kg"
+                    value={inputQuantity}
+                    onChange={(e) => setInputQuantity(e.target.value)}
+                    className="w-full px-3.5 py-2.5 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl outline-none text-sm font-inter text-gray-900 dark:text-white"
+                  />
+                </div>
+
+                <div>
                   <label className="block font-syne text-[9px] font-bold uppercase tracking-widest text-gray-400 mb-1">Categoría</label>
                   <CustomSelect
                     value={inputCategory}
@@ -504,40 +531,41 @@ export default function MandadoModal({ isOpen, onClose }: MandadoModalProps) {
                   />
                 </div>
 
-                <div>
-                  <label className="block font-syne text-[9px] font-bold uppercase tracking-widest text-gray-400 mb-1">Precio ($)</label>
-                  <input
-                    type="number"
-                    step="0.01"
-                    placeholder="0.00"
-                    value={inputPrice}
-                    onChange={(e) => setInputPrice(e.target.value)}
-                    className="w-full px-3.5 py-2.5 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl outline-none text-sm font-inter text-gray-900 dark:text-white"
-                  />
-                </div>
-
-                <div className="col-span-1 sm:col-span-2 lg:col-span-4 flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-3 pt-1">
-                  <input
-                    type="text"
-                    placeholder="Lugar / Tienda (ej. Walmart, Costco)"
-                    value={inputLocation}
-                    onChange={(e) => setInputLocation(e.target.value)}
-                    className="flex-1 px-3.5 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl outline-none text-xs font-inter text-gray-900 dark:text-white"
-                  />
-                  <button
-                    type="submit"
-                    className="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-syne text-xs font-bold uppercase tracking-wider rounded-xl shadow-md hover:scale-105 active:scale-95 transition-all flex items-center justify-center gap-1.5 shrink-0"
-                  >
-                    <HiOutlinePlus className="text-base" />
-                    <span>Guardar Producto</span>
-                  </button>
+                <div className="col-span-1 sm:col-span-2 lg:col-span-4 grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">
+                  <div>
+                    <label className="block font-syne text-[9px] font-bold uppercase tracking-widest text-gray-400 mb-1">Precio Total ($)</label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      placeholder="0.00 (Precio total)"
+                      value={inputPrice}
+                      onChange={(e) => setInputPrice(e.target.value)}
+                      className="w-full px-3.5 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl outline-none text-xs font-inter text-gray-900 dark:text-white"
+                    />
+                  </div>
+                  <div className="sm:col-span-2 flex flex-col sm:flex-row items-stretch sm:items-end gap-3">
+                    <input
+                      type="text"
+                      placeholder="Lugar / Tienda (ej. Walmart, Costco)"
+                      value={inputLocation}
+                      onChange={(e) => setInputLocation(e.target.value)}
+                      className="flex-1 px-3.5 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl outline-none text-xs font-inter text-gray-900 dark:text-white"
+                    />
+                    <button
+                      type="submit"
+                      className="px-6 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-syne text-xs font-bold uppercase tracking-wider rounded-xl shadow-md hover:scale-105 active:scale-95 transition-all flex items-center justify-center gap-1.5 shrink-0 h-[34px]"
+                    >
+                      <HiOutlinePlus className="text-base" />
+                      <span>Guardar</span>
+                    </button>
+                  </div>
                 </div>
               </motion.form>
             )}
           </AnimatePresence>
 
           {/* Quincenal List Items */}
-          <div className="space-y-2.5 max-h-[45vh] overflow-y-auto pr-1 scrollbar-none w-full">
+          <div className="space-y-2.5 max-h-[55vh] overflow-y-auto pr-1 scrollbar-none w-full">
             {quincenalList.length === 0 ? (
               <div className="p-8 text-center bg-gray-50 dark:bg-gray-800/50 rounded-2xl text-gray-400 space-y-1">
                 <p className="font-dm-sans font-bold text-base text-gray-800 dark:text-gray-200">No hay productos en tu mandado quincenal</p>
@@ -573,6 +601,12 @@ export default function MandadoModal({ isOpen, onClose }: MandadoModalProps) {
                         }`}>
                           {item.name}
                         </span>
+
+                        {getItemQuantity(item) && (
+                          <span className="px-2 py-0.5 rounded-full text-[9px] font-syne font-bold uppercase tracking-wider bg-blue-100 dark:bg-blue-950/60 text-blue-600 dark:text-blue-300 shrink-0">
+                            Cant: {getItemQuantity(item)}
+                          </span>
+                        )}
 
                         <span className={`px-2 py-0.5 rounded-full text-[9px] font-syne font-bold uppercase tracking-wider shrink-0 ${
                           getItemCategory(item) === 'comida'
