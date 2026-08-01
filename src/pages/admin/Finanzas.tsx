@@ -1,9 +1,8 @@
 import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { supabase } from '@/lib/supabase';
-import { HiOutlinePlus, HiOutlineSave, HiOutlineEye, HiOutlineEyeOff, HiOutlineSearch, HiX } from 'react-icons/hi';
+import { HiOutlinePlus, HiOutlineEye, HiOutlineEyeOff, HiOutlineSearch, HiX } from 'react-icons/hi';
 import { useToast } from '@/components/common/ToastContext';
-import CustomSelect from '@/components/common/CustomSelect';
 import MandadoModal from '@/components/admin/MandadoModal';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -19,10 +18,6 @@ const CATEGORIES_MAP: Record<string, string> = {
   comida: 'Supermercado & Alimentación',
   insumos: 'Insumos & Casa',
   servicios: 'Servicios & Suscripciones',
-  transporte: 'Transporte & Gasolina',
-  entretenimiento: 'Entretenimiento & Ocio',
-  salud: 'Salud & Bienestar',
-  otros: 'Otros Gastos',
 };
 
 export default function Finanzas() {
@@ -34,7 +29,6 @@ export default function Finanzas() {
   const [isPrivacyMode, setIsPrivacyMode] = useState(true);
   const [showAddModal, setShowAddModal] = useState(false);
   const [showMandadoModal, setShowMandadoModal] = useState(false);
-  const [modalCat, setModalCat] = useState<string>('servicios');
   const [filterCategory, setFilterCategory] = useState('Todas');
   const [searchTerm, setSearchTerm] = useState('');
   const [newExpense, setNewExpense] = useState({ concept: '', amount: '', category: 'servicios' });
@@ -50,7 +44,7 @@ export default function Finanzas() {
 
   const handleMandadoModalClose = () => {
     setShowMandadoModal(false);
-    fetchData(); // Sync expenses when Mandado modal closes
+    fetchData();
   };
 
   const isQuincenalItem = (item: any): boolean => {
@@ -219,23 +213,24 @@ export default function Finanzas() {
           <p className="font-inter mt-2 text-[var(--dark-gray)] dark:text-gray-400 font-light text-sm">
             Gestiona tu presupuesto mensual y tus gastos fijos/servicios recurrentes.
           </p>
-        </div>
-
-        <div className="flex flex-wrap items-center gap-4">
+          <div className="flex flex-wrap items-center gap-4">
           <button
             onClick={() => setShowMandadoModal(true)}
             className="flex items-center gap-2 px-5 py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-2xl font-syne text-xs font-bold uppercase tracking-wider transition-all shadow-md shrink-0 interactive-hover"
             title="Abrir directamente el Mandado Quincenal e Insumos"
           >
-            <span>🥗 Abrir Mandado</span>
+            <span>🥗 Mandado Quincenal</span>
           </button>
 
           <button
-            onClick={() => setShowAddModal(true)}
+            onClick={() => {
+              setNewExpense({ concept: '', amount: '', category: 'servicios' });
+              setShowAddModal(true);
+            }}
             className="flex items-center gap-2 px-5 py-3 bg-black dark:bg-white text-white dark:text-black rounded-2xl font-syne text-xs font-bold uppercase tracking-wider hover:scale-105 active:scale-95 transition-all shadow-md shrink-0"
           >
             <HiOutlinePlus className="text-lg" />
-            <span>Nuevo Gasto</span>
+            <span>Nuevo Servicio</span>
           </button>
 
           <motion.button
@@ -258,34 +253,25 @@ export default function Finanzas() {
           </motion.button>
 
           <div className="flex items-center gap-3 bg-white/70 dark:bg-gray-800/70 glass dark:dark-glass px-5 py-2.5 rounded-2xl shadow-sm">
-            <div className="space-y-0.5">
-              <p className="font-syne text-[9px] font-bold uppercase tracking-[0.2em] text-[var(--gray)] dark:text-gray-400">Salario Mensual</p>
-              <div className="flex items-center gap-2">
-                <span className="text-gray-400 font-dm-sans text-sm">$</span>
-                <input
-                  type={isPrivacyMode ? 'password' : 'number'}
-                  value={salary}
-                  onChange={(e) => setSalary(parseFloat(e.target.value) || 0)}
-                  className="font-dm-sans font-bold text-lg outline-none w-28 text-gray-800 dark:text-gray-100 bg-transparent"
-                />
-                <button
-                  onClick={handleUpdateSalary}
-                  disabled={savingSalary}
-                  className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-xl transition-colors disabled:opacity-50"
-                  title="Guardar Salario"
-                >
-                  <HiOutlineSave className={`text-gray-600 dark:text-gray-300 ${savingSalary ? 'animate-spin' : ''}`} />
-                </button>
-              </div>
-            </div>
+            <span className="font-syne text-xs font-bold uppercase tracking-wider text-gray-400">Salario Mensual</span>
+            <input
+              type={isPrivacyMode ? "password" : "number"}
+              step="0.01"
+              value={salary}
+              onChange={(e) => setSalary(parseFloat(e.target.value) || 0)}
+              onBlur={handleUpdateSalary}
+              className="w-28 bg-transparent border-b border-gray-300 dark:border-gray-600 focus:border-black dark:focus:border-white font-dm-sans font-bold text-sm text-gray-900 dark:text-white outline-none text-right transition-colors"
+            />
+            {savingSalary && <span className="text-[10px] font-syne text-gray-400 animate-pulse">Guardando...</span>}
           </div>
+        </div>
         </div>
       </header>
 
-      {/* Summary Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 md:gap-6">
+      {/* Summary Cards Grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
         {[
-          { label: 'Salario', value: salary, color: 'text-black dark:text-white', bg: 'bg-white/80 dark:bg-gray-900/80 glass dark:dark-glass' },
+          { label: 'Salario Mensual', value: salary, color: 'text-[var(--color-primary)]', bg: 'bg-white dark:bg-gray-900' },
           { label: 'Comida', value: getCategoryTotal('comida'), color: 'text-[var(--color-info)]', bg: 'bg-white dark:bg-gray-900' },
           { label: 'Insumos', value: getCategoryTotal('insumos'), color: 'text-[var(--color-warning)]', bg: 'bg-white dark:bg-gray-900' },
           { label: 'Servicios', value: getCategoryTotal('servicios'), color: 'text-[var(--color-success)]', bg: 'bg-white dark:bg-gray-900' },
@@ -352,18 +338,38 @@ export default function Finanzas() {
             key={cat} 
             className="space-y-6"
           >
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between flex-wrap gap-2">
               <div className="flex items-center gap-2">
-                <h2 className="font-dm-sans text-xl font-bold capitalize text-black dark:text-white">{cat}</h2>
+                <h2 className="font-dm-sans text-xl font-bold capitalize text-black dark:text-white">
+                  {cat === 'comida' ? 'Comida 🍔' : cat === 'insumos' ? 'Insumos 🛒' : 'Servicios ⚡'}
+                </h2>
                 {cat === 'servicios' && (
                   <span className="px-2 py-0.5 rounded-full bg-purple-100 dark:bg-purple-950/80 text-purple-600 dark:text-purple-300 font-syne text-[9px] font-bold uppercase tracking-wider">
                     Recurrentes 🔄
                   </span>
                 )}
               </div>
-              <span className="font-syne text-xs font-bold text-gray-400 dark:text-gray-500">
-                Total: {formatAmount(getCategoryTotal(cat))}
-              </span>
+              
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => {
+                    if (cat === 'servicios') {
+                      setNewExpense({ concept: '', amount: '', category: 'servicios' });
+                      setShowAddModal(true);
+                    } else {
+                      setShowMandadoModal(true);
+                    }
+                  }}
+                  className="px-2.5 py-1 bg-black dark:bg-white text-white dark:text-black font-syne text-[10px] font-bold uppercase tracking-wider rounded-xl hover:scale-105 active:scale-95 transition-all shadow-xs flex items-center gap-1"
+                  title={cat === 'servicios' ? 'Registrar servicio recurrente' : 'Abrir Mandado para registrar productos'}
+                >
+                  <HiOutlinePlus className="text-xs" />
+                  <span>Registrar</span>
+                </button>
+                <span className="font-syne text-xs font-bold text-gray-400 dark:text-gray-500">
+                  Total: {formatAmount(getCategoryTotal(cat))}
+                </span>
+              </div>
             </div>
 
             <div className="bg-white/80 dark:bg-gray-900/80 glass dark:dark-glass rounded-[2rem] overflow-hidden shadow-sm flex flex-col">
@@ -401,7 +407,7 @@ export default function Finanzas() {
         ))}
       </div>
 
-      {/* Add Expense Modal */}
+      {/* Add Service Expense Modal */}
       {createPortal(
         <AnimatePresence>
           {showAddModal && (
@@ -420,8 +426,8 @@ export default function Finanzas() {
             >
               <div className="flex items-center justify-between">
                 <div>
-                  <h2 className="font-dm-sans text-2xl font-bold text-gray-900 dark:text-white">Registrar Gasto</h2>
-                  <p className="font-inter text-xs text-gray-400">Ingresa la información de tu nuevo gasto financiero.</p>
+                  <h2 className="font-dm-sans text-2xl font-bold text-gray-900 dark:text-white">Registrar Servicio ⚡</h2>
+                  <p className="font-inter text-xs text-gray-400">Ingresa tu servicio recurrente o suscripción fija.</p>
                 </div>
                 <button
                   type="button"
@@ -432,44 +438,19 @@ export default function Finanzas() {
                 </button>
               </div>
 
-              <div className="p-3.5 bg-blue-50 dark:bg-blue-950/40 rounded-2xl border border-blue-100 dark:border-blue-900/40 flex items-start gap-2.5 text-xs text-blue-700 dark:text-blue-300 font-inter">
-                <span className="text-base shrink-0">💡</span>
-                <span>
-                  Los gastos de <strong>Comida 🍔</strong> e <strong>Insumos 🛒</strong> se registran exclusivamente desde el <strong>Mandado Quincenal 🥗</strong>.
-                </span>
-              </div>
-
               <form onSubmit={async (e) => {
                 e.preventDefault();
-                await handleAddExpense(modalCat);
+                await handleAddExpense('servicios');
                 setShowAddModal(false);
               }} className="space-y-6">
                 <div className="space-y-4">
                   <div>
-                    <label className="block font-syne text-[10px] font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400 mb-2">Categoría</label>
-                    <CustomSelect
-                      value={modalCat}
-                      onChange={(val) => {
-                        setModalCat(val);
-                        setNewExpense({ ...newExpense, category: val });
-                      }}
-                      options={[
-                        { value: 'servicios', label: 'Servicios ⚡' },
-                        { value: 'transporte', label: 'Transporte & Gasolina 🚗' },
-                        { value: 'entretenimiento', label: 'Entretenimiento & Ocio 🎬' },
-                        { value: 'salud', label: 'Salud & Bienestar 🏥' },
-                        { value: 'otros', label: 'Otros Gastos 📦' },
-                      ]}
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block font-syne text-[10px] font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400 mb-2">Concepto del Gasto *</label>
+                    <label className="block font-syne text-[10px] font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400 mb-2">Concepto del Servicio *</label>
                     <input
                       required
-                      placeholder="Ej. Mercado semanal, Internet, Uber..."
+                      placeholder="Ej. Luz CFE, Internet Totalplay, Agua, Netflix..."
                       value={newExpense.concept}
-                      onChange={(e) => setNewExpense({ ...newExpense, concept: e.target.value, category: modalCat })}
+                      onChange={(e) => setNewExpense({ ...newExpense, concept: e.target.value, category: 'servicios' })}
                       className="w-full px-5 py-3.5 bg-gray-50 dark:bg-gray-800/80 border border-gray-100 dark:border-gray-700 rounded-xl outline-none font-inter text-sm text-gray-900 dark:text-gray-100 placeholder-gray-400"
                     />
                   </div>
@@ -482,7 +463,7 @@ export default function Finanzas() {
                       required
                       placeholder="0.00"
                       value={newExpense.amount}
-                      onChange={(e) => setNewExpense({ ...newExpense, amount: e.target.value, category: modalCat })}
+                      onChange={(e) => setNewExpense({ ...newExpense, amount: e.target.value, category: 'servicios' })}
                       className="w-full px-5 py-3.5 bg-gray-50 dark:bg-gray-800/80 border border-gray-100 dark:border-gray-700 rounded-xl outline-none font-dm-sans font-bold text-sm text-gray-900 dark:text-gray-100 placeholder-gray-400"
                     />
                   </div>
@@ -498,10 +479,10 @@ export default function Finanzas() {
                   </button>
                   <button
                     type="submit"
-                    disabled={submittingCat === modalCat}
+                    disabled={submittingCat === 'servicios'}
                     className="px-8 py-3 bg-black dark:bg-white text-white dark:text-black font-syne text-xs font-bold uppercase tracking-wider rounded-xl shadow-lg hover:scale-105 active:scale-95 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
                   >
-                    {submittingCat === modalCat ? 'Guardando...' : 'Guardar Gasto'}
+                    {submittingCat === 'servicios' ? 'Guardando...' : 'Guardar Servicio'}
                   </button>
                 </div>
               </form>
