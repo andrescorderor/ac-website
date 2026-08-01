@@ -53,27 +53,81 @@ export default function Finanzas() {
     fetchData(); // Sync expenses when Mandado modal closes
   };
 
+  const isQuincenalItem = (item: any): boolean => {
+    if (item.type === 'quincenal') return true;
+    if (item.type === 'ocasional') return false;
+    if (item.category === 'quincenal') return true;
+    if (item.category === 'ocasional') return false;
+    if (item.location?.includes('Quincenal') || item.name?.includes('[Quincenal]')) return true;
+    if (item.location?.includes('Agotar') || item.location?.includes('Agotamiento') || item.location?.includes('Ocasional') || item.location?.includes('📦')) return false;
+    return true; // Default quincenal
+  };
+
+  const getItemCategory = (item: any): 'comida' | 'insumos' => {
+    if (item.category === 'comida' || item.category === 'insumos') return item.category;
+    if (item.location?.includes('Insumos') || item.location?.includes('Casa') || item.location?.includes('🛒')) return 'insumos';
+    return 'comida';
+  };
+
   const fetchData = async () => {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
 
-    // Fetch expenses
-    const { data: expData, error: expErr } = await supabase
-      .from('finance_expenses')
-      .select('*');
-    if (expErr) toast.error('Error al cargar gastos: ' + expErr.message);
-    else if (expData) setExpenses(expData);
+    // Fetch expenses & shopping list simultaneously
+    const [expRes, shopRes, salRes] = await Promise.all([
+      supabase.from('finance_expenses').select('*'),
+      supabase.from('shopping_list').select('*'),
+      supabase.from('finance_salary').select('amount').eq('user_id', user.id),
+    ]);
 
-    // Fetch salary
-    const { data: salData, error: salErr } = await supabase
-      .from('finance_salary')
-      .select('amount')
-      .eq('user_id', user.id);
+    if (expRes.error) toast.error('Error al cargar gastos: ' + expRes.error.message);
 
-    if (salErr) {
-      toast.error('Error al cargar salario: ' + salErr.message);
-    } else if (salData && salData.length > 0) {
-      setSalary(salData[0].amount);
+    const shopItems = shopRes.data || [];
+    const dbExpenses = expRes.data || [];
+
+    // Map of occasional (hasta agotar) item names
+    const occasionalNames = new Set(
+      shopItems
+        .filter((item) => !isQuincenalItem(item))
+        .map((item) => item.name.trim().toLowerCase())
+    );
+
+    // 1. Filter out expenses from finance_expenses that correspond to "Hasta Agotar" items
+    const validDbExpenses = dbExpenses.filter((exp) => {
+      if (exp.concept.startsWith('Mandado — ')) {
+        const prodName = exp.concept.replace('Mandado — ', '').trim().toLowerCase();
+        if (occasionalNames.has(prodName)) return false; // Exclude exhaustible items
+      }
+      return true;
+    });
+
+    // 2. Synthesize entries for Quincenal Mandado items with price > 0 that aren't logged yet
+    const quincenalItemsWithPrice = shopItems.filter(
+      (item) => isQuincenalItem(item) && item.price && item.price > 0
+    );
+
+    const mergedExpenses: Expense[] = [...validDbExpenses];
+
+    for (const item of quincenalItemsWithPrice) {
+      const conceptName = `Mandado — ${item.name}`;
+      const alreadyExists = mergedExpenses.some(
+        (e) => e.concept.trim().toLowerCase() === conceptName.trim().toLowerCase()
+      );
+
+      if (!alreadyExists) {
+        mergedExpenses.push({
+          id: `mandado-${item.id}`,
+          category: getItemCategory(item),
+          concept: conceptName,
+          amount: item.price,
+        });
+      }
+    }
+
+    setExpenses(mergedExpenses);
+
+    if (salRes.data && salRes.data.length > 0) {
+      setSalary(salRes.data[0].amount);
     }
     setLoading(false);
   };

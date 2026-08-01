@@ -187,8 +187,8 @@ export default function MandadoModal({ isOpen, onClose }: MandadoModalProps) {
         setInputPrice('');
         setShowAddForm(false);
 
-        // AUTOMATIC FINANZAS LOGGING
-        if (itemPrice && itemPrice > 0) {
+        // AUTOMATIC FINANZAS LOGGING - ONLY FOR QUINCENAL (NON-EXHAUSTIBLE) ITEMS
+        if (itemPrice && itemPrice > 0 && inputType === 'quincenal') {
           await supabase.from('finance_expenses').insert([{
             user_id: user.id,
             concept: `Mandado — ${payload.name}`,
@@ -229,8 +229,8 @@ export default function MandadoModal({ isOpen, onClose }: MandadoModalProps) {
 
       setItems(items.map((i) => (i.id === id ? { ...i, bought: newStatus, updated_at: nowIso } : i)));
 
-      // AUTOMATIC FINANZAS LOGGING WHEN MARKING MANDADO ITEM AS BOUGHT
-      if (newStatus && item && item.price && item.price > 0) {
+      // AUTOMATIC FINANZAS LOGGING WHEN MARKING MANDADO ITEM AS BOUGHT (ONLY FOR QUINCENAL ITEMS)
+      if (newStatus && item && item.price && item.price > 0 && getItemType(item) === 'quincenal') {
         const { data: { user } } = await supabase.auth.getUser();
         if (user) {
           const cat = getItemCategory(item);
