@@ -54,18 +54,25 @@ export default function Finanzas() {
   };
 
   const isQuincenalItem = (item: any): boolean => {
-    if (item.type === 'quincenal') return true;
-    if (item.type === 'ocasional') return false;
-    if (item.category === 'quincenal') return true;
-    if (item.category === 'ocasional') return false;
-    if (item.location?.includes('Quincenal') || item.name?.includes('[Quincenal]')) return true;
-    if (item.location?.includes('Agotar') || item.location?.includes('Agotamiento') || item.location?.includes('Ocasional') || item.location?.includes('📦')) return false;
-    return true; // Default quincenal
+    const typeStr = (item.type || '').toLowerCase();
+    if (typeStr === 'quincenal') return true;
+    if (typeStr === 'ocasional') return false;
+
+    const locStr = (item.location || '').toLowerCase();
+    if (locStr.includes('hasta agotar') || locStr.includes('agotar') || locStr.includes('ocasional') || locStr.includes('📦')) {
+      return false;
+    }
+    if (locStr.includes('quincenal') || locStr.includes('🥗')) {
+      return true;
+    }
+    return false;
   };
 
   const getItemCategory = (item: any): 'comida' | 'insumos' => {
     if (item.category === 'comida' || item.category === 'insumos') return item.category;
-    if (item.location?.includes('Insumos') || item.location?.includes('Casa') || item.location?.includes('🛒')) return 'insumos';
+    const locStr = (item.location || '').toLowerCase();
+    if (locStr.includes('insumos') || locStr.includes('casa') || locStr.includes('🛒')) return 'insumos';
+    if (locStr.includes('comida') || locStr.includes('super') || locStr.includes('🍔')) return 'comida';
     return 'comida';
   };
 
@@ -85,28 +92,17 @@ export default function Finanzas() {
     const shopItems = shopRes.data || [];
     const dbExpenses = expRes.data || [];
 
-    // Map of occasional (hasta agotar) item names
-    const occasionalNames = new Set(
-      shopItems
-        .filter((item) => !isQuincenalItem(item))
-        .map((item) => item.name.trim().toLowerCase())
+    // 1. Keep manual expenses, filter out old Mandado auto-logged entries from DB
+    const nonMandadoDbExpenses = dbExpenses.filter(
+      (exp) => !exp.concept.startsWith('Mandado — ')
     );
 
-    // 1. Filter out expenses from finance_expenses that correspond to "Hasta Agotar" items
-    const validDbExpenses = dbExpenses.filter((exp) => {
-      if (exp.concept.startsWith('Mandado — ')) {
-        const prodName = exp.concept.replace('Mandado — ', '').trim().toLowerCase();
-        if (occasionalNames.has(prodName)) return false; // Exclude exhaustible items
-      }
-      return true;
-    });
-
-    // 2. Synthesize entries for Quincenal Mandado items with price > 0 that aren't logged yet
+    // 2. Synthesize entries ONLY for items that are explicitly Quincenal and have a price
     const quincenalItemsWithPrice = shopItems.filter(
       (item) => isQuincenalItem(item) && item.price && item.price > 0
     );
 
-    const mergedExpenses: Expense[] = [...validDbExpenses];
+    const mergedExpenses: Expense[] = [...nonMandadoDbExpenses];
 
     for (const item of quincenalItemsWithPrice) {
       const conceptName = `Mandado — ${item.name}`;
