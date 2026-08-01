@@ -109,7 +109,12 @@ export default function MandadoModal({ isOpen, onClose }: MandadoModalProps) {
     return location.trim();
   };
 
-  const rawQuincenalList = items.filter(isMandadoItem);
+  const allMandado = items.filter(isMandadoItem);
+
+  // Filter out any duplicates with identical product names
+  const rawQuincenalList = allMandado.filter((item, index, self) =>
+    index === self.findIndex((t) => t.name.trim().toLowerCase() === item.name.trim().toLowerCase())
+  );
 
   const quincenalList = rawQuincenalList
     .filter((item) => {
