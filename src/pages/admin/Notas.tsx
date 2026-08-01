@@ -55,9 +55,91 @@ export default function Notas() {
   });
   const { toast } = useToast();
 
+const TATTOO_IDEAS_LIST = [
+  '• Veni, Vidi, Vici',
+  '• Escorpión',
+  '• Frases de Kanye y Kendrick de canciones',
+  '• Serpiente',
+  '• Gato negro',
+  '• Fasting Buddha sculpture',
+  '• Flecha siempre hacia arriba',
+  '• Romanos 8:18',
+  '• 1 Pedro 4:1',
+  '• Salmo 118:1',
+  '• Isaías 6:8',
+  '• Romanos 14:8',
+  '• Manos de Padre',
+  '• "No resucitar" (https://www.instagram.com/p/DWSQ7AWDzSS/?img_index=3&igsh=czVidmZ3eWNhOXBs)',
+  '• Tatuaje jester, filosofía del jester',
+  '• Tatuaje los diamantes se forjan bajo presion',
+  '• Chicken Joe Pepe el pollo tattoo',
+  '• Tatuaje flores: Concepto el propósito de vivir el momento aquí y ahora',
+  '• Brújula o faro',
+  '• Fénix',
+  '• Manos de papás',
+  '• Número 3',
+  '• San Miguel arcángel',
+  '• Gálatas 2:20 (Galatians 2:20)'
+];
+
   useEffect(() => {
     fetchNotes();
   }, []);
+
+  const syncTattooIdeasNote = async (fetchedNotes: Note[]) => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const tattooNote = fetchedNotes.find(n => 
+        n.title.toLowerCase().includes('tatuaj') || 
+        n.content.toLowerCase().includes('tatuaj') ||
+        n.title.toLowerCase().includes('tattoo')
+      );
+
+      if (!tattooNote) {
+        const initialContent = `### Ideas de Tatuajes 🎨\n\n${TATTOO_IDEAS_LIST.join('\n')}`;
+        const { data, error } = await supabase.from('notes').insert([
+          {
+            user_id: user.id,
+            title: 'Ideas de Tatuajes 🎨',
+            content: initialContent,
+            category: 'Ideas',
+            is_pinned: true,
+          }
+        ]).select();
+
+        if (!error && data && data.length > 0) {
+          setNotes(prev => [data[0], ...prev]);
+        }
+      } else {
+        let content = tattooNote.content || '';
+        let updated = false;
+
+        for (const idea of TATTOO_IDEAS_LIST) {
+          const cleanIdea = idea.replace('• ', '').split(' (')[0];
+          if (!content.toLowerCase().includes(cleanIdea.toLowerCase())) {
+            content += (content.endsWith('\n') ? '' : '\n') + idea;
+            updated = true;
+          }
+        }
+
+        if (updated) {
+          const { data, error } = await supabase
+            .from('notes')
+            .update({ content })
+            .eq('id', tattooNote.id)
+            .select();
+
+          if (!error && data && data.length > 0) {
+            setNotes(prev => prev.map(n => n.id === tattooNote.id ? data[0] : n));
+          }
+        }
+      }
+    } catch (err) {
+      console.error('Error syncing tattoo note:', err);
+    }
+  };
 
   const fetchNotes = async () => {
     try {
@@ -70,6 +152,7 @@ export default function Notas() {
         toast.info('Para usar Notas, ejecuta la consulta SQL de scratch/notes_db.sql en Supabase.');
       } else if (data) {
         setNotes(data);
+        syncTattooIdeasNote(data);
       }
     } catch (err: any) {
       console.error(err);

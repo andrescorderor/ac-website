@@ -762,13 +762,15 @@ export default function Compras() {
                   </div>
 
                   <div className="flex items-center gap-1.5 shrink-0 flex-wrap justify-end">
-                    <span className={`px-2.5 py-1 rounded-full text-[9px] font-syne font-bold uppercase tracking-wider ${
-                      getItemType(item) === 'quincenal'
-                        ? 'bg-emerald-100 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-300'
-                        : 'bg-indigo-100 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-300'
-                    }`}>
-                      {getItemType(item) === 'quincenal' ? '🥗 Quincenal' : '📦 Agotamiento'}
-                    </span>
+                    {getItemType(item) === 'quincenal' ? (
+                      <span className="px-2.5 py-1 rounded-full text-[9px] font-syne font-bold uppercase tracking-wider bg-emerald-100 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-300">
+                        🥗 Quincenal
+                      </span>
+                    ) : (item.location?.includes('Agotar') || item.location?.includes('Agotamiento')) ? (
+                      <span className="px-2.5 py-1 rounded-full text-[9px] font-syne font-bold uppercase tracking-wider bg-indigo-100 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-300">
+                        📦 Hasta Agotar
+                      </span>
+                    ) : null}
 
                     <span className={`px-2.5 py-1 rounded-full text-[9px] font-syne font-bold uppercase tracking-wider border ${getPriorityBadge(item.priority)}`}>
                       {item.priority}
