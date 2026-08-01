@@ -418,33 +418,33 @@ export default function Compras() {
                 className="bg-white dark:bg-gray-900 rounded-[2.5rem] p-6 sm:p-8 max-h-[90vh] overflow-y-auto max-w-3xl w-full border-none shadow-2xl space-y-6 my-6"
               >
                 {/* Header of Modal */}
-                <div className="flex items-start justify-between gap-4 border-b border-gray-100 dark:border-gray-800 pb-5">
-                  <div>
+                <div className="flex items-start justify-between gap-4 border-b border-gray-100 dark:border-gray-800 pb-4">
+                  <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2">
-                      <span className="text-2xl">🥗</span>
-                      <h2 className="font-dm-sans text-2xl font-bold text-gray-900 dark:text-white">
-                        Mandado Quincenal — Dieta & Consumo
+                      <span className="text-2xl shrink-0">🥗</span>
+                      <h2 className="font-dm-sans text-xl sm:text-2xl font-bold text-gray-900 dark:text-white truncate">
+                        Mandado Quincenal & Insumos
                       </h2>
                     </div>
                     <p className="font-inter text-xs text-gray-400 mt-1">
-                      Listado de compras fijo para cada 2 semanas. Marca o desmarca productos a medida que los compras.
+                      Listado de compras recurrente. Marca productos comprados o desmarca para iniciar tu quincena.
                     </p>
                   </div>
                   <button
                     type="button"
                     onClick={() => setShowQuincenaModal(false)}
-                    className="p-2 rounded-xl text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 transition-all"
+                    className="p-2 rounded-xl text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 transition-all shrink-0"
                   >
                     <HiX className="text-xl" />
                   </button>
                 </div>
 
                 {/* Progress, Add Toggle & Reset Controls */}
-                <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 bg-emerald-50/60 dark:bg-emerald-950/30 p-4 rounded-2xl border border-emerald-100 dark:border-emerald-900/40">
-                  <div className="space-y-1">
-                    <div className="flex items-center gap-2">
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-emerald-50/60 dark:bg-emerald-950/30 p-3.5 sm:p-4 rounded-2xl border border-emerald-100 dark:border-emerald-900/40 w-full">
+                  <div className="space-y-1 min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap">
                       <span className="font-syne text-xs font-bold uppercase tracking-wider text-emerald-800 dark:text-emerald-300">
-                        {quincenalList.filter(i => i.bought).length} de {quincenalList.length} productos comprados
+                        {quincenalList.filter(i => i.bought).length} de {quincenalList.length} comprados
                       </span>
                       {quincenalList.length > 0 && (
                         <span className="text-xs font-dm-sans font-bold text-emerald-600 dark:text-emerald-400">
@@ -452,7 +452,7 @@ export default function Compras() {
                         </span>
                       )}
                     </div>
-                    <div className="w-full sm:w-64 bg-emerald-200/60 dark:bg-emerald-900/60 h-2 rounded-full overflow-hidden">
+                    <div className="w-full sm:w-56 bg-emerald-200/60 dark:bg-emerald-900/60 h-2 rounded-full overflow-hidden">
                       <div 
                         className="bg-emerald-500 h-full transition-all duration-500 rounded-full" 
                         style={{ width: `${quincenalList.length > 0 ? (quincenalList.filter(i => i.bought).length / quincenalList.length) * 100 : 0}%` }}
@@ -460,18 +460,18 @@ export default function Compras() {
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap">
+                  <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap shrink-0">
                     <button
                       onClick={() => setShowQuincenaAddForm(!showQuincenaAddForm)}
-                      className="px-4 py-2.5 bg-black dark:bg-white text-white dark:text-black font-syne text-xs font-bold uppercase tracking-wider rounded-xl transition-all shadow-sm flex items-center justify-center gap-1.5 interactive-hover shrink-0"
+                      className="flex-1 sm:flex-none px-3.5 py-2.5 bg-black dark:bg-white text-white dark:text-black font-syne text-xs font-bold uppercase tracking-wider rounded-xl transition-all shadow-sm flex items-center justify-center gap-1.5 interactive-hover shrink-0"
                     >
                       <HiOutlinePlus className="text-base" />
-                      <span>{showQuincenaAddForm ? 'Ocultar Formulario' : '+ Agregar Producto'}</span>
+                      <span>{showQuincenaAddForm ? 'Ocultar' : '+ Agregar'}</span>
                     </button>
 
                     <button
                       onClick={handleRenewQuincenal}
-                      className="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-syne text-xs font-bold uppercase tracking-wider rounded-xl transition-all shadow-sm flex items-center justify-center gap-2 interactive-hover shrink-0"
+                      className="flex-1 sm:flex-none px-3.5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-syne text-xs font-bold uppercase tracking-wider rounded-xl transition-all shadow-sm flex items-center justify-center gap-1.5 interactive-hover shrink-0"
                       title="Desmarca todos los artículos para iniciar una nueva quincena"
                     >
                       <HiOutlineRefresh className="text-base" />
@@ -488,44 +488,44 @@ export default function Compras() {
                       animate={{ opacity: 1, height: 'auto' }}
                       exit={{ opacity: 0, height: 0 }}
                       onSubmit={handleAddQuincenaItem}
-                      className="grid grid-cols-1 sm:grid-cols-12 gap-3 bg-gray-50 dark:bg-gray-800/60 p-4 rounded-2xl border border-gray-100 dark:border-gray-700/80 overflow-hidden"
+                      className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 bg-gray-50 dark:bg-gray-800/60 p-4 rounded-2xl border border-gray-100 dark:border-gray-700/80 overflow-hidden w-full"
                     >
-                      <div className="sm:col-span-4">
+                      <div>
                         <label className="block font-syne text-[9px] font-bold uppercase tracking-widest text-gray-400 mb-1">Producto *</label>
                         <input
                           type="text"
-                          placeholder="Pechuga, Detergente, Huevos..."
+                          placeholder="Pechuga, Detergente..."
                           value={quincenaInputName}
                           onChange={(e) => setQuincenaInputName(e.target.value)}
-                          className="w-full px-4 py-2.5 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl outline-none text-sm font-inter text-gray-900 dark:text-white"
+                          className="w-full px-3.5 py-2.5 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl outline-none text-sm font-inter text-gray-900 dark:text-white"
                         />
                       </div>
 
-                      <div className="sm:col-span-3">
+                      <div>
                         <label className="block font-syne text-[9px] font-bold uppercase tracking-widest text-gray-400 mb-1">Categoría</label>
                         <CustomSelect
                           value={quincenaInputCategory}
                           onChange={(val) => setQuincenaInputCategory(val as 'comida' | 'insumos')}
                           options={[
-                            { value: 'comida', label: 'Comida (Alimentación) 🍔' },
-                            { value: 'insumos', label: 'Insumos (Casa/Limpieza) 🛒' },
+                            { value: 'comida', label: 'Comida 🍔' },
+                            { value: 'insumos', label: 'Insumos 🛒' },
                           ]}
                         />
                       </div>
 
-                      <div className="sm:col-span-3">
+                      <div>
                         <label className="block font-syne text-[9px] font-bold uppercase tracking-widest text-gray-400 mb-1">Frecuencia</label>
                         <CustomSelect
                           value={quincenaInputType}
                           onChange={(val) => setQuincenaInputType(val as 'quincenal' | 'ocasional')}
                           options={[
-                            { value: 'quincenal', label: 'Quincenal (2 semanas) 🥗' },
-                            { value: 'ocasional', label: 'Hasta Agotar (Consumible) 📦' },
+                            { value: 'quincenal', label: 'Quincenal 🥗' },
+                            { value: 'ocasional', label: 'Hasta Agotar 📦' },
                           ]}
                         />
                       </div>
 
-                      <div className="sm:col-span-2">
+                      <div>
                         <label className="block font-syne text-[9px] font-bold uppercase tracking-widest text-gray-400 mb-1">Precio ($)</label>
                         <input
                           type="number"
@@ -533,24 +533,24 @@ export default function Compras() {
                           placeholder="0.00"
                           value={quincenaInputPrice}
                           onChange={(e) => setQuincenaInputPrice(e.target.value)}
-                          className="w-full px-3 py-2.5 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl outline-none text-sm font-inter text-gray-900 dark:text-white"
+                          className="w-full px-3.5 py-2.5 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl outline-none text-sm font-inter text-gray-900 dark:text-white"
                         />
                       </div>
 
-                      <div className="sm:col-span-12 flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-3 pt-1">
+                      <div className="col-span-1 sm:col-span-2 lg:col-span-4 flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-3 pt-1">
                         <input
                           type="text"
-                          placeholder="Lugar / Tienda (ej. Walmart, Costco, Superama)"
+                          placeholder="Lugar / Tienda (ej. Walmart, Costco)"
                           value={quincenaInputLocation}
                           onChange={(e) => setQuincenaInputLocation(e.target.value)}
-                          className="flex-1 px-4 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl outline-none text-xs font-inter text-gray-900 dark:text-white"
+                          className="flex-1 px-3.5 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl outline-none text-xs font-inter text-gray-900 dark:text-white"
                         />
                         <button
                           type="submit"
-                          className="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-syne text-xs font-bold uppercase tracking-wider rounded-xl shadow-md hover:scale-105 active:scale-95 transition-all flex items-center justify-center gap-1.5"
+                          className="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-syne text-xs font-bold uppercase tracking-wider rounded-xl shadow-md hover:scale-105 active:scale-95 transition-all flex items-center justify-center gap-1.5 shrink-0"
                         >
                           <HiOutlinePlus className="text-base" />
-                          <span>Guardar en Mandado</span>
+                          <span>Guardar Producto</span>
                         </button>
                       </div>
                     </motion.form>
@@ -558,26 +558,26 @@ export default function Compras() {
                 </AnimatePresence>
 
                 {/* Quincenal List Items */}
-                <div className="space-y-2.5 max-h-[45vh] overflow-y-auto pr-1 scrollbar-none">
+                <div className="space-y-2.5 max-h-[45vh] overflow-y-auto pr-1 scrollbar-none w-full">
                   {quincenalList.length === 0 ? (
                     <div className="p-8 text-center bg-gray-50 dark:bg-gray-800/50 rounded-2xl text-gray-400 space-y-1">
                       <p className="font-dm-sans font-bold text-base">No hay productos en tu mandado quincenal</p>
-                      <p className="font-inter text-xs">Presiona "+ Agregar Producto" para registrar tus productos de dieta o insumos.</p>
+                      <p className="font-inter text-xs">Presiona "+ Agregar" para registrar productos de dieta o insumos.</p>
                     </div>
                   ) : (
                     quincenalList.map((item) => (
                       <div
                         key={item.id}
-                        className={`flex flex-col sm:flex-row sm:items-center justify-between p-4 rounded-2xl border transition-all gap-3 ${
+                        className={`flex flex-col sm:flex-row sm:items-center justify-between p-3.5 sm:p-4 rounded-2xl border transition-all gap-3 w-full min-w-0 overflow-hidden ${
                           item.bought 
                             ? 'bg-gray-50/80 dark:bg-gray-800/40 border-gray-100 dark:border-gray-800 opacity-60' 
                             : 'bg-white dark:bg-gray-800/90 border-gray-100 dark:border-gray-700 shadow-xs'
                         }`}
                       >
-                        <div className="flex items-center gap-3.5 min-w-0 flex-1">
+                        <div className="flex items-start sm:items-center gap-3 min-w-0 flex-1 overflow-hidden">
                           <button
                             onClick={() => toggleBought(item.id, item.bought)}
-                            className="text-2xl transition-transform active:scale-90 shrink-0"
+                            className="text-2xl transition-transform active:scale-90 shrink-0 mt-0.5 sm:mt-0"
                             title={item.bought ? 'Marcar como pendiente' : 'Marcar como comprado'}
                           >
                             {item.bought ? (
@@ -587,15 +587,15 @@ export default function Compras() {
                             )}
                           </button>
 
-                          <div className="min-w-0">
-                            <div className="flex items-center gap-2 flex-wrap">
-                              <span className={`font-dm-sans font-medium text-sm sm:text-base truncate ${
+                          <div className="min-w-0 flex-1 overflow-hidden">
+                            <div className="flex items-center gap-1.5 flex-wrap">
+                              <span className={`font-dm-sans font-bold text-sm sm:text-base break-words ${
                                 item.bought ? 'line-through text-gray-400 dark:text-gray-500' : 'text-gray-900 dark:text-white'
                               }`}>
                                 {item.name}
                               </span>
 
-                              <span className={`px-2 py-0.5 rounded-full text-[9px] font-syne font-bold uppercase tracking-wider ${
+                              <span className={`px-2 py-0.5 rounded-full text-[9px] font-syne font-bold uppercase tracking-wider shrink-0 ${
                                 getItemCategory(item) === 'comida'
                                   ? 'bg-amber-100 dark:bg-amber-950/60 text-amber-600 dark:text-amber-300'
                                   : 'bg-indigo-100 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-300'
@@ -603,7 +603,7 @@ export default function Compras() {
                                 {getItemCategory(item) === 'comida' ? '🍔 Comida' : '🛒 Insumos'}
                               </span>
 
-                              <span className={`px-2 py-0.5 rounded-full text-[9px] font-syne font-bold uppercase tracking-wider ${
+                              <span className={`px-2 py-0.5 rounded-full text-[9px] font-syne font-bold uppercase tracking-wider shrink-0 ${
                                 getItemType(item) === 'quincenal'
                                   ? 'bg-emerald-100 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-300'
                                   : 'bg-purple-100 dark:bg-purple-950/60 text-purple-600 dark:text-purple-300'
@@ -613,7 +613,7 @@ export default function Compras() {
                             </div>
 
                             {item.location && (
-                              <span className="font-inter text-xs text-gray-400 dark:text-gray-500 flex items-center gap-1 mt-0.5">
+                              <span className="font-inter text-xs text-gray-400 dark:text-gray-500 flex items-center gap-1 mt-0.5 truncate">
                                 <HiOutlineLocationMarker className="text-xs shrink-0" />
                                 <span className="truncate">{item.location.replace(/^([^—]+)— /, '')}</span>
                               </span>
@@ -621,12 +621,12 @@ export default function Compras() {
                           </div>
                         </div>
 
-                        <div className="flex items-center gap-2.5 shrink-0 justify-end">
+                        <div className="flex items-center gap-2 shrink-0 justify-end flex-wrap sm:flex-nowrap">
                           {/* If item is 'ocasional' (Hasta agotar) and bought, allow marking as Agotado */}
                           {getItemType(item) === 'ocasional' && item.bought && (
                             <button
                               onClick={() => handleMarkAsAgotado(item.id)}
-                              className="px-3 py-1 bg-amber-500/10 hover:bg-amber-500/20 text-amber-600 dark:text-amber-400 rounded-lg font-syne text-[10px] font-bold uppercase tracking-wider transition-all flex items-center gap-1 shrink-0"
+                              className="px-2.5 py-1 bg-amber-500/10 hover:bg-amber-500/20 text-amber-600 dark:text-amber-400 rounded-lg font-syne text-[10px] font-bold uppercase tracking-wider transition-all flex items-center gap-1 shrink-0"
                               title="Marcar producto como consumido/agotado para volverlo a comprar"
                             >
                               <span>⚠️ Agotado</span>
@@ -634,14 +634,14 @@ export default function Compras() {
                           )}
 
                           {item.price !== null && (
-                            <span className="font-dm-sans font-bold text-xs text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700/80 px-2.5 py-1.5 rounded-lg">
+                            <span className="font-dm-sans font-bold text-xs text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700/80 px-2.5 py-1.5 rounded-lg shrink-0">
                               ${item.price.toLocaleString()}
                             </span>
                           )}
 
                           <button
                             onClick={() => deleteItem(item.id)}
-                            className="p-1.5 text-gray-300 dark:text-gray-600 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-lg transition-all"
+                            className="p-1.5 text-gray-300 dark:text-gray-600 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-lg transition-all shrink-0"
                             title="Eliminar de la quincena"
                           >
                             <HiOutlineTrash className="text-base" />
@@ -653,21 +653,21 @@ export default function Compras() {
                 </div>
 
                 {/* Footer of Modal & Finanzas Integration */}
-                <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 pt-4 border-t border-gray-100 dark:border-gray-800">
-                  <div className="text-xs font-inter text-gray-500 space-y-0.5">
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 pt-3.5 border-t border-gray-100 dark:border-gray-800 w-full">
+                  <div className="text-xs font-inter text-gray-500 space-y-0.5 min-w-0">
                     <div>
                       Presupuesto total: <strong className="text-gray-900 dark:text-white font-dm-sans text-sm">${quincenalList.reduce((acc, i) => acc + (i.price || 0), 0).toLocaleString()}</strong>
                     </div>
-                    <div>
+                    <div className="truncate">
                       Comida: <strong className="text-amber-600 dark:text-amber-400 font-dm-sans text-xs">${quincenalList.filter(i => getItemCategory(i) === 'comida').reduce((acc, i) => acc + (i.price || 0), 0).toLocaleString()}</strong> | Insumos: <strong className="text-indigo-600 dark:text-indigo-400 font-dm-sans text-xs">${quincenalList.filter(i => getItemCategory(i) === 'insumos').reduce((acc, i) => acc + (i.price || 0), 0).toLocaleString()}</strong>
                     </div>
                   </div>
 
-                  <div className="flex flex-wrap items-center gap-2">
+                  <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap shrink-0">
                     <button
                       disabled={registeringFinance}
                       onClick={handleSyncFinanzasExpenses}
-                      className="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white font-syne text-xs font-bold uppercase tracking-wider rounded-xl transition-all shadow-sm flex items-center gap-1.5 interactive-hover"
+                      className="flex-1 sm:flex-none px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white font-syne text-xs font-bold uppercase tracking-wider rounded-xl transition-all shadow-sm flex items-center justify-center gap-1.5 interactive-hover shrink-0"
                       title="Registra los gastos acumulados de Comida e Insumos en el módulo de Finanzas"
                     >
                       <span>💸 Registrar en Finanzas</span>
@@ -675,7 +675,7 @@ export default function Compras() {
 
                     <button
                       onClick={() => setShowQuincenaModal(false)}
-                      className="px-5 py-2.5 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-800 dark:text-gray-200 font-syne text-xs font-bold uppercase tracking-wider rounded-xl transition-all"
+                      className="flex-1 sm:flex-none px-4 py-2.5 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-800 dark:text-gray-200 font-syne text-xs font-bold uppercase tracking-wider rounded-xl transition-all text-center shrink-0"
                     >
                       Cerrar
                     </button>
@@ -828,16 +828,6 @@ export default function Compras() {
                   </div>
 
                   <div className="flex items-center gap-1.5 shrink-0 flex-wrap justify-end">
-                    {getItemType(item) === 'quincenal' ? (
-                      <span className="px-2.5 py-1 rounded-full text-[9px] font-syne font-bold uppercase tracking-wider bg-emerald-100 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-300">
-                        🥗 Quincenal
-                      </span>
-                    ) : (item.location?.includes('Agotar') || item.location?.includes('Agotamiento')) ? (
-                      <span className="px-2.5 py-1 rounded-full text-[9px] font-syne font-bold uppercase tracking-wider bg-indigo-100 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-300">
-                        📦 Hasta Agotar
-                      </span>
-                    ) : null}
-
                     <span className={`px-2.5 py-1 rounded-full text-[9px] font-syne font-bold uppercase tracking-wider border ${getPriorityBadge(item.priority)}`}>
                       {item.priority}
                     </span>
