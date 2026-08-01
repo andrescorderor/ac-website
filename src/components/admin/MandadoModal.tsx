@@ -371,7 +371,7 @@ export default function MandadoModal({ isOpen, onClose }: MandadoModalProps) {
   return createPortal(
     <AnimatePresence>
       <div 
-        className="fixed inset-0 z-[9999] flex items-center justify-center p-3 sm:p-6 bg-black/60 backdrop-blur-sm overflow-hidden cursor-pointer"
+        className="fixed inset-0 z-[9999] flex items-center justify-center p-2 sm:p-6 bg-black/60 backdrop-blur-sm overflow-y-auto cursor-pointer"
         onClick={(e) => {
           if (e.target === e.currentTarget) onClose();
         }}
@@ -381,7 +381,7 @@ export default function MandadoModal({ isOpen, onClose }: MandadoModalProps) {
           initial={{ opacity: 0, scale: 0.95, y: 20 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.95, y: 20 }}
-          className="bg-white dark:bg-gray-900 rounded-[2rem] sm:rounded-[2.5rem] p-5 sm:p-7 h-[90vh] max-h-[800px] max-w-3xl w-full border-none shadow-2xl flex flex-col overflow-hidden my-auto cursor-default"
+          className="bg-white dark:bg-gray-900 rounded-[1.5rem] sm:rounded-[2.5rem] p-4 sm:p-7 h-[92vh] max-h-[850px] max-w-3xl w-full border-none shadow-2xl flex flex-col overflow-hidden my-auto cursor-default"
         >
           {/* ═══ FIXED HEADER SECTION ═══ */}
           <div className="shrink-0 space-y-3.5 pb-3.5 border-b border-gray-100 dark:border-gray-800">
@@ -574,7 +574,7 @@ export default function MandadoModal({ isOpen, onClose }: MandadoModalProps) {
           </div>
 
           {/* ═══ SCROLLABLE PRODUCT LIST BODY ═══ */}
-          <div className="flex-1 min-h-0 overflow-y-auto py-3 space-y-2 pr-1 w-full scrollbar-thin">
+          <div className="flex-1 min-h-0 overflow-y-auto py-3 space-y-2 pr-1 w-full touch-pan-y overscroll-contain scrollbar-thin">
             {quincenalList.length === 0 ? (
               <div className="p-8 text-center bg-gray-50 dark:bg-gray-800/50 rounded-2xl text-gray-400 space-y-1 my-auto">
                 <p className="font-dm-sans font-bold text-base text-gray-800 dark:text-gray-200">No hay productos en tu mandado quincenal</p>

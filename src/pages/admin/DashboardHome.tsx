@@ -15,7 +15,6 @@ import {
   HiOutlineEyeOff,
   HiOutlineDownload,
   HiOutlineBell,
-  HiOutlineTrash,
   HiOutlineColorSwatch,
   HiOutlineCheckCircle,
   HiOutlineBookOpen,
@@ -239,7 +238,9 @@ export default function DashboardHome() {
     e.preventDefault();
     e.stopPropagation();
     removePinnedItem(id);
-    toast.info('Elemento desfijado');
+    setPinnedItems((prev) => prev.filter((i) => i.id !== id));
+    window.dispatchEvent(new Event('ac_pinned_changed'));
+    toast.success('📌 Elemento desfijado del inicio');
   };
 
   const getItemBadge = (type: string) => {
@@ -527,10 +528,11 @@ export default function DashboardHome() {
 
                         <button
                           onClick={(e) => handleUnpin(item.id, e)}
-                          className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-xl transition-all"
-                          title="Desfijar del inicio"
+                          className="px-2 py-1 text-gray-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/40 rounded-lg transition-all text-[10px] font-syne font-bold uppercase tracking-wider flex items-center gap-1 shrink-0"
+                          title="Desfijar de la pantalla de inicio"
                         >
-                          <HiOutlineTrash className="text-sm" />
+                          <span>📌</span>
+                          <span className="hidden sm:inline">Desfijar</span>
                         </button>
                       </div>
 
