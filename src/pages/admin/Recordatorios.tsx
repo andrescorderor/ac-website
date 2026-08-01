@@ -17,6 +17,7 @@ import {
   HiChevronRight
 } from 'react-icons/hi';
 import { useToast } from '@/components/common/ToastContext';
+import CustomSelect from '@/components/common/CustomSelect';
 import { togglePinItem, isItemPinned } from '@/lib/pinned';
 import { useSearchParams } from 'react-router-dom';
 import AutoFormattedText from '@/components/common/AutoFormattedText';
@@ -418,16 +419,16 @@ export default function Recordatorios() {
                     <label className="block font-syne text-[10px] font-bold uppercase tracking-widest text-[var(--gray)] dark:text-gray-400 mb-2">
                       Categoría
                     </label>
-                    <select
+                    <CustomSelect
                       value={newReminder.category}
-                      onChange={(e) => setNewReminder({ ...newReminder, category: e.target.value as any })}
-                      className="w-full px-5 py-3.5 bg-gray-50/50 dark:bg-gray-800/80 border border-gray-100 dark:border-gray-700 rounded-xl outline-none focus:border-gray-300 dark:focus:border-gray-500 font-inter text-sm text-gray-900 dark:text-gray-100"
-                    >
-                      <option value="Cumpleaños" className="dark:bg-gray-800">Cumpleaños 🎂</option>
-                      <option value="Documento" className="dark:bg-gray-800">Documento 📄</option>
-                      <option value="Pago" className="dark:bg-gray-800">Pago 💳</option>
-                      <option value="Otro" className="dark:bg-gray-800">Otro 📌</option>
-                    </select>
+                      onChange={(val) => setNewReminder({ ...newReminder, category: val as any })}
+                      options={[
+                        { value: 'Cumpleaños', label: 'Cumpleaños 🎂' },
+                        { value: 'Documento', label: 'Documento 📄' },
+                        { value: 'Pago', label: 'Pago 💳' },
+                        { value: 'Otro', label: 'Otro 📌' },
+                      ]}
+                    />
                   </div>
 
                   <div className="col-span-full">

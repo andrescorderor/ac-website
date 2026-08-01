@@ -43,11 +43,13 @@ The productivity hub is a mobile-optimized private dashboard with 11 specialized
 
 ---
 
-## ✨ Design System & Master UX Specs (v1.190.0)
+## ✨ Design System & Master UX Specs (v1.193.0)
 
-*   🏷️ **Automatic Commit-Based Versioning (`v1.190.0`):** Live versioning indicator displayed seamlessly in desktop and mobile sidebars.
+*   🏷️ **Automatic Commit-Based Versioning (`v1.193.0`):** Live versioning indicator displayed seamlessly in desktop and mobile sidebars.
 *   👁️ **Global Privacy Mode & Dark Mode Default:** One-click toggle to mask financial values and default high-contrast dark theme.
 *   🪟 **Universal Portal Floating Modals:** Every form across all 11 modules utilizes a React `createPortal` modal system rendered directly into `document.body` with fixed backdrop blurs (`backdrop-blur-sm`), smooth entrance animations, and full z-index isolation.
+*   🔽 **100% Unified Custom Dropdowns (`CustomSelect`):** All native selects replaced with custom interactive Framer Motion dropdown components featuring checkmark indicators, keyboard accessibility, and z-index isolation.
+*   🍞 **Ultra High Z-Index Toast System (`createPortal` & `z-[999999]`):** Toast notifications render directly to `document.body` above all modals and blur backdrop layers.
 *   🔤 **Unified Button Design System:** Harmonized action buttons, filter pills, and modal submit/cancel triggers across all 11 modules (`font-syne text-xs font-bold uppercase tracking-wider`).
 *   📱 **Full-Screen Mobile Search & AI Chat:** Command Palette modal (`Ctrl + K`) scales to full-screen on mobile devices for seamless queries and Gemini Flash 1.5 chat interaction.
 *   🔽 **Custom UI Select Dropdowns (`CustomSelect`):** Native ugly dropdowns replaced with interactive custom Framer Motion dropdown components and native `color-scheme: dark` fallback support.

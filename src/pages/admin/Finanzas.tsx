@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import { supabase } from '@/lib/supabase';
 import { HiOutlinePlus, HiOutlineTrash, HiOutlineSave, HiOutlineEye, HiOutlineEyeOff, HiOutlineSearch, HiX } from 'react-icons/hi';
 import { useToast } from '@/components/common/ToastContext';
+import CustomSelect from '@/components/common/CustomSelect';
 import { motion, AnimatePresence } from 'framer-motion';
 
 type Expense = {
@@ -377,19 +378,19 @@ export default function Finanzas() {
                 <div className="space-y-4">
                   <div>
                     <label className="block font-syne text-[10px] font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400 mb-2">Categoría</label>
-                    <select
+                    <CustomSelect
                       value={modalCat}
-                      onChange={(e) => {
-                        const val = e.target.value as 'comida' | 'insumos' | 'servicios';
-                        setModalCat(val);
-                        setNewExpense({ ...newExpense, category: val });
+                      onChange={(val) => {
+                        const v = val as 'comida' | 'insumos' | 'servicios';
+                        setModalCat(v);
+                        setNewExpense({ ...newExpense, category: v });
                       }}
-                      className="w-full px-5 py-3.5 bg-gray-50 dark:bg-gray-800/80 border border-gray-100 dark:border-gray-700 rounded-xl outline-none font-inter text-sm text-gray-900 dark:text-gray-100 capitalize"
-                    >
-                      <option value="comida" className="dark:bg-gray-800">Comida 🍔</option>
-                      <option value="insumos" className="dark:bg-gray-800">Insumos 🛒</option>
-                      <option value="servicios" className="dark:bg-gray-800">Servicios ⚡</option>
-                    </select>
+                      options={[
+                        { value: 'comida', label: 'Comida 🍔' },
+                        { value: 'insumos', label: 'Insumos 🛒' },
+                        { value: 'servicios', label: 'Servicios ⚡' },
+                      ]}
+                    />
                   </div>
 
                   <div>

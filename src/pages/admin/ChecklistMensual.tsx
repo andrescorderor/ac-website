@@ -15,6 +15,7 @@ import {
   HiOutlineSearch,
 } from 'react-icons/hi';
 import { useToast } from '@/components/common/ToastContext';
+import CustomSelect from '@/components/common/CustomSelect';
 import { togglePinItem, isItemPinned } from '@/lib/pinned';
 
 type ChecklistItem = {
@@ -367,12 +368,11 @@ export default function ChecklistMensual() {
                 </div>
                 <div className="space-y-2">
                   <label className="font-syne text-[10px] font-bold uppercase tracking-widest text-gray-500">Categoría</label>
-                  <select
-                    value={form.category} onChange={e => setForm({ ...form, category: e.target.value })}
-                    className="w-full px-4 py-3 bg-white dark:bg-gray-800 border border-transparent focus:border-[var(--vibrant-sky-blue)] rounded-xl outline-none font-inter text-sm text-gray-900 dark:text-gray-100 transition-all shadow-sm"
-                  >
-                    {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
-                  </select>
+                  <CustomSelect
+                    value={form.category}
+                    onChange={(val) => setForm({ ...form, category: val })}
+                    options={CATEGORIES.map(c => ({ value: c, label: c }))}
+                  />
                 </div>
               </div>
 

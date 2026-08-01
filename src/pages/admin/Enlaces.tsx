@@ -8,6 +8,7 @@ import {
   HiOutlineExternalLink,
   HiX
 } from 'react-icons/hi';
+import CustomSelect from '@/components/common/CustomSelect';
 
 type Bookmark = {
   id: string;
@@ -219,15 +220,11 @@ export default function Enlaces() {
 
                   <div className="space-y-2">
                     <label className="font-syne text-[10px] font-bold uppercase tracking-widest text-gray-400">Categoría</label>
-                    <select
+                    <CustomSelect
                       value={newBookmark.category}
-                      onChange={(e) => setNewBookmark({...newBookmark, category: e.target.value})}
-                      className="w-full px-5 py-3.5 rounded-xl bg-gray-50/50 dark:bg-gray-800/80 border border-gray-100 dark:border-gray-700 outline-none font-inter text-sm text-gray-900 dark:text-gray-100"
-                    >
-                      {defaultCategories.map(cat => (
-                        <option key={cat} value={cat}>{cat}</option>
-                      ))}
-                    </select>
+                      onChange={(val) => setNewBookmark({ ...newBookmark, category: val })}
+                      options={defaultCategories.map(cat => ({ value: cat, label: cat }))}
+                    />
                   </div>
 
                   <div className="flex justify-end gap-3 pt-4">

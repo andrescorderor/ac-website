@@ -14,6 +14,7 @@ import {
 } from 'react-icons/hi';
 import { MdOutlineCircle } from 'react-icons/md';
 import { useToast } from '@/components/common/ToastContext';
+import CustomSelect from '@/components/common/CustomSelect';
 import { togglePinItem, isItemPinned } from '@/lib/pinned';
 
 type ShoppingItem = {
@@ -449,14 +450,14 @@ export default function Compras() {
                     />
                   </div>
                   <div className="sm:col-span-3">
-                    <select
+                    <CustomSelect
                       value={quincenaInputType}
-                      onChange={(e) => setQuincenaInputType(e.target.value as 'quincenal' | 'ocasional')}
-                      className="w-full px-3 py-3 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl outline-none focus:ring-2 ring-emerald-500 text-xs font-inter text-gray-900 dark:text-white"
-                    >
-                      <option value="quincenal">Quincenal (2 semanas) 🥗</option>
-                      <option value="ocasional">Hasta Agotar (Consumible) 📦</option>
-                    </select>
+                      onChange={(val) => setQuincenaInputType(val as 'quincenal' | 'ocasional')}
+                      options={[
+                        { value: 'quincenal', label: 'Quincenal (2 semanas) 🥗' },
+                        { value: 'ocasional', label: 'Hasta Agotar (Consumible) 📦' },
+                      ]}
+                    />
                   </div>
                   <div className="sm:col-span-2">
                     <input
@@ -683,15 +684,15 @@ export default function Compras() {
                   </div>
                   <div className="space-y-2">
                     <label className="font-syne text-[10px] font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">Prioridad</label>
-                    <select
+                    <CustomSelect
                       value={newItem.priority}
-                      onChange={e => setNewItem({ ...newItem, priority: e.target.value as 'Baja' | 'Media' | 'Alta' })}
-                      className="w-full px-5 py-3.5 bg-gray-50 dark:bg-gray-800/80 border border-transparent focus:border-[var(--vibrant-sky-blue)] rounded-xl outline-none font-inter text-sm text-gray-900 dark:text-gray-100 transition-all shadow-sm"
-                    >
-                      <option value="Alta" className="dark:bg-gray-800">Alta 🔴</option>
-                      <option value="Media" className="dark:bg-gray-800">Media 🟠</option>
-                      <option value="Baja" className="dark:bg-gray-800">Baja ⚪</option>
-                    </select>
+                      onChange={(val) => setNewItem({ ...newItem, priority: val as 'Baja' | 'Media' | 'Alta' })}
+                      options={[
+                        { value: 'Alta', label: 'Alta 🔴' },
+                        { value: 'Media', label: 'Media 🟠' },
+                        { value: 'Baja', label: 'Baja ⚪' },
+                      ]}
+                    />
                   </div>
                 </div>
 
