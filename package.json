@@ -1,7 +1,7 @@
 {
   "name": "ac-website",
   "private": true,
-  "version": "1.194.0",
+  "version": "1.195.0",
   "type": "module",
   "engines": {
     "node": ">=20.0.0"

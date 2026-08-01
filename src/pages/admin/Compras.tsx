@@ -72,11 +72,19 @@ export default function Compras() {
   };
 
   const [showQuincenaModal, setShowQuincenaModal] = useState(false);
+  const [showQuincenaAddForm, setShowQuincenaAddForm] = useState(false);
   const [quincenaInputName, setQuincenaInputName] = useState('');
   const [quincenaInputLocation, setQuincenaInputLocation] = useState('');
   const [quincenaInputPrice, setQuincenaInputPrice] = useState('');
   const [quincenaInputType, setQuincenaInputType] = useState<'quincenal' | 'ocasional'>('quincenal');
+  const [quincenaInputCategory, setQuincenaInputCategory] = useState<'comida' | 'insumos'>('comida');
   const [registeringFinance, setRegisteringFinance] = useState(false);
+
+  useEffect(() => {
+    if (searchParams.get('quincena') === 'true' || searchParams.get('mandado') === 'true') {
+      setShowQuincenaModal(true);
+    }
+  }, [searchParams]);
 
   const getItemType = (item: ShoppingItem): 'quincenal' | 'ocasional' => {
     if (item.type === 'quincenal' || item.type === 'ocasional') return item.type;
@@ -84,6 +92,12 @@ export default function Compras() {
     if (item.location?.includes('Quincenal') || item.name.includes('[Quincenal]')) return 'quincenal';
     if (item.location?.includes('Ocasional') || item.location?.includes('Agotar') || item.location?.includes('Agotamiento')) return 'ocasional';
     return 'ocasional';
+  };
+
+  const getItemCategory = (item: ShoppingItem): 'comida' | 'insumos' => {
+    if (item.category === 'comida' || item.category === 'insumos') return item.category as 'comida' | 'insumos';
+    if (item.location?.includes('Insumos') || item.location?.includes('Casa') || item.location?.includes('🛒')) return 'insumos';
+    return 'comida';
   };
 
   const handleAddItem = async (e: React.FormEvent) => {
@@ -135,9 +149,11 @@ export default function Compras() {
 
     try {
       const storeText = quincenaInputLocation.trim();
+      const catText = quincenaInputCategory === 'comida' ? '🍔 Comida' : '🛒 Insumos';
+      const freqText = quincenaInputType === 'quincenal' ? '🥗 Quincenal' : '📦 Hasta Agotar';
       const locText = storeText
-        ? `${quincenaInputType === 'quincenal' ? '🥗 Quincenal' : '📦 Agotamiento'} — ${storeText}`
-        : (quincenaInputType === 'quincenal' ? 'Mandado Quincenal 🥗' : 'Hasta Agotar 📦');
+        ? `${catText} | ${freqText} — ${storeText}`
+        : `${catText} | ${freqText}`;
 
       const payload: any = {
         user_id: user.id,
@@ -146,13 +162,15 @@ export default function Compras() {
         price: quincenaInputPrice ? parseFloat(quincenaInputPrice) : null,
         priority: 'Media',
         type: quincenaInputType,
+        category: quincenaInputCategory,
         bought: false,
       };
 
       let { data, error } = await supabase.from('shopping_list').insert([payload]).select();
 
-      if (error && error.message?.includes('type')) {
+      if (error && (error.message?.includes('type') || error.message?.includes('category'))) {
         delete payload.type;
+        delete payload.category;
         const res = await supabase.from('shopping_list').insert([payload]).select();
         data = res.data;
         error = res.error;
@@ -161,11 +179,12 @@ export default function Compras() {
       if (error) throw error;
 
       if (data) {
-        setItems([{ ...data[0], type: quincenaInputType }, ...items]);
+        setItems([{ ...data[0], type: quincenaInputType, category: quincenaInputCategory }, ...items]);
         setQuincenaInputName('');
         setQuincenaInputLocation('');
         setQuincenaInputPrice('');
-        toast.success(`Producto agregado como ${quincenaInputType === 'quincenal' ? 'Quincenal 🥗' : 'Hasta Agotar 📦'}`);
+        setShowQuincenaAddForm(false);
+        toast.success(`Producto agregado a Mandado (${quincenaInputCategory === 'comida' ? 'Comida 🍔' : 'Insumos 🛒'})`);
       }
     } catch (err: any) {
       toast.error('Error al agregar: ' + err.message);
@@ -184,31 +203,53 @@ export default function Compras() {
     }
   };
 
-  const handleRegisterExpenseToFinanzas = async (category: 'comida' | 'insumos', concept: string, amount: number) => {
-    if (amount <= 0) {
-      toast.error('El monto a registrar debe ser mayor a 0');
-      return;
-    }
-
+  const handleSyncFinanzasExpenses = async () => {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
 
+    const quincenalList = items.filter((i) => getItemType(i) === 'quincenal');
+    const comidaItems = quincenalList.filter(i => getItemCategory(i) === 'comida');
+    const insumosItems = quincenalList.filter(i => getItemCategory(i) === 'insumos');
+
+    const totalComidaBought = comidaItems.filter(i => i.bought).reduce((acc, i) => acc + (i.price || 0), 0);
+    const totalComidaEst = comidaItems.reduce((acc, i) => acc + (i.price || 0), 0);
+    const amountComida = totalComidaBought > 0 ? totalComidaBought : totalComidaEst;
+
+    const totalInsumosBought = insumosItems.filter(i => i.bought).reduce((acc, i) => acc + (i.price || 0), 0);
+    const totalInsumosEst = insumosItems.reduce((acc, i) => acc + (i.price || 0), 0);
+    const amountInsumos = totalInsumosBought > 0 ? totalInsumosBought : totalInsumosEst;
+
+    if (amountComida <= 0 && amountInsumos <= 0) {
+      toast.error('No hay montos registrados en tus productos de comida ni de insumos.');
+      return;
+    }
+
     setRegisteringFinance(true);
     try {
-      const { error } = await supabase.from('finance_expenses').insert([
-        {
+      const inserts = [];
+      if (amountComida > 0) {
+        inserts.push({
           user_id: user.id,
-          concept,
-          amount,
-          category,
-        },
-      ]);
+          concept: 'Mandado — Alimentación & Comida 🥗',
+          amount: amountComida,
+          category: 'comida',
+        });
+      }
+      if (amountInsumos > 0) {
+        inserts.push({
+          user_id: user.id,
+          concept: 'Mandado — Insumos & Casa 🏠',
+          amount: amountInsumos,
+          category: 'insumos',
+        });
+      }
 
+      const { error } = await supabase.from('finance_expenses').insert(inserts);
       if (error) throw error;
 
-      toast.success(`💸 ¡Gasto de $${amount.toLocaleString()} registrado en Finanzas bajo '${category === 'comida' ? 'Alimentación & Comida' : 'Insumos & Casa'}'!`);
+      toast.success(`💸 ¡Sincronizado con Finanzas! ${amountComida > 0 ? `$${amountComida.toLocaleString()} en Comida 🍔 ` : ''}${amountInsumos > 0 ? `$${amountInsumos.toLocaleString()} en Insumos 🛒` : ''}`);
     } catch (err: any) {
-      toast.error('Error al registrar gasto en Finanzas: ' + err.message);
+      toast.error('Error al sincronizar con Finanzas: ' + err.message);
     } finally {
       setRegisteringFinance(false);
     }
@@ -398,7 +439,7 @@ export default function Compras() {
                   </button>
                 </div>
 
-                {/* Progress & Reset Controls */}
+                {/* Progress, Add Toggle & Reset Controls */}
                 <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 bg-emerald-50/60 dark:bg-emerald-950/30 p-4 rounded-2xl border border-emerald-100 dark:border-emerald-900/40">
                   <div className="space-y-1">
                     <div className="flex items-center gap-2">
@@ -419,73 +460,109 @@ export default function Compras() {
                     </div>
                   </div>
 
-                  <button
-                    onClick={handleRenewQuincenal}
-                    className="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-syne text-xs font-bold uppercase tracking-wider rounded-xl transition-all shadow-sm flex items-center justify-center gap-2 interactive-hover shrink-0"
-                    title="Desmarca todos los artículos para iniciar una nueva quincena"
-                  >
-                    <HiOutlineRefresh className="text-base" />
-                    <span>Iniciar Nueva Quincena 🔄</span>
-                  </button>
-                </div>
-
-                {/* Quick Add Form inside Quincena Modal */}
-                <form onSubmit={handleAddQuincenaItem} className="grid grid-cols-1 sm:grid-cols-12 gap-3 bg-gray-50 dark:bg-gray-800/60 p-4 rounded-2xl border border-gray-100 dark:border-gray-700/80">
-                  <div className="sm:col-span-4">
-                    <input
-                      type="text"
-                      placeholder="Producto (ej. Pechuga, Avena, Detergente...)"
-                      value={quincenaInputName}
-                      onChange={(e) => setQuincenaInputName(e.target.value)}
-                      className="w-full px-4 py-3 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl outline-none focus:ring-2 ring-emerald-500 text-sm font-inter text-gray-900 dark:text-white"
-                    />
-                  </div>
-                  <div className="sm:col-span-3">
-                    <input
-                      type="text"
-                      placeholder="Lugar (ej. Walmart, Costco)"
-                      value={quincenaInputLocation}
-                      onChange={(e) => setQuincenaInputLocation(e.target.value)}
-                      className="w-full px-4 py-3 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl outline-none focus:ring-2 ring-emerald-500 text-sm font-inter text-gray-900 dark:text-white"
-                    />
-                  </div>
-                  <div className="sm:col-span-3">
-                    <CustomSelect
-                      value={quincenaInputType}
-                      onChange={(val) => setQuincenaInputType(val as 'quincenal' | 'ocasional')}
-                      options={[
-                        { value: 'quincenal', label: 'Quincenal (2 semanas) 🥗' },
-                        { value: 'ocasional', label: 'Hasta Agotar (Consumible) 📦' },
-                      ]}
-                    />
-                  </div>
-                  <div className="sm:col-span-2">
-                    <input
-                      type="number"
-                      step="0.01"
-                      placeholder="$ Precio"
-                      value={quincenaInputPrice}
-                      onChange={(e) => setQuincenaInputPrice(e.target.value)}
-                      className="w-full px-3 py-3 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl outline-none focus:ring-2 ring-emerald-500 text-sm font-inter text-gray-900 dark:text-white"
-                    />
-                  </div>
-                  <div className="sm:col-span-12 flex justify-end">
+                  <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap">
                     <button
-                      type="submit"
-                      className="px-6 py-2.5 bg-black dark:bg-white text-white dark:text-black font-syne text-xs font-bold uppercase tracking-wider rounded-xl shadow-md hover:scale-105 active:scale-95 transition-all flex items-center justify-center gap-1.5"
+                      onClick={() => setShowQuincenaAddForm(!showQuincenaAddForm)}
+                      className="px-4 py-2.5 bg-black dark:bg-white text-white dark:text-black font-syne text-xs font-bold uppercase tracking-wider rounded-xl transition-all shadow-sm flex items-center justify-center gap-1.5 interactive-hover shrink-0"
                     >
                       <HiOutlinePlus className="text-base" />
-                      <span>Agregar a la Quincena</span>
+                      <span>{showQuincenaAddForm ? 'Ocultar Formulario' : '+ Agregar Producto'}</span>
+                    </button>
+
+                    <button
+                      onClick={handleRenewQuincenal}
+                      className="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-syne text-xs font-bold uppercase tracking-wider rounded-xl transition-all shadow-sm flex items-center justify-center gap-2 interactive-hover shrink-0"
+                      title="Desmarca todos los artículos para iniciar una nueva quincena"
+                    >
+                      <HiOutlineRefresh className="text-base" />
+                      <span>Nueva Quincena 🔄</span>
                     </button>
                   </div>
-                </form>
+                </div>
+
+                {/* Collapsible Quick Add Form */}
+                <AnimatePresence>
+                  {showQuincenaAddForm && (
+                    <motion.form
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: 'auto' }}
+                      exit={{ opacity: 0, height: 0 }}
+                      onSubmit={handleAddQuincenaItem}
+                      className="grid grid-cols-1 sm:grid-cols-12 gap-3 bg-gray-50 dark:bg-gray-800/60 p-4 rounded-2xl border border-gray-100 dark:border-gray-700/80 overflow-hidden"
+                    >
+                      <div className="sm:col-span-4">
+                        <label className="block font-syne text-[9px] font-bold uppercase tracking-widest text-gray-400 mb-1">Producto *</label>
+                        <input
+                          type="text"
+                          placeholder="Pechuga, Detergente, Huevos..."
+                          value={quincenaInputName}
+                          onChange={(e) => setQuincenaInputName(e.target.value)}
+                          className="w-full px-4 py-2.5 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl outline-none text-sm font-inter text-gray-900 dark:text-white"
+                        />
+                      </div>
+
+                      <div className="sm:col-span-3">
+                        <label className="block font-syne text-[9px] font-bold uppercase tracking-widest text-gray-400 mb-1">Categoría</label>
+                        <CustomSelect
+                          value={quincenaInputCategory}
+                          onChange={(val) => setQuincenaInputCategory(val as 'comida' | 'insumos')}
+                          options={[
+                            { value: 'comida', label: 'Comida (Alimentación) 🍔' },
+                            { value: 'insumos', label: 'Insumos (Casa/Limpieza) 🛒' },
+                          ]}
+                        />
+                      </div>
+
+                      <div className="sm:col-span-3">
+                        <label className="block font-syne text-[9px] font-bold uppercase tracking-widest text-gray-400 mb-1">Frecuencia</label>
+                        <CustomSelect
+                          value={quincenaInputType}
+                          onChange={(val) => setQuincenaInputType(val as 'quincenal' | 'ocasional')}
+                          options={[
+                            { value: 'quincenal', label: 'Quincenal (2 semanas) 🥗' },
+                            { value: 'ocasional', label: 'Hasta Agotar (Consumible) 📦' },
+                          ]}
+                        />
+                      </div>
+
+                      <div className="sm:col-span-2">
+                        <label className="block font-syne text-[9px] font-bold uppercase tracking-widest text-gray-400 mb-1">Precio ($)</label>
+                        <input
+                          type="number"
+                          step="0.01"
+                          placeholder="0.00"
+                          value={quincenaInputPrice}
+                          onChange={(e) => setQuincenaInputPrice(e.target.value)}
+                          className="w-full px-3 py-2.5 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl outline-none text-sm font-inter text-gray-900 dark:text-white"
+                        />
+                      </div>
+
+                      <div className="sm:col-span-12 flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-3 pt-1">
+                        <input
+                          type="text"
+                          placeholder="Lugar / Tienda (ej. Walmart, Costco, Superama)"
+                          value={quincenaInputLocation}
+                          onChange={(e) => setQuincenaInputLocation(e.target.value)}
+                          className="flex-1 px-4 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl outline-none text-xs font-inter text-gray-900 dark:text-white"
+                        />
+                        <button
+                          type="submit"
+                          className="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-syne text-xs font-bold uppercase tracking-wider rounded-xl shadow-md hover:scale-105 active:scale-95 transition-all flex items-center justify-center gap-1.5"
+                        >
+                          <HiOutlinePlus className="text-base" />
+                          <span>Guardar en Mandado</span>
+                        </button>
+                      </div>
+                    </motion.form>
+                  )}
+                </AnimatePresence>
 
                 {/* Quincenal List Items */}
                 <div className="space-y-2.5 max-h-[45vh] overflow-y-auto pr-1 scrollbar-none">
                   {quincenalList.length === 0 ? (
                     <div className="p-8 text-center bg-gray-50 dark:bg-gray-800/50 rounded-2xl text-gray-400 space-y-1">
                       <p className="font-dm-sans font-bold text-base">No hay productos en tu mandado quincenal</p>
-                      <p className="font-inter text-xs">Agrega arriba los productos de tu consumo recurrente o insumos de cada 2 semanas.</p>
+                      <p className="font-inter text-xs">Presiona "+ Agregar Producto" para registrar tus productos de dieta o insumos.</p>
                     </div>
                   ) : (
                     quincenalList.map((item) => (
@@ -519,9 +596,17 @@ export default function Compras() {
                               </span>
 
                               <span className={`px-2 py-0.5 rounded-full text-[9px] font-syne font-bold uppercase tracking-wider ${
+                                getItemCategory(item) === 'comida'
+                                  ? 'bg-amber-100 dark:bg-amber-950/60 text-amber-600 dark:text-amber-300'
+                                  : 'bg-indigo-100 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-300'
+                              }`}>
+                                {getItemCategory(item) === 'comida' ? '🍔 Comida' : '🛒 Insumos'}
+                              </span>
+
+                              <span className={`px-2 py-0.5 rounded-full text-[9px] font-syne font-bold uppercase tracking-wider ${
                                 getItemType(item) === 'quincenal'
                                   ? 'bg-emerald-100 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-300'
-                                  : 'bg-indigo-100 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-300'
+                                  : 'bg-purple-100 dark:bg-purple-950/60 text-purple-600 dark:text-purple-300'
                               }`}>
                                 {getItemType(item) === 'quincenal' ? '🥗 Quincenal' : '📦 Hasta Agotar'}
                               </span>
@@ -530,7 +615,7 @@ export default function Compras() {
                             {item.location && (
                               <span className="font-inter text-xs text-gray-400 dark:text-gray-500 flex items-center gap-1 mt-0.5">
                                 <HiOutlineLocationMarker className="text-xs shrink-0" />
-                                <span className="truncate">{item.location.replace(/^(🥗 Quincenal|📦 Agotamiento) — /, '')}</span>
+                                <span className="truncate">{item.location.replace(/^([^—]+)— /, '')}</span>
                               </span>
                             )}
                           </div>
@@ -571,40 +656,21 @@ export default function Compras() {
                 <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 pt-4 border-t border-gray-100 dark:border-gray-800">
                   <div className="text-xs font-inter text-gray-500 space-y-0.5">
                     <div>
-                      Presupuesto estimado total: <strong className="text-gray-900 dark:text-white font-dm-sans text-sm">${quincenalList.reduce((acc, i) => acc + (i.price || 0), 0).toLocaleString()}</strong>
+                      Presupuesto total: <strong className="text-gray-900 dark:text-white font-dm-sans text-sm">${quincenalList.reduce((acc, i) => acc + (i.price || 0), 0).toLocaleString()}</strong>
                     </div>
                     <div>
-                      Comprados en esta quincena: <strong className="text-emerald-600 dark:text-emerald-400 font-dm-sans text-sm">${quincenalList.filter(i => i.bought).reduce((acc, i) => acc + (i.price || 0), 0).toLocaleString()}</strong>
+                      Comida: <strong className="text-amber-600 dark:text-amber-400 font-dm-sans text-xs">${quincenalList.filter(i => getItemCategory(i) === 'comida').reduce((acc, i) => acc + (i.price || 0), 0).toLocaleString()}</strong> | Insumos: <strong className="text-indigo-600 dark:text-indigo-400 font-dm-sans text-xs">${quincenalList.filter(i => getItemCategory(i) === 'insumos').reduce((acc, i) => acc + (i.price || 0), 0).toLocaleString()}</strong>
                     </div>
                   </div>
 
                   <div className="flex flex-wrap items-center gap-2">
                     <button
                       disabled={registeringFinance}
-                      onClick={() => {
-                        const totalComprados = quincenalList.filter(i => i.bought).reduce((acc, i) => acc + (i.price || 0), 0);
-                        const totalEstimado = quincenalList.reduce((acc, i) => acc + (i.price || 0), 0);
-                        const amountToUse = totalComprados > 0 ? totalComprados : totalEstimado;
-                        handleRegisterExpenseToFinanzas('comida', 'Mandado Quincenal (Alimentación)', amountToUse);
-                      }}
-                      className="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white font-syne text-xs font-bold uppercase tracking-wider rounded-xl transition-all shadow-sm flex items-center gap-1.5 interactive-hover"
-                      title="Registra este gasto en el módulo de Finanzas bajo la categoría Alimentación & Comida"
+                      onClick={handleSyncFinanzasExpenses}
+                      className="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white font-syne text-xs font-bold uppercase tracking-wider rounded-xl transition-all shadow-sm flex items-center gap-1.5 interactive-hover"
+                      title="Registra los gastos acumulados de Comida e Insumos en el módulo de Finanzas"
                     >
-                      <span>💸 Registrar en Finanzas (Comida)</span>
-                    </button>
-
-                    <button
-                      disabled={registeringFinance}
-                      onClick={() => {
-                        const totalComprados = quincenalList.filter(i => i.bought).reduce((acc, i) => acc + (i.price || 0), 0);
-                        const totalEstimado = quincenalList.reduce((acc, i) => acc + (i.price || 0), 0);
-                        const amountToUse = totalComprados > 0 ? totalComprados : totalEstimado;
-                        handleRegisterExpenseToFinanzas('insumos', 'Mandado Quincenal (Insumos)', amountToUse);
-                      }}
-                      className="px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white font-syne text-xs font-bold uppercase tracking-wider rounded-xl transition-all shadow-sm flex items-center gap-1.5 interactive-hover"
-                      title="Registra este gasto en Finanzas bajo la categoría Insumos & Casa"
-                    >
-                      <span>🏠 Insumos</span>
+                      <span>💸 Registrar en Finanzas</span>
                     </button>
 
                     <button

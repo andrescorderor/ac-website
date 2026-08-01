@@ -392,6 +392,14 @@ export default function DashboardHome() {
         </div>
 
         <div className="flex items-center gap-2 overflow-x-auto scrollbar-none pb-1">
+          <Link
+            to="/admin/panel/compras?quincena=true"
+            className="flex items-center gap-2 px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-2xl shadow-md text-xs font-syne font-bold uppercase tracking-wider active:scale-95 transition-all shrink-0 interactive-hover"
+            title="Abrir directamente tu listado de Mandado Quincenal e Insumos"
+          >
+            <span>🥗 Mandado</span>
+          </Link>
+
           <button
             onClick={handleTestNotification}
             className="flex items-center gap-2 px-3 py-2.5 bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm text-xs font-syne font-bold uppercase tracking-wider text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 active:scale-95 transition-all shrink-0"
