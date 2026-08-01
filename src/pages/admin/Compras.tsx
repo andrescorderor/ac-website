@@ -86,6 +86,13 @@ export default function Compras() {
     }
   }, [searchParams]);
 
+  const isMandadoItem = (item: ShoppingItem): boolean => {
+    if (item.type === 'quincenal' || item.type === 'ocasional') return true;
+    if (item.category === 'quincenal' || item.category === 'ocasional' || item.category === 'comida' || item.category === 'insumos') return true;
+    if (item.location?.includes('Quincenal') || item.location?.includes('Agotar') || item.location?.includes('Agotamiento') || item.location?.includes('Mandado') || item.location?.includes('Comida') || item.location?.includes('Insumos') || item.location?.includes('🍔') || item.location?.includes('🛒') || item.location?.includes('🥗') || item.location?.includes('📦')) return true;
+    return false;
+  };
+
   const getItemType = (item: ShoppingItem): 'quincenal' | 'ocasional' => {
     if (item.type === 'quincenal' || item.type === 'ocasional') return item.type;
     if (item.category === 'quincenal' || item.category === 'ocasional') return item.category as 'quincenal' | 'ocasional';
@@ -155,11 +162,13 @@ export default function Compras() {
         ? `${catText} | ${freqText} — ${storeText}`
         : `${catText} | ${freqText}`;
 
+      const itemPrice = quincenaInputPrice ? parseFloat(quincenaInputPrice) : null;
+
       const payload: any = {
         user_id: user.id,
         name: quincenaInputName.trim(),
         location: locText,
-        price: quincenaInputPrice ? parseFloat(quincenaInputPrice) : null,
+        price: itemPrice,
         priority: 'Media',
         type: quincenaInputType,
         category: quincenaInputCategory,
@@ -184,7 +193,19 @@ export default function Compras() {
         setQuincenaInputLocation('');
         setQuincenaInputPrice('');
         setShowQuincenaAddForm(false);
-        toast.success(`Producto agregado a Mandado (${quincenaInputCategory === 'comida' ? 'Comida 🍔' : 'Insumos 🛒'})`);
+
+        // AUTOMATIC FINANZAS LOGGING
+        if (itemPrice && itemPrice > 0) {
+          await supabase.from('finance_expenses').insert([{
+            user_id: user.id,
+            concept: `Mandado — ${payload.name}`,
+            amount: itemPrice,
+            category: quincenaInputCategory,
+          }]);
+          toast.success(`💸 $${itemPrice.toLocaleString()} en ${quincenaInputCategory === 'comida' ? 'Comida 🍔' : 'Insumos 🛒'} registrado automáticamente en Finanzas`);
+        } else {
+          toast.success(`Producto agregado a Mandado (${quincenaInputCategory === 'comida' ? 'Comida 🍔' : 'Insumos 🛒'})`);
+        }
       }
     } catch (err: any) {
       toast.error('Error al agregar: ' + err.message);
@@ -197,7 +218,7 @@ export default function Compras() {
       if (error) throw error;
 
       setItems(items.map((i) => (i.id === id ? { ...i, bought: false } : i)));
-      toast.info('⚠️ Producto marcado como Agotado. Agregado a pendientes de la quincena.');
+      toast.info('⚠️ Producto marcado como Agotado. Listo para comprar nuevamente.');
     } catch (err: any) {
       toast.error('Error al marcar como agotado: ' + err.message);
     }
@@ -207,7 +228,7 @@ export default function Compras() {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
 
-    const quincenalList = items.filter((i) => getItemType(i) === 'quincenal');
+    const quincenalList = items.filter(isMandadoItem);
     const comidaItems = quincenalList.filter(i => getItemCategory(i) === 'comida');
     const insumosItems = quincenalList.filter(i => getItemCategory(i) === 'insumos');
 
@@ -256,7 +277,7 @@ export default function Compras() {
   };
 
   const handleRenewQuincenal = async () => {
-    const quincenalItems = items.filter((i) => getItemType(i) === 'quincenal');
+    const quincenalItems = items.filter(isMandadoItem);
     if (quincenalItems.length === 0) {
       toast.info('No tienes artículos en tu Mandado Quincenal 🥗');
       return;
@@ -271,19 +292,37 @@ export default function Compras() {
 
       if (error) throw error;
 
-      setItems(items.map((i) => (getItemType(i) === 'quincenal' ? { ...i, bought: false } : i)));
-      toast.success(`🥗 ¡Mandado quincenal desmarcado! Todos los productos están listos para la nueva quincena.`);
+      setItems(items.map((i) => (isMandadoItem(i) ? { ...i, bought: false } : i)));
+      toast.success(`🥗 ¡Mandado desmarcado! Todos los productos están listos para la nueva quincena.`);
     } catch (err: any) {
       toast.error('Error al renovar mandado quincenal: ' + err.message);
     }
   };
 
   const toggleBought = async (id: string, currentStatus: boolean) => {
+    const item = items.find((i) => i.id === id);
     try {
       const { error } = await supabase.from('shopping_list').update({ bought: !currentStatus }).eq('id', id);
       if (error) throw error;
 
       setItems(items.map((i) => (i.id === id ? { ...i, bought: !currentStatus } : i)));
+
+      // AUTOMATIC FINANZAS LOGGING WHEN MARKING MANDADO ITEM AS BOUGHT
+      if (!currentStatus && item && isMandadoItem(item) && item.price && item.price > 0) {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          const cat = getItemCategory(item);
+          await supabase.from('finance_expenses').insert([{
+            user_id: user.id,
+            concept: `Mandado — ${item.name}`,
+            amount: item.price,
+            category: cat,
+          }]);
+          toast.success(`🛒 Comprado + 💸 $${item.price.toLocaleString()} auto-registrado en Finanzas (${cat === 'comida' ? 'Comida 🍔' : 'Insumos 🛒'})`);
+          return;
+        }
+      }
+
       toast.info(!currentStatus ? 'Artículo comprado 🛒' : 'Artículo marcado como pendiente');
     } catch (err: any) {
       toast.error('Error al actualizar estado: ' + err.message);
@@ -302,8 +341,8 @@ export default function Compras() {
     }
   };
 
-  const quincenalList = items.filter((i) => getItemType(i) === 'quincenal');
-  const generalList = items.filter((i) => getItemType(i) !== 'quincenal');
+  const quincenalList = items.filter(isMandadoItem);
+  const generalList = items.filter((i) => !isMandadoItem(i));
 
   const filteredItems = generalList.filter((i) => {
     const matchesFilter =
@@ -463,15 +502,15 @@ export default function Compras() {
                   <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap shrink-0">
                     <button
                       onClick={() => setShowQuincenaAddForm(!showQuincenaAddForm)}
-                      className="flex-1 sm:flex-none px-3.5 py-2.5 bg-black dark:bg-white text-white dark:text-black font-syne text-xs font-bold uppercase tracking-wider rounded-xl transition-all shadow-sm flex items-center justify-center gap-1.5 interactive-hover shrink-0"
+                      className="flex-1 sm:flex-none px-4 py-2.5 bg-black dark:bg-white text-white dark:text-black font-syne text-xs font-bold uppercase tracking-wider rounded-xl transition-all shadow-sm flex items-center justify-center gap-1.5 interactive-hover shrink-0"
                     >
                       <HiOutlinePlus className="text-base" />
-                      <span>{showQuincenaAddForm ? 'Ocultar' : '+ Agregar'}</span>
+                      <span>{showQuincenaAddForm ? 'Ocultar' : '+ Agregar Producto'}</span>
                     </button>
 
                     <button
                       onClick={handleRenewQuincenal}
-                      className="flex-1 sm:flex-none px-3.5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-syne text-xs font-bold uppercase tracking-wider rounded-xl transition-all shadow-sm flex items-center justify-center gap-1.5 interactive-hover shrink-0"
+                      className="flex-1 sm:flex-none px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-syne text-xs font-bold uppercase tracking-wider rounded-xl transition-all shadow-sm flex items-center justify-center gap-1.5 interactive-hover shrink-0"
                       title="Desmarca todos los artículos para iniciar una nueva quincena"
                     >
                       <HiOutlineRefresh className="text-base" />
@@ -488,7 +527,7 @@ export default function Compras() {
                       animate={{ opacity: 1, height: 'auto' }}
                       exit={{ opacity: 0, height: 0 }}
                       onSubmit={handleAddQuincenaItem}
-                      className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 bg-gray-50 dark:bg-gray-800/60 p-4 rounded-2xl border border-gray-100 dark:border-gray-700/80 overflow-hidden w-full"
+                      className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 bg-gray-50 dark:bg-gray-800/60 p-4 rounded-2xl border border-gray-100 dark:border-gray-700/80 w-full relative z-20"
                     >
                       <div>
                         <label className="block font-syne text-[9px] font-bold uppercase tracking-widest text-gray-400 mb-1">Producto *</label>

@@ -33,7 +33,7 @@ export default function CustomSelect({ value, onChange, options, placeholder = "
   const selectedOption = options.find(opt => opt.value === value);
 
   return (
-    <div className={`relative ${className}`} ref={containerRef}>
+    <div className={`relative ${isOpen ? 'z-[99999]' : 'z-10'} ${className}`} ref={containerRef}>
       <div 
         onClick={() => !disabled && setIsOpen(!isOpen)}
         className={`flex items-center justify-between w-full px-5 py-3.5 bg-gray-50/80 dark:bg-gray-800/80 border border-gray-100 dark:border-gray-700/80 rounded-xl cursor-pointer hover:border-gray-300 dark:hover:border-gray-500 transition-all font-inter text-sm text-gray-900 dark:text-gray-100 shadow-xs select-none ${
