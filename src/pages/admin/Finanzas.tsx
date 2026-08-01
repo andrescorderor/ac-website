@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { supabase } from '@/lib/supabase';
-import { HiOutlinePlus, HiOutlineEye, HiOutlineEyeOff, HiOutlineSearch, HiX } from 'react-icons/hi';
+import { HiOutlinePlus, HiOutlineTrash, HiOutlineEye, HiOutlineEyeOff, HiOutlineSearch, HiX } from 'react-icons/hi';
 import { useToast } from '@/components/common/ToastContext';
 import MandadoModal from '@/components/admin/MandadoModal';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -174,6 +174,17 @@ export default function Finanzas() {
     }
   };
 
+
+  const handleDeleteExpense = async (id: string) => {
+    try {
+      const { error } = await supabase.from('finance_expenses').delete().eq('id', id);
+      if (error) throw error;
+      setExpenses(expenses.filter((e) => e.id !== id));
+      toast.success('Servicio eliminado correctamente');
+    } catch (err: any) {
+      toast.error('Error al eliminar servicio: ' + err.message);
+    }
+  };
 
   const getCategoryTotal = (category: string) => {
     return expenses
@@ -390,6 +401,16 @@ export default function Finanzas() {
                           {formatAmount(exp.amount)}
                         </span>
                       </div>
+
+                      {cat === 'servicios' && !exp.id.startsWith('mandado-') && (
+                        <button
+                          onClick={() => handleDeleteExpense(exp.id)}
+                          className="p-2 text-red-500 dark:text-red-400 bg-red-500/10 dark:bg-red-500/20 hover:bg-red-500/20 dark:hover:bg-red-500/35 border border-red-500/20 dark:border-red-500/30 rounded-xl transition-all opacity-100 lg:opacity-0 lg:group-hover:opacity-100 active:scale-95 shrink-0"
+                          title="Eliminar servicio"
+                        >
+                          <HiOutlineTrash className="text-base" />
+                        </button>
+                      )}
                     </motion.div>
                   ))}
                   {expenses.filter((e) => e.category === cat && (!searchTerm || e.concept.toLowerCase().includes(searchTerm.toLowerCase()))).length === 0 && (
