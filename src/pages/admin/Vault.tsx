@@ -288,7 +288,7 @@ export default function Vault() {
                     </button>
                     <button 
                       onClick={() => deleteItem(item.id)}
-                      className="opacity-0 group-hover:opacity-100 p-1.5 text-red-300 dark:text-red-400 hover:text-red-500 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-xl transition-all"
+                      className="opacity-0 group-hover:opacity-100 p-2 text-red-500 dark:text-red-400 bg-red-500/10 dark:bg-red-500/20 hover:bg-red-500/20 dark:hover:bg-red-500/35 border border-red-500/20 dark:border-red-500/30 rounded-xl transition-all"
                     >
                       <HiOutlineTrash />
                     </button>

@@ -386,7 +386,7 @@ export default function Deudas() {
                         </button>
                         <button
                           onClick={() => deleteDebt(debt.id)}
-                          className="p-2 text-gray-300 dark:text-gray-600 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-xl transition-all"
+                          className="p-2 text-red-500 dark:text-red-400 bg-red-500/10 dark:bg-red-500/20 hover:bg-red-500/20 dark:hover:bg-red-500/35 border border-red-500/20 dark:border-red-500/30 rounded-xl transition-all shrink-0"
                           title="Eliminar registro"
                         >
                           <HiOutlineTrash className="text-lg" />
