@@ -36,17 +36,26 @@ export default function MandadoModal({ isOpen, onClose }: MandadoModalProps) {
 
   useEffect(() => {
     if (isOpen) {
-      fetchItems();
+      fetchItemsAndAutoSeed();
     }
   }, [isOpen]);
 
-  const fetchItems = async () => {
+  const fetchItemsAndAutoSeed = async () => {
     const { data } = await supabase
       .from('shopping_list')
       .select('*')
       .order('created_at', { ascending: false });
 
-    if (data) setItems(data);
+    if (data) {
+      setItems(data);
+
+      // Check if mandado items already exist
+      const existingMandado = data.filter(isMandadoItem);
+      if (existingMandado.length === 0) {
+        // Automatically insert the 63 base items into the database
+        await handleImportInitialList();
+      }
+    }
   };
 
   const isMandadoItem = (item: ShoppingItem): boolean => {
@@ -380,24 +389,16 @@ export default function MandadoModal({ isOpen, onClose }: MandadoModalProps) {
 
             <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap shrink-0">
               <button
-                onClick={handleImportInitialList}
-                className="px-3 py-2 bg-amber-500 hover:bg-amber-600 text-white font-syne text-[11px] font-bold uppercase tracking-wider rounded-xl transition-all shadow-xs flex items-center justify-center gap-1 interactive-hover shrink-0"
-                title="Registra tus 63 artículos de Mandado Quincenal e Insumos"
-              >
-                <span>📥 Cargar Lista (63)</span>
-              </button>
-
-              <button
                 onClick={() => setShowAddForm(!showAddForm)}
-                className="px-3 py-2 bg-black dark:bg-white text-white dark:text-black font-syne text-[11px] font-bold uppercase tracking-wider rounded-xl transition-all shadow-xs flex items-center justify-center gap-1 interactive-hover shrink-0"
+                className="px-4 py-2 bg-black dark:bg-white text-white dark:text-black font-syne text-xs font-bold uppercase tracking-wider rounded-xl transition-all shadow-xs flex items-center justify-center gap-1.5 interactive-hover shrink-0"
               >
                 <HiOutlinePlus className="text-sm" />
-                <span>{showAddForm ? 'Ocultar' : '+ Agregar'}</span>
+                <span>{showAddForm ? 'Ocultar' : '+ Agregar Producto'}</span>
               </button>
 
               <button
                 onClick={handleRenewQuincenal}
-                className="px-3 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-syne text-[11px] font-bold uppercase tracking-wider rounded-xl transition-all shadow-xs flex items-center justify-center gap-1 interactive-hover shrink-0"
+                className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-syne text-xs font-bold uppercase tracking-wider rounded-xl transition-all shadow-xs flex items-center justify-center gap-1.5 interactive-hover shrink-0"
                 title="Desmarca todos los artículos para iniciar una nueva quincena"
               >
                 <HiOutlineRefresh className="text-sm" />
@@ -486,17 +487,9 @@ export default function MandadoModal({ isOpen, onClose }: MandadoModalProps) {
           {/* Quincenal List Items */}
           <div className="space-y-2.5 max-h-[45vh] overflow-y-auto pr-1 scrollbar-none w-full">
             {quincenalList.length === 0 ? (
-              <div className="p-8 text-center bg-gray-50 dark:bg-gray-800/50 rounded-2xl text-gray-400 space-y-3 flex flex-col items-center justify-center">
-                <div>
-                  <p className="font-dm-sans font-bold text-base text-gray-800 dark:text-gray-200">No hay productos en tu mandado quincenal</p>
-                  <p className="font-inter text-xs mt-0.5">Puedes registrarlos manualmente o cargar tu listado base completo de 63 productos.</p>
-                </div>
-                <button
-                  onClick={handleImportInitialList}
-                  className="px-5 py-2.5 bg-amber-500 hover:bg-amber-600 text-white font-syne text-xs font-bold uppercase tracking-wider rounded-xl transition-all shadow-md interactive-hover flex items-center gap-2"
-                >
-                  <span>📥 Cargar Mi Lista Base (63 Productos)</span>
-                </button>
+              <div className="p-8 text-center bg-gray-50 dark:bg-gray-800/50 rounded-2xl text-gray-400 space-y-1">
+                <p className="font-dm-sans font-bold text-base text-gray-800 dark:text-gray-200">No hay productos en tu mandado quincenal</p>
+                <p className="font-inter text-xs">Presiona "+ Agregar Producto" para registrar más productos.</p>
               </div>
             ) : (
               quincenalList.map((item) => (
