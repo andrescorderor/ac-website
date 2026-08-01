@@ -43,9 +43,9 @@ The productivity hub is a mobile-optimized private dashboard with 11 specialized
 
 ---
 
-## ✨ Design System & Master UX Specs (v1.202.0)
+## ✨ Design System & Master UX Specs (v1.203.0)
 
-*   🏷️ **Automatic Commit-Based Versioning (`v1.202.0`):** Live versioning indicator displayed seamlessly in desktop and mobile sidebars.
+*   🏷️ **Automatic Commit-Based Versioning (`v1.203.0`):** Live versioning indicator displayed seamlessly in desktop and mobile sidebars.
 
 *   👁️ **Global Privacy Mode & Dark Mode Default:** One-click toggle to mask financial values and default high-contrast dark theme.
 *   🪟 **Universal Portal Floating Modals:** Every form across all 11 modules utilizes a React `createPortal` modal system rendered directly into `document.body` with fixed backdrop blurs (`backdrop-blur-sm`), smooth entrance animations, and full z-index isolation.

@@ -370,204 +370,207 @@ export default function MandadoModal({ isOpen, onClose }: MandadoModalProps) {
 
   return createPortal(
     <AnimatePresence>
-      <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 sm:p-6 overflow-y-auto bg-black/60 backdrop-blur-sm">
+      <div className="fixed inset-0 z-[9999] flex items-center justify-center p-3 sm:p-6 bg-black/60 backdrop-blur-sm overflow-hidden">
         <motion.div
           initial={{ opacity: 0, scale: 0.95, y: 20 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.95, y: 20 }}
-          className="bg-white dark:bg-gray-900 rounded-[2.5rem] p-6 sm:p-8 max-h-[90vh] overflow-y-auto max-w-3xl w-full border-none shadow-2xl space-y-6 my-6"
+          className="bg-white dark:bg-gray-900 rounded-[2rem] sm:rounded-[2.5rem] p-5 sm:p-7 h-[90vh] max-h-[800px] max-w-3xl w-full border-none shadow-2xl flex flex-col overflow-hidden my-auto"
         >
-          {/* Header of Modal */}
-          <div className="flex items-start justify-between gap-4 border-b border-gray-100 dark:border-gray-800 pb-4">
-            <div className="min-w-0 flex-1">
-              <div className="flex items-center gap-2">
-                <span className="text-2xl shrink-0">🥗</span>
-                <h2 className="font-dm-sans text-xl sm:text-2xl font-bold text-gray-900 dark:text-white truncate">
-                  Mandado Quincenal & Insumos
-                </h2>
+          {/* ═══ FIXED HEADER SECTION ═══ */}
+          <div className="shrink-0 space-y-3.5 pb-3.5 border-b border-gray-100 dark:border-gray-800">
+            {/* Title & Close button */}
+            <div className="flex items-start justify-between gap-4">
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center gap-2">
+                  <span className="text-2xl shrink-0">🥗</span>
+                  <h2 className="font-dm-sans text-xl sm:text-2xl font-bold text-gray-900 dark:text-white truncate">
+                    Mandado Quincenal & Insumos
+                  </h2>
+                </div>
+                <p className="font-inter text-xs text-gray-400 mt-0.5 truncate">
+                  Listado de compras recurrente para tu alimentación e insumos de casa.
+                </p>
               </div>
-              <p className="font-inter text-xs text-gray-400 mt-1">
-                Listado de compras recurrente para tu alimentación e insumos de casa.
-              </p>
+              <button
+                type="button"
+                onClick={onClose}
+                className="p-2 rounded-xl text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 transition-all shrink-0"
+              >
+                <HiX className="text-xl" />
+              </button>
             </div>
-            <button
-              type="button"
-              onClick={onClose}
-              className="p-2 rounded-xl text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 transition-all shrink-0"
-            >
-              <HiX className="text-xl" />
-            </button>
-          </div>
 
-          {/* Progress & Controls Header */}
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-emerald-50/60 dark:bg-emerald-950/30 p-4 rounded-2xl border border-emerald-100 dark:border-emerald-900/40 w-full">
-            <div className="space-y-1.5 min-w-0 flex-1">
-              <div className="flex items-center gap-2 flex-wrap">
-                <span className="font-syne text-xs font-bold uppercase tracking-wider text-emerald-800 dark:text-emerald-300">
-                  {rawQuincenalList.filter(i => i.bought).length} de {rawQuincenalList.length} comprados
-                </span>
-                {rawQuincenalList.length > 0 && (
-                  <span className="text-xs font-dm-sans font-bold text-emerald-600 dark:text-emerald-400">
-                    ({Math.round((rawQuincenalList.filter(i => i.bought).length / rawQuincenalList.length) * 100)}%)
+            {/* Progress & Control Buttons Header */}
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 bg-emerald-50/60 dark:bg-emerald-950/30 p-3 sm:p-3.5 rounded-2xl border border-emerald-100 dark:border-emerald-900/40 w-full">
+              <div className="space-y-1 min-w-0 flex-1">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="font-syne text-xs font-bold uppercase tracking-wider text-emerald-800 dark:text-emerald-300">
+                    {rawQuincenalList.filter(i => i.bought).length} de {rawQuincenalList.length} comprados
                   </span>
-                )}
+                  {rawQuincenalList.length > 0 && (
+                    <span className="text-xs font-dm-sans font-bold text-emerald-600 dark:text-emerald-400">
+                      ({Math.round((rawQuincenalList.filter(i => i.bought).length / rawQuincenalList.length) * 100)}%)
+                    </span>
+                  )}
+                </div>
+                <div className="w-full max-w-xs bg-emerald-200/60 dark:bg-emerald-900/60 h-2 rounded-full overflow-hidden">
+                  <div 
+                    className="bg-emerald-500 h-full transition-all duration-500 rounded-full" 
+                    style={{ width: `${rawQuincenalList.length > 0 ? (rawQuincenalList.filter(i => i.bought).length / rawQuincenalList.length) * 100 : 0}%` }}
+                  />
+                </div>
               </div>
-              <div className="w-full max-w-xs bg-emerald-200/60 dark:bg-emerald-900/60 h-2.5 rounded-full overflow-hidden">
-                <div 
-                  className="bg-emerald-500 h-full transition-all duration-500 rounded-full" 
-                  style={{ width: `${rawQuincenalList.length > 0 ? (rawQuincenalList.filter(i => i.bought).length / rawQuincenalList.length) * 100 : 0}%` }}
-                />
-              </div>
-            </div>
 
-            <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap shrink-0">
-              <button
-                onClick={() => setShowAddForm(!showAddForm)}
-                className="px-4 py-2 bg-black dark:bg-white text-white dark:text-black font-syne text-xs font-bold uppercase tracking-wider rounded-xl transition-all shadow-xs flex items-center justify-center gap-1.5 interactive-hover shrink-0"
-              >
-                <HiOutlinePlus className="text-sm" />
-                <span>{showAddForm ? 'Ocultar' : '+ Agregar Producto'}</span>
-              </button>
-
-              <button
-                onClick={handleRenewQuincenal}
-                className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-syne text-xs font-bold uppercase tracking-wider rounded-xl transition-all shadow-xs flex items-center justify-center gap-1.5 interactive-hover shrink-0"
-                title="Desmarca todos los artículos para iniciar una nueva quincena"
-              >
-                <HiOutlineRefresh className="text-sm" />
-                <span>Nueva Quincena 🔄</span>
-              </button>
-            </div>
-          </div>
-
-          {/* Search & Filter Bar */}
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 w-full">
-            <div className="flex items-center gap-1 bg-gray-100 dark:bg-gray-800/80 p-1 rounded-xl overflow-x-auto shrink-0 scrollbar-none">
-              {[
-                { key: 'all', label: `Todos (${rawQuincenalList.length})` },
-                { key: 'pending', label: `Pendientes (${rawQuincenalList.filter(i => !i.bought).length})` },
-                { key: 'comida', label: `Comida 🍔` },
-                { key: 'insumos', label: `Insumos 🛒` },
-              ].map(tab => (
+              <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap shrink-0">
                 <button
-                  key={tab.key}
-                  onClick={() => setActiveTab(tab.key as any)}
-                  className={`px-3 py-1.5 rounded-lg font-syne text-[10px] font-bold uppercase tracking-wider transition-all whitespace-nowrap ${
-                    activeTab === tab.key
-                      ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-xs'
-                      : 'text-gray-500 hover:text-gray-900 dark:hover:text-white'
-                  }`}
+                  onClick={() => setShowAddForm(!showAddForm)}
+                  className="px-3.5 py-1.5 bg-black dark:bg-white text-white dark:text-black font-syne text-xs font-bold uppercase tracking-wider rounded-xl transition-all shadow-xs flex items-center justify-center gap-1.5 interactive-hover shrink-0"
                 >
-                  {tab.label}
+                  <HiOutlinePlus className="text-sm" />
+                  <span>{showAddForm ? 'Ocultar Formulario' : '+ Agregar Producto'}</span>
                 </button>
-              ))}
+
+                <button
+                  onClick={handleRenewQuincenal}
+                  className="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-syne text-xs font-bold uppercase tracking-wider rounded-xl transition-all shadow-xs flex items-center justify-center gap-1.5 interactive-hover shrink-0"
+                  title="Desmarca todos los artículos para iniciar una nueva quincena"
+                >
+                  <HiOutlineRefresh className="text-sm" />
+                  <span>Nueva Quincena 🔄</span>
+                </button>
+              </div>
             </div>
 
-            <div className="relative flex-1 max-w-xs min-w-[180px]">
-              <input
-                type="text"
-                placeholder="Buscar en mandado..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-9 pr-3 py-1.5 bg-gray-50 dark:bg-gray-800/60 border border-gray-200 dark:border-gray-700/80 rounded-xl outline-none text-xs font-inter text-gray-900 dark:text-white placeholder-gray-400"
-              />
-              <HiOutlineSearch className="absolute left-3 top-2 text-sm text-gray-400" />
+            {/* Search & Filter Tabs Bar */}
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5 w-full">
+              <div className="flex items-center gap-1 bg-gray-100 dark:bg-gray-800/80 p-1 rounded-xl overflow-x-auto shrink-0 scrollbar-none">
+                {[
+                  { key: 'all', label: `Todos (${rawQuincenalList.length})` },
+                  { key: 'pending', label: `Pendientes (${rawQuincenalList.filter(i => !i.bought).length})` },
+                  { key: 'comida', label: `Comida 🍔` },
+                  { key: 'insumos', label: `Insumos 🛒` },
+                ].map(tab => (
+                  <button
+                    key={tab.key}
+                    onClick={() => setActiveTab(tab.key as any)}
+                    className={`px-3 py-1 rounded-lg font-syne text-[10px] font-bold uppercase tracking-wider transition-all whitespace-nowrap ${
+                      activeTab === tab.key
+                        ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-xs'
+                        : 'text-gray-500 hover:text-gray-900 dark:hover:text-white'
+                    }`}
+                  >
+                    {tab.label}
+                  </button>
+                ))}
+              </div>
+
+              <div className="relative flex-1 max-w-xs min-w-[160px]">
+                <input
+                  type="text"
+                  placeholder="Buscar en mandado..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-full pl-8 pr-3 py-1 bg-gray-50 dark:bg-gray-800/60 border border-gray-200 dark:border-gray-700/80 rounded-xl outline-none text-xs font-inter text-gray-900 dark:text-white placeholder-gray-400"
+                />
+                <HiOutlineSearch className="absolute left-2.5 top-1.5 text-xs text-gray-400" />
+              </div>
             </div>
-          </div>
 
-          {/* Collapsible Quick Add Form */}
-          <AnimatePresence>
-            {showAddForm && (
-              <motion.form
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: 'auto' }}
-                exit={{ opacity: 0, height: 0 }}
-                onSubmit={handleAddItem}
-                className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 bg-gray-50 dark:bg-gray-800/60 p-4 rounded-2xl border border-gray-100 dark:border-gray-700/80 w-full relative z-20"
-              >
-                <div>
-                  <label className="block font-syne text-[9px] font-bold uppercase tracking-widest text-gray-400 mb-1">Producto *</label>
-                  <input
-                    type="text"
-                    placeholder="Pechuga, Detergente..."
-                    value={inputName}
-                    onChange={(e) => setInputName(e.target.value)}
-                    className="w-full px-3.5 py-2.5 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl outline-none text-sm font-inter text-gray-900 dark:text-white"
-                  />
-                </div>
-
-                <div>
-                  <label className="block font-syne text-[9px] font-bold uppercase tracking-widest text-gray-400 mb-1">Cantidad</label>
-                  <input
-                    type="text"
-                    placeholder="ej. 1, 2, 500g, 1 kg"
-                    value={inputQuantity}
-                    onChange={(e) => setInputQuantity(e.target.value)}
-                    className="w-full px-3.5 py-2.5 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl outline-none text-sm font-inter text-gray-900 dark:text-white"
-                  />
-                </div>
-
-                <div>
-                  <label className="block font-syne text-[9px] font-bold uppercase tracking-widest text-gray-400 mb-1">Categoría</label>
-                  <CustomSelect
-                    value={inputCategory}
-                    onChange={(val) => setInputCategory(val as 'comida' | 'insumos')}
-                    options={[
-                      { value: 'comida', label: 'Comida 🍔' },
-                      { value: 'insumos', label: 'Insumos 🛒' },
-                    ]}
-                  />
-                </div>
-
-                <div>
-                  <label className="block font-syne text-[9px] font-bold uppercase tracking-widest text-gray-400 mb-1">Frecuencia</label>
-                  <CustomSelect
-                    value={inputType}
-                    onChange={(val) => setInputType(val as 'quincenal' | 'ocasional')}
-                    options={[
-                      { value: 'quincenal', label: 'Quincenal 🥗' },
-                      { value: 'ocasional', label: 'Hasta Agotar 📦' },
-                    ]}
-                  />
-                </div>
-
-                <div className="col-span-1 sm:col-span-2 lg:col-span-4 grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">
+            {/* Collapsible Quick Add Form */}
+            <AnimatePresence>
+              {showAddForm && (
+                <motion.form
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  exit={{ opacity: 0, height: 0 }}
+                  onSubmit={handleAddItem}
+                  className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 bg-gray-50 dark:bg-gray-800/60 p-3.5 rounded-2xl border border-gray-100 dark:border-gray-700/80 w-full relative z-20"
+                >
                   <div>
-                    <label className="block font-syne text-[9px] font-bold uppercase tracking-widest text-gray-400 mb-1">Precio Total ($)</label>
-                    <input
-                      type="number"
-                      step="0.01"
-                      placeholder="0.00 (Precio total)"
-                      value={inputPrice}
-                      onChange={(e) => setInputPrice(e.target.value)}
-                      className="w-full px-3.5 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl outline-none text-xs font-inter text-gray-900 dark:text-white"
-                    />
-                  </div>
-                  <div className="sm:col-span-2 flex flex-col sm:flex-row items-stretch sm:items-end gap-3">
+                    <label className="block font-syne text-[9px] font-bold uppercase tracking-widest text-gray-400 mb-1">Producto *</label>
                     <input
                       type="text"
-                      placeholder="Lugar / Tienda (ej. Walmart, Costco)"
-                      value={inputLocation}
-                      onChange={(e) => setInputLocation(e.target.value)}
-                      className="flex-1 px-3.5 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl outline-none text-xs font-inter text-gray-900 dark:text-white"
+                      placeholder="Pechuga, Detergente..."
+                      value={inputName}
+                      onChange={(e) => setInputName(e.target.value)}
+                      className="w-full px-3 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl outline-none text-xs font-inter text-gray-900 dark:text-white"
                     />
-                    <button
-                      type="submit"
-                      className="px-6 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-syne text-xs font-bold uppercase tracking-wider rounded-xl shadow-md hover:scale-105 active:scale-95 transition-all flex items-center justify-center gap-1.5 shrink-0 h-[34px]"
-                    >
-                      <HiOutlinePlus className="text-base" />
-                      <span>Guardar</span>
-                    </button>
                   </div>
-                </div>
-              </motion.form>
-            )}
-          </AnimatePresence>
 
-          {/* Quincenal List Items */}
-          <div className="space-y-2.5 max-h-[55vh] overflow-y-auto pr-1 scrollbar-none w-full">
+                  <div>
+                    <label className="block font-syne text-[9px] font-bold uppercase tracking-widest text-gray-400 mb-1">Cantidad</label>
+                    <input
+                      type="text"
+                      placeholder="ej. 1, 2, 500g, 1 kg"
+                      value={inputQuantity}
+                      onChange={(e) => setInputQuantity(e.target.value)}
+                      className="w-full px-3 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl outline-none text-xs font-inter text-gray-900 dark:text-white"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block font-syne text-[9px] font-bold uppercase tracking-widest text-gray-400 mb-1">Categoría</label>
+                    <CustomSelect
+                      value={inputCategory}
+                      onChange={(val) => setInputCategory(val as 'comida' | 'insumos')}
+                      options={[
+                        { value: 'comida', label: 'Comida 🍔' },
+                        { value: 'insumos', label: 'Insumos 🛒' },
+                      ]}
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block font-syne text-[9px] font-bold uppercase tracking-widest text-gray-400 mb-1">Frecuencia</label>
+                    <CustomSelect
+                      value={inputType}
+                      onChange={(val) => setInputType(val as 'quincenal' | 'ocasional')}
+                      options={[
+                        { value: 'quincenal', label: 'Quincenal 🥗' },
+                        { value: 'ocasional', label: 'Hasta Agotar 📦' },
+                      ]}
+                    />
+                  </div>
+
+                  <div className="col-span-1 sm:col-span-2 lg:col-span-4 grid grid-cols-1 sm:grid-cols-3 gap-2.5 pt-0.5">
+                    <div>
+                      <label className="block font-syne text-[9px] font-bold uppercase tracking-widest text-gray-400 mb-1">Precio Total ($)</label>
+                      <input
+                        type="number"
+                        step="0.01"
+                        placeholder="0.00 (Precio total)"
+                        value={inputPrice}
+                        onChange={(e) => setInputPrice(e.target.value)}
+                        className="w-full px-3 py-1.5 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl outline-none text-xs font-inter text-gray-900 dark:text-white"
+                      />
+                    </div>
+                    <div className="sm:col-span-2 flex flex-col sm:flex-row items-stretch sm:items-end gap-2">
+                      <input
+                        type="text"
+                        placeholder="Lugar / Tienda (ej. Walmart, Costco)"
+                        value={inputLocation}
+                        onChange={(e) => setInputLocation(e.target.value)}
+                        className="flex-1 px-3 py-1.5 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl outline-none text-xs font-inter text-gray-900 dark:text-white"
+                      />
+                      <button
+                        type="submit"
+                        className="px-5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-syne text-xs font-bold uppercase tracking-wider rounded-xl shadow-md hover:scale-105 active:scale-95 transition-all flex items-center justify-center gap-1 shrink-0 h-[32px]"
+                      >
+                        <HiOutlinePlus className="text-base" />
+                        <span>Guardar</span>
+                      </button>
+                    </div>
+                  </div>
+                </motion.form>
+              )}
+            </AnimatePresence>
+          </div>
+
+          {/* ═══ SCROLLABLE PRODUCT LIST BODY ═══ */}
+          <div className="flex-1 min-h-0 overflow-y-auto py-3 space-y-2 pr-1 w-full scrollbar-thin">
             {quincenalList.length === 0 ? (
-              <div className="p-8 text-center bg-gray-50 dark:bg-gray-800/50 rounded-2xl text-gray-400 space-y-1">
+              <div className="p-8 text-center bg-gray-50 dark:bg-gray-800/50 rounded-2xl text-gray-400 space-y-1 my-auto">
                 <p className="font-dm-sans font-bold text-base text-gray-800 dark:text-gray-200">No hay productos en tu mandado quincenal</p>
                 <p className="font-inter text-xs">Presiona "+ Agregar Producto" para registrar más productos.</p>
               </div>
@@ -575,10 +578,10 @@ export default function MandadoModal({ isOpen, onClose }: MandadoModalProps) {
               quincenalList.map((item) => (
                 <div
                   key={item.id}
-                  className={`flex flex-col sm:flex-row sm:items-center justify-between p-3.5 sm:p-4 rounded-2xl border transition-all gap-3 w-full min-w-0 overflow-hidden ${
+                  className={`flex flex-col sm:flex-row sm:items-center justify-between p-3 rounded-2xl border transition-all gap-2.5 w-full min-w-0 ${
                     item.bought 
                       ? 'bg-gray-50/80 dark:bg-gray-800/40 border-gray-100 dark:border-gray-800 opacity-60' 
-                      : 'bg-white dark:bg-gray-800/90 border-gray-100 dark:border-gray-700 shadow-xs'
+                      : 'bg-white dark:bg-gray-800/90 border-gray-100 dark:border-gray-700 shadow-xs hover:border-gray-200 dark:hover:border-gray-600'
                   }`}
                 >
                   <div className="flex items-start sm:items-center gap-3 min-w-0 flex-1 overflow-hidden">
@@ -646,7 +649,7 @@ export default function MandadoModal({ isOpen, onClose }: MandadoModalProps) {
                     )}
 
                     {item.price !== null && (
-                      <span className="font-dm-sans font-bold text-xs text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700/80 px-2.5 py-1.5 rounded-lg shrink-0">
+                      <span className="font-dm-sans font-bold text-xs text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700/80 px-2.5 py-1 rounded-lg shrink-0">
                         ${item.price.toLocaleString()}
                       </span>
                     )}
@@ -664,14 +667,14 @@ export default function MandadoModal({ isOpen, onClose }: MandadoModalProps) {
             )}
           </div>
 
-          {/* Clean Footer (No manual registrar en finanzas button) */}
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 pt-3.5 border-t border-gray-100 dark:border-gray-800 w-full">
+          {/* ═══ FIXED FOOTER SECTION (ALWAYS VISIBLE) ═══ */}
+          <div className="shrink-0 pt-3 border-t border-gray-100 dark:border-gray-800 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 w-full bg-white dark:bg-gray-900">
             <div className="text-xs font-inter text-gray-500 space-y-0.5 min-w-0">
               <div>
-                Presupuesto total: <strong className="text-gray-900 dark:text-white font-dm-sans text-sm">${quincenalList.reduce((acc, i) => acc + (i.price || 0), 0).toLocaleString()}</strong>
+                Presupuesto total: <strong className="text-gray-900 dark:text-white font-dm-sans text-sm">${rawQuincenalList.reduce((acc, i) => acc + (i.price || 0), 0).toLocaleString()}</strong>
               </div>
-              <div className="truncate">
-                Comida: <strong className="text-amber-600 dark:text-amber-400 font-dm-sans text-xs">${quincenalList.filter(i => getItemCategory(i) === 'comida').reduce((acc, i) => acc + (i.price || 0), 0).toLocaleString()}</strong> | Insumos: <strong className="text-indigo-600 dark:text-indigo-400 font-dm-sans text-xs">${quincenalList.filter(i => getItemCategory(i) === 'insumos').reduce((acc, i) => acc + (i.price || 0), 0).toLocaleString()}</strong>
+              <div className="truncate text-xs">
+                Comida: <strong className="text-amber-600 dark:text-amber-400 font-dm-sans">${rawQuincenalList.filter(i => getItemCategory(i) === 'comida').reduce((acc, i) => acc + (i.price || 0), 0).toLocaleString()}</strong> | Insumos: <strong className="text-indigo-600 dark:text-indigo-400 font-dm-sans">${rawQuincenalList.filter(i => getItemCategory(i) === 'insumos').reduce((acc, i) => acc + (i.price || 0), 0).toLocaleString()}</strong>
               </div>
             </div>
 
