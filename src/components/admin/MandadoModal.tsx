@@ -204,6 +204,114 @@ export default function MandadoModal({ isOpen, onClose }: MandadoModalProps) {
     }
   };
 
+  const handleImportInitialList = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      toast.error('Usuario no autenticado');
+      return;
+    }
+
+    const comidaItems = [
+      { name: 'Banana peppers', price: null, bought: false },
+      { name: 'Pollo (1 kg/semana)', price: 200, bought: true },
+      { name: 'Carne', price: 250, bought: true },
+      { name: 'Vino', price: 300, bought: true },
+      { name: 'Helado Cookies & Cream', price: 160, bought: true },
+      { name: 'Aceite', price: 80, bought: true },
+      { name: 'Lata de aceitunas', price: 60, bought: true },
+      { name: 'Palmitos', price: 60, bought: true },
+      { name: 'Aguacate', price: 60, bought: true },
+      { name: 'Queso Panela', price: 54, bought: true },
+      { name: 'Lechuga', price: 49, bought: true },
+      { name: 'Leche', price: 44, bought: true },
+      { name: 'Linaza', price: 38, bought: true },
+      { name: 'Jitomate', price: 34, bought: true },
+      { name: 'San Pellegrino', price: 33, bought: true },
+      { name: 'Yema de huevo / Tetrapack', price: 33, bought: true },
+      { name: 'Limón', price: 31, bought: true },
+      { name: 'Azúcar', price: 30, bought: true },
+      { name: 'Champiñones', price: 30, bought: true },
+      { name: 'Plátanos', price: 20, bought: true },
+      { name: 'Ajonjolí', price: 17, bought: true },
+      { name: 'Tortillas', price: 15, bought: true },
+      { name: 'Halls', price: 12, bought: true },
+      { name: 'Pepinillos', price: 69, bought: true },
+      { name: 'Jitomates deshidratados', price: null, bought: true },
+      { name: 'Semillas', price: null, bought: true },
+      { name: 'Jengibre', price: null, bought: true },
+      { name: 'Gordo lobo té', price: null, bought: true },
+      { name: 'Pimiento', price: 89, bought: true },
+      { name: 'Garrafón', price: null, bought: true },
+      { name: 'Rice papers', price: null, bought: true },
+      { name: 'Especias', price: null, bought: true },
+      { name: 'Sal', price: null, bought: true },
+      { name: 'Cúrcuma', price: null, bought: true },
+    ];
+
+    const insumosItems = [
+      { name: 'Papel de baño', price: 150, bought: true },
+      { name: 'Trapeador', price: 130, bought: true },
+      { name: 'Jabón ropa', price: 120, bought: true },
+      { name: 'Jabón de trastes', price: 82, bought: true },
+      { name: 'Cubeta', price: 80, bought: true },
+      { name: 'Servilletas', price: 61, bought: true },
+      { name: 'Jabón piso Pinol', price: 60, bought: true },
+      { name: 'Bote basura grande', price: 40, bought: true },
+      { name: 'Ziplock', price: 35, bought: true },
+      { name: 'Guantes', price: 30, bought: true },
+      { name: 'Bolsas basura', price: null, bought: true },
+      { name: 'Mini bote de basura', price: null, bought: true },
+      { name: 'Esponja de trastes', price: null, bought: true },
+      { name: 'Spray de baño', price: null, bought: true },
+      { name: 'Jabón manos', price: null, bought: true },
+      { name: 'Bote jabón trastes', price: null, bought: true },
+      { name: 'Encendedores', price: null, bought: false },
+      { name: 'Perfume / Perfume gym', price: 400, bought: true },
+      { name: 'Enjuague bucal', price: 80, bought: true },
+      { name: 'Shampoo', price: 80, bought: true },
+      { name: 'Crema facial', price: 72, bought: true },
+      { name: 'Crema corporal', price: 70, bought: true },
+      { name: 'Pasta de Dientes', price: 60, bought: true },
+      { name: 'Cera para pelo', price: 56, bought: true },
+      { name: 'Desodorante', price: null, bought: true },
+      { name: 'Acondicionador', price: null, bought: true },
+      { name: 'Exfoliante', price: null, bought: true },
+      { name: 'Minoxidil', price: null, bought: true },
+      { name: 'Vitaminas 760', price: null, bought: true },
+    ];
+
+    const records = [
+      ...comidaItems.map(item => ({
+        user_id: user.id,
+        name: item.name,
+        price: item.price,
+        bought: item.bought,
+        priority: 'Media',
+        location: '🍔 Comida | 🥗 Quincenal',
+      })),
+      ...insumosItems.map(item => ({
+        user_id: user.id,
+        name: item.name,
+        price: item.price,
+        bought: item.bought,
+        priority: 'Media',
+        location: '🛒 Insumos | 🥗 Quincenal',
+      })),
+    ];
+
+    try {
+      const { data, error } = await supabase.from('shopping_list').insert(records).select();
+      if (error) throw error;
+
+      if (data) {
+        setItems([...data, ...items]);
+        toast.success(`📥 ¡Lista registrada! ${data.length} productos agregados al Mandado`);
+      }
+    } catch (err: any) {
+      toast.error('Error al registrar lista: ' + err.message);
+    }
+  };
+
   const deleteItem = async (id: string) => {
     try {
       const { error } = await supabase.from('shopping_list').delete().eq('id', id);
@@ -249,9 +357,9 @@ export default function MandadoModal({ isOpen, onClose }: MandadoModalProps) {
             </button>
           </div>
 
-          {/* Progress & Reset Controls */}
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-emerald-50/60 dark:bg-emerald-950/30 p-3.5 sm:p-4 rounded-2xl border border-emerald-100 dark:border-emerald-900/40 w-full">
-            <div className="space-y-1 min-w-0">
+          {/* Progress & Controls Header */}
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-emerald-50/60 dark:bg-emerald-950/30 p-4 rounded-2xl border border-emerald-100 dark:border-emerald-900/40 w-full">
+            <div className="space-y-1.5 min-w-0 flex-1">
               <div className="flex items-center gap-2 flex-wrap">
                 <span className="font-syne text-xs font-bold uppercase tracking-wider text-emerald-800 dark:text-emerald-300">
                   {quincenalList.filter(i => i.bought).length} de {quincenalList.length} comprados
@@ -262,7 +370,7 @@ export default function MandadoModal({ isOpen, onClose }: MandadoModalProps) {
                   </span>
                 )}
               </div>
-              <div className="w-full sm:w-56 bg-emerald-200/60 dark:bg-emerald-900/60 h-2 rounded-full overflow-hidden">
+              <div className="w-full max-w-xs bg-emerald-200/60 dark:bg-emerald-900/60 h-2.5 rounded-full overflow-hidden">
                 <div 
                   className="bg-emerald-500 h-full transition-all duration-500 rounded-full" 
                   style={{ width: `${quincenalList.length > 0 ? (quincenalList.filter(i => i.bought).length / quincenalList.length) * 100 : 0}%` }}
@@ -272,19 +380,27 @@ export default function MandadoModal({ isOpen, onClose }: MandadoModalProps) {
 
             <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap shrink-0">
               <button
-                onClick={() => setShowAddForm(!showAddForm)}
-                className="flex-1 sm:flex-none px-4 py-2.5 bg-black dark:bg-white text-white dark:text-black font-syne text-xs font-bold uppercase tracking-wider rounded-xl transition-all shadow-sm flex items-center justify-center gap-1.5 interactive-hover shrink-0"
+                onClick={handleImportInitialList}
+                className="px-3 py-2 bg-amber-500 hover:bg-amber-600 text-white font-syne text-[11px] font-bold uppercase tracking-wider rounded-xl transition-all shadow-xs flex items-center justify-center gap-1 interactive-hover shrink-0"
+                title="Registra tus 63 artículos de Mandado Quincenal e Insumos"
               >
-                <HiOutlinePlus className="text-base" />
-                <span>{showAddForm ? 'Ocultar' : '+ Agregar Producto'}</span>
+                <span>📥 Cargar Lista (63)</span>
+              </button>
+
+              <button
+                onClick={() => setShowAddForm(!showAddForm)}
+                className="px-3 py-2 bg-black dark:bg-white text-white dark:text-black font-syne text-[11px] font-bold uppercase tracking-wider rounded-xl transition-all shadow-xs flex items-center justify-center gap-1 interactive-hover shrink-0"
+              >
+                <HiOutlinePlus className="text-sm" />
+                <span>{showAddForm ? 'Ocultar' : '+ Agregar'}</span>
               </button>
 
               <button
                 onClick={handleRenewQuincenal}
-                className="flex-1 sm:flex-none px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-syne text-xs font-bold uppercase tracking-wider rounded-xl transition-all shadow-sm flex items-center justify-center gap-1.5 interactive-hover shrink-0"
+                className="px-3 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-syne text-[11px] font-bold uppercase tracking-wider rounded-xl transition-all shadow-xs flex items-center justify-center gap-1 interactive-hover shrink-0"
                 title="Desmarca todos los artículos para iniciar una nueva quincena"
               >
-                <HiOutlineRefresh className="text-base" />
+                <HiOutlineRefresh className="text-sm" />
                 <span>Nueva Quincena 🔄</span>
               </button>
             </div>
@@ -370,9 +486,17 @@ export default function MandadoModal({ isOpen, onClose }: MandadoModalProps) {
           {/* Quincenal List Items */}
           <div className="space-y-2.5 max-h-[45vh] overflow-y-auto pr-1 scrollbar-none w-full">
             {quincenalList.length === 0 ? (
-              <div className="p-8 text-center bg-gray-50 dark:bg-gray-800/50 rounded-2xl text-gray-400 space-y-1">
-                <p className="font-dm-sans font-bold text-base">No hay productos en tu mandado quincenal</p>
-                <p className="font-inter text-xs">Presiona "+ Agregar Producto" para registrar productos de dieta o insumos.</p>
+              <div className="p-8 text-center bg-gray-50 dark:bg-gray-800/50 rounded-2xl text-gray-400 space-y-3 flex flex-col items-center justify-center">
+                <div>
+                  <p className="font-dm-sans font-bold text-base text-gray-800 dark:text-gray-200">No hay productos en tu mandado quincenal</p>
+                  <p className="font-inter text-xs mt-0.5">Puedes registrarlos manualmente o cargar tu listado base completo de 63 productos.</p>
+                </div>
+                <button
+                  onClick={handleImportInitialList}
+                  className="px-5 py-2.5 bg-amber-500 hover:bg-amber-600 text-white font-syne text-xs font-bold uppercase tracking-wider rounded-xl transition-all shadow-md interactive-hover flex items-center gap-2"
+                >
+                  <span>📥 Cargar Mi Lista Base (63 Productos)</span>
+                </button>
               </div>
             ) : (
               quincenalList.map((item) => (

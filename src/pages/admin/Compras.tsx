@@ -251,10 +251,6 @@ export default function Compras() {
         ))}
       </div>
 
-import MandadoModal from '@/components/admin/MandadoModal';
-
-...
-
       {/* ═══ Mandado Quincenal Modal ═══ */}
       <MandadoModal
         isOpen={showQuincenaModal}
