@@ -16,6 +16,8 @@ type ShoppingItem = {
   type?: 'quincenal' | 'ocasional';
   category?: string | null;
   bought: boolean;
+  updated_at?: string | null;
+  created_at?: string | null;
 };
 
 type MandadoModalProps = {
@@ -94,6 +96,19 @@ export default function MandadoModal({ isOpen, onClose }: MandadoModalProps) {
     return null;
   };
 
+  const getCleanStoreLocation = (location: string | null): string | null => {
+    if (!location) return null;
+    if (location.includes('—')) {
+      const parts = location.split('—');
+      const store = parts[parts.length - 1].trim();
+      return store || null;
+    }
+    if (location.startsWith('🍔') || location.startsWith('🛒') || location.includes('Quincenal') || location.includes('Agotar') || location.includes('Agotamiento')) {
+      return null;
+    }
+    return location.trim();
+  };
+
   const rawQuincenalList = items.filter(isMandadoItem);
 
   const quincenalList = rawQuincenalList
@@ -130,6 +145,7 @@ export default function MandadoModal({ isOpen, onClose }: MandadoModalProps) {
         : `${catText} | ${freqText}${cantText}`;
 
       const itemPrice = inputPrice ? parseFloat(inputPrice) : null;
+      const nowIso = new Date().toISOString();
 
       const payload: any = {
         user_id: user.id,
@@ -141,14 +157,16 @@ export default function MandadoModal({ isOpen, onClose }: MandadoModalProps) {
         type: inputType,
         category: inputCategory,
         bought: false,
+        updated_at: nowIso,
       };
 
       let { data, error } = await supabase.from('shopping_list').insert([payload]).select();
 
-      if (error && (error.message?.includes('quantity') || error.message?.includes('type') || error.message?.includes('category'))) {
+      if (error && (error.message?.includes('quantity') || error.message?.includes('type') || error.message?.includes('category') || error.message?.includes('updated_at'))) {
         delete payload.quantity;
         delete payload.type;
         delete payload.category;
+        delete payload.updated_at;
         const res = await supabase.from('shopping_list').insert([payload]).select();
         data = res.data;
         error = res.error;
@@ -157,7 +175,7 @@ export default function MandadoModal({ isOpen, onClose }: MandadoModalProps) {
       if (error) throw error;
 
       if (data) {
-        setItems([{ ...data[0], type: inputType, category: inputCategory, quantity: inputQuantity.trim() || null }, ...items]);
+        setItems([{ ...data[0], type: inputType, category: inputCategory, quantity: inputQuantity.trim() || null, updated_at: nowIso }, ...items]);
         setInputName('');
         setInputQuantity('');
         setInputLocation('');
@@ -184,14 +202,29 @@ export default function MandadoModal({ isOpen, onClose }: MandadoModalProps) {
 
   const toggleBought = async (id: string, currentStatus: boolean) => {
     const item = items.find((i) => i.id === id);
+    const nowIso = new Date().toISOString();
+    const newStatus = !currentStatus;
+
     try {
-      const { error } = await supabase.from('shopping_list').update({ bought: !currentStatus }).eq('id', id);
+      let { error } = await supabase
+        .from('shopping_list')
+        .update({ bought: newStatus, updated_at: nowIso })
+        .eq('id', id);
+
+      if (error && error.message?.includes('updated_at')) {
+        const fallback = await supabase
+          .from('shopping_list')
+          .update({ bought: newStatus })
+          .eq('id', id);
+        error = fallback.error;
+      }
+
       if (error) throw error;
 
-      setItems(items.map((i) => (i.id === id ? { ...i, bought: !currentStatus } : i)));
+      setItems(items.map((i) => (i.id === id ? { ...i, bought: newStatus, updated_at: nowIso } : i)));
 
       // AUTOMATIC FINANZAS LOGGING WHEN MARKING MANDADO ITEM AS BOUGHT
-      if (!currentStatus && item && item.price && item.price > 0) {
+      if (newStatus && item && item.price && item.price > 0) {
         const { data: { user } } = await supabase.auth.getUser();
         if (user) {
           const cat = getItemCategory(item);
@@ -206,7 +239,7 @@ export default function MandadoModal({ isOpen, onClose }: MandadoModalProps) {
         }
       }
 
-      toast.info(!currentStatus ? 'Artículo comprado 🛒' : 'Artículo marcado como pendiente');
+      toast.info(newStatus ? 'Artículo comprado 🛒' : 'Artículo marcado como pendiente');
     } catch (err: any) {
       toast.error('Error al actualizar estado: ' + err.message);
     }
@@ -632,12 +665,24 @@ export default function MandadoModal({ isOpen, onClose }: MandadoModalProps) {
                         }`}>
                           {getItemType(item) === 'quincenal' ? '🥗 Quincenal' : '📦 Hasta Agotar'}
                         </span>
+
+                        {item.bought && (item.updated_at || item.created_at) && (
+                          <span className="px-2 py-0.5 rounded-full text-[9px] font-syne font-bold uppercase tracking-wider bg-emerald-100/80 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-300 shrink-0 flex items-center gap-1" title="Fecha en que se completó/compró">
+                            <span>🗓️</span>
+                            <span>
+                              {new Date(item.updated_at || item.created_at || '').toLocaleDateString('es-MX', {
+                                day: 'numeric',
+                                month: 'short',
+                              })}
+                            </span>
+                          </span>
+                        )}
                       </div>
 
-                      {item.location && (
+                      {getCleanStoreLocation(item.location) && (
                         <span className="font-inter text-xs text-gray-400 dark:text-gray-500 flex items-center gap-1 mt-0.5 truncate">
-                          <HiOutlineLocationMarker className="text-xs shrink-0" />
-                          <span className="truncate">{item.location.replace(/^([^—]+)— /, '')}</span>
+                          <HiOutlineLocationMarker className="text-xs shrink-0 text-emerald-500" />
+                          <span className="truncate">{getCleanStoreLocation(item.location)}</span>
                         </span>
                       )}
                     </div>
