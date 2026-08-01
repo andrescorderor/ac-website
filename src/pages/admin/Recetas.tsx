@@ -357,12 +357,18 @@ export default function Recetas() {
       {createPortal(
         <AnimatePresence>
           {showForm && (
-            <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 sm:p-6 overflow-y-auto bg-black/60 backdrop-blur-sm">
+            <div 
+              className="fixed inset-0 z-[9999] flex items-center justify-center p-4 sm:p-6 overflow-y-auto bg-black/60 backdrop-blur-sm cursor-pointer"
+              onClick={(e) => {
+                if (e.target === e.currentTarget) setShowForm(false);
+              }}
+            >
               <motion.div
+                onClick={(e) => e.stopPropagation()}
                 initial={{ opacity: 0, scale: 0.95, y: 20 }}
                 animate={{ opacity: 1, scale: 1, y: 0 }}
                 exit={{ opacity: 0, scale: 0.95, y: 20 }}
-                className="bg-white dark:bg-gray-900 rounded-[2.5rem] p-5 sm:p-6 max-w-xl w-full border-none shadow-2xl space-y-4 my-4"
+                className="bg-white dark:bg-gray-900 rounded-[2.5rem] p-5 sm:p-6 max-w-xl w-full border-none shadow-2xl space-y-4 my-4 cursor-default"
               >
                 <div className="flex items-center justify-between">
                   <h3 className="font-dm-sans text-xl font-bold text-black dark:text-white">

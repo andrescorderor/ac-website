@@ -43,22 +43,24 @@ The productivity hub is a mobile-optimized private dashboard with 11 specialized
 
 ---
 
-## ✨ Design System & Master UX Specs (v1.203.0)
+## ✨ Design System & Master UX Specs (v1.204.0)
 
-*   🏷️ **Automatic Commit-Based Versioning (`v1.203.0`):** Live versioning indicator displayed seamlessly in desktop and mobile sidebars.
-
+*   🏷️ **Automatic Commit-Based Versioning (`v1.204.0`):** Live versioning indicator displayed seamlessly in desktop and mobile sidebars.
+*   🖱️ **Universal Backdrop Click-to-Close:** Every modal overlay in the application (`MandadoModal`, `CommandPalette`, `ContactModal`, and all 11 admin module forms) closes instantly when clicking the backdrop overlay outside the modal content area (`onClick` event isolation via `e.target === e.currentTarget` and `e.stopPropagation()`).
+*   📌 **Fixed Sticky Header & Footer Layout:** Structural layout isolation for complex modals (`MandadoModal`) featuring locked top controls and locked bottom totals & action buttons, leaving only the central checklist body scrollable.
+*   📦 **Item Quantity & Direct Total Price Support:** Dedicated quantity tracking (`Cant: X`) with direct user-entered total prices without forced auto-multiplication.
+*   🔍 **In-Modal Search & Category Filter Tabs:** Instant real-time search input (`Buscar en mandado...`) and filter tabs (`Todos`, `Pendientes`, `Comida 🍔`, `Insumos 🛒`) with priority sorting (pending items rendered first).
 *   👁️ **Global Privacy Mode & Dark Mode Default:** One-click toggle to mask financial values and default high-contrast dark theme.
 *   🪟 **Universal Portal Floating Modals:** Every form across all 11 modules utilizes a React `createPortal` modal system rendered directly into `document.body` with fixed backdrop blurs (`backdrop-blur-sm`), smooth entrance animations, and full z-index isolation.
 *   🔽 **100% Unified Custom Dropdowns (`CustomSelect`):** All native selects replaced with custom interactive Framer Motion dropdown components featuring checkmark indicators, keyboard accessibility, and z-index isolation.
 *   🍞 **Ultra High Z-Index Toast System (`createPortal` & `z-[999999]`):** Toast notifications render directly to `document.body` above all modals and blur backdrop layers.
 *   🔤 **Unified Button Design System:** Harmonized action buttons, filter pills, and modal submit/cancel triggers across all 11 modules (`font-syne text-xs font-bold uppercase tracking-wider`).
 *   📱 **Full-Screen Mobile Search & AI Chat:** Command Palette modal (`Ctrl + K`) scales to full-screen on mobile devices for seamless queries and Gemini Flash 1.5 chat interaction.
-*   🔽 **Custom UI Select Dropdowns (`CustomSelect`):** Native ugly dropdowns replaced with interactive custom Framer Motion dropdown components and native `color-scheme: dark` fallback support.
 *   🎨 **Unified Glassmorphism Card System:** Borderless dark glass aesthetic (`dark-glass`) across all 11 modules with consistent shadow effects, hover scaling, and rounded corners (`rounded-[2rem]`).
 *   📌 **Universal Pinned Items System:** Filter and collapse/expand pinned items (notes, reminders, tasks, debts, vault items, shopping items, projects, plants) directly from the dashboard home.
 *   🔍 **Global Command Palette (`Ctrl + K` / `Cmd + K`):** Dual-mode search modal covering all 11 modules simultaneously, keyboard navigation, result highlighting, category grouping, and **🤖 100% Free AI Assistant Mode** powered by Gemini 1.5 Flash to query live database context.
 *   🔔 **PWA Floating Push Notifications:** Native browser & mobile push alerts scanning upcoming reminders, pending tasks, and plant watering schedules.
-*   💀 **Unified Skeleton Loaders & Loaders:** Animated shimmer loading states and smooth spinners across all modules.
+*   💀 **Unified Skeleton Loaders:** Animated shimmer loading states and smooth spinners across all modules.
 *   💾 **Automated Database Backups:** GitHub Actions automation performing daily database pinging and bi-monthly automated JSON backups.
 
 ---

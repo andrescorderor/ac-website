@@ -370,12 +370,18 @@ export default function MandadoModal({ isOpen, onClose }: MandadoModalProps) {
 
   return createPortal(
     <AnimatePresence>
-      <div className="fixed inset-0 z-[9999] flex items-center justify-center p-3 sm:p-6 bg-black/60 backdrop-blur-sm overflow-hidden">
+      <div 
+        className="fixed inset-0 z-[9999] flex items-center justify-center p-3 sm:p-6 bg-black/60 backdrop-blur-sm overflow-hidden cursor-pointer"
+        onClick={(e) => {
+          if (e.target === e.currentTarget) onClose();
+        }}
+      >
         <motion.div
+          onClick={(e) => e.stopPropagation()}
           initial={{ opacity: 0, scale: 0.95, y: 20 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.95, y: 20 }}
-          className="bg-white dark:bg-gray-900 rounded-[2rem] sm:rounded-[2.5rem] p-5 sm:p-7 h-[90vh] max-h-[800px] max-w-3xl w-full border-none shadow-2xl flex flex-col overflow-hidden my-auto"
+          className="bg-white dark:bg-gray-900 rounded-[2rem] sm:rounded-[2.5rem] p-5 sm:p-7 h-[90vh] max-h-[800px] max-w-3xl w-full border-none shadow-2xl flex flex-col overflow-hidden my-auto cursor-default"
         >
           {/* ═══ FIXED HEADER SECTION ═══ */}
           <div className="shrink-0 space-y-3.5 pb-3.5 border-b border-gray-100 dark:border-gray-800">

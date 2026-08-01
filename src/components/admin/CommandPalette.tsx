@@ -615,14 +615,19 @@ REGLAS OBLIGATORIAS:
   return (
     <AnimatePresence>
       {isOpen && (
-        <div className="fixed inset-0 z-[200] flex items-start justify-center pt-0 md:pt-20 px-0 md:px-4">
+        <div 
+          className="fixed inset-0 z-[200] flex items-start justify-center pt-0 md:pt-20 px-0 md:px-4 cursor-pointer"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) onClose();
+          }}
+        >
           {/* Backdrop */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
-            className="fixed inset-0 bg-black/65 backdrop-blur-lg hidden md:block"
+            className="fixed inset-0 bg-black/65 backdrop-blur-lg cursor-pointer"
           />
 
           {/* Panel */}
