@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { supabase } from '@/lib/supabase';
 import { motion, AnimatePresence } from 'framer-motion';
-import { HiOutlinePlus, HiOutlineCheckCircle, HiOutlineTrash, HiOutlineRefresh, HiOutlineLocationMarker, HiX } from 'react-icons/hi';
+import { HiOutlinePlus, HiOutlineCheckCircle, HiOutlineTrash, HiOutlineRefresh, HiOutlineLocationMarker, HiOutlineSearch, HiX } from 'react-icons/hi';
 import { MdOutlineCircle } from 'react-icons/md';
 import { useToast } from '@/components/common/ToastContext';
 import CustomSelect from '@/components/common/CustomSelect';
@@ -58,6 +58,9 @@ export default function MandadoModal({ isOpen, onClose }: MandadoModalProps) {
     }
   };
 
+  const [searchTerm, setSearchTerm] = useState('');
+  const [activeTab, setActiveTab] = useState<'all' | 'pending' | 'comida' | 'insumos'>('all');
+
   const isMandadoItem = (item: ShoppingItem): boolean => {
     if (item.type === 'quincenal' || item.type === 'ocasional') return true;
     if (item.category === 'quincenal' || item.category === 'ocasional' || item.category === 'comida' || item.category === 'insumos') return true;
@@ -79,7 +82,21 @@ export default function MandadoModal({ isOpen, onClose }: MandadoModalProps) {
     return 'comida';
   };
 
-  const quincenalList = items.filter(isMandadoItem);
+  const rawQuincenalList = items.filter(isMandadoItem);
+
+  const quincenalList = rawQuincenalList
+    .filter((item) => {
+      const matchesSearch = item.name.toLowerCase().includes(searchTerm.toLowerCase()) || (item.location && item.location.toLowerCase().includes(searchTerm.toLowerCase()));
+      if (!matchesSearch) return false;
+      if (activeTab === 'pending') return !item.bought;
+      if (activeTab === 'comida') return getItemCategory(item) === 'comida';
+      if (activeTab === 'insumos') return getItemCategory(item) === 'insumos';
+      return true;
+    })
+    .sort((a, b) => {
+      if (a.bought !== b.bought) return a.bought ? 1 : -1; // Pending first!
+      return 0;
+    });
 
   const handleAddItem = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -371,18 +388,18 @@ export default function MandadoModal({ isOpen, onClose }: MandadoModalProps) {
             <div className="space-y-1.5 min-w-0 flex-1">
               <div className="flex items-center gap-2 flex-wrap">
                 <span className="font-syne text-xs font-bold uppercase tracking-wider text-emerald-800 dark:text-emerald-300">
-                  {quincenalList.filter(i => i.bought).length} de {quincenalList.length} comprados
+                  {rawQuincenalList.filter(i => i.bought).length} de {rawQuincenalList.length} comprados
                 </span>
-                {quincenalList.length > 0 && (
+                {rawQuincenalList.length > 0 && (
                   <span className="text-xs font-dm-sans font-bold text-emerald-600 dark:text-emerald-400">
-                    ({Math.round((quincenalList.filter(i => i.bought).length / quincenalList.length) * 100)}%)
+                    ({Math.round((rawQuincenalList.filter(i => i.bought).length / rawQuincenalList.length) * 100)}%)
                   </span>
                 )}
               </div>
               <div className="w-full max-w-xs bg-emerald-200/60 dark:bg-emerald-900/60 h-2.5 rounded-full overflow-hidden">
                 <div 
                   className="bg-emerald-500 h-full transition-all duration-500 rounded-full" 
-                  style={{ width: `${quincenalList.length > 0 ? (quincenalList.filter(i => i.bought).length / quincenalList.length) * 100 : 0}%` }}
+                  style={{ width: `${rawQuincenalList.length > 0 ? (rawQuincenalList.filter(i => i.bought).length / rawQuincenalList.length) * 100 : 0}%` }}
                 />
               </div>
             </div>
@@ -404,6 +421,41 @@ export default function MandadoModal({ isOpen, onClose }: MandadoModalProps) {
                 <HiOutlineRefresh className="text-sm" />
                 <span>Nueva Quincena 🔄</span>
               </button>
+            </div>
+          </div>
+
+          {/* Search & Filter Bar */}
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 w-full">
+            <div className="flex items-center gap-1 bg-gray-100 dark:bg-gray-800/80 p-1 rounded-xl overflow-x-auto shrink-0 scrollbar-none">
+              {[
+                { key: 'all', label: `Todos (${rawQuincenalList.length})` },
+                { key: 'pending', label: `Pendientes (${rawQuincenalList.filter(i => !i.bought).length})` },
+                { key: 'comida', label: `Comida 🍔` },
+                { key: 'insumos', label: `Insumos 🛒` },
+              ].map(tab => (
+                <button
+                  key={tab.key}
+                  onClick={() => setActiveTab(tab.key as any)}
+                  className={`px-3 py-1.5 rounded-lg font-syne text-[10px] font-bold uppercase tracking-wider transition-all whitespace-nowrap ${
+                    activeTab === tab.key
+                      ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-xs'
+                      : 'text-gray-500 hover:text-gray-900 dark:hover:text-white'
+                  }`}
+                >
+                  {tab.label}
+                </button>
+              ))}
+            </div>
+
+            <div className="relative flex-1 max-w-xs min-w-[180px]">
+              <input
+                type="text"
+                placeholder="Buscar en mandado..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full pl-9 pr-3 py-1.5 bg-gray-50 dark:bg-gray-800/60 border border-gray-200 dark:border-gray-700/80 rounded-xl outline-none text-xs font-inter text-gray-900 dark:text-white placeholder-gray-400"
+              />
+              <HiOutlineSearch className="absolute left-3 top-2 text-sm text-gray-400" />
             </div>
           </div>
 
