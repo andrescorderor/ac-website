@@ -195,6 +195,7 @@ export default function MandadoModal({ isOpen, onClose }: MandadoModalProps) {
             amount: itemPrice,
             category: inputCategory,
           }]);
+          window.dispatchEvent(new Event('ac_finance_changed'));
           toast.success(`💸 $${itemPrice.toLocaleString()} en ${inputCategory === 'comida' ? 'Comida 🍔' : 'Insumos 🛒'} auto-registrado en Finanzas`);
         } else {
           toast.success(`Producto agregado al Mandado (${inputCategory === 'comida' ? 'Comida 🍔' : 'Insumos 🛒'})`);
@@ -239,6 +240,7 @@ export default function MandadoModal({ isOpen, onClose }: MandadoModalProps) {
             amount: item.price,
             category: cat,
           }]);
+          window.dispatchEvent(new Event('ac_finance_changed'));
           toast.success(`🛒 Comprado + 💸 $${item.price.toLocaleString()} auto-registrado en Finanzas (${cat === 'comida' ? 'Comida 🍔' : 'Insumos 🛒'})`);
           return;
         }

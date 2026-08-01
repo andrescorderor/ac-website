@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { supabase } from '@/lib/supabase';
-import { HiOutlinePlus, HiOutlineTrash, HiOutlineSave, HiOutlineEye, HiOutlineEyeOff, HiOutlineSearch, HiX } from 'react-icons/hi';
+import { HiOutlinePlus, HiOutlineSave, HiOutlineEye, HiOutlineEyeOff, HiOutlineSearch, HiX } from 'react-icons/hi';
 import { useToast } from '@/components/common/ToastContext';
 import CustomSelect from '@/components/common/CustomSelect';
 import MandadoModal from '@/components/admin/MandadoModal';
@@ -19,6 +19,10 @@ const CATEGORIES_MAP: Record<string, string> = {
   comida: 'Supermercado & Alimentación',
   insumos: 'Insumos & Casa',
   servicios: 'Servicios & Suscripciones',
+  transporte: 'Transporte & Gasolina',
+  entretenimiento: 'Entretenimiento & Ocio',
+  salud: 'Salud & Bienestar',
+  otros: 'Otros Gastos',
 };
 
 export default function Finanzas() {
@@ -30,15 +34,24 @@ export default function Finanzas() {
   const [isPrivacyMode, setIsPrivacyMode] = useState(true);
   const [showAddModal, setShowAddModal] = useState(false);
   const [showMandadoModal, setShowMandadoModal] = useState(false);
-  const [modalCat, setModalCat] = useState<'comida' | 'insumos' | 'servicios'>('comida');
+  const [modalCat, setModalCat] = useState<string>('servicios');
   const [filterCategory, setFilterCategory] = useState('Todas');
   const [searchTerm, setSearchTerm] = useState('');
-  const [newExpense, setNewExpense] = useState({ concept: '', amount: '', category: 'comida' });
+  const [newExpense, setNewExpense] = useState({ concept: '', amount: '', category: 'servicios' });
   const { toast } = useToast();
 
   useEffect(() => {
     fetchData();
+
+    const handleFinanceChanged = () => fetchData();
+    window.addEventListener('ac_finance_changed', handleFinanceChanged);
+    return () => window.removeEventListener('ac_finance_changed', handleFinanceChanged);
   }, []);
+
+  const handleMandadoModalClose = () => {
+    setShowMandadoModal(false);
+    fetchData(); // Sync expenses when Mandado modal closes
+  };
 
   const fetchData = async () => {
     const { data: { user } } = await supabase.auth.getUser();
@@ -117,16 +130,6 @@ export default function Finanzas() {
     }
   };
 
-  const handleDeleteExpense = async (id: string) => {
-    try {
-      const { error } = await supabase.from('finance_expenses').delete().eq('id', id);
-      if (error) throw error;
-      setExpenses(expenses.filter((e) => e.id !== id));
-      toast.success('Gasto eliminado');
-    } catch (err: any) {
-      toast.error('Error al eliminar gasto: ' + err.message);
-    }
-  };
 
   const getCategoryTotal = (category: string) => {
     return expenses
@@ -331,13 +334,6 @@ export default function Finanzas() {
                           {formatAmount(exp.amount)}
                         </span>
                       </div>
-                      <button
-                        onClick={() => handleDeleteExpense(exp.id)}
-                        className="p-2 text-red-400 bg-red-50 dark:bg-red-950/30 hover:bg-red-100 dark:hover:bg-red-900/50 rounded-xl transition-all opacity-100 lg:opacity-0 lg:group-hover:opacity-100 active:scale-95"
-                        title="Eliminar gasto"
-                      >
-                        <HiOutlineTrash />
-                      </button>
                     </motion.div>
                   ))}
                   {expenses.filter((e) => e.category === cat && (!searchTerm || e.concept.toLowerCase().includes(searchTerm.toLowerCase()))).length === 0 && (
@@ -386,6 +382,13 @@ export default function Finanzas() {
                 </button>
               </div>
 
+              <div className="p-3.5 bg-blue-50 dark:bg-blue-950/40 rounded-2xl border border-blue-100 dark:border-blue-900/40 flex items-start gap-2.5 text-xs text-blue-700 dark:text-blue-300 font-inter">
+                <span className="text-base shrink-0">💡</span>
+                <span>
+                  Los gastos de <strong>Comida 🍔</strong> e <strong>Insumos 🛒</strong> se registran exclusivamente desde el <strong>Mandado Quincenal 🥗</strong>.
+                </span>
+              </div>
+
               <form onSubmit={async (e) => {
                 e.preventDefault();
                 await handleAddExpense(modalCat);
@@ -397,14 +400,15 @@ export default function Finanzas() {
                     <CustomSelect
                       value={modalCat}
                       onChange={(val) => {
-                        const v = val as 'comida' | 'insumos' | 'servicios';
-                        setModalCat(v);
-                        setNewExpense({ ...newExpense, category: v });
+                        setModalCat(val);
+                        setNewExpense({ ...newExpense, category: val });
                       }}
                       options={[
-                        { value: 'comida', label: 'Comida 🍔' },
-                        { value: 'insumos', label: 'Insumos 🛒' },
                         { value: 'servicios', label: 'Servicios ⚡' },
+                        { value: 'transporte', label: 'Transporte & Gasolina 🚗' },
+                        { value: 'entretenimiento', label: 'Entretenimiento & Ocio 🎬' },
+                        { value: 'salud', label: 'Salud & Bienestar 🏥' },
+                        { value: 'otros', label: 'Otros Gastos 📦' },
                       ]}
                     />
                   </div>
@@ -461,10 +465,7 @@ export default function Finanzas() {
       {/* Mandado Modal Overlay */}
       <MandadoModal
         isOpen={showMandadoModal}
-        onClose={() => {
-          setShowMandadoModal(false);
-          fetchData(); // Refresh finance totals when closing modal
-        }}
+        onClose={handleMandadoModalClose}
       />
     </div>
   );
