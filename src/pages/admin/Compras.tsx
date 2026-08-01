@@ -72,14 +72,17 @@ export default function Compras() {
 
   const [showQuincenaModal, setShowQuincenaModal] = useState(false);
   const [quincenaInputName, setQuincenaInputName] = useState('');
+  const [quincenaInputLocation, setQuincenaInputLocation] = useState('');
   const [quincenaInputPrice, setQuincenaInputPrice] = useState('');
+  const [quincenaInputType, setQuincenaInputType] = useState<'quincenal' | 'ocasional'>('quincenal');
+  const [registeringFinance, setRegisteringFinance] = useState(false);
 
   const getItemType = (item: ShoppingItem): 'quincenal' | 'ocasional' => {
     if (item.type === 'quincenal' || item.type === 'ocasional') return item.type;
     if (item.category === 'quincenal' || item.category === 'ocasional') return item.category as 'quincenal' | 'ocasional';
     if (item.location?.includes('Quincenal') || item.name.includes('[Quincenal]')) return 'quincenal';
-    if (item.location?.includes('Ocasional') || item.location?.includes('Agotarse')) return 'ocasional';
-    return 'ocasional'; // Default general items to general shopping
+    if (item.location?.includes('Ocasional') || item.location?.includes('Agotar') || item.location?.includes('Agotamiento')) return 'ocasional';
+    return 'ocasional';
   };
 
   const handleAddItem = async (e: React.FormEvent) => {
@@ -97,26 +100,17 @@ export default function Compras() {
       const payload: any = {
         user_id: user.id,
         name: newItem.name.trim(),
-        location: newItem.location.trim() || (newItem.type === 'quincenal' ? 'Mandado Quincenal 🥗' : 'Compra General 📦'),
+        location: newItem.location.trim() || null,
         price: newItem.price ? parseFloat(newItem.price) : null,
         priority: newItem.priority,
-        type: newItem.type,
         bought: false,
       };
 
-      let { data, error } = await supabase.from('shopping_list').insert([payload]).select();
-
-      if (error && error.message?.includes('type')) {
-        delete payload.type;
-        const res = await supabase.from('shopping_list').insert([payload]).select();
-        data = res.data;
-        error = res.error;
-      }
-
+      const { data, error } = await supabase.from('shopping_list').insert([payload]).select();
       if (error) throw error;
 
       if (data) {
-        setItems([{ ...data[0], type: newItem.type }, ...items]);
+        setItems([data[0], ...items]);
         setNewItem({ name: '', location: '', price: '', priority: 'Media', type: 'ocasional' });
         setShowAddForm(false);
         toast.success('Artículo agregado a la lista de compras');
@@ -139,13 +133,18 @@ export default function Compras() {
     if (!user) return;
 
     try {
+      const storeText = quincenaInputLocation.trim();
+      const locText = storeText
+        ? `${quincenaInputType === 'quincenal' ? '🥗 Quincenal' : '📦 Agotamiento'} — ${storeText}`
+        : (quincenaInputType === 'quincenal' ? 'Mandado Quincenal 🥗' : 'Hasta Agotar 📦');
+
       const payload: any = {
         user_id: user.id,
         name: quincenaInputName.trim(),
-        location: 'Mandado Quincenal 🥗',
+        location: locText,
         price: quincenaInputPrice ? parseFloat(quincenaInputPrice) : null,
         priority: 'Media',
-        type: 'quincenal',
+        type: quincenaInputType,
         bought: false,
       };
 
@@ -161,13 +160,56 @@ export default function Compras() {
       if (error) throw error;
 
       if (data) {
-        setItems([{ ...data[0], type: 'quincenal' }, ...items]);
+        setItems([{ ...data[0], type: quincenaInputType }, ...items]);
         setQuincenaInputName('');
+        setQuincenaInputLocation('');
         setQuincenaInputPrice('');
-        toast.success('Producto agregado a tu Mandado Quincenal 🥗');
+        toast.success(`Producto agregado como ${quincenaInputType === 'quincenal' ? 'Quincenal 🥗' : 'Hasta Agotar 📦'}`);
       }
     } catch (err: any) {
       toast.error('Error al agregar: ' + err.message);
+    }
+  };
+
+  const handleMarkAsAgotado = async (id: string) => {
+    try {
+      const { error } = await supabase.from('shopping_list').update({ bought: false }).eq('id', id);
+      if (error) throw error;
+
+      setItems(items.map((i) => (i.id === id ? { ...i, bought: false } : i)));
+      toast.info('⚠️ Producto marcado como Agotado. Agregado a pendientes de la quincena.');
+    } catch (err: any) {
+      toast.error('Error al marcar como agotado: ' + err.message);
+    }
+  };
+
+  const handleRegisterExpenseToFinanzas = async (category: 'comida' | 'insumos', concept: string, amount: number) => {
+    if (amount <= 0) {
+      toast.error('El monto a registrar debe ser mayor a 0');
+      return;
+    }
+
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+
+    setRegisteringFinance(true);
+    try {
+      const { error } = await supabase.from('finance_expenses').insert([
+        {
+          user_id: user.id,
+          concept,
+          amount,
+          category,
+        },
+      ]);
+
+      if (error) throw error;
+
+      toast.success(`💸 ¡Gasto de $${amount.toLocaleString()} registrado en Finanzas bajo '${category === 'comida' ? 'Alimentación & Comida' : 'Insumos & Casa'}'!`);
+    } catch (err: any) {
+      toast.error('Error al registrar gasto en Finanzas: ' + err.message);
+    } finally {
+      setRegisteringFinance(false);
     }
   };
 
@@ -387,29 +429,54 @@ export default function Compras() {
                 </div>
 
                 {/* Quick Add Form inside Quincena Modal */}
-                <form onSubmit={handleAddQuincenaItem} className="flex flex-col sm:flex-row gap-3">
-                  <input
-                    type="text"
-                    placeholder="Agregar producto a tu dieta/mandado (ej. Pechuga de Pollo, Avena, Huevos...)"
-                    value={quincenaInputName}
-                    onChange={(e) => setQuincenaInputName(e.target.value)}
-                    className="flex-1 px-4 py-3 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl outline-none focus:ring-2 ring-emerald-500 text-sm font-inter text-gray-900 dark:text-white"
-                  />
-                  <input
-                    type="number"
-                    step="0.01"
-                    placeholder="$ Precio"
-                    value={quincenaInputPrice}
-                    onChange={(e) => setQuincenaInputPrice(e.target.value)}
-                    className="w-full sm:w-28 px-4 py-3 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl outline-none focus:ring-2 ring-emerald-500 text-sm font-inter text-gray-900 dark:text-white"
-                  />
-                  <button
-                    type="submit"
-                    className="px-5 py-3 bg-black dark:bg-white text-white dark:text-black font-syne text-xs font-bold uppercase tracking-wider rounded-xl shadow-md hover:scale-105 active:scale-95 transition-all shrink-0 flex items-center justify-center gap-1.5"
-                  >
-                    <HiOutlinePlus className="text-base" />
-                    <span>Agregar</span>
-                  </button>
+                <form onSubmit={handleAddQuincenaItem} className="grid grid-cols-1 sm:grid-cols-12 gap-3 bg-gray-50 dark:bg-gray-800/60 p-4 rounded-2xl border border-gray-100 dark:border-gray-700/80">
+                  <div className="sm:col-span-4">
+                    <input
+                      type="text"
+                      placeholder="Producto (ej. Pechuga, Avena, Detergente...)"
+                      value={quincenaInputName}
+                      onChange={(e) => setQuincenaInputName(e.target.value)}
+                      className="w-full px-4 py-3 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl outline-none focus:ring-2 ring-emerald-500 text-sm font-inter text-gray-900 dark:text-white"
+                    />
+                  </div>
+                  <div className="sm:col-span-3">
+                    <input
+                      type="text"
+                      placeholder="Lugar (ej. Walmart, Costco)"
+                      value={quincenaInputLocation}
+                      onChange={(e) => setQuincenaInputLocation(e.target.value)}
+                      className="w-full px-4 py-3 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl outline-none focus:ring-2 ring-emerald-500 text-sm font-inter text-gray-900 dark:text-white"
+                    />
+                  </div>
+                  <div className="sm:col-span-3">
+                    <select
+                      value={quincenaInputType}
+                      onChange={(e) => setQuincenaInputType(e.target.value as 'quincenal' | 'ocasional')}
+                      className="w-full px-3 py-3 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl outline-none focus:ring-2 ring-emerald-500 text-xs font-inter text-gray-900 dark:text-white"
+                    >
+                      <option value="quincenal">Quincenal (2 semanas) 🥗</option>
+                      <option value="ocasional">Hasta Agotar (Consumible) 📦</option>
+                    </select>
+                  </div>
+                  <div className="sm:col-span-2">
+                    <input
+                      type="number"
+                      step="0.01"
+                      placeholder="$ Precio"
+                      value={quincenaInputPrice}
+                      onChange={(e) => setQuincenaInputPrice(e.target.value)}
+                      className="w-full px-3 py-3 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl outline-none focus:ring-2 ring-emerald-500 text-sm font-inter text-gray-900 dark:text-white"
+                    />
+                  </div>
+                  <div className="sm:col-span-12 flex justify-end">
+                    <button
+                      type="submit"
+                      className="px-6 py-2.5 bg-black dark:bg-white text-white dark:text-black font-syne text-xs font-bold uppercase tracking-wider rounded-xl shadow-md hover:scale-105 active:scale-95 transition-all flex items-center justify-center gap-1.5"
+                    >
+                      <HiOutlinePlus className="text-base" />
+                      <span>Agregar a la Quincena</span>
+                    </button>
+                  </div>
                 </form>
 
                 {/* Quincenal List Items */}
@@ -417,13 +484,13 @@ export default function Compras() {
                   {quincenalList.length === 0 ? (
                     <div className="p-8 text-center bg-gray-50 dark:bg-gray-800/50 rounded-2xl text-gray-400 space-y-1">
                       <p className="font-dm-sans font-bold text-base">No hay productos en tu mandado quincenal</p>
-                      <p className="font-inter text-xs">Agrega arriba los productos de tu consumo recurrente de cada 2 semanas.</p>
+                      <p className="font-inter text-xs">Agrega arriba los productos de tu consumo recurrente o insumos de cada 2 semanas.</p>
                     </div>
                   ) : (
                     quincenalList.map((item) => (
                       <div
                         key={item.id}
-                        className={`flex items-center justify-between p-4 rounded-2xl border transition-all ${
+                        className={`flex flex-col sm:flex-row sm:items-center justify-between p-4 rounded-2xl border transition-all gap-3 ${
                           item.bought 
                             ? 'bg-gray-50/80 dark:bg-gray-800/40 border-gray-100 dark:border-gray-800 opacity-60' 
                             : 'bg-white dark:bg-gray-800/90 border-gray-100 dark:border-gray-700 shadow-xs'
@@ -433,6 +500,7 @@ export default function Compras() {
                           <button
                             onClick={() => toggleBought(item.id, item.bought)}
                             className="text-2xl transition-transform active:scale-90 shrink-0"
+                            title={item.bought ? 'Marcar como pendiente' : 'Marcar como comprado'}
                           >
                             {item.bought ? (
                               <HiOutlineCheckCircle className="text-emerald-500" />
@@ -441,19 +509,50 @@ export default function Compras() {
                             )}
                           </button>
 
-                          <span className={`font-dm-sans font-medium text-sm sm:text-base truncate ${
-                            item.bought ? 'line-through text-gray-400 dark:text-gray-500' : 'text-gray-900 dark:text-white'
-                          }`}>
-                            {item.name}
-                          </span>
+                          <div className="min-w-0">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <span className={`font-dm-sans font-medium text-sm sm:text-base truncate ${
+                                item.bought ? 'line-through text-gray-400 dark:text-gray-500' : 'text-gray-900 dark:text-white'
+                              }`}>
+                                {item.name}
+                              </span>
+
+                              <span className={`px-2 py-0.5 rounded-full text-[9px] font-syne font-bold uppercase tracking-wider ${
+                                getItemType(item) === 'quincenal'
+                                  ? 'bg-emerald-100 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-300'
+                                  : 'bg-indigo-100 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-300'
+                              }`}>
+                                {getItemType(item) === 'quincenal' ? '🥗 Quincenal' : '📦 Hasta Agotar'}
+                              </span>
+                            </div>
+
+                            {item.location && (
+                              <span className="font-inter text-xs text-gray-400 dark:text-gray-500 flex items-center gap-1 mt-0.5">
+                                <HiOutlineLocationMarker className="text-xs shrink-0" />
+                                <span className="truncate">{item.location.replace(/^(🥗 Quincenal|📦 Agotamiento) — /, '')}</span>
+                              </span>
+                            )}
+                          </div>
                         </div>
 
-                        <div className="flex items-center gap-3 shrink-0 ml-3">
+                        <div className="flex items-center gap-2.5 shrink-0 justify-end">
+                          {/* If item is 'ocasional' (Hasta agotar) and bought, allow marking as Agotado */}
+                          {getItemType(item) === 'ocasional' && item.bought && (
+                            <button
+                              onClick={() => handleMarkAsAgotado(item.id)}
+                              className="px-3 py-1 bg-amber-500/10 hover:bg-amber-500/20 text-amber-600 dark:text-amber-400 rounded-lg font-syne text-[10px] font-bold uppercase tracking-wider transition-all flex items-center gap-1 shrink-0"
+                              title="Marcar producto como consumido/agotado para volverlo a comprar"
+                            >
+                              <span>⚠️ Agotado</span>
+                            </button>
+                          )}
+
                           {item.price !== null && (
-                            <span className="font-dm-sans font-bold text-xs text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700/80 px-2.5 py-1 rounded-lg">
+                            <span className="font-dm-sans font-bold text-xs text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700/80 px-2.5 py-1.5 rounded-lg">
                               ${item.price.toLocaleString()}
                             </span>
                           )}
+
                           <button
                             onClick={() => deleteItem(item.id)}
                             className="p-1.5 text-gray-300 dark:text-gray-600 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-lg transition-all"
@@ -467,17 +566,53 @@ export default function Compras() {
                   )}
                 </div>
 
-                {/* Footer of Modal */}
-                <div className="flex items-center justify-between pt-4 border-t border-gray-100 dark:border-gray-800 text-xs font-inter text-gray-500">
-                  <span>
-                    Presupuesto estimado: <strong className="text-gray-900 dark:text-white font-dm-sans text-sm">${quincenalList.reduce((acc, i) => acc + (i.price || 0), 0).toLocaleString()}</strong>
-                  </span>
-                  <button
-                    onClick={() => setShowQuincenaModal(false)}
-                    className="px-6 py-2.5 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-800 dark:text-gray-200 font-syne text-xs font-bold uppercase tracking-wider rounded-xl transition-all"
-                  >
-                    Cerrar
-                  </button>
+                {/* Footer of Modal & Finanzas Integration */}
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 pt-4 border-t border-gray-100 dark:border-gray-800">
+                  <div className="text-xs font-inter text-gray-500 space-y-0.5">
+                    <div>
+                      Presupuesto estimado total: <strong className="text-gray-900 dark:text-white font-dm-sans text-sm">${quincenalList.reduce((acc, i) => acc + (i.price || 0), 0).toLocaleString()}</strong>
+                    </div>
+                    <div>
+                      Comprados en esta quincena: <strong className="text-emerald-600 dark:text-emerald-400 font-dm-sans text-sm">${quincenalList.filter(i => i.bought).reduce((acc, i) => acc + (i.price || 0), 0).toLocaleString()}</strong>
+                    </div>
+                  </div>
+
+                  <div className="flex flex-wrap items-center gap-2">
+                    <button
+                      disabled={registeringFinance}
+                      onClick={() => {
+                        const totalComprados = quincenalList.filter(i => i.bought).reduce((acc, i) => acc + (i.price || 0), 0);
+                        const totalEstimado = quincenalList.reduce((acc, i) => acc + (i.price || 0), 0);
+                        const amountToUse = totalComprados > 0 ? totalComprados : totalEstimado;
+                        handleRegisterExpenseToFinanzas('comida', 'Mandado Quincenal (Alimentación)', amountToUse);
+                      }}
+                      className="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white font-syne text-xs font-bold uppercase tracking-wider rounded-xl transition-all shadow-sm flex items-center gap-1.5 interactive-hover"
+                      title="Registra este gasto en el módulo de Finanzas bajo la categoría Alimentación & Comida"
+                    >
+                      <span>💸 Registrar en Finanzas (Comida)</span>
+                    </button>
+
+                    <button
+                      disabled={registeringFinance}
+                      onClick={() => {
+                        const totalComprados = quincenalList.filter(i => i.bought).reduce((acc, i) => acc + (i.price || 0), 0);
+                        const totalEstimado = quincenalList.reduce((acc, i) => acc + (i.price || 0), 0);
+                        const amountToUse = totalComprados > 0 ? totalComprados : totalEstimado;
+                        handleRegisterExpenseToFinanzas('insumos', 'Mandado Quincenal (Insumos)', amountToUse);
+                      }}
+                      className="px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white font-syne text-xs font-bold uppercase tracking-wider rounded-xl transition-all shadow-sm flex items-center gap-1.5 interactive-hover"
+                      title="Registra este gasto en Finanzas bajo la categoría Insumos & Casa"
+                    >
+                      <span>🏠 Insumos</span>
+                    </button>
+
+                    <button
+                      onClick={() => setShowQuincenaModal(false)}
+                      className="px-5 py-2.5 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-800 dark:text-gray-200 font-syne text-xs font-bold uppercase tracking-wider rounded-xl transition-all"
+                    >
+                      Cerrar
+                    </button>
+                  </div>
                 </div>
               </motion.div>
             </div>
@@ -534,18 +669,7 @@ export default function Compras() {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-                  <div className="space-y-2">
-                    <label className="font-syne text-[10px] font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">Tipo de Compra *</label>
-                    <select
-                      value={newItem.type}
-                      onChange={e => setNewItem({ ...newItem, type: e.target.value as 'quincenal' | 'ocasional' })}
-                      className="w-full px-5 py-3.5 bg-gray-50 dark:bg-gray-800/80 border border-transparent focus:border-[var(--vibrant-sky-blue)] rounded-xl outline-none font-inter text-sm text-gray-900 dark:text-gray-100 transition-all shadow-sm"
-                    >
-                      <option value="quincenal" className="dark:bg-gray-800">Mandado Quincenal (Dieta) 🥗</option>
-                      <option value="ocasional" className="dark:bg-gray-800">Hasta que se acabe 📦</option>
-                    </select>
-                  </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                   <div className="space-y-2">
                     <label className="font-syne text-[10px] font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">Precio Estimado ($)</label>
                     <input

@@ -34,7 +34,7 @@ The productivity hub is a mobile-optimized private dashboard with 11 specialized
 *   🪴 **Plant Care Tracker (Mis Plantas):** Monitor watering schedules, species details, location recommendations, and watering logs.
 *   🔗 **Bookmarks & Quick Links (Enlaces Rápidos):** Organize web tools, portals, and categories for fast access.
 *   🔐 **Secure Vault (Bóveda de Textos):** Encrypted-access storage for sensitive texts (IDs, cards) with quick copy-to-clipboard functionality.
-*   🛒 **Smart Shopping List (Lista de Compras):** Manage general items alongside an **isolated Mandado Quincenal Portal Modal 🥗** for bi-weekly diet & consumables with inline item management, progress tracking, and one-click quincena renewal.
+*   🛒 **Smart Shopping List (Lista de Compras):** Manage general items alongside an **isolated Mandado Quincenal Portal Modal 🥗** featuring bi-weekly diet items & consumable supplies ("Hasta Agotar 📦" with ⚠️ Agotado triggers), store locations, progress tracking, and direct integration with the **Finanzas Manager** (`Alimentación & Comida` / `Insumos & Casa`).
 *   📅 **Important Reminders (Fechas Importantes):** Categorized dates & optional times (Birthdays, Documents, Payments) with proximity alerts and recurring support.
 *   💸 **Debt Tracker (Mis Deudas):** Monitor pending payments and collections with default pending filters.
 *   🎨 **Creative Projects (Proyectos Creativos):** Private portfolio to manage side projects, track progress, organize sub-tasks, and filter dynamically by status and project category/type.
