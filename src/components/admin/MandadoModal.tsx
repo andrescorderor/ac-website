@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { supabase } from '@/lib/supabase';
 import { motion, AnimatePresence } from 'framer-motion';
-import { HiOutlinePlus, HiOutlineCheckCircle, HiOutlineTrash, HiOutlineRefresh, HiOutlineLocationMarker, HiOutlineSearch, HiX } from 'react-icons/hi';
+import { HiOutlinePlus, HiOutlineCheckCircle, HiOutlineTrash, HiOutlineRefresh, HiOutlineLocationMarker, HiOutlineSearch, HiOutlinePencil, HiX } from 'react-icons/hi';
 import { MdOutlineCircle } from 'react-icons/md';
 import { useToast } from '@/components/common/ToastContext';
 import CustomSelect from '@/components/common/CustomSelect';
@@ -29,6 +29,7 @@ export default function MandadoModal({ isOpen, onClose }: MandadoModalProps) {
   const { toast } = useToast();
   const [items, setItems] = useState<ShoppingItem[]>([]);
   const [showAddForm, setShowAddForm] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
 
   const [inputName, setInputName] = useState('');
   const [inputQuantity, setInputQuantity] = useState('');
@@ -36,6 +37,17 @@ export default function MandadoModal({ isOpen, onClose }: MandadoModalProps) {
   const [inputPrice, setInputPrice] = useState('');
   const [inputType, setInputType] = useState<'quincenal' | 'ocasional'>('quincenal');
   const [inputCategory, setInputCategory] = useState<'comida' | 'insumos'>('comida');
+
+  const handleOpenEdit = (item: ShoppingItem) => {
+    setEditingId(item.id);
+    setInputName(item.name);
+    setInputQuantity(getItemQuantity(item) || '');
+    setInputLocation(getCleanStoreLocation(item.location) || '');
+    setInputPrice(item.price !== null ? String(item.price) : '');
+    setInputType(getItemType(item));
+    setInputCategory(getItemCategory(item));
+    setShowAddForm(true);
+  };
 
   useEffect(() => {
     if (isOpen) {
@@ -165,6 +177,34 @@ export default function MandadoModal({ isOpen, onClose }: MandadoModalProps) {
         updated_at: nowIso,
       };
 
+      if (editingId) {
+        let { error } = await supabase
+          .from('shopping_list')
+          .update(payload)
+          .eq('id', editingId);
+
+        if (error && (error.message?.includes('quantity') || error.message?.includes('type') || error.message?.includes('category') || error.message?.includes('updated_at'))) {
+          delete payload.quantity;
+          delete payload.type;
+          delete payload.category;
+          delete payload.updated_at;
+          const res = await supabase.from('shopping_list').update(payload).eq('id', editingId);
+          error = res.error;
+        }
+
+        if (error) throw error;
+
+        setItems(items.map((i) => (i.id === editingId ? { ...i, ...payload, type: inputType, category: inputCategory, quantity: inputQuantity.trim() || null } : i)));
+        setInputName('');
+        setInputQuantity('');
+        setInputLocation('');
+        setInputPrice('');
+        setEditingId(null);
+        setShowAddForm(false);
+        toast.success('Producto actualizado correctamente ✨');
+        return;
+      }
+
       let { data, error } = await supabase.from('shopping_list').insert([payload]).select();
 
       if (error && (error.message?.includes('quantity') || error.message?.includes('type') || error.message?.includes('category') || error.message?.includes('updated_at'))) {
@@ -202,7 +242,7 @@ export default function MandadoModal({ isOpen, onClose }: MandadoModalProps) {
         }
       }
     } catch (err: any) {
-      toast.error('Error al agregar: ' + err.message);
+      toast.error('Error al guardar: ' + err.message);
     }
   };
 
@@ -470,11 +510,20 @@ export default function MandadoModal({ isOpen, onClose }: MandadoModalProps) {
 
               <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap shrink-0">
                 <button
-                  onClick={() => setShowAddForm(!showAddForm)}
+                  onClick={() => {
+                    if (showAddForm && editingId) {
+                      setEditingId(null);
+                      setInputName('');
+                      setInputQuantity('');
+                      setInputLocation('');
+                      setInputPrice('');
+                    }
+                    setShowAddForm(!showAddForm);
+                  }}
                   className="px-3.5 py-1.5 bg-black dark:bg-white text-white dark:text-black font-syne text-xs font-bold uppercase tracking-wider rounded-xl transition-all shadow-xs flex items-center justify-center gap-1.5 interactive-hover shrink-0"
                 >
-                  <HiOutlinePlus className="text-sm" />
-                  <span>{showAddForm ? 'Ocultar Formulario' : '+ Agregar Producto'}</span>
+                  {showAddForm ? <HiX className="text-sm" /> : <HiOutlinePlus className="text-sm" />}
+                  <span>{showAddForm ? (editingId ? 'Cancelar Edición' : 'Ocultar Formulario') : '+ Agregar Producto'}</span>
                 </button>
 
                 <button
@@ -523,7 +572,7 @@ export default function MandadoModal({ isOpen, onClose }: MandadoModalProps) {
               </div>
             </div>
 
-            {/* Collapsible Quick Add Form */}
+            {/* Collapsible Quick Add / Edit Form */}
             <AnimatePresence>
               {showAddForm && (
                 <motion.form
@@ -603,8 +652,8 @@ export default function MandadoModal({ isOpen, onClose }: MandadoModalProps) {
                         type="submit"
                         className="px-5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-syne text-xs font-bold uppercase tracking-wider rounded-xl shadow-md hover:scale-105 active:scale-95 transition-all flex items-center justify-center gap-1 shrink-0 h-[32px]"
                       >
-                        <HiOutlinePlus className="text-base" />
-                        <span>Guardar</span>
+                        {editingId ? <HiOutlinePencil className="text-base" /> : <HiOutlinePlus className="text-base" />}
+                        <span>{editingId ? 'Guardar Cambios' : 'Guardar'}</span>
                       </button>
                     </div>
                   </div>
@@ -711,6 +760,14 @@ export default function MandadoModal({ isOpen, onClose }: MandadoModalProps) {
                         ${item.price.toLocaleString()}
                       </span>
                     )}
+
+                    <button
+                      onClick={() => handleOpenEdit(item)}
+                      className="p-1.5 text-gray-400 hover:text-black dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl transition-all shrink-0"
+                      title="Editar producto"
+                    >
+                      <HiOutlinePencil className="text-base" />
+                    </button>
 
                     <button
                       onClick={() => deleteItem(item.id)}
