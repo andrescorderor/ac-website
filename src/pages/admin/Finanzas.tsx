@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
 import { createPortal } from 'react-dom';
 import { supabase } from '@/lib/supabase';
 import { HiOutlinePlus, HiOutlineTrash, HiOutlineSave, HiOutlineEye, HiOutlineEyeOff, HiOutlineSearch, HiX } from 'react-icons/hi';
 import { useToast } from '@/components/common/ToastContext';
 import CustomSelect from '@/components/common/CustomSelect';
+import MandadoModal from '@/components/admin/MandadoModal';
 import { motion, AnimatePresence } from 'framer-motion';
 
 type Expense = {
@@ -29,6 +29,7 @@ export default function Finanzas() {
   const [submittingCat, setSubmittingCat] = useState<string | null>(null);
   const [isPrivacyMode, setIsPrivacyMode] = useState(true);
   const [showAddModal, setShowAddModal] = useState(false);
+  const [showMandadoModal, setShowMandadoModal] = useState(false);
   const [modalCat, setModalCat] = useState<'comida' | 'insumos' | 'servicios'>('comida');
   const [filterCategory, setFilterCategory] = useState('Todas');
   const [searchTerm, setSearchTerm] = useState('');
@@ -168,13 +169,13 @@ export default function Finanzas() {
         </div>
 
         <div className="flex flex-wrap items-center gap-4">
-          <Link
-            to="/admin/panel/compras?quincena=true"
+          <button
+            onClick={() => setShowMandadoModal(true)}
             className="flex items-center gap-2 px-5 py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-2xl font-syne text-xs font-bold uppercase tracking-wider transition-all shadow-md shrink-0 interactive-hover"
-            title="Abrir el modal de Mandado Quincenal e Insumos para gestionar y registrar compras"
+            title="Abrir directamente el Mandado Quincenal e Insumos"
           >
             <span>🥗 Abrir Mandado</span>
-          </Link>
+          </button>
 
           <button
             onClick={() => setShowAddModal(true)}
@@ -450,6 +451,15 @@ export default function Finanzas() {
         </AnimatePresence>,
         document.body
       )}
+
+      {/* Mandado Modal Overlay */}
+      <MandadoModal
+        isOpen={showMandadoModal}
+        onClose={() => {
+          setShowMandadoModal(false);
+          fetchData(); // Refresh finance totals when closing modal
+        }}
+      />
     </div>
   );
 }

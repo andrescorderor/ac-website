@@ -43,9 +43,9 @@ The productivity hub is a mobile-optimized private dashboard with 11 specialized
 
 ---
 
-## ✨ Design System & Master UX Specs (v1.197.0)
+## ✨ Design System & Master UX Specs (v1.198.0)
 
-*   🏷️ **Automatic Commit-Based Versioning (`v1.197.0`):** Live versioning indicator displayed seamlessly in desktop and mobile sidebars.
+*   🏷️ **Automatic Commit-Based Versioning (`v1.198.0`):** Live versioning indicator displayed seamlessly in desktop and mobile sidebars.
 
 *   🏷️ **Automatic Commit-Based Versioning (`v1.194.0`):** Live versioning indicator displayed seamlessly in desktop and mobile sidebars.
 *   👁️ **Global Privacy Mode & Dark Mode Default:** One-click toggle to mask financial values and default high-contrast dark theme.

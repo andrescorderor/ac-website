@@ -1,0 +1,489 @@
+import { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
+import { supabase } from '@/lib/supabase';
+import { motion, AnimatePresence } from 'framer-motion';
+import { HiOutlinePlus, HiOutlineCheckCircle, HiOutlineTrash, HiOutlineRefresh, HiOutlineLocationMarker, HiX } from 'react-icons/hi';
+import { MdOutlineCircle } from 'react-icons/md';
+import { useToast } from '@/components/common/ToastContext';
+import CustomSelect from '@/components/common/CustomSelect';
+
+type ShoppingItem = {
+  id: string;
+  name: string;
+  location: string | null;
+  price: number | null;
+  priority: 'Baja' | 'Media' | 'Alta';
+  type?: 'quincenal' | 'ocasional';
+  category?: string | null;
+  bought: boolean;
+};
+
+type MandadoModalProps = {
+  isOpen: boolean;
+  onClose: () => void;
+};
+
+export default function MandadoModal({ isOpen, onClose }: MandadoModalProps) {
+  const { toast } = useToast();
+  const [items, setItems] = useState<ShoppingItem[]>([]);
+  const [showAddForm, setShowAddForm] = useState(false);
+
+  const [inputName, setInputName] = useState('');
+  const [inputLocation, setInputLocation] = useState('');
+  const [inputPrice, setInputPrice] = useState('');
+  const [inputType, setInputType] = useState<'quincenal' | 'ocasional'>('quincenal');
+  const [inputCategory, setInputCategory] = useState<'comida' | 'insumos'>('comida');
+
+  useEffect(() => {
+    if (isOpen) {
+      fetchItems();
+    }
+  }, [isOpen]);
+
+  const fetchItems = async () => {
+    const { data } = await supabase
+      .from('shopping_list')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (data) setItems(data);
+  };
+
+  const isMandadoItem = (item: ShoppingItem): boolean => {
+    if (item.type === 'quincenal' || item.type === 'ocasional') return true;
+    if (item.category === 'quincenal' || item.category === 'ocasional' || item.category === 'comida' || item.category === 'insumos') return true;
+    if (item.location?.includes('Quincenal') || item.location?.includes('Agotar') || item.location?.includes('Agotamiento') || item.location?.includes('Mandado') || item.location?.includes('Comida') || item.location?.includes('Insumos') || item.location?.includes('🍔') || item.location?.includes('🛒') || item.location?.includes('🥗') || item.location?.includes('📦')) return true;
+    return false;
+  };
+
+  const getItemType = (item: ShoppingItem): 'quincenal' | 'ocasional' => {
+    if (item.type === 'quincenal' || item.type === 'ocasional') return item.type;
+    if (item.category === 'quincenal' || item.category === 'ocasional') return item.category as 'quincenal' | 'ocasional';
+    if (item.location?.includes('Quincenal') || item.name.includes('[Quincenal]')) return 'quincenal';
+    if (item.location?.includes('Ocasional') || item.location?.includes('Agotar') || item.location?.includes('Agotamiento')) return 'ocasional';
+    return 'ocasional';
+  };
+
+  const getItemCategory = (item: ShoppingItem): 'comida' | 'insumos' => {
+    if (item.category === 'comida' || item.category === 'insumos') return item.category as 'comida' | 'insumos';
+    if (item.location?.includes('Insumos') || item.location?.includes('Casa') || item.location?.includes('🛒')) return 'insumos';
+    return 'comida';
+  };
+
+  const quincenalList = items.filter(isMandadoItem);
+
+  const handleAddItem = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!inputName.trim()) {
+      toast.error('Ingresa el nombre del producto para tu mandado');
+      return;
+    }
+
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+
+    try {
+      const storeText = inputLocation.trim();
+      const catText = inputCategory === 'comida' ? '🍔 Comida' : '🛒 Insumos';
+      const freqText = inputType === 'quincenal' ? '🥗 Quincenal' : '📦 Hasta Agotar';
+      const locText = storeText
+        ? `${catText} | ${freqText} — ${storeText}`
+        : `${catText} | ${freqText}`;
+
+      const itemPrice = inputPrice ? parseFloat(inputPrice) : null;
+
+      const payload: any = {
+        user_id: user.id,
+        name: inputName.trim(),
+        location: locText,
+        price: itemPrice,
+        priority: 'Media',
+        type: inputType,
+        category: inputCategory,
+        bought: false,
+      };
+
+      let { data, error } = await supabase.from('shopping_list').insert([payload]).select();
+
+      if (error && (error.message?.includes('type') || error.message?.includes('category'))) {
+        delete payload.type;
+        delete payload.category;
+        const res = await supabase.from('shopping_list').insert([payload]).select();
+        data = res.data;
+        error = res.error;
+      }
+
+      if (error) throw error;
+
+      if (data) {
+        setItems([{ ...data[0], type: inputType, category: inputCategory }, ...items]);
+        setInputName('');
+        setInputLocation('');
+        setInputPrice('');
+        setShowAddForm(false);
+
+        // AUTOMATIC FINANZAS LOGGING
+        if (itemPrice && itemPrice > 0) {
+          await supabase.from('finance_expenses').insert([{
+            user_id: user.id,
+            concept: `Mandado — ${payload.name}`,
+            amount: itemPrice,
+            category: inputCategory,
+          }]);
+          toast.success(`💸 $${itemPrice.toLocaleString()} en ${inputCategory === 'comida' ? 'Comida 🍔' : 'Insumos 🛒'} auto-registrado en Finanzas`);
+        } else {
+          toast.success(`Producto agregado al Mandado (${inputCategory === 'comida' ? 'Comida 🍔' : 'Insumos 🛒'})`);
+        }
+      }
+    } catch (err: any) {
+      toast.error('Error al agregar: ' + err.message);
+    }
+  };
+
+  const toggleBought = async (id: string, currentStatus: boolean) => {
+    const item = items.find((i) => i.id === id);
+    try {
+      const { error } = await supabase.from('shopping_list').update({ bought: !currentStatus }).eq('id', id);
+      if (error) throw error;
+
+      setItems(items.map((i) => (i.id === id ? { ...i, bought: !currentStatus } : i)));
+
+      // AUTOMATIC FINANZAS LOGGING WHEN MARKING MANDADO ITEM AS BOUGHT
+      if (!currentStatus && item && item.price && item.price > 0) {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          const cat = getItemCategory(item);
+          await supabase.from('finance_expenses').insert([{
+            user_id: user.id,
+            concept: `Mandado — ${item.name}`,
+            amount: item.price,
+            category: cat,
+          }]);
+          toast.success(`🛒 Comprado + 💸 $${item.price.toLocaleString()} auto-registrado en Finanzas (${cat === 'comida' ? 'Comida 🍔' : 'Insumos 🛒'})`);
+          return;
+        }
+      }
+
+      toast.info(!currentStatus ? 'Artículo comprado 🛒' : 'Artículo marcado como pendiente');
+    } catch (err: any) {
+      toast.error('Error al actualizar estado: ' + err.message);
+    }
+  };
+
+  const handleMarkAsAgotado = async (id: string) => {
+    try {
+      const { error } = await supabase.from('shopping_list').update({ bought: false }).eq('id', id);
+      if (error) throw error;
+
+      setItems(items.map((i) => (i.id === id ? { ...i, bought: false } : i)));
+      toast.info('⚠️ Producto marcado como Agotado. Listo para comprar nuevamente.');
+    } catch (err: any) {
+      toast.error('Error al marcar como agotado: ' + err.message);
+    }
+  };
+
+  const handleRenewQuincenal = async () => {
+    if (quincenalList.length === 0) {
+      toast.info('No tienes artículos en tu Mandado 🥗');
+      return;
+    }
+
+    try {
+      const quincenalIds = quincenalList.map((i) => i.id);
+      const { error } = await supabase
+        .from('shopping_list')
+        .update({ bought: false })
+        .in('id', quincenalIds);
+
+      if (error) throw error;
+
+      setItems(items.map((i) => (isMandadoItem(i) ? { ...i, bought: false } : i)));
+      toast.success(`🥗 ¡Mandado desmarcado! Todos los productos están listos para la nueva quincena.`);
+    } catch (err: any) {
+      toast.error('Error al renovar mandado: ' + err.message);
+    }
+  };
+
+  const deleteItem = async (id: string) => {
+    try {
+      const { error } = await supabase.from('shopping_list').delete().eq('id', id);
+      if (error) throw error;
+
+      setItems(items.filter((i) => i.id !== id));
+      toast.success('Artículo eliminado');
+    } catch (err: any) {
+      toast.error('Error al eliminar: ' + err.message);
+    }
+  };
+
+  if (!isOpen) return null;
+
+  return createPortal(
+    <AnimatePresence>
+      <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 sm:p-6 overflow-y-auto bg-black/60 backdrop-blur-sm">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95, y: 20 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          exit={{ opacity: 0, scale: 0.95, y: 20 }}
+          className="bg-white dark:bg-gray-900 rounded-[2.5rem] p-6 sm:p-8 max-h-[90vh] overflow-y-auto max-w-3xl w-full border-none shadow-2xl space-y-6 my-6"
+        >
+          {/* Header of Modal */}
+          <div className="flex items-start justify-between gap-4 border-b border-gray-100 dark:border-gray-800 pb-4">
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center gap-2">
+                <span className="text-2xl shrink-0">🥗</span>
+                <h2 className="font-dm-sans text-xl sm:text-2xl font-bold text-gray-900 dark:text-white truncate">
+                  Mandado Quincenal & Insumos
+                </h2>
+              </div>
+              <p className="font-inter text-xs text-gray-400 mt-1">
+                Listado de compras recurrente para tu alimentación e insumos de casa.
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={onClose}
+              className="p-2 rounded-xl text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 transition-all shrink-0"
+            >
+              <HiX className="text-xl" />
+            </button>
+          </div>
+
+          {/* Progress & Reset Controls */}
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-emerald-50/60 dark:bg-emerald-950/30 p-3.5 sm:p-4 rounded-2xl border border-emerald-100 dark:border-emerald-900/40 w-full">
+            <div className="space-y-1 min-w-0">
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="font-syne text-xs font-bold uppercase tracking-wider text-emerald-800 dark:text-emerald-300">
+                  {quincenalList.filter(i => i.bought).length} de {quincenalList.length} comprados
+                </span>
+                {quincenalList.length > 0 && (
+                  <span className="text-xs font-dm-sans font-bold text-emerald-600 dark:text-emerald-400">
+                    ({Math.round((quincenalList.filter(i => i.bought).length / quincenalList.length) * 100)}%)
+                  </span>
+                )}
+              </div>
+              <div className="w-full sm:w-56 bg-emerald-200/60 dark:bg-emerald-900/60 h-2 rounded-full overflow-hidden">
+                <div 
+                  className="bg-emerald-500 h-full transition-all duration-500 rounded-full" 
+                  style={{ width: `${quincenalList.length > 0 ? (quincenalList.filter(i => i.bought).length / quincenalList.length) * 100 : 0}%` }}
+                />
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap shrink-0">
+              <button
+                onClick={() => setShowAddForm(!showAddForm)}
+                className="flex-1 sm:flex-none px-4 py-2.5 bg-black dark:bg-white text-white dark:text-black font-syne text-xs font-bold uppercase tracking-wider rounded-xl transition-all shadow-sm flex items-center justify-center gap-1.5 interactive-hover shrink-0"
+              >
+                <HiOutlinePlus className="text-base" />
+                <span>{showAddForm ? 'Ocultar' : '+ Agregar Producto'}</span>
+              </button>
+
+              <button
+                onClick={handleRenewQuincenal}
+                className="flex-1 sm:flex-none px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-syne text-xs font-bold uppercase tracking-wider rounded-xl transition-all shadow-sm flex items-center justify-center gap-1.5 interactive-hover shrink-0"
+                title="Desmarca todos los artículos para iniciar una nueva quincena"
+              >
+                <HiOutlineRefresh className="text-base" />
+                <span>Nueva Quincena 🔄</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Collapsible Quick Add Form */}
+          <AnimatePresence>
+            {showAddForm && (
+              <motion.form
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                exit={{ opacity: 0, height: 0 }}
+                onSubmit={handleAddItem}
+                className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 bg-gray-50 dark:bg-gray-800/60 p-4 rounded-2xl border border-gray-100 dark:border-gray-700/80 w-full relative z-20"
+              >
+                <div>
+                  <label className="block font-syne text-[9px] font-bold uppercase tracking-widest text-gray-400 mb-1">Producto *</label>
+                  <input
+                    type="text"
+                    placeholder="Pechuga, Detergente..."
+                    value={inputName}
+                    onChange={(e) => setInputName(e.target.value)}
+                    className="w-full px-3.5 py-2.5 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl outline-none text-sm font-inter text-gray-900 dark:text-white"
+                  />
+                </div>
+
+                <div>
+                  <label className="block font-syne text-[9px] font-bold uppercase tracking-widest text-gray-400 mb-1">Categoría</label>
+                  <CustomSelect
+                    value={inputCategory}
+                    onChange={(val) => setInputCategory(val as 'comida' | 'insumos')}
+                    options={[
+                      { value: 'comida', label: 'Comida 🍔' },
+                      { value: 'insumos', label: 'Insumos 🛒' },
+                    ]}
+                  />
+                </div>
+
+                <div>
+                  <label className="block font-syne text-[9px] font-bold uppercase tracking-widest text-gray-400 mb-1">Frecuencia</label>
+                  <CustomSelect
+                    value={inputType}
+                    onChange={(val) => setInputType(val as 'quincenal' | 'ocasional')}
+                    options={[
+                      { value: 'quincenal', label: 'Quincenal 🥗' },
+                      { value: 'ocasional', label: 'Hasta Agotar 📦' },
+                    ]}
+                  />
+                </div>
+
+                <div>
+                  <label className="block font-syne text-[9px] font-bold uppercase tracking-widest text-gray-400 mb-1">Precio ($)</label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    placeholder="0.00"
+                    value={inputPrice}
+                    onChange={(e) => setInputPrice(e.target.value)}
+                    className="w-full px-3.5 py-2.5 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl outline-none text-sm font-inter text-gray-900 dark:text-white"
+                  />
+                </div>
+
+                <div className="col-span-1 sm:col-span-2 lg:col-span-4 flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-3 pt-1">
+                  <input
+                    type="text"
+                    placeholder="Lugar / Tienda (ej. Walmart, Costco)"
+                    value={inputLocation}
+                    onChange={(e) => setInputLocation(e.target.value)}
+                    className="flex-1 px-3.5 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl outline-none text-xs font-inter text-gray-900 dark:text-white"
+                  />
+                  <button
+                    type="submit"
+                    className="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-syne text-xs font-bold uppercase tracking-wider rounded-xl shadow-md hover:scale-105 active:scale-95 transition-all flex items-center justify-center gap-1.5 shrink-0"
+                  >
+                    <HiOutlinePlus className="text-base" />
+                    <span>Guardar Producto</span>
+                  </button>
+                </div>
+              </motion.form>
+            )}
+          </AnimatePresence>
+
+          {/* Quincenal List Items */}
+          <div className="space-y-2.5 max-h-[45vh] overflow-y-auto pr-1 scrollbar-none w-full">
+            {quincenalList.length === 0 ? (
+              <div className="p-8 text-center bg-gray-50 dark:bg-gray-800/50 rounded-2xl text-gray-400 space-y-1">
+                <p className="font-dm-sans font-bold text-base">No hay productos en tu mandado quincenal</p>
+                <p className="font-inter text-xs">Presiona "+ Agregar Producto" para registrar productos de dieta o insumos.</p>
+              </div>
+            ) : (
+              quincenalList.map((item) => (
+                <div
+                  key={item.id}
+                  className={`flex flex-col sm:flex-row sm:items-center justify-between p-3.5 sm:p-4 rounded-2xl border transition-all gap-3 w-full min-w-0 overflow-hidden ${
+                    item.bought 
+                      ? 'bg-gray-50/80 dark:bg-gray-800/40 border-gray-100 dark:border-gray-800 opacity-60' 
+                      : 'bg-white dark:bg-gray-800/90 border-gray-100 dark:border-gray-700 shadow-xs'
+                  }`}
+                >
+                  <div className="flex items-start sm:items-center gap-3 min-w-0 flex-1 overflow-hidden">
+                    <button
+                      onClick={() => toggleBought(item.id, item.bought)}
+                      className="text-2xl transition-transform active:scale-90 shrink-0 mt-0.5 sm:mt-0"
+                      title={item.bought ? 'Marcar como pendiente' : 'Marcar como comprado'}
+                    >
+                      {item.bought ? (
+                        <HiOutlineCheckCircle className="text-emerald-500" />
+                      ) : (
+                        <MdOutlineCircle className="text-gray-300 dark:text-gray-600 hover:text-emerald-500" />
+                      )}
+                    </button>
+
+                    <div className="min-w-0 flex-1 overflow-hidden">
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        <span className={`font-dm-sans font-bold text-sm sm:text-base break-words ${
+                          item.bought ? 'line-through text-gray-400 dark:text-gray-500' : 'text-gray-900 dark:text-white'
+                        }`}>
+                          {item.name}
+                        </span>
+
+                        <span className={`px-2 py-0.5 rounded-full text-[9px] font-syne font-bold uppercase tracking-wider shrink-0 ${
+                          getItemCategory(item) === 'comida'
+                            ? 'bg-amber-100 dark:bg-amber-950/60 text-amber-600 dark:text-amber-300'
+                            : 'bg-indigo-100 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-300'
+                        }`}>
+                          {getItemCategory(item) === 'comida' ? '🍔 Comida' : '🛒 Insumos'}
+                        </span>
+
+                        <span className={`px-2 py-0.5 rounded-full text-[9px] font-syne font-bold uppercase tracking-wider shrink-0 ${
+                          getItemType(item) === 'quincenal'
+                            ? 'bg-emerald-100 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-300'
+                            : 'bg-purple-100 dark:bg-purple-950/60 text-purple-600 dark:text-purple-300'
+                        }`}>
+                          {getItemType(item) === 'quincenal' ? '🥗 Quincenal' : '📦 Hasta Agotar'}
+                        </span>
+                      </div>
+
+                      {item.location && (
+                        <span className="font-inter text-xs text-gray-400 dark:text-gray-500 flex items-center gap-1 mt-0.5 truncate">
+                          <HiOutlineLocationMarker className="text-xs shrink-0" />
+                          <span className="truncate">{item.location.replace(/^([^—]+)— /, '')}</span>
+                        </span>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2 shrink-0 justify-end flex-wrap sm:flex-nowrap">
+                    {getItemType(item) === 'ocasional' && item.bought && (
+                      <button
+                        onClick={() => handleMarkAsAgotado(item.id)}
+                        className="px-2.5 py-1 bg-amber-500/10 hover:bg-amber-500/20 text-amber-600 dark:text-amber-400 rounded-lg font-syne text-[10px] font-bold uppercase tracking-wider transition-all flex items-center gap-1 shrink-0"
+                        title="Marcar producto como consumido/agotado para volverlo a comprar"
+                      >
+                        <span>⚠️ Agotado</span>
+                      </button>
+                    )}
+
+                    {item.price !== null && (
+                      <span className="font-dm-sans font-bold text-xs text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700/80 px-2.5 py-1.5 rounded-lg shrink-0">
+                        ${item.price.toLocaleString()}
+                      </span>
+                    )}
+
+                    <button
+                      onClick={() => deleteItem(item.id)}
+                      className="p-1.5 text-gray-300 dark:text-gray-600 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-lg transition-all shrink-0"
+                      title="Eliminar del mandado"
+                    >
+                      <HiOutlineTrash className="text-base" />
+                    </button>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+
+          {/* Clean Footer (No manual registrar en finanzas button) */}
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 pt-3.5 border-t border-gray-100 dark:border-gray-800 w-full">
+            <div className="text-xs font-inter text-gray-500 space-y-0.5 min-w-0">
+              <div>
+                Presupuesto total: <strong className="text-gray-900 dark:text-white font-dm-sans text-sm">${quincenalList.reduce((acc, i) => acc + (i.price || 0), 0).toLocaleString()}</strong>
+              </div>
+              <div className="truncate">
+                Comida: <strong className="text-amber-600 dark:text-amber-400 font-dm-sans text-xs">${quincenalList.filter(i => getItemCategory(i) === 'comida').reduce((acc, i) => acc + (i.price || 0), 0).toLocaleString()}</strong> | Insumos: <strong className="text-indigo-600 dark:text-indigo-400 font-dm-sans text-xs">${quincenalList.filter(i => getItemCategory(i) === 'insumos').reduce((acc, i) => acc + (i.price || 0), 0).toLocaleString()}</strong>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2 justify-end shrink-0">
+              <button
+                onClick={onClose}
+                className="px-6 py-2.5 bg-black dark:bg-white text-white dark:text-black font-syne text-xs font-bold uppercase tracking-wider rounded-xl transition-all hover:scale-105 active:scale-95 text-center shrink-0"
+              >
+                Cerrar
+              </button>
+            </div>
+          </div>
+        </motion.div>
+      </div>
+    </AnimatePresence>,
+    document.body
+  );
+}
