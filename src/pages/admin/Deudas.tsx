@@ -117,6 +117,7 @@ export default function Deudas() {
   };
 
   const totalPending = debts.filter((d) => !d.settled).reduce((acc, curr) => acc + curr.amount, 0);
+  const totalSettled = debts.filter((d) => d.settled).reduce((acc, curr) => acc + curr.amount, 0);
 
   const filteredDebts = debts.filter((d) => {
     const matchesStatus =
@@ -161,7 +162,7 @@ export default function Deudas() {
           </p>
         </div>
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4">
-          <div className="bg-white dark:bg-gray-900 px-6 py-3 rounded-2xl border-none shadow-sm flex flex-col items-start sm:items-end">
+          <div className="bg-white/80 dark:bg-gray-900/80 glass dark:dark-glass px-6 py-3 rounded-2xl border border-gray-200/50 dark:border-gray-800 shadow-sm flex flex-col items-start sm:items-end min-w-[200px]">
             <p className="font-syne text-[10px] font-bold uppercase tracking-widest text-gray-400 dark:text-gray-500">Total Pendiente</p>
             <p className="font-dm-sans text-2xl font-bold text-red-500 dark:text-red-400">${totalPending.toLocaleString()}</p>
           </div>
@@ -174,6 +175,24 @@ export default function Deudas() {
           </button>
         </div>
       </header>
+
+      {/* Collection Progress Bar */}
+      {debts.length > 0 && (
+        <div className="bg-white/80 dark:bg-gray-900/80 glass dark:dark-glass p-6 rounded-3xl border border-gray-200/60 dark:border-gray-800 shadow-xs space-y-3">
+          <div className="flex items-center justify-between font-syne text-xs font-bold uppercase tracking-wider">
+            <span className="text-gray-600 dark:text-gray-300">Progreso de Cobro</span>
+            <span className="text-emerald-500">
+              {Math.round((totalSettled / ((totalPending + totalSettled) || 1)) * 100)}% Cobrado (${totalSettled.toLocaleString()} de ${(totalPending + totalSettled).toLocaleString()})
+            </span>
+          </div>
+          <div className="h-3 w-full bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden p-0.5 border border-gray-200/50 dark:border-gray-700/50">
+            <div 
+              className="h-full bg-gradient-to-r from-emerald-500 to-teal-400 rounded-full transition-all duration-500 shadow-xs"
+              style={{ width: `${Math.round((totalSettled / ((totalPending + totalSettled) || 1)) * 100)}%` }}
+            />
+          </div>
+        </div>
+      )}
 
       {/* Add Debt Modal */}
       {createPortal(

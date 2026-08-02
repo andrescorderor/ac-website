@@ -298,8 +298,19 @@ export default function Vault() {
               </div>
 
               <div className="mt-6 space-y-4">
-                <div className="bg-white dark:bg-gray-800/80 p-4 rounded-2xl relative overflow-hidden group/content shadow-inner">
+                <div 
+                  onClick={() => copyToClipboard(item.content, item.id)}
+                  className="bg-white dark:bg-gray-800/80 p-4 rounded-2xl relative overflow-hidden group/content shadow-inner cursor-pointer hover:border-gray-300 dark:hover:border-gray-600 border border-transparent transition-all"
+                  title="Haz clic para copiar"
+                >
                   <AutoFormattedText text={item.content} className="font-mono text-sm text-gray-600 dark:text-gray-300 pr-8" />
+                  <div className="absolute right-3 top-1/2 -translate-y-1/2 opacity-60 group-hover/content:opacity-100 transition-opacity">
+                    {copiedId === item.id ? (
+                      <HiOutlineCheck className="text-green-500 text-base" />
+                    ) : (
+                      <HiOutlineDuplicate className="text-gray-400 text-base" />
+                    )}
+                  </div>
                 </div>
                 
                 <button 
@@ -313,7 +324,7 @@ export default function Vault() {
                   {copiedId === item.id ? (
                     <>
                       <HiOutlineCheck className="text-lg" />
-                      Copiado
+                      Copiado al Portapapeles
                     </>
                   ) : (
                     <>

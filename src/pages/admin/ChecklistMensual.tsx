@@ -434,14 +434,19 @@ export default function ChecklistMensual() {
                         initial={{ opacity: 0, x: -10 }}
                         animate={{ opacity: 1, x: 0 }}
                         exit={{ opacity: 0, x: 10 }}
-                        className={`group flex items-center gap-4 p-4 rounded-2xl border transition-all duration-300 ${
+                        onClick={(e) => {
+                          // Ignore if action buttons were clicked
+                          if ((e.target as HTMLElement).closest('.action-btn')) return;
+                          toggleComplete(item);
+                        }}
+                        className={`group flex items-center gap-4 p-4 rounded-2xl border transition-all duration-300 cursor-pointer ${
                           done
                             ? 'bg-emerald-50/50 dark:bg-emerald-950/20 border-emerald-200/50 dark:border-emerald-900/30'
                             : 'bg-white dark:bg-gray-900/80 border-gray-100/50 dark:border-gray-800/50 hover:border-gray-200 dark:hover:border-gray-700'
                         }`}
                       >
                         <button
-                          onClick={() => toggleComplete(item)}
+                          type="button"
                           className={`size-8 rounded-full border-2 flex items-center justify-center shrink-0 transition-all ${
                             done
                               ? 'bg-emerald-500 border-emerald-500'
@@ -465,7 +470,7 @@ export default function ChecklistMensual() {
                         </div>
 
                         {!isReadOnly && (
-                          <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-all shrink-0">
+                          <div className="action-btn flex items-center gap-1 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-all shrink-0">
                             <button
                               onClick={() => {
                                 const isNowPinned = togglePinItem({

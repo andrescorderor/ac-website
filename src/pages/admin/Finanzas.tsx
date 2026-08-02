@@ -377,8 +377,8 @@ export default function Finanzas() {
                   <HiOutlinePlus className="text-xs" />
                   <span>Registrar</span>
                 </button>
-                <span className="font-syne text-xs font-bold text-gray-400 dark:text-gray-500">
-                  Total: {formatAmount(getCategoryTotal(cat))}
+                <span className="font-syne text-[11px] font-bold text-gray-700 dark:text-gray-300 bg-gray-100/80 dark:bg-gray-800/80 px-3 py-1 rounded-full border border-gray-200/50 dark:border-gray-700/50 shadow-xs">
+                  Total: <span className="text-[var(--color-info)] dark:text-[var(--vibrant-sky-blue)]">{formatAmount(getCategoryTotal(cat))}</span>
                 </span>
               </div>
             </div>

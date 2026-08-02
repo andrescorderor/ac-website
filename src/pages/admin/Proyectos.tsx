@@ -567,13 +567,13 @@ export default function Proyectos() {
                     {totalTasks > 0 && (
                       <div className="space-y-1.5">
                         <div className="flex justify-between items-center">
-                          <span className="font-syne text-[9px] font-bold uppercase tracking-widest text-gray-400">Progreso</span>
-                          <span className="font-dm-sans text-xs font-bold text-gray-600 dark:text-gray-300">{doneTasks}/{totalTasks}</span>
+                          <span className="font-syne text-[9px] font-bold uppercase tracking-widest text-gray-400">Progreso ({Math.round((doneTasks / totalTasks) * 100)}%)</span>
+                          <span className="font-dm-sans text-xs font-bold text-gray-600 dark:text-gray-300">{doneTasks}/{totalTasks} Tareas</span>
                         </div>
-                        <div className="h-1.5 bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden">
+                        <div className="h-2 bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden p-0.5 border border-gray-100 dark:border-gray-700/50">
                           <motion.div
                             initial={{ width: 0 }} animate={{ width: `${(doneTasks / totalTasks) * 100}%` }}
-                            className="h-full bg-[var(--vibrant-sky-blue)] rounded-full"
+                            className="h-full bg-gradient-to-r from-[var(--vibrant-sky-blue)] to-[var(--electric-blue)] rounded-full transition-all duration-300"
                           />
                         </div>
                       </div>

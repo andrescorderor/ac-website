@@ -178,7 +178,7 @@ export default function Hero() {
                       target="_blank" 
                       rel="noreferrer" 
                       title={social.label}
-                      className="group relative flex items-center justify-center size-14 rounded-2xl bg-white border border-[var(--light-gray)] hover:border-[var(--black)] hover:-translate-y-1 shadow-sm hover:shadow-xl transition-all duration-500"
+                      className="group relative flex items-center justify-center size-14 rounded-2xl bg-white border border-[var(--light-gray)] hover:border-[var(--black)] hover:-translate-y-1 hover:scale-105 active:scale-95 shadow-sm hover:shadow-xl transition-all duration-300"
                     >
                       <social.icon className="text-[var(--dark-gray)] group-hover:text-[var(--black)] text-2xl transition-colors duration-300" />
                     </a>
