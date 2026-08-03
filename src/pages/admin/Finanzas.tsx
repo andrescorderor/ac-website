@@ -109,7 +109,7 @@ export default function Finanzas() {
           id: `mandado-${item.id}`,
           category: getItemCategory(item),
           concept: conceptName,
-          amount: item.price,
+          amount: item.price * 2, // 2 quincenas al mes = costo mensual real
         });
       }
     }
