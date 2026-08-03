@@ -22,6 +22,7 @@ import {
 } from 'react-icons/hi';
 import { Link } from 'react-router-dom';
 import { useToast } from '@/components/common/ToastContext';
+import MandadoModal from '@/components/admin/MandadoModal';
 import { 
   requestNotificationPermission, 
   sendBrowserNotification, 
@@ -49,6 +50,7 @@ export default function DashboardHome() {
   const [loading, setLoading] = useState(true);
   const [exporting, setExporting] = useState(false);
   const [isPrivacyMode, setIsPrivacyMode] = useState(true);
+  const [showMandadoModal, setShowMandadoModal] = useState(false);
   const { toast } = useToast();
 
   const translateType = (type: string) => {
@@ -393,13 +395,14 @@ export default function DashboardHome() {
         </div>
 
         <div className="flex items-center gap-2 overflow-x-auto scrollbar-none pb-1">
-          <Link
-            to="/admin/panel/compras?quincena=true"
+          <button
+            type="button"
+            onClick={() => setShowMandadoModal(true)}
             className="flex items-center gap-2 px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-2xl shadow-md text-xs font-syne font-bold uppercase tracking-wider active:scale-95 transition-all shrink-0 interactive-hover"
             title="Abrir directamente tu listado de Mandado Quincenal e Insumos"
           >
             <span>🥗 Mandado</span>
-          </Link>
+          </button>
 
           <button
             onClick={handleTestNotification}
@@ -519,6 +522,12 @@ export default function DashboardHome() {
                   >
                     <Link
                       to={item.path}
+                      onClick={(e) => {
+                        if (item.type === 'shopping' || item.path.includes('/admin/panel/compras')) {
+                          e.preventDefault();
+                          setShowMandadoModal(true);
+                        }
+                      }}
                       className="group block p-5 bg-white dark:bg-gray-900 rounded-3xl border-none hover:border-amber-300 dark:hover:border-amber-700/60 shadow-sm hover:shadow-lg transition-all relative overflow-hidden"
                     >
                       <div className="flex items-start justify-between gap-3">
@@ -527,7 +536,7 @@ export default function DashboardHome() {
                         </span>
 
                         <button
-                          onClick={(e) => handleUnpin(item.id, e)}
+                          onClick={(e) => { e.preventDefault(); handleUnpin(item.id, e); }}
                           className="px-2 py-1 text-gray-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/40 rounded-lg transition-all text-[10px] font-syne font-bold uppercase tracking-wider flex items-center gap-1 shrink-0"
                           title="Desfijar de la pantalla de inicio"
                         >
@@ -606,6 +615,12 @@ export default function DashboardHome() {
           })}
         </div>
       </section>
+      
+      {/* Mandado Modal */}
+      <MandadoModal 
+        isOpen={showMandadoModal} 
+        onClose={() => setShowMandadoModal(false)} 
+      />
     </div>
   );
 }
