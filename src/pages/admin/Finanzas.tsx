@@ -193,6 +193,7 @@ export default function Finanzas() {
   };
 
   const globalTotal = expenses.reduce((acc, curr) => acc + curr.amount, 0);
+  const remainingSalary = salary - globalTotal;
 
   const formatAmount = (val: number) => {
     if (isPrivacyMode) return '$••••••';
@@ -280,28 +281,45 @@ export default function Finanzas() {
       </header>
 
       {/* Summary Cards Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 md:gap-6">
         {[
-          { label: 'Salario Mensual', value: salary, color: 'text-[var(--color-primary)]', bg: 'bg-white dark:bg-gray-900' },
+          { label: 'Salario Mensual', value: salary, color: 'text-gray-900 dark:text-white', bg: 'bg-white dark:bg-gray-900' },
           { label: 'Comida', value: getCategoryTotal('comida'), color: 'text-[var(--color-info)]', bg: 'bg-white dark:bg-gray-900' },
           { label: 'Insumos', value: getCategoryTotal('insumos'), color: 'text-[var(--color-warning)]', bg: 'bg-white dark:bg-gray-900' },
           { label: 'Servicios', value: getCategoryTotal('servicios'), color: 'text-[var(--color-success)]', bg: 'bg-white dark:bg-gray-900' },
-          { label: 'Total Gastos', value: globalTotal, color: 'text-[var(--color-danger)]', highlight: true, bg: 'bg-red-50/50 dark:bg-red-950/20' },
+          { label: 'Total Gastos', value: globalTotal, color: 'text-[var(--color-danger)]', bg: 'bg-red-50/50 dark:bg-red-950/20', border: 'border-red-200/50 dark:border-red-900/50' },
+          { 
+            label: 'Restante Salario', 
+            value: remainingSalary, 
+            color: remainingSalary >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400', 
+            bg: remainingSalary >= 0 ? 'bg-emerald-50/50 dark:bg-emerald-950/20' : 'bg-red-50/50 dark:bg-red-950/20',
+            border: remainingSalary >= 0 ? 'border-emerald-200/50 dark:border-emerald-900/50' : 'border-red-200/50 dark:border-red-900/50',
+            badge: remainingSalary >= 0 ? 'Ahorro' : 'Déficit'
+          },
         ].map((item, i) => (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: i * 0.1, duration: 0.4 }}
+            transition={{ delay: i * 0.06, duration: 0.4 }}
             key={item.label}
             className={`p-4 md:p-6 rounded-2xl md:rounded-3xl border ${
-              item.highlight 
-                ? 'border-red-200/50 dark:border-red-900/50 ' + item.bg
-                : 'border-gray-100/50 dark:border-gray-800/50 ' + item.bg
-            } shadow-sm hover:shadow-md transition-shadow`}
+              item.border || 'border-gray-100/50 dark:border-gray-800/50'
+            } ${item.bg} shadow-sm hover:shadow-md transition-shadow relative overflow-hidden`}
           >
-            <p className="font-syne text-[9px] md:text-[10px] font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400 mb-1 md:mb-2">
-              {item.label}
-            </p>
+            <div className="flex justify-between items-center mb-1 md:mb-2">
+              <p className="font-syne text-[9px] md:text-[10px] font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">
+                {item.label}
+              </p>
+              {item.badge && (
+                <span className={`px-2 py-0.5 rounded-full text-[8px] font-syne font-bold uppercase tracking-wider ${
+                  remainingSalary >= 0 
+                    ? 'bg-emerald-100 dark:bg-emerald-900/60 text-emerald-700 dark:text-emerald-300' 
+                    : 'bg-red-100 dark:bg-red-900/60 text-red-700 dark:text-red-300'
+                }`}>
+                  {item.badge}
+                </span>
+              )}
+            </div>
             <h3 className={`font-dm-sans text-xl md:text-2xl font-bold ${item.color}`}>
               {formatAmount(item.value)}
             </h3>
