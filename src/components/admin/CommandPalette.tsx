@@ -22,10 +22,11 @@ import {
   HiOutlineKey,
   HiOutlinePaperAirplane,
   HiOutlineTrash,
+  HiOutlineExternalLink,
 } from 'react-icons/hi';
 import { useToast } from '@/components/common/ToastContext';
 
-type ResultType = 'note' | 'task' | 'debt' | 'vault' | 'shopping' | 'reminder' | 'project' | 'checklist' | 'recipe' | 'finance' | 'plant';
+type ResultType = 'note' | 'task' | 'debt' | 'vault' | 'shopping' | 'reminder' | 'project' | 'checklist' | 'recipe' | 'finance' | 'plant' | 'bookmark';
 
 type SearchResult = {
   id: string;
@@ -61,6 +62,7 @@ const TYPE_META: Record<ResultType, { label: string; icon: React.ElementType; co
   recipe:    { label: 'Receta',        icon: HiOutlineBookOpen,      color: 'bg-rose-100 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300' },
   finance:   { label: 'Gasto',         icon: HiOutlineCurrencyDollar,color: 'bg-blue-100 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300' },
   plant:     { label: 'Planta',        icon: HiOutlineSparkles,      color: 'bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300' },
+  bookmark:  { label: 'Enlace',        icon: HiOutlineExternalLink,  color: 'bg-indigo-100 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300' },
 };
 
 /** Component to highlight search matches */
@@ -287,11 +289,11 @@ export default function CommandPalette({ isOpen, onClose }: CommandPaletteProps)
       const vaultQ = supabase.from('vault_items').select('*').order('created_at', { ascending: false }).limit(500);
       let shoppingQ = supabase.from('shopping_list').select('*').order('created_at', { ascending: false });
       let projectsQ = supabase.from('creative_projects').select('*').order('created_at', { ascending: false });
-
       let checklistQ = supabase.from('monthly_checklist_items').select('*').order('created_at', { ascending: false });
       let recipesQ = supabase.from('recipes').select('*').order('created_at', { ascending: false });
       let financeQ = supabase.from('finance_expenses').select('*').order('created_at', { ascending: false });
       let plantsQ = supabase.from('plants').select('*').order('created_at', { ascending: false });
+      let bookmarksQ = supabase.from('bookmarks').select('*').order('created_at', { ascending: false });
 
       if (term) {
         notesQ = notesQ.or(`title.ilike.%${term}%,content.ilike.%${term}%,category.ilike.%${term}%`).limit(50);
@@ -305,6 +307,7 @@ export default function CommandPalette({ isOpen, onClose }: CommandPaletteProps)
         recipesQ = recipesQ.or(`name.ilike.%${term}%,description.ilike.%${term}%,category.ilike.%${term}%`).limit(50);
         financeQ = financeQ.or(`concept.ilike.%${term}%,category.ilike.%${term}%`).limit(50);
         plantsQ = plantsQ.or(`nickname.ilike.%${term}%,species.ilike.%${term}%,location.ilike.%${term}%,notes.ilike.%${term}%`).limit(50);
+        bookmarksQ = bookmarksQ.or(`title.ilike.%${term}%,url.ilike.%${term}%,category.ilike.%${term}%`).limit(50);
       } else {
         notesQ = notesQ.limit(20);
         remindersQ = remindersQ.limit(20);
@@ -316,9 +319,10 @@ export default function CommandPalette({ isOpen, onClose }: CommandPaletteProps)
         recipesQ = recipesQ.limit(20);
         financeQ = financeQ.limit(20);
         plantsQ = plantsQ.limit(20);
+        bookmarksQ = bookmarksQ.limit(20);
       }
 
-      const [nts, rem, tsk, dbt, vlt, shp, prj, chk, rec, fin, plt] = await Promise.all([
+      const [nts, rem, tsk, dbt, vlt, shp, prj, chk, rec, fin, plt, bkmRes] = await Promise.all([
         notesQ,
         remindersQ,
         tasksQ,
@@ -330,6 +334,7 @@ export default function CommandPalette({ isOpen, onClose }: CommandPaletteProps)
         recipesQ,
         financeQ,
         plantsQ,
+        bookmarksQ,
       ]);
 
       const items: SearchResult[] = [];
@@ -406,6 +411,12 @@ export default function CommandPalette({ isOpen, onClose }: CommandPaletteProps)
         }
       });
 
+      bkmRes.data?.forEach(b => {
+        if (!term || b.title.toLowerCase().includes(term) || b.url.toLowerCase().includes(term) || b.category?.toLowerCase().includes(term)) {
+          push({ id: b.id, type: 'bookmark', title: b.title, subtitle: `${b.category || 'General'} · ${b.url}`, path: '/admin/panel/enlaces', icon: TYPE_META.bookmark.icon, categoryLabel: TYPE_META.bookmark.label, badgeColor: TYPE_META.bookmark.color, rawTitle: b.title });
+        }
+      });
+
       setResults(items);
       setActiveIndex(-1);
     } catch (err) {
@@ -447,7 +458,7 @@ export default function CommandPalette({ isOpen, onClose }: CommandPaletteProps)
 
     try {
       // Fetch full database snapshot for context
-      const [exp, tsk, dbt, vlt, shp, rem, nts, prj, chk, rec, plt, bkm] = await Promise.all([
+      const [exp, tsk, dbt, vlt, shp, rem, nts, prj, chk, rec, plt, bkm, sal] = await Promise.all([
         supabase.from('finance_expenses').select('amount, category, date, concept').order('date', { ascending: false }).limit(25),
         supabase.from('tasks').select('title, completed, due_date').order('created_at', { ascending: false }).limit(25),
         supabase.from('debts').select('debtor_name, amount, concept, settled').order('created_at', { ascending: false }).limit(25),
@@ -460,9 +471,14 @@ export default function CommandPalette({ isOpen, onClose }: CommandPaletteProps)
         supabase.from('recipes').select('name, category, ingredients, description').limit(25),
         supabase.from('plants').select('nickname, species, location, watering_frequency_days, last_watered_at').limit(25),
         supabase.from('bookmarks').select('title, url, category').limit(25),
+        supabase.from('finance_salary').select('amount').limit(1),
       ]);
 
+      const salaryAmount = sal.data?.[0]?.amount || 0;
+
       const formattedContext = `
+💵 SALARIO MENSUAL CONFIGURADO: $${salaryAmount}
+
 📌 TAREAS:
 ${tsk.data?.map(t => `- [${t.completed ? 'Completada' : 'Pendiente'}] ${t.title}${t.due_date ? ` (Vence: ${t.due_date})` : ''}`).join('\n') || 'Ninguna'}
 
@@ -488,13 +504,13 @@ ${vlt.data?.map(v => `- ${v.title} [${v.category}]`).join('\n') || 'Ninguno'}
 ${nts.data?.map(n => `- ${n.title} [${n.category}]: ${n.content?.slice(0, 100) || ''}`).join('\n') || 'Ninguna'}
 
 🛒 LISTA DE COMPRAS:
-${shp.data?.map(s => `- [${s.bought ? 'Comprado' : 'Por comprar'}] ${s.name}${s.location ? ` @ ${s.location}` : ''}`).join('\n') || 'Ninguna'}
+${shp.data?.map(s => `- [${s.bought ? 'Comprado' : 'Por comprar'}] ${s.name}${s.location ? ` @ ${s.location}` : ''}`).join('\n') || 'Ninguno'}
 
 📋 CHECKLIST MENSUAL:
 ${chk.data?.map(c => `- ${c.title} [${c.category}]`).join('\n') || 'Ninguno'}
 
 🪴 MIS PLANTAS:
-${plt.data?.map(p => `- ${p.nickname} (${p.species}) en ${p.location || 'Sin ubicación'}. Riego: cada ${p.watering_frequency_days} días. Último riego: ${p.last_watered_at || 'Sin fecha'}`).join('\n') || 'Ninguna'}
+${plt.data?.map(p => `- ${p.nickname} (${p.species}) en ${p.location || 'Sin ubicación'}. Riego: cada ${p.watering_frequency_days} días. Último riego: ${p.last_watered_at || 'Sin fecha'}`).join('\n') || 'Ninguno'}
 
 🔗 ENLACES / MARCADORES:
 ${bkm.data?.map(b => `- ${b.title} [Categoría: ${b.category || 'General'}]: ${b.url}`).join('\n') || 'Ninguno'}
