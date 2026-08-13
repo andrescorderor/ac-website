@@ -62,21 +62,38 @@ export default function Vault() {
     }
 
     try {
-      const { data, error } = await supabase
+      const payload: Record<string, any> = {
+        user_id: user.id,
+        title: newItem.title.trim(),
+        content: newItem.content.trim(),
+        category: newItem.category || 'General',
+      };
+
+      let { data, error } = await supabase
         .from('vault_items')
-        .insert([
-          {
-            user_id: user.id,
-            title: newItem.title.trim(),
-            content: newItem.content.trim(),
-            category: newItem.category,
-          },
-        ])
+        .insert([payload])
         .select();
+
+      // Fallback: If category column is missing in Supabase schema cache
+      if (error && (error.message?.includes('category') || error.code === 'PGRST204')) {
+        delete payload.category;
+        const fallbackRes = await supabase
+          .from('vault_items')
+          .insert([payload])
+          .select();
+        data = fallbackRes.data;
+        error = fallbackRes.error;
+      }
 
       if (error) throw error;
 
-      if (data) setItems([data[0], ...items]);
+      if (data && data[0]) {
+        const savedItem = {
+          ...data[0],
+          category: data[0].category || newItem.category || 'General',
+        };
+        setItems([savedItem, ...items]);
+      }
       setNewItem({ title: '', content: '', category: 'General' });
       setShowAddForm(false);
       toast.success('Texto guardado en la bóveda');
