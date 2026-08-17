@@ -493,11 +493,11 @@ export default function Recordatorios() {
                     </div>
                     <textarea
                       ref={notesTextareaRef}
-                      rows={4}
+                      rows={8}
                       placeholder="Añade párrafos descriptivos, notas o detalles extra... (Puedes usar saltos de línea y viñetas)"
                       value={newReminder.notes}
                       onChange={(e) => setNewReminder({ ...newReminder, notes: e.target.value })}
-                      className="w-full px-5 py-3.5 bg-gray-50/50 dark:bg-gray-800/80 border border-gray-100 dark:border-gray-700 rounded-xl outline-none focus:border-gray-300 dark:focus:border-gray-500 font-inter text-sm leading-relaxed text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500"
+                      className="w-full px-5 py-3.5 bg-gray-50/50 dark:bg-gray-800/80 border border-gray-100 dark:border-gray-700 rounded-xl outline-none focus:border-gray-300 dark:focus:border-gray-500 font-inter text-sm leading-relaxed text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 min-h-[180px] resize-y"
                     />
                   </div>
 

@@ -553,11 +553,11 @@ export default function Plantas() {
                   </div>
                   <textarea
                     ref={notesTextareaRef}
-                    rows={4}
+                    rows={8}
                     value={form.notes}
                     onChange={e => setForm({ ...form, notes: e.target.value })}
                     placeholder="Instrucciones de fertilización, tipo de sustrato, humedad recomendada..."
-                    className="w-full px-5 py-3.5 bg-gray-50 dark:bg-gray-800/80 border border-transparent focus:border-[var(--vibrant-sky-blue)] rounded-xl outline-none font-inter text-sm leading-relaxed text-gray-900 dark:text-gray-100 placeholder-gray-400 transition-all shadow-sm resize-none"
+                    className="w-full px-5 py-3.5 bg-gray-50 dark:bg-gray-800/80 border border-transparent focus:border-[var(--vibrant-sky-blue)] rounded-xl outline-none font-inter text-sm leading-relaxed text-gray-900 dark:text-gray-100 placeholder-gray-400 transition-all shadow-sm min-h-[180px] resize-y"
                   />
                 </div>
 

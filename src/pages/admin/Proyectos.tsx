@@ -454,9 +454,9 @@ export default function Proyectos() {
                   </div>
                   <textarea
                     ref={descTextareaRef}
-                    rows={4} value={form.description} onChange={e => setForm({ ...form, description: e.target.value })}
+                    rows={8} value={form.description} onChange={e => setForm({ ...form, description: e.target.value })}
                     placeholder="¿De qué trata este proyecto? (Puedes usar saltos de línea y viñetas)"
-                    className="w-full px-5 py-3.5 bg-gray-50 dark:bg-gray-800/80 border border-transparent focus:border-[var(--vibrant-sky-blue)] rounded-xl outline-none font-inter text-sm leading-relaxed text-gray-900 dark:text-gray-100 placeholder-gray-400 transition-all shadow-sm resize-none"
+                    className="w-full px-5 py-3.5 bg-gray-50 dark:bg-gray-800/80 border border-transparent focus:border-[var(--vibrant-sky-blue)] rounded-xl outline-none font-inter text-sm leading-relaxed text-gray-900 dark:text-gray-100 placeholder-gray-400 transition-all shadow-sm min-h-[180px] resize-y"
                   />
                 </div>
               </div>

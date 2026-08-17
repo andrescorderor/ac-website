@@ -251,8 +251,8 @@ export default function ContactModal({ isOpen, onClose }: ModalProps) {
                     <textarea
                       id="message"
                       placeholder={t('contact.project_placeholder')}
-                      className="font-dm-sans w-full border rounded-lg bg-none px-3 py-2 bg-[var(--black)] focus:outline-none"
-                      rows={3}
+                      className="font-dm-sans w-full border rounded-lg bg-none px-3 py-2 bg-[var(--black)] focus:outline-none min-h-[140px] resize-y"
+                      rows={6}
                       {...register('message')}
                     />
                   </div>

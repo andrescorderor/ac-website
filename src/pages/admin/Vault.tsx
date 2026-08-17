@@ -237,13 +237,14 @@ export default function Vault() {
                     required
                   />
                 </div>
-                <div className="space-y-2">
-                  <label className="font-syne text-[10px] font-bold uppercase tracking-widest text-[var(--gray)] dark:text-gray-400">Valor</label>
-                  <input 
+                <div className="space-y-2 md:col-span-2">
+                  <label className="font-syne text-[10px] font-bold uppercase tracking-widest text-[var(--gray)] dark:text-gray-400">Valor / Texto a Copiar</label>
+                  <textarea 
+                    rows={5}
                     value={newItem.content}
                     onChange={(e) => setNewItem({...newItem, content: e.target.value})}
-                    className="w-full px-6 py-4 rounded-2xl bg-white dark:bg-gray-800 border border-transparent focus:border-[var(--vibrant-sky-blue)] outline-none font-inter text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 transition-all shadow-sm"
-                    placeholder="El texto a copiar..."
+                    className="w-full px-6 py-4 rounded-2xl bg-white dark:bg-gray-800 border border-transparent focus:border-[var(--vibrant-sky-blue)] outline-none font-inter text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 transition-all shadow-sm min-h-[140px] resize-y leading-relaxed"
+                    placeholder="Escribe o pega aquí el texto, código, JSON o información a guardar..."
                     required
                   />
                 </div>
