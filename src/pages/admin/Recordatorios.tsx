@@ -18,6 +18,7 @@ import {
 } from 'react-icons/hi';
 import { useToast } from '@/components/common/ToastContext';
 import CustomSelect from '@/components/common/CustomSelect';
+import CustomDatePicker from '@/components/common/CustomDatePicker';
 import { togglePinItem, isItemPinned } from '@/lib/pinned';
 import { useSearchParams } from 'react-router-dom';
 import AutoFormattedText from '@/components/common/AutoFormattedText';
@@ -461,12 +462,11 @@ export default function Recordatorios() {
                     <label className="block font-syne text-[10px] font-bold uppercase tracking-widest text-[var(--gray)] dark:text-gray-400 mb-2">
                       Fecha del Evento *
                     </label>
-                    <input
-                      type="date"
+                    <CustomDatePicker
                       required
                       value={newReminder.date}
-                      onChange={(e) => setNewReminder({ ...newReminder, date: e.target.value })}
-                      className="w-full min-w-0 max-w-full px-5 py-3.5 bg-gray-50/50 dark:bg-gray-800/80 border border-gray-100 dark:border-gray-700 rounded-xl outline-none focus:border-gray-300 dark:focus:border-gray-500 font-inter text-sm text-gray-900 dark:text-gray-100"
+                      onChange={(val) => setNewReminder({ ...newReminder, date: val })}
+                      placeholder="Seleccionar fecha del evento..."
                     />
                   </div>
 

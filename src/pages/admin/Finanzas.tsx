@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import { supabase } from '@/lib/supabase';
 import { HiOutlinePlus, HiOutlineTrash, HiOutlineEye, HiOutlineEyeOff, HiOutlineSearch, HiX } from 'react-icons/hi';
 import { useToast } from '@/components/common/ToastContext';
+import CustomSelect from '@/components/common/CustomSelect';
 import MandadoModal from '@/components/admin/MandadoModal';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -499,17 +500,30 @@ export default function Finanzas() {
 
               <form onSubmit={async (e) => {
                 e.preventDefault();
-                await handleAddExpense('servicios');
+                await handleAddExpense(newExpense.category || 'servicios');
                 setShowAddModal(false);
               }} className="space-y-6">
                 <div className="space-y-4">
                   <div>
-                    <label className="block font-syne text-[10px] font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400 mb-2">Concepto del Servicio *</label>
+                    <label className="block font-syne text-[10px] font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400 mb-2">Categoría *</label>
+                    <CustomSelect
+                      value={newExpense.category}
+                      onChange={(val) => setNewExpense({ ...newExpense, category: val as any })}
+                      options={[
+                        { value: 'servicios', label: 'Servicios & Suscripciones ⚡' },
+                        { value: 'comida', label: 'Supermercado & Alimentación 🍔' },
+                        { value: 'insumos', label: 'Insumos & Casa 🛒' },
+                      ]}
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block font-syne text-[10px] font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400 mb-2">Concepto del Gasto / Servicio *</label>
                     <input
                       required
                       placeholder="Ej. Luz CFE, Internet Totalplay, Agua, Netflix..."
                       value={newExpense.concept}
-                      onChange={(e) => setNewExpense({ ...newExpense, concept: e.target.value, category: 'servicios' })}
+                      onChange={(e) => setNewExpense({ ...newExpense, concept: e.target.value })}
                       className="w-full px-5 py-3.5 bg-gray-50 dark:bg-gray-800/80 border border-gray-100 dark:border-gray-700 rounded-xl outline-none font-inter text-sm text-gray-900 dark:text-gray-100 placeholder-gray-400"
                     />
                   </div>
@@ -522,7 +536,7 @@ export default function Finanzas() {
                       required
                       placeholder="0.00"
                       value={newExpense.amount}
-                      onChange={(e) => setNewExpense({ ...newExpense, amount: e.target.value, category: 'servicios' })}
+                      onChange={(e) => setNewExpense({ ...newExpense, amount: e.target.value })}
                       className="w-full px-5 py-3.5 bg-gray-50 dark:bg-gray-800/80 border border-gray-100 dark:border-gray-700 rounded-xl outline-none font-dm-sans font-bold text-sm text-gray-900 dark:text-gray-100 placeholder-gray-400"
                     />
                   </div>

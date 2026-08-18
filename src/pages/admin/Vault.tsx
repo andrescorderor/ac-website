@@ -4,6 +4,7 @@ import { supabase } from '@/lib/supabase';
 import { motion, AnimatePresence } from 'framer-motion';
 import { HiOutlinePlus, HiOutlineDuplicate, HiOutlineCheck, HiOutlineTrash, HiX } from 'react-icons/hi';
 import { useToast } from '@/components/common/ToastContext';
+import CustomSelect from '@/components/common/CustomSelect';
 import { togglePinItem, isItemPinned } from '@/lib/pinned';
 import AutoFormattedText from '@/components/common/AutoFormattedText';
 
@@ -258,9 +259,17 @@ export default function Vault() {
                   <input 
                     value={newItem.title}
                     onChange={(e) => setNewItem({...newItem, title: e.target.value})}
-                    className="w-full px-6 py-4 rounded-2xl bg-white dark:bg-gray-800 border border-transparent focus:border-[var(--vibrant-sky-blue)] outline-none font-inter text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 transition-all shadow-sm"
+                    className="w-full px-5 py-3.5 rounded-xl bg-white dark:bg-gray-800 border border-transparent focus:border-[var(--vibrant-sky-blue)] outline-none font-inter text-sm text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 transition-all shadow-sm"
                     placeholder="¿Qué es esto?"
                     required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="font-syne text-[10px] font-bold uppercase tracking-widest text-[var(--gray)] dark:text-gray-400">Categoría</label>
+                  <CustomSelect
+                    value={newItem.category}
+                    onChange={(val) => setNewItem({...newItem, category: val})}
+                    options={CATEGORIES.filter(c => c !== 'Todas').map(c => ({ value: c, label: c }))}
                   />
                 </div>
                 <div className="space-y-2 md:col-span-2">
@@ -269,7 +278,7 @@ export default function Vault() {
                     rows={5}
                     value={newItem.content}
                     onChange={(e) => setNewItem({...newItem, content: e.target.value})}
-                    className="w-full px-6 py-4 rounded-2xl bg-white dark:bg-gray-800 border border-transparent focus:border-[var(--vibrant-sky-blue)] outline-none font-inter text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 transition-all shadow-sm min-h-[140px] resize-y leading-relaxed"
+                    className="w-full px-5 py-3.5 rounded-xl bg-white dark:bg-gray-800 border border-transparent focus:border-[var(--vibrant-sky-blue)] outline-none font-inter text-sm text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 transition-all shadow-sm min-h-[140px] resize-y leading-relaxed"
                     placeholder="Escribe o pega aquí el texto, código, JSON o información a guardar..."
                     required
                   />

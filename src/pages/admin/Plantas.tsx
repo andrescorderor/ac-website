@@ -15,6 +15,7 @@ import { useToast } from '@/components/common/ToastContext';
 import { togglePinItem, isItemPinned } from '@/lib/pinned';
 import { useSearchParams } from 'react-router-dom';
 import AutoFormattedText from '@/components/common/AutoFormattedText';
+import CustomDatePicker from '@/components/common/CustomDatePicker';
 
 type Plant = {
   id: string;
@@ -512,12 +513,11 @@ export default function Plantas() {
                   </div>
                   <div className="space-y-2">
                     <label className="font-syne text-[10px] font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">Último Riego *</label>
-                    <input
-                      type="date"
+                    <CustomDatePicker
                       required
                       value={form.last_watered_at}
-                      onChange={e => setForm({ ...form, last_watered_at: e.target.value })}
-                      className="w-full min-w-0 max-w-full px-5 py-3.5 bg-gray-50 dark:bg-gray-800/80 border border-transparent focus:border-[var(--vibrant-sky-blue)] rounded-xl outline-none font-inter text-sm text-gray-900 dark:text-gray-100 transition-all shadow-sm"
+                      onChange={(val) => setForm({ ...form, last_watered_at: val })}
+                      placeholder="Fecha de último riego..."
                     />
                   </div>
                   <div className="space-y-2">

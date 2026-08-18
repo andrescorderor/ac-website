@@ -8,6 +8,7 @@ import { useToast } from '@/components/common/ToastContext';
 import { togglePinItem, isItemPinned } from '@/lib/pinned';
 import { useSearchParams } from 'react-router-dom';
 import AutoFormattedText from '@/components/common/AutoFormattedText';
+import CustomDatePicker from '@/components/common/CustomDatePicker';
 
 type Task = {
   id: string;
@@ -289,11 +290,10 @@ export default function Pendientes() {
                     <label className="block font-syne text-[10px] font-bold uppercase tracking-widest text-[var(--gray)] dark:text-gray-400 mb-2">
                       Fecha Límite (Opcional)
                     </label>
-                    <input
-                      type="date"
+                    <CustomDatePicker
                       value={newTask.due_date}
-                      onChange={(e) => setNewTask({ ...newTask, due_date: e.target.value })}
-                      className="w-full px-5 py-3.5 bg-gray-50/50 dark:bg-gray-800/80 border border-gray-100 dark:border-gray-700 rounded-xl outline-none focus:border-gray-300 dark:focus:border-gray-500 font-inter text-sm text-gray-900 dark:text-gray-100"
+                      onChange={(val) => setNewTask({ ...newTask, due_date: val })}
+                      placeholder="Seleccionar fecha límite..."
                     />
                   </div>
                 </div>

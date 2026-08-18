@@ -82,3 +82,7 @@ Este documento define las directrices maestras, arquitectura y criterios obligat
 8. **Persistencia Resiliente en Supabase:**
    - Siempre envolver consultas en bloques `try/catch` con feedback visual al usuario (`toast.error` / `toast.success`).
    - Manejar fallbacks defensivos ante columnas opcionales en tablas de Supabase.
+
+9. **🎛️ Componentes Unificados de Formulario (`CustomSelect` y `CustomDatePicker`):**
+   - Todos los selectores de opciones/categorías deben utilizar el componente reutilizable `CustomSelect` (`src/components/common/CustomSelect.tsx`).
+   - Todos los campos de fecha en formularios y modales deben utilizar el componente unificado `CustomDatePicker` (`src/components/common/CustomDatePicker.tsx`) con popup animado, soporte de modo oscuro/claro y portal flotante, evitando selectores nativos inconsistentes.
