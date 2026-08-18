@@ -176,11 +176,31 @@ export default function Finanzas() {
 
 
   const handleDeleteExpense = async (id: string) => {
+    const expenseToDelete = expenses.find((e) => e.id === id);
+    if (!expenseToDelete) return;
+
     try {
       const { error } = await supabase.from('finance_expenses').delete().eq('id', id);
       if (error) throw error;
-      setExpenses(expenses.filter((e) => e.id !== id));
-      toast.success('Servicio eliminado correctamente');
+      setExpenses((prev) => prev.filter((e) => e.id !== id));
+
+      toast.undoable('Gasto / Servicio eliminado', async () => {
+        try {
+          const { data: { user } } = await supabase.auth.getUser();
+          if (!user) return;
+          const { id: _, created_at: __, ...rest } = expenseToDelete as any;
+          const { error: restoreErr } = await supabase.from('finance_expenses').insert([{
+            id: expenseToDelete.id,
+            user_id: user.id,
+            ...rest,
+          }]);
+          if (restoreErr) throw restoreErr;
+          fetchData();
+          toast.success('Gasto / Servicio restaurado ↩️');
+        } catch (err: any) {
+          toast.error('Error al restaurar gasto: ' + err.message);
+        }
+      });
     } catch (err: any) {
       toast.error('Error al eliminar servicio: ' + err.message);
     }

@@ -136,12 +136,32 @@ export default function Compras() {
   };
 
   const deleteItem = async (id: string) => {
+    const itemToDelete = items.find((i) => i.id === id);
+    if (!itemToDelete) return;
+
     try {
       const { error } = await supabase.from('shopping_list').delete().eq('id', id);
       if (error) throw error;
 
-      setItems(items.filter((i) => i.id !== id));
-      toast.success('Artículo eliminado');
+      setItems((prev) => prev.filter((i) => i.id !== id));
+      
+      toast.undoable('Artículo eliminado de la lista', async () => {
+        try {
+          const { data: { user } } = await supabase.auth.getUser();
+          if (!user) return;
+          const { id: _, created_at: __, ...rest } = itemToDelete as any;
+          const { error: restoreErr } = await supabase.from('shopping_list').insert([{
+            id: itemToDelete.id,
+            user_id: user.id,
+            ...rest,
+          }]);
+          if (restoreErr) throw restoreErr;
+          fetchItems();
+          toast.success('Artículo restaurado ↩️');
+        } catch (err: any) {
+          toast.error('Error al restaurar artículo: ' + err.message);
+        }
+      });
     } catch (err: any) {
       toast.error('Error al eliminar: ' + err.message);
     }

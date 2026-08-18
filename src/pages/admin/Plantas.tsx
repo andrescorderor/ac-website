@@ -182,11 +182,31 @@ export default function Plantas() {
   };
 
   const deletePlant = async (id: string) => {
+    const plantToDelete = plants.find((p) => p.id === id);
+    if (!plantToDelete) return;
+
     try {
       const { error } = await supabase.from('plants').delete().eq('id', id);
       if (error) throw error;
-      setPlants(plants.filter(p => p.id !== id));
-      toast.success('Planta eliminada');
+      setPlants((prev) => prev.filter((p) => p.id !== id));
+      
+      toast.undoable('Planta eliminada', async () => {
+        try {
+          const { data: { user } } = await supabase.auth.getUser();
+          if (!user) return;
+          const { id: _, created_at: __, ...rest } = plantToDelete as any;
+          const { error: restoreErr } = await supabase.from('plants').insert([{
+            id: plantToDelete.id,
+            user_id: user.id,
+            ...rest,
+          }]);
+          if (restoreErr) throw restoreErr;
+          fetchPlants();
+          toast.success('Planta restaurada ↩️');
+        } catch (err: any) {
+          toast.error('Error al restaurar planta: ' + err.message);
+        }
+      });
     } catch (err: any) {
       toast.error('Error al eliminar: ' + err.message);
     }

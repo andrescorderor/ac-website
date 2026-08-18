@@ -181,11 +181,31 @@ export default function Recordatorios() {
   };
 
   const deleteReminder = async (id: string) => {
+    const reminderToDelete = reminders.find((r) => r.id === id);
+    if (!reminderToDelete) return;
+
     try {
       const { error } = await supabase.from('reminders').delete().eq('id', id);
       if (error) throw error;
-      toast.success('Recordatorio eliminado');
-      fetchReminders();
+      setReminders((prev) => prev.filter((r) => r.id !== id));
+      
+      toast.undoable('Fecha importante eliminada', async () => {
+        try {
+          const { data: { user } } = await supabase.auth.getUser();
+          if (!user) return;
+          const { id: _, created_at: __, ...rest } = reminderToDelete as any;
+          const { error: restoreErr } = await supabase.from('reminders').insert([{
+            id: reminderToDelete.id,
+            user_id: user.id,
+            ...rest,
+          }]);
+          if (restoreErr) throw restoreErr;
+          fetchReminders();
+          toast.success('Fecha importante restaurada ↩️');
+        } catch (err: any) {
+          toast.error('Error al restaurar fecha: ' + err.message);
+        }
+      });
     } catch (err: any) {
       toast.error(err.message || 'Error al eliminar');
     }

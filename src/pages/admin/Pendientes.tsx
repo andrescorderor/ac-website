@@ -107,12 +107,32 @@ export default function Pendientes() {
   };
 
   const deleteTask = async (id: string) => {
+    const taskToDelete = tasks.find((t) => t.id === id);
+    if (!taskToDelete) return;
+
     try {
       const { error } = await supabase.from('tasks').delete().eq('id', id);
       if (error) throw error;
 
-      setTasks(tasks.filter((t) => t.id !== id));
-      toast.success('Tarea eliminada');
+      setTasks((prev) => prev.filter((t) => t.id !== id));
+      
+      toast.undoable('Tarea eliminada', async () => {
+        try {
+          const { data: { user } } = await supabase.auth.getUser();
+          if (!user) return;
+          const { id: _, created_at: __, ...rest } = taskToDelete as any;
+          const { error: restoreErr } = await supabase.from('tasks').insert([{
+            id: taskToDelete.id,
+            user_id: user.id,
+            ...rest,
+          }]);
+          if (restoreErr) throw restoreErr;
+          fetchTasks();
+          toast.success('Tarea restaurada ↩️');
+        } catch (err: any) {
+          toast.error('Error al restaurar tarea: ' + err.message);
+        }
+      });
     } catch (err: any) {
       toast.error('Error al eliminar tarea: ' + err.message);
     }

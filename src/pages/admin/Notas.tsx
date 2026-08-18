@@ -229,11 +229,31 @@ const TATTOO_IDEAS_LIST = [
   };
 
   const deleteNote = async (id: string) => {
+    const noteToDelete = notes.find((n) => n.id === id);
+    if (!noteToDelete) return;
+
     try {
       const { error } = await supabase.from('notes').delete().eq('id', id);
       if (error) throw error;
-      toast.success('Nota eliminada');
-      fetchNotes();
+      setNotes((prev) => prev.filter((n) => n.id !== id));
+      
+      toast.undoable('Nota eliminada', async () => {
+        try {
+          const { data: { user } } = await supabase.auth.getUser();
+          if (!user) return;
+          const { id: _, created_at: __, ...rest } = noteToDelete as any;
+          const { error: restoreErr } = await supabase.from('notes').insert([{
+            id: noteToDelete.id,
+            user_id: user.id,
+            ...rest,
+          }]);
+          if (restoreErr) throw restoreErr;
+          fetchNotes();
+          toast.success('Nota restaurada ↩️');
+        } catch (err: any) {
+          toast.error('Error al restaurar nota: ' + err.message);
+        }
+      });
     } catch (err: any) {
       toast.error(err.message || 'Error al eliminar');
     }

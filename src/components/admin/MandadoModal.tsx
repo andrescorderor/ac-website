@@ -435,12 +435,41 @@ export default function MandadoModal({ isOpen, onClose }: MandadoModalProps) {
   };
 
   const deleteItem = async (id: string) => {
+    const itemToDelete = items.find((i) => i.id === id);
+    if (!itemToDelete) return;
+
     try {
       const { error } = await supabase.from('shopping_list').delete().eq('id', id);
       if (error) throw error;
 
       setItems(items.filter((i) => i.id !== id));
-      toast.success('Artículo eliminado');
+      
+      toast.undoable('Producto eliminado del mandado', async () => {
+        try {
+          const { data: { user } } = await supabase.auth.getUser();
+          if (!user) return;
+          const { id: _, created_at: __, ...rest } = itemToDelete as any;
+          const payload: any = {
+            id: itemToDelete.id,
+            user_id: user.id,
+            ...rest,
+          };
+          let { error: restoreErr } = await supabase.from('shopping_list').insert([payload]);
+          if (restoreErr && (restoreErr.message?.includes('quantity') || restoreErr.message?.includes('type') || restoreErr.message?.includes('category') || restoreErr.message?.includes('updated_at'))) {
+            delete payload.quantity;
+            delete payload.type;
+            delete payload.category;
+            delete payload.updated_at;
+            const res = await supabase.from('shopping_list').insert([payload]);
+            restoreErr = res.error;
+          }
+          if (restoreErr) throw restoreErr;
+          setItems((prev) => [itemToDelete, ...prev]);
+          toast.success('Producto del mandado restaurado ↩️');
+        } catch (err: any) {
+          toast.error('Error al restaurar producto: ' + err.message);
+        }
+      });
     } catch (err: any) {
       toast.error('Error al eliminar: ' + err.message);
     }

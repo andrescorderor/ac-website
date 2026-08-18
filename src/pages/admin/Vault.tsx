@@ -103,12 +103,38 @@ export default function Vault() {
   };
 
   const deleteItem = async (id: string) => {
+    const itemToDelete = items.find((i) => i.id === id);
+    if (!itemToDelete) return;
+
     try {
       const { error } = await supabase.from('vault_items').delete().eq('id', id);
       if (error) throw error;
 
       setItems(items.filter(item => item.id !== id));
-      toast.success('Texto eliminado de la bóveda');
+      
+      toast.undoable('Texto eliminado de la bóveda', async () => {
+        try {
+          const { data: { user } } = await supabase.auth.getUser();
+          if (!user) return;
+          const { id: _, created_at: __, ...rest } = itemToDelete as any;
+          const payload: any = {
+            id: itemToDelete.id,
+            user_id: user.id,
+            ...rest,
+          };
+          let { error: restoreErr } = await supabase.from('vault_items').insert([payload]);
+          if (restoreErr && (restoreErr.message?.includes('category') || restoreErr.code === 'PGRST204')) {
+            delete payload.category;
+            const fallbackRes = await supabase.from('vault_items').insert([payload]);
+            restoreErr = fallbackRes.error;
+          }
+          if (restoreErr) throw restoreErr;
+          fetchVaultItems();
+          toast.success('Texto restaurado en la bóveda ↩️');
+        } catch (err: any) {
+          toast.error('Error al restaurar texto: ' + err.message);
+        }
+      });
     } catch (err: any) {
       toast.error('Error al eliminar: ' + err.message);
     }

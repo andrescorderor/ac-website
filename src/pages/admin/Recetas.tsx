@@ -238,10 +238,34 @@ export default function Recetas() {
   };
 
   const deleteRecipe = async (id: string) => {
-    const { error } = await supabase.from('recipes').delete().eq('id', id);
-    if (error) { toast.error('Error al eliminar'); return; }
-    setRecipes(recipes.filter(r => r.id !== id));
-    toast.success('Receta eliminada');
+    const recipeToDelete = recipes.find((r) => r.id === id);
+    if (!recipeToDelete) return;
+
+    try {
+      const { error } = await supabase.from('recipes').delete().eq('id', id);
+      if (error) throw error;
+      setRecipes((prev) => prev.filter((r) => r.id !== id));
+      
+      toast.undoable('Receta eliminada', async () => {
+        try {
+          const { data: { user } } = await supabase.auth.getUser();
+          if (!user) return;
+          const { id: _, created_at: __, ...rest } = recipeToDelete as any;
+          const { error: restoreErr } = await supabase.from('recipes').insert([{
+            id: recipeToDelete.id,
+            user_id: user.id,
+            ...rest,
+          }]);
+          if (restoreErr) throw restoreErr;
+          fetchRecipes();
+          toast.success('Receta restaurada ↩️');
+        } catch (err: any) {
+          toast.error('Error al restaurar receta: ' + err.message);
+        }
+      });
+    } catch (err: any) {
+      toast.error('Error al eliminar: ' + err.message);
+    }
   };
 
   const toggleIngredient = async (recipe: Recipe, ingId: string) => {

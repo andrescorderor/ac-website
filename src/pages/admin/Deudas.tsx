@@ -105,12 +105,32 @@ export default function Deudas() {
   };
 
   const deleteDebt = async (id: string) => {
+    const debtToDelete = debts.find((d) => d.id === id);
+    if (!debtToDelete) return;
+
     try {
       const { error } = await supabase.from('debts').delete().eq('id', id);
       if (error) throw error;
 
-      setDebts(debts.filter((d) => d.id !== id));
-      toast.success('Registro eliminado');
+      setDebts((prev) => prev.filter((d) => d.id !== id));
+      
+      toast.undoable('Registro de deuda eliminado', async () => {
+        try {
+          const { data: { user } } = await supabase.auth.getUser();
+          if (!user) return;
+          const { id: _, created_at: __, ...rest } = debtToDelete as any;
+          const { error: restoreErr } = await supabase.from('debts').insert([{
+            id: debtToDelete.id,
+            user_id: user.id,
+            ...rest,
+          }]);
+          if (restoreErr) throw restoreErr;
+          fetchDebts();
+          toast.success('Deuda restaurada ↩️');
+        } catch (err: any) {
+          toast.error('Error al restaurar deuda: ' + err.message);
+        }
+      });
     } catch (err: any) {
       toast.error('Error al eliminar registro: ' + err.message);
     }

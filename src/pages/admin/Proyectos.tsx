@@ -128,10 +128,34 @@ export default function Proyectos() {
   };
 
   const deleteProject = async (id: string) => {
-    const { error } = await supabase.from('creative_projects').delete().eq('id', id);
-    if (error) { toast.error('Error al eliminar'); return; }
-    setProjects(projects.filter(p => p.id !== id));
-    toast.success('Proyecto eliminado');
+    const projectToDelete = projects.find((p) => p.id === id);
+    if (!projectToDelete) return;
+
+    try {
+      const { error } = await supabase.from('creative_projects').delete().eq('id', id);
+      if (error) throw error;
+      setProjects((prev) => prev.filter((p) => p.id !== id));
+      
+      toast.undoable('Proyecto eliminado', async () => {
+        try {
+          const { data: { user } } = await supabase.auth.getUser();
+          if (!user) return;
+          const { id: _, created_at: __, ...rest } = projectToDelete as any;
+          const { error: restoreErr } = await supabase.from('creative_projects').insert([{
+            id: projectToDelete.id,
+            user_id: user.id,
+            ...rest,
+          }]);
+          if (restoreErr) throw restoreErr;
+          fetchProjects();
+          toast.success('Proyecto restaurado ↩️');
+        } catch (err: any) {
+          toast.error('Error al restaurar proyecto: ' + err.message);
+        }
+      });
+    } catch (err: any) {
+      toast.error('Error al eliminar: ' + err.message);
+    }
   };
 
   const descTextareaRef = useRef<HTMLTextAreaElement | null>(null);
@@ -232,9 +256,21 @@ export default function Proyectos() {
   };
 
   const deleteTask = async (project: Project, taskId: string) => {
+    const originalTasks = [...project.tasks];
     const updatedTasks = project.tasks.filter(t => t.id !== taskId);
-    await supabase.from('creative_projects').update({ tasks: updatedTasks }).eq('id', project.id);
-    setProjects(projects.map(p => p.id === project.id ? { ...p, tasks: updatedTasks } : p));
+    
+    try {
+      await supabase.from('creative_projects').update({ tasks: updatedTasks }).eq('id', project.id);
+      setProjects(projects.map(p => p.id === project.id ? { ...p, tasks: updatedTasks } : p));
+      
+      toast.undoable('Tarea de proyecto eliminada', async () => {
+        await supabase.from('creative_projects').update({ tasks: originalTasks }).eq('id', project.id);
+        setProjects(projects.map(p => p.id === project.id ? { ...p, tasks: originalTasks } : p));
+        toast.success('Tarea de proyecto restaurada ↩️');
+      });
+    } catch (err: any) {
+      toast.error('Error al eliminar tarea: ' + err.message);
+    }
   };
 
   const filtered = projects.filter(p => 

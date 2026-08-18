@@ -9,6 +9,7 @@ import {
   HiX
 } from 'react-icons/hi';
 import CustomSelect from '@/components/common/CustomSelect';
+import { useToast } from '@/components/common/ToastContext';
 
 type Bookmark = {
   id: string;
@@ -28,6 +29,7 @@ function getDomain(url: string): string {
 }
 
 export default function Enlaces() {
+  const { toast } = useToast();
   const [bookmarks, setBookmarks] = useState<Bookmark[]>([]);
   const [loading, setLoading] = useState(true);
   const [showAddForm, setShowAddForm] = useState(false);
@@ -73,8 +75,34 @@ export default function Enlaces() {
   };
 
   const deleteBookmark = async (id: string) => {
-    const { error } = await supabase.from('bookmarks').delete().eq('id', id);
-    if (!error) fetchBookmarks();
+    const bookmarkToDelete = bookmarks.find((b) => b.id === id);
+    if (!bookmarkToDelete) return;
+
+    try {
+      const { error } = await supabase.from('bookmarks').delete().eq('id', id);
+      if (error) throw error;
+      setBookmarks((prev) => prev.filter((b) => b.id !== id));
+
+      toast.undoable('Enlace eliminado', async () => {
+        try {
+          const { data: { user } } = await supabase.auth.getUser();
+          if (!user) return;
+          const { id: _, created_at: __, ...rest } = bookmarkToDelete as any;
+          const { error: restoreErr } = await supabase.from('bookmarks').insert([{
+            id: bookmarkToDelete.id,
+            user_id: user.id,
+            ...rest,
+          }]);
+          if (restoreErr) throw restoreErr;
+          fetchBookmarks();
+          toast.success('Enlace restaurado ↩️');
+        } catch (err: any) {
+          toast.error('Error al restaurar enlace: ' + err.message);
+        }
+      });
+    } catch (err: any) {
+      toast.error('Error al eliminar enlace: ' + err.message);
+    }
   };
 
   const filtered = bookmarks.filter(b => {

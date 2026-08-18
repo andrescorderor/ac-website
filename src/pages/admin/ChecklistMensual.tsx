@@ -166,10 +166,23 @@ export default function ChecklistMensual() {
   };
 
   const deleteItem = async (id: string) => {
+    const itemToDelete = items.find((i) => i.id === id);
+    if (!itemToDelete) return;
+
     const { error } = await supabase.from('monthly_checklist_items').update({ active: false }).eq('id', id);
     if (error) { toast.error('Error al eliminar'); return; }
-    setItems(items.filter(i => i.id !== id));
-    toast.success('Ítem eliminado del checklist');
+    setItems((prev) => prev.filter(i => i.id !== id));
+    
+    toast.undoable('Ítem eliminado del checklist', async () => {
+      try {
+        const { error: restoreErr } = await supabase.from('monthly_checklist_items').update({ active: true }).eq('id', id);
+        if (restoreErr) throw restoreErr;
+        setItems((prev) => [...prev, itemToDelete]);
+        toast.success('Ítem del checklist restaurado ↩️');
+      } catch (err: any) {
+        toast.error('Error al restaurar ítem: ' + err.message);
+      }
+    });
   };
 
   const openEdit = (item: ChecklistItem) => {
