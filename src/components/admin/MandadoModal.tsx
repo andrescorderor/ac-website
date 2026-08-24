@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { supabase } from '@/lib/supabase';
 import { motion, AnimatePresence } from 'framer-motion';
-import { HiOutlinePlus, HiOutlineCheckCircle, HiOutlineTrash, HiOutlineRefresh, HiOutlineLocationMarker, HiOutlineSearch, HiOutlinePencil, HiX } from 'react-icons/hi';
+import { HiOutlinePlus, HiOutlineCheckCircle, HiOutlineTrash, HiOutlineRefresh, HiOutlineLocationMarker, HiOutlineSearch, HiOutlinePencil, HiOutlineClock, HiX } from 'react-icons/hi';
 import { MdOutlineCircle } from 'react-icons/md';
 import { useToast } from '@/components/common/ToastContext';
 import CustomSelect from '@/components/common/CustomSelect';
@@ -16,6 +16,7 @@ type ShoppingItem = {
   type?: 'quincenal' | 'ocasional';
   category?: string | null;
   bought: boolean;
+  purchase_history?: string[] | null;
   updated_at?: string | null;
   created_at?: string | null;
 };
@@ -37,6 +38,7 @@ export default function MandadoModal({ isOpen, onClose }: MandadoModalProps) {
   const [inputPrice, setInputPrice] = useState('');
   const [inputType, setInputType] = useState<'quincenal' | 'ocasional'>('quincenal');
   const [inputCategory, setInputCategory] = useState<'comida' | 'insumos'>('comida');
+  const [historyModalItem, setHistoryModalItem] = useState<ShoppingItem | null>(null);
 
   const handleOpenEdit = (item: ShoppingItem) => {
     setEditingId(item.id);
@@ -251,23 +253,32 @@ export default function MandadoModal({ isOpen, onClose }: MandadoModalProps) {
     const nowIso = new Date().toISOString();
     const newStatus = !currentStatus;
 
+    // Build new purchase_history array
+    let updatedHistory = Array.isArray(item?.purchase_history) ? [...item.purchase_history] : [];
+    if (newStatus) {
+      // Append current purchase timestamp if marking as bought
+      updatedHistory = [nowIso, ...updatedHistory.filter(ts => ts !== nowIso)];
+    }
+
     try {
       let { error } = await supabase
         .from('shopping_list')
-        .update({ bought: newStatus, updated_at: nowIso })
+        .update({ bought: newStatus, updated_at: nowIso, purchase_history: updatedHistory })
         .eq('id', id);
 
-      if (error && error.message?.includes('updated_at')) {
+      if (error && (error.message?.includes('purchase_history') || error.message?.includes('updated_at'))) {
         const fallback = await supabase
           .from('shopping_list')
-          .update({ bought: newStatus })
+          .update({ bought: newStatus, updated_at: nowIso })
           .eq('id', id);
-        error = fallback.error;
+        if (fallback.error && fallback.error.message?.includes('updated_at')) {
+          await supabase.from('shopping_list').update({ bought: newStatus }).eq('id', id);
+        }
+      } else if (error) {
+        throw error;
       }
 
-      if (error) throw error;
-
-      setItems(items.map((i) => (i.id === id ? { ...i, bought: newStatus, updated_at: nowIso } : i)));
+      setItems(items.map((i) => (i.id === id ? { ...i, bought: newStatus, updated_at: nowIso, purchase_history: updatedHistory } : i)));
 
       // AUTOMATIC FINANZAS LOGGING WHEN MARKING MANDADO ITEM AS BOUGHT (ONLY FOR QUINCENAL ITEMS)
       if (newStatus && item && item.price && item.price > 0 && getItemType(item) === 'quincenal') {
@@ -791,6 +802,14 @@ export default function MandadoModal({ isOpen, onClose }: MandadoModalProps) {
                     )}
 
                     <button
+                      onClick={() => setHistoryModalItem(item)}
+                      className="p-1.5 text-gray-400 hover:text-sky-500 dark:hover:text-sky-400 hover:bg-sky-50 dark:hover:bg-sky-950/40 rounded-xl transition-all shrink-0"
+                      title="Ver historial de compras"
+                    >
+                      <HiOutlineClock className="text-base" />
+                    </button>
+
+                    <button
                       onClick={() => handleOpenEdit(item)}
                       className="p-1.5 text-gray-400 hover:text-black dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl transition-all shrink-0"
                       title="Editar producto"
@@ -832,6 +851,175 @@ export default function MandadoModal({ isOpen, onClose }: MandadoModalProps) {
             </div>
           </div>
         </motion.div>
+
+        {/* ═══ NESTED MODAL: PURCHASE HISTORY MODAL ═══ */}
+        <AnimatePresence>
+          {historyModalItem && (
+            <div
+              className="fixed inset-0 z-[100000] flex items-center justify-center p-4 sm:p-6 bg-black/70 backdrop-blur-md cursor-pointer"
+              onClick={(e) => {
+                if (e.target === e.currentTarget) setHistoryModalItem(null);
+              }}
+            >
+              <motion.div
+                onClick={(e) => e.stopPropagation()}
+                initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.95, y: 20 }}
+                className="bg-white dark:bg-gray-900 rounded-3xl p-6 sm:p-8 max-h-[85vh] overflow-y-auto max-w-md w-full border border-gray-100 dark:border-gray-800 shadow-2xl space-y-6 my-auto cursor-default"
+              >
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2.5 bg-sky-50 dark:bg-sky-950/50 text-sky-500 rounded-2xl">
+                      <HiOutlineClock className="text-xl" />
+                    </div>
+                    <div>
+                      <h3 className="font-dm-sans text-xl font-bold text-gray-900 dark:text-white leading-tight">
+                        Historial de Compra
+                      </h3>
+                      <p className="font-inter text-xs text-gray-400">
+                        {historyModalItem.name}
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setHistoryModalItem(null)}
+                    className="p-2 rounded-xl text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 transition-all"
+                  >
+                    <HiX className="text-lg" />
+                  </button>
+                </div>
+
+                <div className="space-y-4">
+                  {/* Status Summary Card */}
+                  <div className="p-4 bg-gray-50 dark:bg-gray-800/60 rounded-2xl border border-gray-100 dark:border-gray-700/60 space-y-2">
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="font-syne font-bold uppercase tracking-wider text-gray-400">Estado Actual:</span>
+                      <span className={`px-2 py-0.5 rounded-full font-syne text-[10px] font-bold uppercase tracking-wider ${
+                        historyModalItem.bought
+                          ? 'bg-emerald-100 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-300'
+                          : 'bg-amber-100 dark:bg-amber-950/60 text-amber-600 dark:text-amber-300'
+                      }`}>
+                        {historyModalItem.bought ? '✓ Comprado' : '⏳ Pendiente'}
+                      </span>
+                    </div>
+
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="font-syne font-bold uppercase tracking-wider text-gray-400">Categoría & Tipo:</span>
+                      <span className="font-dm-sans font-medium text-gray-700 dark:text-gray-200">
+                        {getItemCategory(historyModalItem) === 'comida' ? '🍔 Comida' : '🛒 Insumos'} • {getItemType(historyModalItem) === 'quincenal' ? '🥗 Quincenal' : '📦 Hasta Agotar'}
+                      </span>
+                    </div>
+
+                    {historyModalItem.price !== null && (
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="font-syne font-bold uppercase tracking-wider text-gray-400">Precio Registrado:</span>
+                        <span className="font-dm-sans font-bold text-gray-900 dark:text-white">
+                          ${historyModalItem.price.toLocaleString()}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* List of Historical Purchase Dates */}
+                  <div className="space-y-2">
+                    <h4 className="font-syne text-[10px] font-bold uppercase tracking-widest text-gray-400 dark:text-gray-500">
+                      Fechas Registradas ({
+                        (() => {
+                          const historyList: string[] = [];
+                          if (Array.isArray(historyModalItem.purchase_history)) {
+                            historyList.push(...historyModalItem.purchase_history);
+                          }
+                          if (historyModalItem.updated_at && !historyList.includes(historyModalItem.updated_at)) {
+                            historyList.push(historyModalItem.updated_at);
+                          }
+                          if (historyModalItem.created_at && !historyList.includes(historyModalItem.created_at)) {
+                            historyList.push(historyModalItem.created_at);
+                          }
+                          return historyList.length;
+                        })()
+                      })
+                    </h4>
+
+                    {(() => {
+                      const historyList: string[] = [];
+                      if (Array.isArray(historyModalItem.purchase_history)) {
+                        historyList.push(...historyModalItem.purchase_history);
+                      }
+                      if (historyModalItem.updated_at && !historyList.includes(historyModalItem.updated_at)) {
+                        historyList.push(historyModalItem.updated_at);
+                      }
+                      if (historyModalItem.created_at && !historyList.includes(historyModalItem.created_at)) {
+                        historyList.push(historyModalItem.created_at);
+                      }
+
+                      // Sort descending by date
+                      const sorted = historyList
+                        .filter(Boolean)
+                        .sort((a, b) => new Date(b).getTime() - new Date(a).getTime());
+
+                      if (sorted.length === 0) {
+                        return (
+                          <div className="p-4 text-center text-xs text-gray-400 font-inter bg-gray-50 dark:bg-gray-800/40 rounded-2xl">
+                            Aún no se registran fechas de compra para este producto.
+                          </div>
+                        );
+                      }
+
+                      return (
+                        <div className="space-y-2 max-h-56 overflow-y-auto pr-1 scrollbar-thin">
+                          {sorted.map((dateStr, idx) => {
+                            const dateObj = new Date(dateStr);
+                            const formattedDate = !isNaN(dateObj.getTime())
+                              ? dateObj.toLocaleDateString('es-MX', {
+                                  weekday: 'short',
+                                  day: 'numeric',
+                                  month: 'short',
+                                  year: 'numeric',
+                                  hour: '2-digit',
+                                  minute: '2-digit',
+                                })
+                              : dateStr;
+
+                            return (
+                              <div
+                                key={idx}
+                                className="flex items-center justify-between p-3 bg-white dark:bg-gray-800/80 rounded-xl border border-gray-100 dark:border-gray-700/60 shadow-2xs"
+                              >
+                                <div className="flex items-center gap-2.5 min-w-0">
+                                  <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0" />
+                                  <span className="font-dm-sans text-xs font-medium text-gray-800 dark:text-gray-200 truncate capitalize">
+                                    {formattedDate}
+                                  </span>
+                                </div>
+                                {idx === 0 && (
+                                  <span className="px-2 py-0.5 rounded-full text-[8px] font-syne font-bold uppercase tracking-wider bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 shrink-0">
+                                    Última compra
+                                  </span>
+                                )}
+                              </div>
+                            );
+                          })}
+                        </div>
+                      );
+                    })()}
+                  </div>
+                </div>
+
+                <div className="flex justify-end pt-2 border-t border-gray-100 dark:border-gray-800">
+                  <button
+                    type="button"
+                    onClick={() => setHistoryModalItem(null)}
+                    className="w-full py-3 bg-black dark:bg-white text-white dark:text-black rounded-xl font-syne text-xs font-bold uppercase tracking-wider transition-all hover:scale-105 active:scale-95 text-center shadow-md"
+                  >
+                    Entendido
+                  </button>
+                </div>
+              </motion.div>
+            </div>
+          )}
+        </AnimatePresence>
       </div>
     </AnimatePresence>,
     document.body
