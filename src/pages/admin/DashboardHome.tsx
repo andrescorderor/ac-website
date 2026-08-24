@@ -86,6 +86,8 @@ export default function DashboardHome() {
   }, []);
 
   const loadPinned = async () => {
+    // 1. Sync first from Supabase to ensure fresh multi-device state
+    await syncPinnedItemsWithSupabase();
     const rawItems = getPinnedItems();
     if (rawItems.length === 0) {
       setPinnedItems([]);
@@ -93,28 +95,66 @@ export default function DashboardHome() {
     }
 
     try {
-      const [doneTasks, settledDebts, boughtShopping] = await Promise.all([
-        supabase.from('tasks').select('id').eq('completed', true),
-        supabase.from('debts').select('id').eq('settled', true),
-        supabase.from('shopping_list').select('id').eq('bought', true),
+      const [tasksRes, debtsRes, shoppingRes, notesRes, vaultRes, remindersRes, projectsRes, recipesRes, plantsRes, bookmarksRes] = await Promise.all([
+        supabase.from('tasks').select('id, completed'),
+        supabase.from('debts').select('id, settled'),
+        supabase.from('shopping_list').select('id, bought'),
+        supabase.from('notes').select('id'),
+        supabase.from('vault_items').select('id'),
+        supabase.from('reminders').select('id'),
+        supabase.from('creative_projects').select('id'),
+        supabase.from('recipes').select('id'),
+        supabase.from('plants').select('id'),
+        supabase.from('bookmarks').select('id'),
       ]);
 
-      const doneTaskIds = new Set(doneTasks.data?.map(t => t.id) || []);
-      const settledDebtIds = new Set(settledDebts.data?.map(d => d.id) || []);
-      const boughtShoppingIds = new Set(boughtShopping.data?.map(s => s.id) || []);
+      const activeTaskIds = new Set(tasksRes.data?.filter(t => !t.completed).map(t => t.id) || []);
+      const activeDebtIds = new Set(debtsRes.data?.filter(d => !d.settled).map(d => d.id) || []);
+      const activeShoppingIds = new Set(shoppingRes.data?.filter(s => !s.bought).map(s => s.id) || []);
+      
+      const existingNoteIds = new Set(notesRes.data?.map(n => n.id) || []);
+      const existingVaultIds = new Set(vaultRes.data?.map(v => v.id) || []);
+      const existingReminderIds = new Set(remindersRes.data?.map(r => r.id) || []);
+      const existingProjectIds = new Set(projectsRes.data?.map(p => p.id) || []);
+      const existingRecipeIds = new Set(recipesRes.data?.map(r => r.id) || []);
+      const existingPlantIds = new Set(plantsRes.data?.map(p => p.id) || []);
+      const existingBookmarkIds = new Set(bookmarksRes.data?.map(b => b.id) || []);
 
-      const activePinned = rawItems.filter(item => {
-        if (item.type === 'task' && doneTaskIds.has(item.id)) return false;
-        if (item.type === 'debt' && settledDebtIds.has(item.id)) return false;
-        if (item.type === 'shopping' && boughtShoppingIds.has(item.id)) return false;
-        return true;
-      });
+      const validPinned: PinnedItem[] = [];
+      const invalidIds: string[] = [];
 
-      setPinnedItems(activePinned);
+      for (const item of rawItems) {
+        let isAlive = true;
+        switch (item.type) {
+          case 'task': isAlive = activeTaskIds.has(item.id); break;
+          case 'debt': isAlive = activeDebtIds.has(item.id); break;
+          case 'shopping': isAlive = activeShoppingIds.has(item.id); break;
+          case 'note': isAlive = existingNoteIds.has(item.id); break;
+          case 'vault': isAlive = existingVaultIds.has(item.id); break;
+          case 'reminder': isAlive = existingReminderIds.has(item.id); break;
+          case 'project': isAlive = existingProjectIds.has(item.id); break;
+          case 'recipe': isAlive = existingRecipeIds.has(item.id); break;
+          case 'plant': isAlive = existingPlantIds.has(item.id); break;
+          case 'bookmark': isAlive = existingBookmarkIds.has(item.id); break;
+        }
+
+        if (isAlive) {
+          validPinned.push(item);
+        } else {
+          invalidIds.push(item.id);
+        }
+      }
+
+      if (invalidIds.length > 0) {
+        // Asynchronously purge from Supabase
+        await supabase.from('user_pinned_items').delete().in('id', invalidIds);
+        localStorage.setItem('ac_pinned_items_v1', JSON.stringify(validPinned));
+      }
+
+      setPinnedItems(validPinned);
     } catch {
       setPinnedItems(rawItems);
     }
-    syncPinnedItemsWithSupabase();
   };
 
   const fetchStats = async () => {
@@ -522,12 +562,6 @@ export default function DashboardHome() {
                   >
                     <Link
                       to={item.path}
-                      onClick={(e) => {
-                        if (item.type === 'shopping' || item.path.includes('/admin/panel/compras')) {
-                          e.preventDefault();
-                          setShowMandadoModal(true);
-                        }
-                      }}
                       className="group block p-5 bg-white dark:bg-gray-900 rounded-3xl border-none hover:border-amber-300 dark:hover:border-amber-700/60 shadow-sm hover:shadow-lg transition-all relative overflow-hidden"
                     >
                       <div className="flex items-start justify-between gap-3">

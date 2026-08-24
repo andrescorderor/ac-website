@@ -66,8 +66,12 @@ export function removePinnedItem(id: string) {
 
 async function upsertToSupabase(item: PinnedItem) {
   try {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+
     await supabase.from('user_pinned_items').upsert({
       id: item.id,
+      user_id: user.id,
       type: item.type,
       title: item.title,
       subtitle: item.subtitle || null,
@@ -88,8 +92,8 @@ async function deleteFromSupabase(id: string) {
 }
 
 /**
- * Synchronizes local pinned items with Supabase user_pinned_items table.
- * Call this on DashboardLayout and DashboardHome mount so PC and Mobile show identical pins!
+ * Synchronizes local pinned items with Supabase user_pinned_items table,
+ * and purges completed or deleted entities from the pinned list.
  */
 export async function syncPinnedItemsWithSupabase() {
   try {
@@ -99,7 +103,6 @@ export async function syncPinnedItemsWithSupabase() {
       .order('pinned_at', { ascending: false });
 
     if (error) {
-      // If table doesn't exist yet, keep local state
       return;
     }
 
