@@ -43,9 +43,10 @@ The productivity hub is a mobile-optimized private dashboard with 11 specialized
 
 ---
 
-## ✨ Design System & Master UX Specs (v4.8.0)
+## ✨ Design System & Master UX Specs (v4.9.0)
 
-*   🏷️ **Automatic Commit-Based Versioning (`v4.8.0`):** Live versioning indicator displayed seamlessly in desktop and mobile sidebars.
+*   🏷️ **Automatic Commit-Based Versioning (`v4.9.0`):** Live versioning indicator displayed seamlessly in desktop and mobile sidebars.
+*   📲 **Soporte Apple Web Push en Segundo Plano (iOS / Móvil):** Arquitectura VAPID con suscripción automática del dispositivo y despacho de notificaciones Push diarias a las 08:00 AM para tareas vencidas, riegos de plantas y eventos.
 *   🕒 **Historial de Compras por Producto de Mandado:** Registro y consulta de fechas históricas de compra por cada producto del mandado quincenal e insumos con acceso directo junto a las acciones de editar y eliminar.
 *   🖱️ **Universal Backdrop Click-to-Close:** Every modal overlay in the application (`MandadoModal`, `CommandPalette`, `ContactModal`, and all 11 admin module forms) closes instantly when clicking the backdrop overlay outside the modal content area (`onClick` event isolation via `e.target === e.currentTarget` and `e.stopPropagation()`).
 *   📌 **Fixed Sticky Header & Footer Layout:** Structural layout isolation for complex modals (`MandadoModal`) featuring locked top controls and locked bottom totals & action buttons, leaving only the central checklist body scrollable.

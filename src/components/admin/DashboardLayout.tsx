@@ -104,6 +104,9 @@ function DashboardLayoutContent() {
     } else {
       setLoading(false);
       scanAndNotifyUpcomingEvents();
+      if ('Notification' in window && Notification.permission === 'granted') {
+        requestNotificationPermission();
+      }
     }
   };
 
@@ -214,7 +217,7 @@ function DashboardLayoutContent() {
 
           <div className="text-center select-none pt-1">
             <span className="font-syne text-[9px] font-bold tracking-widest text-gray-400 dark:text-gray-600 block">
-              VERSIÓN v4.8.0
+              VERSIÓN v4.9.0
             </span>
           </div>
         </div>
@@ -347,7 +350,7 @@ function DashboardLayoutContent() {
 
           <div className="text-center select-none pt-2">
             <span className="font-syne text-[9px] font-bold tracking-widest text-gray-400 dark:text-gray-600 block">
-              VERSIÓN v4.8.0
+              VERSIÓN v4.9.0
             </span>
           </div>
         </div>

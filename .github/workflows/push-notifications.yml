@@ -1,0 +1,33 @@
+name: Daily Web Push Notifications (Plants & Tasks)
+
+on:
+  schedule:
+    # Runs everyday at 14:00 UTC (08:00 AM Mexico City / UTC-6)
+    - cron: '0 14 * * *'
+  workflow_dispatch: # Allows manual trigger anytime from GitHub Actions tab
+
+jobs:
+  push-notifications:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install web-push and supabase dependencies
+        run: |
+          npm install web-push @supabase/supabase-js
+
+      - name: Send Web Push Notifications
+        env:
+          SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
+          VAPID_PUBLIC_KEY: 'BFMrFY-j-MXeAU3olGKxMpp6kZjQLnSLh3BjZKQuoPYnMGjSKbQvy8nJKuZsoSYss7cvkBf-59jeg1CxHJlKwd4'
+          VAPID_PRIVATE_KEY: ${{ secrets.VAPID_PRIVATE_KEY }}
+        run: |
+          node scripts/send-push-notifications.mjs

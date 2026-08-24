@@ -1,18 +1,86 @@
 import { supabase } from '@/lib/supabase';
 
+// VAPID Public Key for Web Push Protocol (Safe to be public)
+export const VAPID_PUBLIC_KEY = 'BFMrFY-j-MXeAU3olGKxMpp6kZjQLnSLh3BjZKQuoPYnMGjSKbQvy8nJKuZsoSYss7cvkBf-59jeg1CxHJlKwd4';
+
+function urlBase64ToUint8Array(base64String: string) {
+  const padding = '='.repeat((4 - (base64String.length % 4)) % 4);
+  const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+  const rawData = window.atob(base64);
+  const outputArray = new Uint8Array(rawData.length);
+  for (let i = 0; i < rawData.length; ++i) {
+    outputArray[i] = rawData.charCodeAt(i);
+  }
+  return outputArray;
+}
+
+export async function registerPushSubscription(): Promise<boolean> {
+  if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+    console.warn('Este dispositivo/navegador no soporta PushManager.');
+    return false;
+  }
+
+  try {
+    const registration = await navigator.serviceWorker.ready;
+    let subscription = await registration.pushManager.getSubscription();
+
+    if (!subscription) {
+      const convertedVapidKey = urlBase64ToUint8Array(VAPID_PUBLIC_KEY);
+      subscription = await registration.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: convertedVapidKey,
+      });
+    }
+
+    if (subscription) {
+      const subJson = subscription.toJSON();
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return true;
+
+      const endpoint = subJson.endpoint || '';
+      const p256dh = subJson.keys?.p256dh || '';
+      const auth = subJson.keys?.auth || '';
+
+      if (endpoint && p256dh && auth) {
+        // Upsert subscription to Supabase push_subscriptions table
+        await supabase.from('push_subscriptions').upsert(
+          {
+            user_id: user.id,
+            endpoint,
+            p256dh,
+            auth,
+            user_agent: navigator.userAgent,
+            updated_at: new Date().toISOString(),
+          },
+          { onConflict: 'endpoint' }
+        );
+        console.log('✅ Suscripción Web Push sincronizada en Supabase para iOS / Móvil.');
+      }
+      return true;
+    }
+  } catch (err) {
+    console.warn('No se pudo registrar la suscripción Web Push en este dispositivo:', err);
+  }
+  return false;
+}
+
 export async function requestNotificationPermission(): Promise<boolean> {
   if (!('Notification' in window)) {
-    console.warn('Este navegador no soporta notificaciones de escritorio/móvil.');
+    console.warn('Este navegador no soporta notificaciones.');
     return false;
   }
 
   if (Notification.permission === 'granted') {
+    await registerPushSubscription();
     return true;
   }
 
   if (Notification.permission !== 'denied') {
     const permission = await Notification.requestPermission();
-    return permission === 'granted';
+    if (permission === 'granted') {
+      await registerPushSubscription();
+      return true;
+    }
   }
 
   return false;
@@ -29,8 +97,8 @@ export function sendBrowserNotification(title: string, options?: NotificationOpt
   }
 
   const defaultOptions: any = {
-    icon: '/pwa-192x192.png',
-    badge: '/pwa-192x192.png',
+    icon: '/assets/ac-website-icon.svg',
+    badge: '/assets/ac-website-icon.svg',
     vibrate: [200, 100, 200],
     ...options,
   };
