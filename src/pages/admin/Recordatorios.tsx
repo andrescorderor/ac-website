@@ -408,9 +408,10 @@ export default function Recordatorios() {
               initial={{ opacity: 0, scale: 0.95, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              className="bg-white dark:bg-gray-900 rounded-[2.5rem] p-6 sm:p-8 max-h-[85vh] overflow-y-auto max-w-2xl w-full border-none shadow-2xl space-y-6 my-8 cursor-default"
+              className="bg-white dark:bg-gray-900 rounded-[2.5rem] max-h-[90vh] flex flex-col max-w-2xl w-full border-none shadow-2xl my-8 cursor-default overflow-hidden"
             >
-              <div className="flex items-center justify-between">
+              {/* Sticky Header */}
+              <div className="flex items-center justify-between p-6 sm:p-8 pb-4 sm:pb-4 border-b border-gray-100 dark:border-gray-800 shrink-0">
                 <div>
                   <h2 className="font-dm-sans text-2xl font-bold text-gray-900 dark:text-white">
                     {editingId ? 'Editar Fecha Importante' : 'Agregar Fecha Importante'}
@@ -426,127 +427,143 @@ export default function Recordatorios() {
                 </button>
               </div>
 
-              <form onSubmit={handleSaveReminder} className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div className="md:col-span-2">
-                    <label className="block font-syne text-[10px] font-bold uppercase tracking-widest text-[var(--gray)] dark:text-gray-400 mb-2">
-                      Título del Evento *
-                    </label>
-                    <input
-                      type="text"
-                      required
-                      placeholder="Ej. Cumpleaños de Mamá, Renovación Licencia..."
-                      value={newReminder.title}
-                      onChange={(e) => setNewReminder({ ...newReminder, title: e.target.value })}
-                      className="w-full px-5 py-3.5 bg-gray-50/50 dark:bg-gray-800/80 border border-gray-100 dark:border-gray-700 rounded-xl outline-none focus:border-gray-300 dark:focus:border-gray-500 font-inter text-sm text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block font-syne text-[10px] font-bold uppercase tracking-widest text-[var(--gray)] dark:text-gray-400 mb-2">
-                      Categoría
-                    </label>
-                    <CustomSelect
-                      value={newReminder.category}
-                      onChange={(val) => setNewReminder({ ...newReminder, category: val as any })}
-                      options={[
-                        { value: 'Cumpleaños', label: 'Cumpleaños 🎂' },
-                        { value: 'Documento', label: 'Documento 📄' },
-                        { value: 'Pago', label: 'Pago 💳' },
-                        { value: 'Otro', label: 'Otro 📌' },
-                      ]}
-                    />
-                  </div>
-
-                  <div className="col-span-full">
-                    <label className="block font-syne text-[10px] font-bold uppercase tracking-widest text-[var(--gray)] dark:text-gray-400 mb-2">
-                      Fecha del Evento *
-                    </label>
-                    <CustomDatePicker
-                      required
-                      value={newReminder.date}
-                      onChange={(val) => setNewReminder({ ...newReminder, date: val })}
-                      placeholder="Seleccionar fecha del evento..."
-                    />
-                  </div>
-
-                  <div className="md:col-span-3 space-y-2">
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                      <label className="block font-syne text-[10px] font-bold uppercase tracking-widest text-[var(--gray)] dark:text-gray-400">
-                        Notas / Párrafo Descriptivo (Soporta Markdown)
+              <form onSubmit={handleSaveReminder} className="flex flex-col flex-1 min-h-0">
+                {/* Scrollable Body */}
+                <div className="p-6 sm:p-8 overflow-y-auto flex-1 space-y-6">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="md:col-span-2">
+                      <label className="block font-syne text-[10px] font-bold uppercase tracking-widest text-[var(--gray)] dark:text-gray-400 mb-2">
+                        Título del Evento *
                       </label>
-                      <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-none pb-1 sm:pb-0">
-                        <button
-                          type="button"
-                          onClick={insertHeading}
-                          className="px-2.5 py-1 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-lg text-xs font-syne font-bold transition-all shrink-0 flex items-center gap-1"
-                          title="Agregar título de sección"
-                        >
-                          <span className="text-sky-500 font-bold">H3</span>
-                          <span>Sección</span>
-                        </button>
-                        <button
-                          type="button"
-                          onClick={insertBold}
-                          className="px-2.5 py-1 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-lg text-xs font-syne font-bold transition-all shrink-0"
-                          title="Texto en negrita"
-                        >
-                          <strong>B</strong> Negrita
-                        </button>
-                        <button
-                          type="button"
-                          onClick={insertNumberList}
-                          className="px-2.5 py-1 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-lg text-xs font-syne font-bold transition-all shrink-0"
-                          title="Lista numerada (1., 2., 3...)"
-                        >
-                          1. Paso
-                        </button>
-                        <button
-                          type="button"
-                          onClick={insertBullet}
-                          className="px-2.5 py-1 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-lg text-xs font-syne font-bold transition-all shrink-0"
-                          title="Viñeta de punto"
-                        >
-                          • Viñeta
-                        </button>
-                      </div>
+                      <input
+                        type="text"
+                        required
+                        placeholder="Ej. Cumpleaños de Mamá, Pagar Tarjeta..."
+                        value={newReminder.title}
+                        onChange={(e) => setNewReminder({ ...newReminder, title: e.target.value })}
+                        className="w-full px-5 py-3.5 bg-gray-50/50 dark:bg-gray-800/80 border border-gray-100 dark:border-gray-700 rounded-xl outline-none focus:border-gray-300 dark:focus:border-gray-500 font-inter text-sm text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500"
+                      />
                     </div>
-                    <textarea
-                      ref={notesTextareaRef}
-                      rows={8}
-                      placeholder="Añade párrafos descriptivos, notas o detalles extra... (Puedes usar saltos de línea y viñetas)"
-                      value={newReminder.notes}
-                      onChange={(e) => setNewReminder({ ...newReminder, notes: e.target.value })}
-                      className="w-full px-5 py-3.5 bg-gray-50/50 dark:bg-gray-800/80 border border-gray-100 dark:border-gray-700 rounded-xl outline-none focus:border-gray-300 dark:focus:border-gray-500 font-inter text-sm leading-relaxed text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 min-h-[180px] resize-y"
-                    />
-                  </div>
 
-                  <div className="md:col-span-3 flex items-center gap-3">
-                    <input
-                      type="checkbox"
-                      id="recurring"
-                      checked={newReminder.recurring}
-                      onChange={(e) => setNewReminder({ ...newReminder, recurring: e.target.checked })}
-                      className="size-5 rounded border-gray-300 dark:border-gray-600 text-black dark:text-white focus:ring-black dark:focus:ring-white bg-white dark:bg-gray-800"
-                    />
-                    <label htmlFor="recurring" className="font-inter text-sm text-gray-700 dark:text-gray-300 select-none">
-                      Evento Recurrente Anualmente (ej. cumpleaños, aniversario)
-                    </label>
+                    <div>
+                      <label className="block font-syne text-[10px] font-bold uppercase tracking-widest text-[var(--gray)] dark:text-gray-400 mb-2">
+                        Categoría
+                      </label>
+                      <CustomSelect
+                        value={newReminder.category}
+                        onChange={(val) => setNewReminder({ ...newReminder, category: val as any })}
+                        options={[
+                          { value: 'Cumpleaños', label: '🎂 Cumpleaños' },
+                          { value: 'Documento', label: '📄 Documento' },
+                          { value: 'Pago', label: '💳 Pago' },
+                          { value: 'Otro', label: '📌 Otro' },
+                        ]}
+                      />
+                    </div>
+
+                    <div className="md:col-span-2">
+                      <label className="block font-syne text-[10px] font-bold uppercase tracking-widest text-[var(--gray)] dark:text-gray-400 mb-2">
+                        Fecha *
+                      </label>
+                      <CustomDatePicker
+                        required
+                        value={newReminder.date}
+                        onChange={(val) => setNewReminder({ ...newReminder, date: val })}
+                        placeholder="Seleccionar fecha..."
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block font-syne text-[10px] font-bold uppercase tracking-widest text-[var(--gray)] dark:text-gray-400 mb-2">
+                        Hora (Opcional)
+                      </label>
+                      <input
+                        type="time"
+                        value={newReminder.time}
+                        onChange={(e) => setNewReminder({ ...newReminder, time: e.target.value })}
+                        className="w-full px-5 py-3.5 bg-gray-50/50 dark:bg-gray-800/80 border border-gray-100 dark:border-gray-700 rounded-xl outline-none focus:border-gray-300 dark:focus:border-gray-500 font-inter text-sm text-gray-900 dark:text-gray-100"
+                      />
+                    </div>
+
+                    <div className="md:col-span-3">
+                      <div className="flex items-center justify-between gap-2 mb-2 flex-wrap">
+                        <label className="block font-syne text-[10px] font-bold uppercase tracking-widest text-[var(--gray)] dark:text-gray-400">
+                          Notas & Detalles (Opcional)
+                        </label>
+                        <div className="flex items-center gap-1">
+                          <button
+                            type="button"
+                            onClick={insertHeading}
+                            className="px-2.5 py-1 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-lg text-xs font-syne font-bold transition-all shrink-0 flex items-center gap-1"
+                            title="Agregar título de sección"
+                          >
+                            <span className="text-sky-500 font-bold">H3</span>
+                            <span>Sección</span>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={insertBold}
+                            className="px-2.5 py-1 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-lg text-xs font-syne font-bold transition-all shrink-0"
+                            title="Texto en negrita"
+                          >
+                            <strong>B</strong> Negrita
+                          </button>
+                          <button
+                            type="button"
+                            onClick={insertNumberList}
+                            className="px-2.5 py-1 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-lg text-xs font-syne font-bold transition-all shrink-0"
+                            title="Lista numerada (1., 2., 3...)"
+                          >
+                            1. Paso
+                          </button>
+                          <button
+                            type="button"
+                            onClick={insertBullet}
+                            className="px-2.5 py-1 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-lg text-xs font-syne font-bold transition-all shrink-0"
+                            title="Viñeta de punto"
+                          >
+                            • Viñeta
+                          </button>
+                        </div>
+                      </div>
+                      <textarea
+                        ref={notesTextareaRef}
+                        rows={8}
+                        placeholder="Añade párrafos descriptivos, notas o detalles extra... (Puedes usar saltos de línea y viñetas)"
+                        value={newReminder.notes}
+                        onChange={(e) => setNewReminder({ ...newReminder, notes: e.target.value })}
+                        className="w-full px-5 py-3.5 bg-gray-50/50 dark:bg-gray-800/80 border border-gray-100 dark:border-gray-700 rounded-xl outline-none focus:border-gray-300 dark:focus:border-gray-500 font-inter text-sm leading-relaxed text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 min-h-[180px] resize-y"
+                      />
+                    </div>
+
+                    <div className="md:col-span-3 flex items-center gap-3">
+                      <input
+                        type="checkbox"
+                        id="recurring"
+                        checked={newReminder.recurring}
+                        onChange={(e) => setNewReminder({ ...newReminder, recurring: e.target.checked })}
+                        className="size-5 rounded border-gray-300 dark:border-gray-600 text-black dark:text-white focus:ring-black dark:focus:ring-white bg-white dark:bg-gray-800"
+                      />
+                      <label htmlFor="recurring" className="font-inter text-sm text-gray-700 dark:text-gray-300 select-none">
+                        Evento Recurrente Anualmente (ej. cumpleaños, aniversario)
+                      </label>
+                    </div>
                   </div>
                 </div>
 
-                <div className="flex justify-end gap-3 pt-4">
+                {/* Sticky Footer Actions */}
+                <div className="flex justify-end gap-3 p-4 sm:p-6 border-t border-gray-100 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-900/50 shrink-0">
                   <button
                     type="button"
                     onClick={() => setShowAddForm(false)}
-                    className="px-6 py-3 font-syne text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl transition-all"
+                    className="px-6 py-3 font-syne text-xs font-bold uppercase tracking-wider text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl transition-all"
                   >
                     Cancelar
                   </button>
                   <button
                     type="submit"
                     disabled={submitting}
-                    className="px-8 py-3 bg-black dark:bg-white text-white dark:text-black font-syne text-xs font-bold uppercase tracking-wider rounded-xl shadow-md disabled:opacity-50 flex items-center gap-2 interactive-hover"
+                    className="px-8 py-3 bg-black dark:bg-white text-white dark:text-black font-syne text-xs font-bold uppercase tracking-wider rounded-xl shadow-lg hover:scale-105 active:scale-95 transition-all disabled:opacity-50 flex items-center gap-2"
                   >
                     {submitting ? (
                       <>

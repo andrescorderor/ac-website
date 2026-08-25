@@ -236,9 +236,10 @@ export default function Vault() {
                 initial={{ opacity: 0, scale: 0.95, y: 20 }}
                 animate={{ opacity: 1, scale: 1, y: 0 }}
                 exit={{ opacity: 0, scale: 0.95, y: 20 }}
-                className="bg-white dark:bg-gray-900 rounded-[2.5rem] p-6 sm:p-8 max-h-[85vh] overflow-y-auto max-w-xl w-full border-none shadow-2xl space-y-6 my-8 cursor-default"
+                className="bg-white dark:bg-gray-900 rounded-[2.5rem] max-h-[90vh] flex flex-col max-w-xl w-full border-none shadow-2xl my-8 cursor-default overflow-hidden"
               >
-                <div className="flex items-center justify-between">
+                {/* Sticky Header */}
+                <div className="flex items-center justify-between p-6 sm:p-8 pb-4 sm:pb-4 border-b border-gray-100 dark:border-gray-800 shrink-0">
                   <div>
                     <h2 className="font-dm-sans text-2xl font-bold text-gray-900 dark:text-white">Agregar Texto a la Bóveda</h2>
                     <p className="font-inter text-xs text-gray-400">Guarda información sensible o útil para copiar rápido.</p>
@@ -252,46 +253,59 @@ export default function Vault() {
                   </button>
                 </div>
                 
-            <form onSubmit={handleAddItem} className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-2">
-                  <label className="font-syne text-[10px] font-bold uppercase tracking-widest text-[var(--gray)] dark:text-gray-400">Título (Ej: CURP)</label>
-                  <input 
-                    value={newItem.title}
-                    onChange={(e) => setNewItem({...newItem, title: e.target.value})}
-                    className="w-full px-5 py-3.5 rounded-xl bg-white dark:bg-gray-800 border border-transparent focus:border-[var(--vibrant-sky-blue)] outline-none font-inter text-sm text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 transition-all shadow-sm"
-                    placeholder="¿Qué es esto?"
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <label className="font-syne text-[10px] font-bold uppercase tracking-widest text-[var(--gray)] dark:text-gray-400">Categoría</label>
-                  <CustomSelect
-                    value={newItem.category}
-                    onChange={(val) => setNewItem({...newItem, category: val})}
-                    options={CATEGORIES.filter(c => c !== 'Todas').map(c => ({ value: c, label: c }))}
-                  />
-                </div>
-                <div className="space-y-2 md:col-span-2">
-                  <label className="font-syne text-[10px] font-bold uppercase tracking-widest text-[var(--gray)] dark:text-gray-400">Valor / Texto a Copiar</label>
-                  <textarea 
-                    rows={5}
-                    value={newItem.content}
-                    onChange={(e) => setNewItem({...newItem, content: e.target.value})}
-                    className="w-full px-5 py-3.5 rounded-xl bg-white dark:bg-gray-800 border border-transparent focus:border-[var(--vibrant-sky-blue)] outline-none font-inter text-sm text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 transition-all shadow-sm min-h-[140px] resize-y leading-relaxed"
-                    placeholder="Escribe o pega aquí el texto, código, JSON o información a guardar..."
-                    required
-                  />
-                </div>
-              </div>
-              <button 
-                type="submit"
-                className="w-full py-4 bg-black dark:bg-white text-white dark:text-black rounded-2xl font-syne font-bold uppercase tracking-widest hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors shadow-lg interactive-hover"
-              >
-                Guardar Texto
-              </button>
-            </form>
-          
+                <form onSubmit={handleAddItem} className="flex flex-col flex-1 min-h-0">
+                  {/* Scrollable Body */}
+                  <div className="p-6 sm:p-8 overflow-y-auto flex-1 space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <label className="font-syne text-[10px] font-bold uppercase tracking-widest text-[var(--gray)] dark:text-gray-400">Título (Ej: CURP)</label>
+                        <input 
+                          value={newItem.title}
+                          onChange={(e) => setNewItem({...newItem, title: e.target.value})}
+                          className="w-full px-5 py-3.5 rounded-xl bg-white dark:bg-gray-800 border border-transparent focus:border-[var(--vibrant-sky-blue)] outline-none font-inter text-sm text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 transition-all shadow-sm"
+                          placeholder="¿Qué es esto?"
+                          required
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <label className="font-syne text-[10px] font-bold uppercase tracking-widest text-[var(--gray)] dark:text-gray-400">Categoría</label>
+                        <CustomSelect
+                          value={newItem.category}
+                          onChange={(val) => setNewItem({...newItem, category: val})}
+                          options={CATEGORIES.filter(c => c !== 'Todas').map(c => ({ value: c, label: c }))}
+                        />
+                      </div>
+                      <div className="space-y-2 md:col-span-2">
+                        <label className="font-syne text-[10px] font-bold uppercase tracking-widest text-[var(--gray)] dark:text-gray-400">Valor / Texto a Copiar</label>
+                        <textarea 
+                          rows={5}
+                          value={newItem.content}
+                          onChange={(e) => setNewItem({...newItem, content: e.target.value})}
+                          className="w-full px-5 py-3.5 rounded-xl bg-white dark:bg-gray-800 border border-transparent focus:border-[var(--vibrant-sky-blue)] outline-none font-inter text-sm text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 transition-all shadow-sm min-h-[140px] resize-y leading-relaxed"
+                          placeholder="Escribe o pega aquí el texto, código, JSON o información a guardar..."
+                          required
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Sticky Footer Actions */}
+                  <div className="flex justify-end gap-3 p-4 sm:p-6 border-t border-gray-100 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-900/50 shrink-0">
+                    <button
+                      type="button"
+                      onClick={() => setShowAddForm(false)}
+                      className="px-6 py-3 font-syne text-xs font-bold uppercase tracking-wider text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl transition-all"
+                    >
+                      Cancelar
+                    </button>
+                    <button 
+                      type="submit"
+                      className="px-8 py-3 bg-black dark:bg-white text-white dark:text-black rounded-xl font-syne text-xs font-bold uppercase tracking-wider hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors shadow-lg interactive-hover"
+                    >
+                      Guardar Texto
+                    </button>
+                  </div>
+                </form>
               </motion.div>
             </div>
           )}

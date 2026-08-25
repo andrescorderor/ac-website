@@ -355,58 +355,62 @@ export default function ChecklistMensual() {
                 initial={{ opacity: 0, scale: 0.95, y: 20 }}
                 animate={{ opacity: 1, scale: 1, y: 0 }}
                 exit={{ opacity: 0, scale: 0.95, y: 20 }}
-                className="bg-white dark:bg-gray-900 rounded-[2.5rem] p-6 sm:p-8 max-h-[85vh] overflow-y-auto max-w-xl w-full border-none shadow-2xl space-y-6 my-8 cursor-default"
+                className="bg-white dark:bg-gray-900 rounded-[2.5rem] max-h-[90vh] flex flex-col max-w-xl w-full border-none shadow-2xl my-8 cursor-default overflow-hidden"
               >
-                
-            <div className="flex items-center justify-between">
-              <h3 className="font-dm-sans text-lg font-bold text-black dark:text-white">
-                {editingItem ? 'Editar Ítem' : 'Nuevo Ítem del Checklist'}
-              </h3>
-              <button onClick={() => { setShowAddForm(false); setEditingItem(null); }} className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl">
-                <HiX />
-              </button>
-            </div>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              {/* Emoji */}
-              <div className="space-y-2">
-                <label className="font-syne text-[10px] font-bold uppercase tracking-widest text-gray-500">Ícono</label>
-                <div className="flex flex-wrap gap-2">
-                  {EMOJIS.map(e => (
-                    <button key={e} type="button" onClick={() => setForm({ ...form, emoji: e })}
-                      className={`size-9 text-lg rounded-xl border-2 transition-all ${form.emoji === e ? 'border-black dark:border-white bg-gray-100 dark:bg-gray-800 scale-110' : 'border-transparent hover:border-gray-200'}`}
-                    >{e}</button>
-                  ))}
+                {/* Sticky Header */}
+                <div className="flex items-center justify-between p-6 sm:p-8 pb-4 sm:pb-4 border-b border-gray-100 dark:border-gray-800 shrink-0">
+                  <h3 className="font-dm-sans text-xl font-bold text-black dark:text-white">
+                    {editingItem ? 'Editar Ítem' : 'Nuevo Ítem del Checklist'}
+                  </h3>
+                  <button onClick={() => { setShowAddForm(false); setEditingItem(null); }} className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl transition-all">
+                    <HiX className="text-xl" />
+                  </button>
                 </div>
-              </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <label className="font-syne text-[10px] font-bold uppercase tracking-widest text-gray-500">Título *</label>
-                  <input
-                    required value={form.title} onChange={e => setForm({ ...form, title: e.target.value })}
-                    placeholder="Ej. Pagar renta, Netflix, Gym..."
-                    className="w-full px-4 py-3 bg-white dark:bg-gray-800 border border-transparent focus:border-[var(--vibrant-sky-blue)] rounded-xl outline-none font-inter text-sm text-gray-900 dark:text-gray-100 placeholder-gray-400 transition-all shadow-sm"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <label className="font-syne text-[10px] font-bold uppercase tracking-widest text-gray-500">Categoría</label>
-                  <CustomSelect
-                    value={form.category}
-                    onChange={(val) => setForm({ ...form, category: val })}
-                    options={CATEGORIES.map(c => ({ value: c, label: c }))}
-                  />
-                </div>
-              </div>
+                <form onSubmit={handleSubmit} className="flex flex-col flex-1 min-h-0">
+                  {/* Scrollable Body */}
+                  <div className="p-6 sm:p-8 overflow-y-auto flex-1 space-y-4">
+                    {/* Emoji */}
+                    <div className="space-y-2">
+                      <label className="font-syne text-[10px] font-bold uppercase tracking-widest text-gray-500">Ícono</label>
+                      <div className="flex flex-wrap gap-2">
+                        {EMOJIS.map(e => (
+                          <button key={e} type="button" onClick={() => setForm({ ...form, emoji: e })}
+                            className={`size-9 text-lg rounded-xl border-2 transition-all ${form.emoji === e ? 'border-black dark:border-white bg-gray-100 dark:bg-gray-800 scale-110' : 'border-transparent hover:border-gray-200'}`}
+                          >{e}</button>
+                        ))}
+                      </div>
+                    </div>
 
-              <div className="flex justify-end gap-3">
-                <button type="button" onClick={() => { setShowAddForm(false); setEditingItem(null); }} className="px-5 py-2.5 font-syne text-xs font-bold uppercase tracking-wider text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl transition-all">Cancelar</button>
-                <button type="submit" disabled={submitting} className="px-7 py-2.5 bg-black dark:bg-white text-white dark:text-black font-syne text-xs font-bold uppercase tracking-wider rounded-xl shadow-md disabled:opacity-50 interactive-hover flex items-center gap-2">
-                  {submitting ? <div className="size-3 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : null}
-                  {editingItem ? 'Guardar' : 'Añadir'}
-                </button>
-              </div>
-            </form>
-          
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <label className="font-syne text-[10px] font-bold uppercase tracking-widest text-gray-500">Título *</label>
+                        <input
+                          required value={form.title} onChange={e => setForm({ ...form, title: e.target.value })}
+                          placeholder="Ej. Pagar renta, Netflix, Gym..."
+                          className="w-full px-4 py-3 bg-white dark:bg-gray-800 border border-transparent focus:border-[var(--vibrant-sky-blue)] rounded-xl outline-none font-inter text-sm text-gray-900 dark:text-gray-100 placeholder-gray-400 transition-all shadow-sm"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <label className="font-syne text-[10px] font-bold uppercase tracking-widest text-gray-500">Categoría</label>
+                        <CustomSelect
+                          value={form.category}
+                          onChange={(val) => setForm({ ...form, category: val })}
+                          options={CATEGORIES.map(c => ({ value: c, label: c }))}
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Sticky Footer Actions */}
+                  <div className="flex justify-end gap-3 p-4 sm:p-6 border-t border-gray-100 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-900/50 shrink-0">
+                    <button type="button" onClick={() => { setShowAddForm(false); setEditingItem(null); }} className="px-6 py-3 font-syne text-xs font-bold uppercase tracking-wider text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl transition-all">Cancelar</button>
+                    <button type="submit" disabled={submitting} className="px-8 py-3 bg-black dark:bg-white text-white dark:text-black font-syne text-xs font-bold uppercase tracking-wider rounded-xl shadow-md disabled:opacity-50 interactive-hover flex items-center gap-2">
+                      {submitting ? <div className="size-3 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : null}
+                      {editingItem ? 'Guardar' : 'Añadir'}
+                    </button>
+                  </div>
+                </form>
               </motion.div>
             </div>
           )}

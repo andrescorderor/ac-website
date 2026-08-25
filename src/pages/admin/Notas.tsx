@@ -438,9 +438,10 @@ const TATTOO_IDEAS_LIST = [
               initial={{ opacity: 0, scale: 0.95, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              className="bg-white dark:bg-gray-900 rounded-[2.5rem] p-6 sm:p-8 max-h-[85vh] overflow-y-auto max-w-2xl w-full border-none shadow-2xl space-y-6 my-8 cursor-default"
+              className="bg-white dark:bg-gray-900 rounded-[2.5rem] max-h-[90vh] flex flex-col max-w-2xl w-full border-none shadow-2xl my-8 cursor-default overflow-hidden"
             >
-              <div className="flex items-center justify-between">
+              {/* Sticky Header */}
+              <div className="flex items-center justify-between p-6 sm:p-8 pb-4 sm:pb-4 border-b border-gray-100 dark:border-gray-800 shrink-0">
                 <div>
                   <h2 className="font-dm-sans text-2xl font-bold text-gray-900 dark:text-white">
                     {editingNoteId ? 'Editar Nota' : 'Crear Nueva Nota'}
@@ -456,8 +457,9 @@ const TATTOO_IDEAS_LIST = [
                 </button>
               </div>
 
-              <form onSubmit={handleSaveNote} className="space-y-6">
-                <div className="space-y-4">
+              <form onSubmit={handleSaveNote} className="flex flex-col flex-1 min-h-0">
+                {/* Scrollable Body */}
+                <div className="p-6 sm:p-8 overflow-y-auto flex-1 space-y-4">
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div className="md:col-span-2">
                       <label className="block font-syne text-[10px] font-bold uppercase tracking-widest text-[var(--gray)] dark:text-gray-400 mb-2">
@@ -550,7 +552,8 @@ const TATTOO_IDEAS_LIST = [
                   </div>
                 </div>
 
-                <div className="flex justify-end gap-3 pt-4">
+                {/* Sticky Footer Actions */}
+                <div className="flex justify-end gap-3 p-4 sm:p-6 border-t border-gray-100 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-900/50 shrink-0">
                   <button
                     type="button"
                     onClick={handleCancelForm}

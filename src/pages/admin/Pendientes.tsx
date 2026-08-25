@@ -241,9 +241,10 @@ export default function Pendientes() {
               initial={{ opacity: 0, scale: 0.95, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              className="bg-white dark:bg-gray-900 rounded-[2.5rem] p-6 sm:p-8 max-h-[85vh] overflow-y-auto max-w-xl w-full border-none shadow-2xl space-y-6 my-8 cursor-default"
+              className="bg-white dark:bg-gray-900 rounded-[2.5rem] max-h-[90vh] flex flex-col max-w-xl w-full border-none shadow-2xl my-8 cursor-default overflow-hidden"
             >
-              <div className="flex items-center justify-between">
+              {/* Sticky Header */}
+              <div className="flex items-center justify-between p-6 sm:p-8 pb-4 sm:pb-4 border-b border-gray-100 dark:border-gray-800 shrink-0">
                 <div>
                   <h2 className="font-dm-sans text-2xl font-bold text-gray-900 dark:text-white">Agregar Nueva Tarea</h2>
                   <p className="font-inter text-xs text-gray-400">Registra tus pendientes personales con fecha límite opcional.</p>
@@ -257,8 +258,9 @@ export default function Pendientes() {
                 </button>
               </div>
 
-              <form onSubmit={handleAddTask} className="space-y-6">
-                <div className="space-y-4">
+              <form onSubmit={handleAddTask} className="flex flex-col flex-1 min-h-0">
+                {/* Scrollable Body */}
+                <div className="p-6 sm:p-8 overflow-y-auto flex-1 space-y-4">
                   <div>
                     <label className="block font-syne text-[10px] font-bold uppercase tracking-widest text-[var(--gray)] dark:text-gray-400 mb-2">
                       Título *
@@ -298,7 +300,8 @@ export default function Pendientes() {
                   </div>
                 </div>
 
-                <div className="flex justify-end gap-3 pt-4">
+                {/* Sticky Footer Actions */}
+                <div className="flex justify-end gap-3 p-4 sm:p-6 border-t border-gray-100 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-900/50 shrink-0">
                   <button
                     type="button"
                     onClick={() => setShowAddForm(false)}

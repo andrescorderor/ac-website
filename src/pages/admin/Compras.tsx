@@ -295,9 +295,10 @@ export default function Compras() {
               initial={{ opacity: 0, scale: 0.95, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              className="bg-white dark:bg-gray-900 rounded-[2.5rem] p-6 sm:p-8 max-h-[85vh] overflow-y-auto max-w-2xl w-full border-none shadow-2xl space-y-6 my-8 cursor-default"
+              className="bg-white dark:bg-gray-900 rounded-[2.5rem] max-h-[90vh] flex flex-col max-w-2xl w-full border-none shadow-2xl my-8 cursor-default overflow-hidden"
             >
-              <div className="flex items-center justify-between">
+              {/* Sticky Header */}
+              <div className="flex items-center justify-between p-6 sm:p-8 pb-4 sm:pb-4 border-b border-gray-100 dark:border-gray-800 shrink-0">
                 <div>
                   <h2 className="font-dm-sans text-2xl font-bold text-gray-900 dark:text-white">Agregar Artículo a la Lista</h2>
                   <p className="font-inter text-xs text-gray-400">Registra artículos pendientes por comprar con prioridad y lugar.</p>
@@ -311,56 +312,60 @@ export default function Compras() {
                 </button>
               </div>
 
-              <form onSubmit={handleAddItem} className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                  <div className="space-y-2">
-                    <label className="font-syne text-[10px] font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">Artículo *</label>
-                    <input
-                      required
-                      value={newItem.name}
-                      onChange={e => setNewItem({ ...newItem, name: e.target.value })}
-                      placeholder="Ej. Leche de almendras, Cable HDMI..."
-                      className="w-full px-5 py-3.5 bg-gray-50 dark:bg-gray-800/80 border border-transparent focus:border-[var(--vibrant-sky-blue)] rounded-xl outline-none font-inter text-sm text-gray-900 dark:text-gray-100 placeholder-gray-400 transition-all shadow-sm"
-                    />
+              <form onSubmit={handleAddItem} className="flex flex-col flex-1 min-h-0">
+                {/* Scrollable Body */}
+                <div className="p-6 sm:p-8 overflow-y-auto flex-1 space-y-5">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    <div className="space-y-2">
+                      <label className="font-syne text-[10px] font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">Artículo *</label>
+                      <input
+                        required
+                        value={newItem.name}
+                        onChange={e => setNewItem({ ...newItem, name: e.target.value })}
+                        placeholder="Ej. Leche de almendras, Cable HDMI..."
+                        className="w-full px-5 py-3.5 bg-gray-50 dark:bg-gray-800/80 border border-transparent focus:border-[var(--vibrant-sky-blue)] rounded-xl outline-none font-inter text-sm text-gray-900 dark:text-gray-100 placeholder-gray-400 transition-all shadow-sm"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="font-syne text-[10px] font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">Lugar / Tienda</label>
+                      <input
+                        value={newItem.location}
+                        onChange={e => setNewItem({ ...newItem, location: e.target.value })}
+                        placeholder="Ej. Supermercado, Amazon, Farmacia..."
+                        className="w-full px-5 py-3.5 bg-gray-50 dark:bg-gray-800/80 border border-transparent focus:border-[var(--vibrant-sky-blue)] rounded-xl outline-none font-inter text-sm text-gray-900 dark:text-gray-100 placeholder-gray-400 transition-all shadow-sm"
+                      />
+                    </div>
                   </div>
-                  <div className="space-y-2">
-                    <label className="font-syne text-[10px] font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">Lugar / Tienda</label>
-                    <input
-                      value={newItem.location}
-                      onChange={e => setNewItem({ ...newItem, location: e.target.value })}
-                      placeholder="Ej. Supermercado, Amazon, Farmacia..."
-                      className="w-full px-5 py-3.5 bg-gray-50 dark:bg-gray-800/80 border border-transparent focus:border-[var(--vibrant-sky-blue)] rounded-xl outline-none font-inter text-sm text-gray-900 dark:text-gray-100 placeholder-gray-400 transition-all shadow-sm"
-                    />
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    <div className="space-y-2">
+                      <label className="font-syne text-[10px] font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">Precio Estimado ($)</label>
+                      <input
+                        type="number"
+                        step="0.01"
+                        value={newItem.price}
+                        onChange={e => setNewItem({ ...newItem, price: e.target.value })}
+                        placeholder="0.00"
+                        className="w-full px-5 py-3.5 bg-gray-50 dark:bg-gray-800/80 border border-transparent focus:border-[var(--vibrant-sky-blue)] rounded-xl outline-none font-inter text-sm text-gray-900 dark:text-gray-100 placeholder-gray-400 transition-all shadow-sm"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="font-syne text-[10px] font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">Prioridad</label>
+                      <CustomSelect
+                        value={newItem.priority}
+                        onChange={(val) => setNewItem({ ...newItem, priority: val as 'Baja' | 'Media' | 'Alta' })}
+                        options={[
+                          { value: 'Alta', label: 'Alta 🔴' },
+                          { value: 'Media', label: 'Media 🟠' },
+                          { value: 'Baja', label: 'Baja ⚪' },
+                        ]}
+                      />
+                    </div>
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                  <div className="space-y-2">
-                    <label className="font-syne text-[10px] font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">Precio Estimado ($)</label>
-                    <input
-                      type="number"
-                      step="0.01"
-                      value={newItem.price}
-                      onChange={e => setNewItem({ ...newItem, price: e.target.value })}
-                      placeholder="0.00"
-                      className="w-full px-5 py-3.5 bg-gray-50 dark:bg-gray-800/80 border border-transparent focus:border-[var(--vibrant-sky-blue)] rounded-xl outline-none font-inter text-sm text-gray-900 dark:text-gray-100 placeholder-gray-400 transition-all shadow-sm"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <label className="font-syne text-[10px] font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">Prioridad</label>
-                    <CustomSelect
-                      value={newItem.priority}
-                      onChange={(val) => setNewItem({ ...newItem, priority: val as 'Baja' | 'Media' | 'Alta' })}
-                      options={[
-                        { value: 'Alta', label: 'Alta 🔴' },
-                        { value: 'Media', label: 'Media 🟠' },
-                        { value: 'Baja', label: 'Baja ⚪' },
-                      ]}
-                    />
-                  </div>
-                </div>
-
-                <div className="flex justify-end gap-3 pt-4">
+                {/* Sticky Footer Actions */}
+                <div className="flex justify-end gap-3 p-4 sm:p-6 border-t border-gray-100 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-900/50 shrink-0">
                   <button
                     type="button"
                     onClick={() => setShowAddForm(false)}

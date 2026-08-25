@@ -392,9 +392,10 @@ export default function Recetas() {
                 initial={{ opacity: 0, scale: 0.95, y: 20 }}
                 animate={{ opacity: 1, scale: 1, y: 0 }}
                 exit={{ opacity: 0, scale: 0.95, y: 20 }}
-                className="bg-white dark:bg-gray-900 rounded-[2.5rem] p-5 sm:p-6 max-w-xl w-full border-none shadow-2xl space-y-4 my-4 cursor-default"
+                className="bg-white dark:bg-gray-900 rounded-[2.5rem] max-h-[90vh] flex flex-col max-w-xl w-full border-none shadow-2xl my-4 cursor-default overflow-hidden"
               >
-                <div className="flex items-center justify-between">
+                {/* Sticky Header */}
+                <div className="flex items-center justify-between p-5 sm:p-6 pb-4 border-b border-gray-100 dark:border-gray-800 shrink-0">
                   <h3 className="font-dm-sans text-xl font-bold text-black dark:text-white">
                     {editingRecipe ? 'Editar Receta' : 'Nueva Receta'}
                   </h3>
@@ -403,148 +404,152 @@ export default function Recetas() {
                   </button>
                 </div>
 
-                <form onSubmit={handleSubmit} className="space-y-3.5">
-                  {/* Emoji selector */}
-                  <div className="space-y-1">
-                    <label className="font-syne text-[10px] font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">Ícono</label>
-                    <div className="flex flex-wrap gap-1.5">
-                      {EMOJIS.map(e => (
-                        <button key={e} type="button" onClick={() => setForm({ ...form, emoji: e })}
-                          className={`size-8 text-base rounded-xl border-2 transition-all ${form.emoji === e ? 'border-black dark:border-white scale-105 bg-gray-100 dark:bg-gray-800' : 'border-transparent hover:border-gray-200 dark:hover:border-gray-700'}`}
-                        >{e}</button>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <form onSubmit={handleSubmit} className="flex flex-col flex-1 min-h-0">
+                  {/* Scrollable Body */}
+                  <div className="p-5 sm:p-6 overflow-y-auto flex-1 space-y-4">
+                    {/* Emoji selector */}
                     <div className="space-y-1">
-                      <label className="font-syne text-[10px] font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">Nombre *</label>
-                      <input
-                        required value={form.name} onChange={e => setForm({ ...form, name: e.target.value })}
-                        placeholder="Ej. Pasta carbonara..."
-                        className="w-full px-4 py-2.5 bg-white dark:bg-gray-800 border border-transparent focus:border-[var(--vibrant-sky-blue)] rounded-xl outline-none font-inter text-sm text-gray-900 dark:text-gray-100 placeholder-gray-400 transition-all shadow-sm"
-                      />
-                    </div>
-                    <div className="space-y-1">
-                      <label className="font-syne text-[10px] font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">Categoría</label>
-                      <CustomSelect
-                        value={form.category}
-                        onChange={(val) => setForm({ ...form, category: val })}
-                        options={CATEGORIES.map(c => ({ value: c, label: c }))}
-                      />
-                    </div>
-                  </div>
-
-                  <div className="space-y-1">
-                    <div className="flex items-center justify-between gap-2 mb-1">
-                      <label className="font-syne text-[10px] font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">Instrucciones (Markdown)</label>
-                      <div className="flex items-center gap-1">
-                        <button
-                          type="button"
-                          onClick={insertHeading}
-                          className="px-2 py-0.5 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 rounded text-[10px] font-syne font-bold"
-                          title="Título"
-                        >
-                          H3
-                        </button>
-                        <button
-                          type="button"
-                          onClick={insertBold}
-                          className="px-2 py-0.5 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 rounded text-[10px] font-syne font-bold"
-                          title="Negrita"
-                        >
-                          B
-                        </button>
-                        <button
-                          type="button"
-                          onClick={insertNumberList}
-                          className="px-2 py-0.5 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 rounded text-[10px] font-syne font-bold"
-                          title="Lista 1,2,3"
-                        >
-                          1.
-                        </button>
-                        <button
-                          type="button"
-                          onClick={insertBullet}
-                          className="px-2 py-0.5 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 rounded text-[10px] font-syne font-bold"
-                          title="Viñeta"
-                        >
-                          •
-                        </button>
-                      </div>
-                    </div>
-                    <textarea
-                      ref={descTextareaRef}
-                      rows={8} value={form.description} onChange={e => setForm({ ...form, description: e.target.value })}
-                      placeholder="Instrucciones de preparación..."
-                      className="w-full px-4 py-2.5 bg-white dark:bg-gray-800 border border-transparent focus:border-[var(--vibrant-sky-blue)] rounded-xl outline-none font-inter text-sm leading-relaxed text-gray-900 dark:text-gray-100 placeholder-gray-400 transition-all shadow-sm min-h-[180px] resize-y"
-                    />
-                  </div>
-
-                  {/* Ingredients */}
-                  <div className="space-y-3">
-                    <label className="font-syne text-[10px] font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">Ingredientes</label>
-
-                    {/* Existing ingredients */}
-                    {editIngredients.length > 0 && (
-                      <div className="space-y-2">
-                        {editIngredients.map(ing => (
-                          <div key={ing.id} className="flex items-center gap-3 px-4 py-3 bg-gray-50 dark:bg-gray-800/60 rounded-xl">
-                            <span className="font-inter text-sm text-gray-800 dark:text-gray-100 flex-1">{ing.name}</span>
-                            {ing.quantity && (
-                              <span className="font-syne text-[10px] font-bold uppercase tracking-wider text-gray-400 bg-white dark:bg-gray-700 px-2 py-1 rounded-lg">{ing.quantity}</span>
-                            )}
-                            <button type="button" onClick={() => removeIngredientFromForm(ing.id)} className="p-1 text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-lg transition-all">
-                              <HiX className="text-xs" />
-                            </button>
-                          </div>
+                      <label className="font-syne text-[10px] font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">Ícono</label>
+                      <div className="flex flex-wrap gap-1.5">
+                        {EMOJIS.map(e => (
+                          <button key={e} type="button" onClick={() => setForm({ ...form, emoji: e })}
+                            className={`size-8 text-base rounded-xl border-2 transition-all ${form.emoji === e ? 'border-black dark:border-white scale-105 bg-gray-100 dark:bg-gray-800' : 'border-transparent hover:border-gray-200 dark:hover:border-gray-700'}`}
+                          >{e}</button>
                         ))}
                       </div>
-                    )}
-
-                    {/* Add ingredient row */}
-                    <div className="flex flex-wrap sm:flex-nowrap gap-2">
-                      <input
-                        placeholder="Ingrediente..."
-                        value={ingredientForm.name}
-                        onChange={e => setIngredientForm({ ...ingredientForm, name: e.target.value })}
-                        onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), addIngredientToForm())}
-                        className="flex-1 min-w-[140px] px-3.5 py-2.5 bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-xl outline-none focus:border-[var(--vibrant-sky-blue)] font-inter text-sm text-gray-900 dark:text-gray-100 placeholder-gray-400 transition-all shadow-sm"
-                      />
-                      <input
-                        placeholder="Cantidad"
-                        value={ingredientForm.quantity}
-                        onChange={e => setIngredientForm({ ...ingredientForm, quantity: e.target.value })}
-                        onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), addIngredientToForm())}
-                        className="w-24 sm:w-28 px-3 py-2.5 bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-xl outline-none focus:border-[var(--vibrant-sky-blue)] font-inter text-sm text-gray-900 dark:text-gray-100 placeholder-gray-400 transition-all shadow-sm shrink-0"
-                      />
-                      <button
-                        type="button"
-                        onClick={addIngredientToForm}
-                        className="px-4 py-2.5 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-xl transition-all font-syne text-xs font-bold uppercase tracking-wider text-gray-700 dark:text-gray-200 flex items-center justify-center gap-1.5 shrink-0 ml-auto sm:ml-0"
-                      >
-                        <HiOutlinePlus />
-                        Añadir
-                      </button>
                     </div>
-                    <p className="font-inter text-[11px] text-gray-400">Presiona Enter o el botón para añadir cada ingrediente.</p>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      <div className="space-y-1">
+                        <label className="font-syne text-[10px] font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">Nombre *</label>
+                        <input
+                          required value={form.name} onChange={e => setForm({ ...form, name: e.target.value })}
+                          placeholder="Ej. Pasta carbonara..."
+                          className="w-full px-4 py-2.5 bg-white dark:bg-gray-800 border border-transparent focus:border-[var(--vibrant-sky-blue)] rounded-xl outline-none font-inter text-sm text-gray-900 dark:text-gray-100 placeholder-gray-400 transition-all shadow-sm"
+                        />
+                      </div>
+                      <div className="space-y-1">
+                        <label className="font-syne text-[10px] font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">Categoría</label>
+                        <CustomSelect
+                          value={form.category}
+                          onChange={(val) => setForm({ ...form, category: val })}
+                          options={CATEGORIES.map(c => ({ value: c, label: c }))}
+                        />
+                      </div>
+                    </div>
+
+                    <div className="space-y-1">
+                      <div className="flex items-center justify-between gap-2 mb-1">
+                        <label className="font-syne text-[10px] font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">Instrucciones (Markdown)</label>
+                        <div className="flex items-center gap-1">
+                          <button
+                            type="button"
+                            onClick={insertHeading}
+                            className="px-2 py-0.5 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 rounded text-[10px] font-syne font-bold"
+                            title="Título"
+                          >
+                            H3
+                          </button>
+                          <button
+                            type="button"
+                            onClick={insertBold}
+                            className="px-2 py-0.5 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 rounded text-[10px] font-syne font-bold"
+                            title="Negrita"
+                          >
+                            B
+                          </button>
+                          <button
+                            type="button"
+                            onClick={insertNumberList}
+                            className="px-2 py-0.5 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 rounded text-[10px] font-syne font-bold"
+                            title="Lista 1,2,3"
+                          >
+                            1.
+                          </button>
+                          <button
+                            type="button"
+                            onClick={insertBullet}
+                            className="px-2 py-0.5 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 rounded text-[10px] font-syne font-bold"
+                            title="Viñeta"
+                          >
+                            •
+                          </button>
+                        </div>
+                      </div>
+                      <textarea
+                        ref={descTextareaRef}
+                        rows={8} value={form.description} onChange={e => setForm({ ...form, description: e.target.value })}
+                        placeholder="Instrucciones de preparación..."
+                        className="w-full px-4 py-2.5 bg-white dark:bg-gray-800 border border-transparent focus:border-[var(--vibrant-sky-blue)] rounded-xl outline-none font-inter text-sm leading-relaxed text-gray-900 dark:text-gray-100 placeholder-gray-400 transition-all shadow-sm min-h-[180px] resize-y"
+                      />
+                    </div>
+
+                    {/* Ingredients */}
+                    <div className="space-y-3">
+                      <label className="font-syne text-[10px] font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">Ingredientes</label>
+
+                      {/* Existing ingredients */}
+                      {editIngredients.length > 0 && (
+                        <div className="space-y-2">
+                          {editIngredients.map(ing => (
+                            <div key={ing.id} className="flex items-center gap-3 px-4 py-3 bg-gray-50 dark:bg-gray-800/60 rounded-xl">
+                              <span className="font-inter text-sm text-gray-800 dark:text-gray-100 flex-1">{ing.name}</span>
+                              {ing.quantity && (
+                                <span className="font-syne text-[10px] font-bold uppercase tracking-wider text-gray-400 bg-white dark:bg-gray-700 px-2 py-1 rounded-lg">{ing.quantity}</span>
+                              )}
+                              <button type="button" onClick={() => removeIngredientFromForm(ing.id)} className="p-1 text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-lg transition-all">
+                                <HiX className="text-xs" />
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+
+                      {/* Add ingredient row */}
+                      <div className="flex flex-wrap sm:flex-nowrap gap-2">
+                        <input
+                          placeholder="Ingrediente..."
+                          value={ingredientForm.name}
+                          onChange={e => setIngredientForm({ ...ingredientForm, name: e.target.value })}
+                          onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), addIngredientToForm())}
+                          className="flex-1 min-w-[140px] px-3.5 py-2.5 bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-xl outline-none focus:border-[var(--vibrant-sky-blue)] font-inter text-sm text-gray-900 dark:text-gray-100 placeholder-gray-400 transition-all shadow-sm"
+                        />
+                        <input
+                          placeholder="Cantidad"
+                          value={ingredientForm.quantity}
+                          onChange={e => setIngredientForm({ ...ingredientForm, quantity: e.target.value })}
+                          onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), addIngredientToForm())}
+                          className="w-24 sm:w-28 px-3 py-2.5 bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-xl outline-none focus:border-[var(--vibrant-sky-blue)] font-inter text-sm text-gray-900 dark:text-gray-100 placeholder-gray-400 transition-all shadow-sm shrink-0"
+                        />
+                        <button
+                          type="button"
+                          onClick={addIngredientToForm}
+                          className="px-4 py-2.5 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-xl transition-all font-syne text-xs font-bold uppercase tracking-wider text-gray-700 dark:text-gray-200 flex items-center justify-center gap-1.5 shrink-0 ml-auto sm:ml-0"
+                        >
+                          <HiOutlinePlus />
+                          Añadir
+                        </button>
+                      </div>
+                      <p className="font-inter text-[11px] text-gray-400">Presiona Enter o el botón para añadir cada ingrediente.</p>
+                    </div>
+
+                    {/* Reference URL */}
+                    <div className="space-y-2">
+                      <label className="font-syne text-[10px] font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">
+                        Enlace de Referencia (YouTube, Instagram, TikTok...)
+                      </label>
+                      <input
+                        type="url"
+                        value={form.reference_url}
+                        onChange={e => setForm({ ...form, reference_url: e.target.value })}
+                        placeholder="https://youtube.com/watch?v=... o https://instagram.com/..."
+                        className="w-full px-5 py-3.5 bg-white dark:bg-gray-800 border border-transparent focus:border-[var(--vibrant-sky-blue)] rounded-xl outline-none font-inter text-sm text-gray-900 dark:text-gray-100 placeholder-gray-400 transition-all shadow-sm"
+                      />
+                    </div>
                   </div>
 
-                  {/* Reference URL */}
-                  <div className="space-y-2">
-                    <label className="font-syne text-[10px] font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">
-                      Enlace de Referencia (YouTube, Instagram, TikTok...)
-                    </label>
-                    <input
-                      type="url"
-                      value={form.reference_url}
-                      onChange={e => setForm({ ...form, reference_url: e.target.value })}
-                      placeholder="https://youtube.com/watch?v=... o https://instagram.com/..."
-                      className="w-full px-5 py-3.5 bg-white dark:bg-gray-800 border border-transparent focus:border-[var(--vibrant-sky-blue)] rounded-xl outline-none font-inter text-sm text-gray-900 dark:text-gray-100 placeholder-gray-400 transition-all shadow-sm"
-                    />
-                  </div>
-
-                  <div className="flex justify-end gap-3 pt-2">
+                  {/* Sticky Footer Actions */}
+                  <div className="flex justify-end gap-3 p-4 sm:p-5 border-t border-gray-100 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-900/50 shrink-0">
                     <button type="button" onClick={() => setShowForm(false)} className="px-6 py-3 font-syne text-xs font-bold uppercase tracking-wider text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl transition-all">
                       Cancelar
                     </button>

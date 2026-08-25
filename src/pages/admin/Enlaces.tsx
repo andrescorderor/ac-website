@@ -212,12 +212,13 @@ export default function Enlaces() {
                 initial={{ opacity: 0, scale: 0.95, y: 20 }}
                 animate={{ opacity: 1, scale: 1, y: 0 }}
                 exit={{ opacity: 0, scale: 0.95, y: 20 }}
-                className="bg-white dark:bg-gray-900 rounded-[2.5rem] p-6 sm:p-8 max-h-[85vh] overflow-y-auto max-w-2xl w-full border-none shadow-2xl space-y-6 my-8 cursor-default"
+                className="bg-white dark:bg-gray-900 rounded-[2.5rem] max-h-[90vh] flex flex-col max-w-xl w-full border-none shadow-2xl my-8 cursor-default overflow-hidden"
               >
-                <div className="flex items-center justify-between">
+                {/* Sticky Header */}
+                <div className="flex items-center justify-between p-6 sm:p-8 pb-4 sm:pb-4 border-b border-gray-100 dark:border-gray-800 shrink-0">
                   <div>
-                    <h2 className="font-dm-sans text-2xl font-bold text-gray-900 dark:text-white">Nuevo Marcador</h2>
-                    <p className="font-inter text-xs text-gray-400">Guarda enlaces rápidos para tus herramientas diarias.</p>
+                    <h2 className="font-dm-sans text-2xl font-bold text-gray-900 dark:text-white">Agregar Nuevo Marcador</h2>
+                    <p className="font-inter text-xs text-gray-400">Guarda un enlace rápido para acceder desde tu dashboard.</p>
                   </div>
                   <button
                     type="button"
@@ -228,40 +229,44 @@ export default function Enlaces() {
                   </button>
                 </div>
 
-                <form onSubmit={handleAdd} className="space-y-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <label className="font-syne text-[10px] font-bold uppercase tracking-widest text-gray-400">Nombre *</label>
-                      <input
-                        value={newBookmark.title}
-                        onChange={(e) => setNewBookmark({...newBookmark, title: e.target.value})}
-                        placeholder="Ej: Portal Bancario"
-                        className="w-full px-5 py-3.5 rounded-xl bg-gray-50/50 dark:bg-gray-800/80 border border-gray-100 dark:border-gray-700 outline-none font-inter text-sm text-gray-900 dark:text-gray-100 placeholder-gray-400"
-                        required
-                      />
+                <form onSubmit={handleAdd} className="flex flex-col flex-1 min-h-0">
+                  {/* Scrollable Body */}
+                  <div className="p-6 sm:p-8 overflow-y-auto flex-1 space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <label className="font-syne text-[10px] font-bold uppercase tracking-widest text-gray-400">Título *</label>
+                        <input
+                          value={newBookmark.title}
+                          onChange={(e) => setNewBookmark({...newBookmark, title: e.target.value})}
+                          placeholder="Mi Enlace"
+                          className="w-full px-5 py-3.5 rounded-xl bg-gray-50/50 dark:bg-gray-800/80 border border-gray-100 dark:border-gray-700 outline-none font-inter text-sm text-gray-900 dark:text-gray-100 placeholder-gray-400"
+                          required
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <label className="font-syne text-[10px] font-bold uppercase tracking-widest text-gray-400">URL *</label>
+                        <input
+                          value={newBookmark.url}
+                          onChange={(e) => setNewBookmark({...newBookmark, url: e.target.value})}
+                          placeholder="ejemplo.com"
+                          className="w-full px-5 py-3.5 rounded-xl bg-gray-50/50 dark:bg-gray-800/80 border border-gray-100 dark:border-gray-700 outline-none font-inter text-sm text-gray-900 dark:text-gray-100 placeholder-gray-400"
+                          required
+                        />
+                      </div>
                     </div>
+
                     <div className="space-y-2">
-                      <label className="font-syne text-[10px] font-bold uppercase tracking-widest text-gray-400">URL *</label>
-                      <input
-                        value={newBookmark.url}
-                        onChange={(e) => setNewBookmark({...newBookmark, url: e.target.value})}
-                        placeholder="ejemplo.com"
-                        className="w-full px-5 py-3.5 rounded-xl bg-gray-50/50 dark:bg-gray-800/80 border border-gray-100 dark:border-gray-700 outline-none font-inter text-sm text-gray-900 dark:text-gray-100 placeholder-gray-400"
-                        required
+                      <label className="font-syne text-[10px] font-bold uppercase tracking-widest text-gray-400">Categoría</label>
+                      <CustomSelect
+                        value={newBookmark.category}
+                        onChange={(val) => setNewBookmark({ ...newBookmark, category: val })}
+                        options={defaultCategories.map(cat => ({ value: cat, label: cat }))}
                       />
                     </div>
                   </div>
 
-                  <div className="space-y-2">
-                    <label className="font-syne text-[10px] font-bold uppercase tracking-widest text-gray-400">Categoría</label>
-                    <CustomSelect
-                      value={newBookmark.category}
-                      onChange={(val) => setNewBookmark({ ...newBookmark, category: val })}
-                      options={defaultCategories.map(cat => ({ value: cat, label: cat }))}
-                    />
-                  </div>
-
-                  <div className="flex justify-end gap-3 pt-4">
+                  {/* Sticky Footer Actions */}
+                  <div className="flex justify-end gap-3 p-4 sm:p-6 border-t border-gray-100 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-900/50 shrink-0">
                     <button
                       type="button"
                       onClick={() => setShowAddForm(false)}

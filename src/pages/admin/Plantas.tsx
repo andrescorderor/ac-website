@@ -432,9 +432,10 @@ export default function Plantas() {
               initial={{ opacity: 0, scale: 0.95, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              className="bg-white dark:bg-gray-900 rounded-[2.5rem] p-6 sm:p-8 max-h-[85vh] overflow-y-auto max-w-2xl w-full border-none shadow-2xl space-y-6 my-8 cursor-default"
+              className="bg-white dark:bg-gray-900 rounded-[2.5rem] max-h-[90vh] flex flex-col max-w-2xl w-full border-none shadow-2xl my-8 cursor-default overflow-hidden"
             >
-              <div className="flex items-center justify-between">
+              {/* Sticky Header */}
+              <div className="flex items-center justify-between p-6 sm:p-8 pb-4 sm:pb-4 border-b border-gray-100 dark:border-gray-800 shrink-0">
                 <div className="flex items-center gap-3">
                   <span className="text-3xl">{form.emoji || '🪴'}</span>
                   <div>
@@ -453,146 +454,150 @@ export default function Plantas() {
                 </button>
               </div>
 
-              <form onSubmit={handleSubmit} className="space-y-6">
-                {/* Emoji selector */}
-                <div className="space-y-2">
-                  <label className="font-syne text-[10px] font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">Ícono de la Planta</label>
-                  <div className="flex flex-wrap gap-2">
-                    {PLANT_EMOJIS.map(e => (
-                      <button
-                        key={e}
-                        type="button"
-                        onClick={() => setForm({ ...form, emoji: e })}
-                        className={`size-10 text-xl rounded-xl border-2 transition-all ${
-                          form.emoji === e
-                            ? 'border-emerald-500 scale-110 bg-emerald-50 dark:bg-emerald-950/40'
-                            : 'border-transparent hover:border-gray-200 dark:hover:border-gray-700 bg-gray-50 dark:bg-gray-800'
-                        }`}
-                      >
-                        {e}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+              <form onSubmit={handleSubmit} className="flex flex-col flex-1 min-h-0">
+                {/* Scrollable Body */}
+                <div className="p-6 sm:p-8 overflow-y-auto flex-1 space-y-6">
+                  {/* Emoji selector */}
                   <div className="space-y-2">
-                    <label className="font-syne text-[10px] font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">Nombre Personal / Apodo *</label>
-                    <input
-                      required
-                      value={form.nickname}
-                      onChange={e => setForm({ ...form, nickname: e.target.value })}
-                      placeholder="Ej. Verdita, Monty, El Monstruo..."
-                      className="w-full px-5 py-3.5 bg-gray-50 dark:bg-gray-800/80 border border-transparent focus:border-[var(--vibrant-sky-blue)] rounded-xl outline-none font-inter text-sm text-gray-900 dark:text-gray-100 placeholder-gray-400 transition-all shadow-sm"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <label className="font-syne text-[10px] font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">Especie / Variedad *</label>
-                    <input
-                      required
-                      value={form.species}
-                      onChange={e => setForm({ ...form, species: e.target.value })}
-                      placeholder="Ej. Monstera Deliciosa, Ficus, Suculenta..."
-                      className="w-full px-5 py-3.5 bg-gray-50 dark:bg-gray-800/80 border border-transparent focus:border-[var(--vibrant-sky-blue)] rounded-xl outline-none font-inter text-sm text-gray-900 dark:text-gray-100 placeholder-gray-400 transition-all shadow-sm"
-                    />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
-                  <div className="space-y-2">
-                    <label className="font-syne text-[10px] font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">Riego cada (Días) *</label>
-                    <input
-                      type="number"
-                      min={1}
-                      max={365}
-                      required
-                      value={form.watering_frequency_days}
-                      onChange={e => setForm({ ...form, watering_frequency_days: parseInt(e.target.value, 10) || 7 })}
-                      className="w-full px-5 py-3.5 bg-gray-50 dark:bg-gray-800/80 border border-transparent focus:border-[var(--vibrant-sky-blue)] rounded-xl outline-none font-inter text-sm text-gray-900 dark:text-gray-100 placeholder-gray-400 transition-all shadow-sm"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <label className="font-syne text-[10px] font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">Último Riego *</label>
-                    <CustomDatePicker
-                      required
-                      value={form.last_watered_at}
-                      onChange={(val) => setForm({ ...form, last_watered_at: val })}
-                      placeholder="Fecha de último riego..."
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <label className="font-syne text-[10px] font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">Ubicación (Opcional)</label>
-                    <input
-                      value={form.location}
-                      onChange={e => setForm({ ...form, location: e.target.value })}
-                      placeholder="Ej. Balcón, Sala, Luz indirecta"
-                      className="w-full px-5 py-3.5 bg-gray-50 dark:bg-gray-800/80 border border-transparent focus:border-[var(--vibrant-sky-blue)] rounded-xl outline-none font-inter text-sm text-gray-900 dark:text-gray-100 placeholder-gray-400 transition-all shadow-sm"
-                    />
-                  </div>
-                </div>
-
-                {/* Cursor-aware Notes Editor */}
-                <div className="space-y-2">
-                  <div className="space-y-2 mb-3">
-                    <label className="font-syne text-[10px] font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">Notas de Cuidado & Recomendaciones (Soporta Markdown)</label>
-                    <div className="flex flex-wrap items-center gap-1.5">
-                      <button
-                        type="button"
-                        onClick={insertHeading}
-                        className="px-2.5 py-1 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-lg text-xs font-syne font-bold transition-all shrink-0 flex items-center gap-1"
-                        title="Agregar título de sección"
-                      >
-                        <span className="text-sky-500 font-bold">H3</span>
-                        <span>Sección</span>
-                      </button>
-                      <button
-                        type="button"
-                        onClick={insertBold}
-                        className="px-2.5 py-1 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-lg text-xs font-syne font-bold transition-all shrink-0"
-                        title="Texto en negrita"
-                      >
-                        <strong>B</strong> Negrita
-                      </button>
-                      <button
-                        type="button"
-                        onClick={insertNumberList}
-                        className="px-2.5 py-1 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-lg text-xs font-syne font-bold transition-all shrink-0"
-                        title="Lista numerada (1., 2., 3...)"
-                      >
-                        1. Paso
-                      </button>
-                      <button
-                        type="button"
-                        onClick={insertBullet}
-                        className="px-2.5 py-1 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-lg text-xs font-syne font-bold transition-all shrink-0"
-                        title="Viñeta de punto"
-                      >
-                        • Viñeta
-                      </button>
+                    <label className="font-syne text-[10px] font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">Ícono de la Planta</label>
+                    <div className="flex flex-wrap gap-2">
+                      {PLANT_EMOJIS.map(e => (
+                        <button
+                          key={e}
+                          type="button"
+                          onClick={() => setForm({ ...form, emoji: e })}
+                          className={`size-10 text-xl rounded-xl border-2 transition-all ${
+                            form.emoji === e
+                              ? 'border-emerald-500 scale-110 bg-emerald-50 dark:bg-emerald-950/40'
+                              : 'border-transparent hover:border-gray-200 dark:hover:border-gray-700 bg-gray-50 dark:bg-gray-800'
+                          }`}
+                        >
+                          {e}
+                        </button>
+                      ))}
                     </div>
                   </div>
-                  <textarea
-                    ref={notesTextareaRef}
-                    rows={8}
-                    value={form.notes}
-                    onChange={e => setForm({ ...form, notes: e.target.value })}
-                    placeholder="Instrucciones de fertilización, tipo de sustrato, humedad recomendada..."
-                    className="w-full px-5 py-3.5 bg-gray-50 dark:bg-gray-800/80 border border-transparent focus:border-[var(--vibrant-sky-blue)] rounded-xl outline-none font-inter text-sm leading-relaxed text-gray-900 dark:text-gray-100 placeholder-gray-400 transition-all shadow-sm min-h-[180px] resize-y"
-                  />
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                    <div className="space-y-2">
+                      <label className="font-syne text-[10px] font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">Nombre Personal / Apodo *</label>
+                      <input
+                        required
+                        value={form.nickname}
+                        onChange={e => setForm({ ...form, nickname: e.target.value })}
+                        placeholder="Ej. Monstera de la sala, Cactus de la entrada..."
+                        className="w-full px-5 py-3.5 bg-gray-50 dark:bg-gray-800/80 border border-transparent focus:border-[var(--vibrant-sky-blue)] rounded-xl outline-none font-inter text-sm text-gray-900 dark:text-gray-100 placeholder-gray-400 transition-all shadow-sm"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="font-syne text-[10px] font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">Especie / Variedad *</label>
+                      <input
+                        required
+                        value={form.species}
+                        onChange={e => setForm({ ...form, species: e.target.value })}
+                        placeholder="Ej. Monstera Deliciosa, Ficus, Suculenta..."
+                        className="w-full px-5 py-3.5 bg-gray-50 dark:bg-gray-800/80 border border-transparent focus:border-[var(--vibrant-sky-blue)] rounded-xl outline-none font-inter text-sm text-gray-900 dark:text-gray-100 placeholder-gray-400 transition-all shadow-sm"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
+                    <div className="space-y-2">
+                      <label className="font-syne text-[10px] font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">Riego cada (Días) *</label>
+                      <input
+                        type="number"
+                        min={1}
+                        max={365}
+                        required
+                        value={form.watering_frequency_days}
+                        onChange={e => setForm({ ...form, watering_frequency_days: parseInt(e.target.value, 10) || 7 })}
+                        className="w-full px-5 py-3.5 bg-gray-50 dark:bg-gray-800/80 border border-transparent focus:border-[var(--vibrant-sky-blue)] rounded-xl outline-none font-inter text-sm text-gray-900 dark:text-gray-100 placeholder-gray-400 transition-all shadow-sm"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="font-syne text-[10px] font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">Último Riego *</label>
+                      <CustomDatePicker
+                        required
+                        value={form.last_watered_at}
+                        onChange={(val) => setForm({ ...form, last_watered_at: val })}
+                        placeholder="Fecha de último riego..."
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="font-syne text-[10px] font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">Ubicación (Opcional)</label>
+                      <input
+                        value={form.location}
+                        onChange={e => setForm({ ...form, location: e.target.value })}
+                        placeholder="Ej. Balcón, Sala, Luz indirecta"
+                        className="w-full px-5 py-3.5 bg-gray-50 dark:bg-gray-800/80 border border-transparent focus:border-[var(--vibrant-sky-blue)] rounded-xl outline-none font-inter text-sm text-gray-900 dark:text-gray-100 placeholder-gray-400 transition-all shadow-sm"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Cursor-aware Notes Editor */}
+                  <div className="space-y-2">
+                    <div className="space-y-2 mb-3">
+                      <label className="font-syne text-[10px] font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">Notas de Cuidado & Recomendaciones (Soporta Markdown)</label>
+                      <div className="flex flex-wrap items-center gap-1.5">
+                        <button
+                          type="button"
+                          onClick={insertHeading}
+                          className="px-2.5 py-1 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-lg text-xs font-syne font-bold transition-all shrink-0 flex items-center gap-1"
+                          title="Agregar título de sección"
+                        >
+                          <span className="text-sky-500 font-bold">H3</span>
+                          <span>Sección</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={insertBold}
+                          className="px-2.5 py-1 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-lg text-xs font-syne font-bold transition-all shrink-0"
+                          title="Texto en negrita"
+                        >
+                          <strong>B</strong> Negrita
+                        </button>
+                        <button
+                          type="button"
+                          onClick={insertNumberList}
+                          className="px-2.5 py-1 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-lg text-xs font-syne font-bold transition-all shrink-0"
+                          title="Lista numerada (1., 2., 3...)"
+                        >
+                          1. Paso
+                        </button>
+                        <button
+                          type="button"
+                          onClick={insertBullet}
+                          className="px-2.5 py-1 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-lg text-xs font-syne font-bold transition-all shrink-0"
+                          title="Viñeta de punto"
+                        >
+                          • Viñeta
+                        </button>
+                      </div>
+                    </div>
+                    <textarea
+                      ref={notesTextareaRef}
+                      rows={8}
+                      value={form.notes}
+                      onChange={e => setForm({ ...form, notes: e.target.value })}
+                      placeholder="Instrucciones de fertilización, tipo de sustrato, humedad recomendada..."
+                      className="w-full px-5 py-3.5 bg-gray-50 dark:bg-gray-800/80 border border-transparent focus:border-[var(--vibrant-sky-blue)] rounded-xl outline-none font-inter text-sm leading-relaxed text-gray-900 dark:text-gray-100 placeholder-gray-400 transition-all shadow-sm min-h-[180px] resize-y"
+                    />
+                  </div>
                 </div>
 
-                <div className="flex items-center justify-end gap-3 pt-2">
+                {/* Sticky Footer Actions */}
+                <div className="flex items-center justify-end gap-3 p-4 sm:p-6 border-t border-gray-100 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-900/50 shrink-0">
                   <button
                     type="button"
                     onClick={() => setShowForm(false)}
-                    className="px-6 py-3.5 rounded-xl font-syne text-xs font-bold uppercase tracking-wider text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800 transition-all"
+                    className="px-6 py-3 font-syne text-xs font-bold uppercase tracking-wider text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl transition-all"
                   >
                     Cancelar
                   </button>
                   <button
                     type="submit"
                     disabled={submitting}
-                    className="px-8 py-3.5 bg-black dark:bg-white text-white dark:text-black font-syne text-xs font-bold uppercase tracking-wider rounded-xl shadow-lg hover:scale-105 active:scale-95 transition-all disabled:opacity-50"
+                    className="px-8 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-syne text-xs font-bold uppercase tracking-wider rounded-xl shadow-lg hover:scale-105 active:scale-95 transition-all disabled:opacity-50"
                   >
                     {submitting ? 'Guardando...' : (editingPlant ? 'Guardar Cambios' : 'Registrar Planta')}
                   </button>

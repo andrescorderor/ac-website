@@ -1,7 +1,7 @@
 <div align="center">
   <img src="public/assets/ac-website-icon.svg" alt="Logo" width="100" />
   
-  # Andrés Cordero - Professional Portfolio & Personal Panel PWA ✨
+  # Andrés Cordero - Professional Portfolio & Personal Panel PWA (v4.11.0) ✨
   
   **Welcome to my personal ecosystem: a professional portfolio and a custom productivity hub.**  
   Built with UX/UI best practices, premium design, and a focus on mobile-first efficiency.
@@ -20,7 +20,7 @@
 
 This repository hosts a dual-purpose platform:
 1. **Professional Portfolio:** A high-end landing page showcasing my engineering background, skills, and achievements.
-2. **Personal Panel PWA:** A private, secure productivity suite designed for daily life management.
+2. **Personal Panel PWA:** A private, secure productivity suite designed for daily life management with universal sticky headers/footers in all modals.
 
 ---
 
@@ -29,7 +29,7 @@ This repository hosts a dual-purpose platform:
 The productivity hub is a mobile-optimized private dashboard with 11 specialized modules:
 
 *   📊 **Finance Manager (Finanzas):** Track monthly expenses, manage salary, category breakdown, and toggle **Privacy Mode** to mask sensitive monetary values.
-*   ✅ **Task Management (Pendientes):** Effective task list with default pending filter, status tabs, and real-time search.
+*   ✅ **Task Management (Pendientes):** Effective task list with default pending filter, status tabs, real-time search, and sticky action modals.
 *   📝 **Important Notes (Notas Importantes):** Create and edit rich notes with optional bullet formatting, categories, and reference links.
 *   🪴 **Plant Care Tracker (Mis Plantas):** Monitor watering schedules, species details, location recommendations, and watering logs.
 *   🔗 **Bookmarks & Quick Links (Enlaces Rápidos):** Organize web tools, portals, and categories for fast access.
@@ -38,6 +38,8 @@ The productivity hub is a mobile-optimized private dashboard with 11 specialized
 *   📅 **Important Reminders (Fechas Importantes):** Categorized dates & optional times (Birthdays, Documents, Payments) with proximity alerts and recurring support.
 *   💸 **Debt Tracker (Mis Deudas):** Monitor pending payments and collections with default pending filters.
 *   🎨 **Creative Projects (Proyectos Creativos):** Private portfolio to manage side projects, track progress, organize sub-tasks, and filter dynamically by status and project category/type.
+*   🍳 **Recipe Book (Mis Recetas):** High-protein, healthy and quick recipes categorized with ingredient checklists and direct video links.
+*   📋 **Monthly Checklist (Checklist Mensual):** Auto-resetting monthly routines and recurring payments with progress visualizer.
 *   📋 **Monthly Checklist (Checklist Mensual):** Recurring habits and payments tracker that auto-resets every month with historical read-only view.
 *   🍽️ **Recipe Book (Mis Recetas):** Recipe manager with ingredient purchase checklists, video/social media reference links, and bullet formatting.
 

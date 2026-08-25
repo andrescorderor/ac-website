@@ -381,15 +381,15 @@ export default function Proyectos() {
               if (e.target === e.currentTarget) setShowForm(false);
             }}
           >
-            <motion.form
+            <motion.div
               onClick={(e) => e.stopPropagation()}
               initial={{ opacity: 0, scale: 0.95, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              onSubmit={handleSubmit}
-              className="bg-white dark:bg-gray-900 rounded-[2.5rem] p-6 sm:p-8 max-h-[85vh] overflow-y-auto max-w-2xl w-full border-none shadow-2xl space-y-6 my-8 cursor-default"
+              className="bg-white dark:bg-gray-900 rounded-[2.5rem] max-h-[90vh] flex flex-col max-w-2xl w-full border-none shadow-2xl my-8 cursor-default overflow-hidden"
             >
-              <div className="flex items-center justify-between">
+              {/* Sticky Header */}
+              <div className="flex items-center justify-between p-6 sm:p-8 pb-4 sm:pb-4 border-b border-gray-100 dark:border-gray-800 shrink-0">
                 <div>
                   <h2 className="font-dm-sans text-2xl font-bold text-gray-900 dark:text-white">
                     {editingProject ? 'Editar Proyecto' : 'Nuevo Proyecto Creativo'}
@@ -405,107 +405,111 @@ export default function Proyectos() {
                 </button>
               </div>
 
-              <div className="space-y-4">
-                <div className="space-y-2">
-                  <label className="font-syne text-[10px] font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">Ícono del Proyecto</label>
-                  <div className="flex flex-wrap gap-2">
-                    {EMOJIS.map(e => (
-                      <button
-                        key={e} type="button"
-                        onClick={() => setForm({ ...form, emoji: e })}
-                        className={`size-10 text-xl rounded-xl border-2 transition-all ${form.emoji === e ? 'border-black dark:border-white scale-110 bg-gray-100 dark:bg-gray-800' : 'border-transparent hover:border-gray-200 dark:hover:border-gray-700'}`}
-                      >
-                        {e}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <label className="font-syne text-[10px] font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">Nombre del Proyecto *</label>
-                  <input
-                    required value={form.name} onChange={e => setForm({ ...form, name: e.target.value })}
-                    placeholder="Ej. Rediseño Portfolio 2026, App Móvil..."
-                    className="w-full px-5 py-3.5 bg-gray-50 dark:bg-gray-800/80 border border-transparent focus:border-[var(--vibrant-sky-blue)] rounded-xl outline-none font-inter text-sm text-gray-900 dark:text-gray-100 placeholder-gray-400 transition-all shadow-sm"
-                  />
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <form onSubmit={handleSubmit} className="flex flex-col flex-1 min-h-0">
+                {/* Scrollable Body */}
+                <div className="p-6 sm:p-8 overflow-y-auto flex-1 space-y-4">
                   <div className="space-y-2">
-                    <label className="font-syne text-[10px] font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">Estado</label>
-                    <CustomSelect
-                      value={form.status}
-                      onChange={val => setForm({ ...form, status: val as any })}
-                      options={Object.entries(STATUS_CONFIG).map(([k, v]) => ({ value: k, label: v.label }))}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <label className="font-syne text-[10px] font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">Categoría</label>
-                    <CustomSelect
-                      value={form.category}
-                      onChange={val => setForm({ ...form, category: val })}
-                      options={CATEGORIES.map(c => ({ value: c, label: c }))}
-                    />
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <div className="space-y-2 mb-3">
-                    <label className="font-syne text-[10px] font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">Descripción (Soporta Markdown)</label>
-                    <div className="flex flex-wrap items-center gap-1.5">
-                      <button
-                        type="button"
-                        onClick={insertHeading}
-                        className="px-2.5 py-1 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-lg text-xs font-syne font-bold transition-all shrink-0 flex items-center gap-1"
-                        title="Agregar título de sección"
-                      >
-                        <span className="text-sky-500 font-bold">H3</span>
-                        <span>Sección</span>
-                      </button>
-                      <button
-                        type="button"
-                        onClick={insertBold}
-                        className="px-2.5 py-1 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-lg text-xs font-syne font-bold transition-all shrink-0"
-                        title="Texto en negrita"
-                      >
-                        <strong>B</strong> Negrita
-                      </button>
-                      <button
-                        type="button"
-                        onClick={insertNumberList}
-                        className="px-2.5 py-1 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-lg text-xs font-syne font-bold transition-all shrink-0"
-                        title="Lista numerada (1., 2., 3...)"
-                      >
-                        1. Paso
-                      </button>
-                      <button
-                        type="button"
-                        onClick={insertBullet}
-                        className="px-2.5 py-1 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-lg text-xs font-syne font-bold transition-all shrink-0"
-                        title="Viñeta de punto"
-                      >
-                        • Viñeta
-                      </button>
+                    <label className="font-syne text-[10px] font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">Ícono del Proyecto</label>
+                    <div className="flex flex-wrap gap-2">
+                      {EMOJIS.map(e => (
+                        <button
+                          key={e} type="button"
+                          onClick={() => setForm({ ...form, emoji: e })}
+                          className={`size-10 text-xl rounded-xl border-2 transition-all ${form.emoji === e ? 'border-black dark:border-white scale-110 bg-gray-100 dark:bg-gray-800' : 'border-transparent hover:border-gray-200 dark:hover:border-gray-700'}`}
+                        >
+                          {e}
+                        </button>
+                      ))}
                     </div>
                   </div>
-                  <textarea
-                    ref={descTextareaRef}
-                    rows={8} value={form.description} onChange={e => setForm({ ...form, description: e.target.value })}
-                    placeholder="¿De qué trata este proyecto? (Puedes usar saltos de línea y viñetas)"
-                    className="w-full px-5 py-3.5 bg-gray-50 dark:bg-gray-800/80 border border-transparent focus:border-[var(--vibrant-sky-blue)] rounded-xl outline-none font-inter text-sm leading-relaxed text-gray-900 dark:text-gray-100 placeholder-gray-400 transition-all shadow-sm min-h-[180px] resize-y"
-                  />
-                </div>
-              </div>
 
-              <div className="flex justify-end gap-3 pt-4">
-                <button type="button" onClick={() => setShowForm(false)} className="px-6 py-3 font-syne text-xs font-bold uppercase tracking-wider text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl transition-all">
-                  Cancelar
-                </button>
-                <button type="submit" disabled={submitting} className="px-8 py-3 bg-black dark:bg-white text-white dark:text-black font-syne text-xs font-bold uppercase tracking-wider rounded-xl shadow-lg hover:scale-105 active:scale-95 transition-all disabled:opacity-50">
-                  {submitting ? 'Guardando...' : (editingProject ? 'Actualizar' : 'Crear Proyecto')}
-                </button>
-              </div>
-            </motion.form>
+                  <div className="space-y-2">
+                    <label className="font-syne text-[10px] font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">Nombre del Proyecto *</label>
+                    <input
+                      required value={form.name} onChange={e => setForm({ ...form, name: e.target.value })}
+                      placeholder="Ej. Rediseño Portfolio 2026, App Móvil..."
+                      className="w-full px-5 py-3.5 bg-gray-50 dark:bg-gray-800/80 border border-transparent focus:border-[var(--vibrant-sky-blue)] rounded-xl outline-none font-inter text-sm text-gray-900 dark:text-gray-100 placeholder-gray-400 transition-all shadow-sm"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <label className="font-syne text-[10px] font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">Estado</label>
+                      <CustomSelect
+                        value={form.status}
+                        onChange={val => setForm({ ...form, status: val as any })}
+                        options={Object.entries(STATUS_CONFIG).map(([k, v]) => ({ value: k, label: v.label }))}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="font-syne text-[10px] font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">Categoría</label>
+                      <CustomSelect
+                        value={form.category}
+                        onChange={val => setForm({ ...form, category: val })}
+                        options={CATEGORIES.map(c => ({ value: c, label: c }))}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <div className="space-y-2 mb-3">
+                      <label className="font-syne text-[10px] font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">Descripción (Soporta Markdown)</label>
+                      <div className="flex flex-wrap items-center gap-1.5">
+                        <button
+                          type="button"
+                          onClick={insertHeading}
+                          className="px-2.5 py-1 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-lg text-xs font-syne font-bold transition-all shrink-0 flex items-center gap-1"
+                          title="Agregar título de sección"
+                        >
+                          <span className="text-sky-500 font-bold">H3</span>
+                          <span>Sección</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={insertBold}
+                          className="px-2.5 py-1 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-lg text-xs font-syne font-bold transition-all shrink-0"
+                          title="Texto en negrita"
+                        >
+                          <strong>B</strong> Negrita
+                        </button>
+                        <button
+                          type="button"
+                          onClick={insertNumberList}
+                          className="px-2.5 py-1 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-lg text-xs font-syne font-bold transition-all shrink-0"
+                          title="Lista numerada (1., 2., 3...)"
+                        >
+                          1. Paso
+                        </button>
+                        <button
+                          type="button"
+                          onClick={insertBullet}
+                          className="px-2.5 py-1 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-lg text-xs font-syne font-bold transition-all shrink-0"
+                          title="Viñeta de punto"
+                        >
+                          • Viñeta
+                        </button>
+                      </div>
+                    </div>
+                    <textarea
+                      ref={descTextareaRef}
+                      rows={8} value={form.description} onChange={e => setForm({ ...form, description: e.target.value })}
+                      placeholder="¿De qué trata este proyecto? (Puedes usar saltos de línea y viñetas)"
+                      className="w-full px-5 py-3.5 bg-gray-50 dark:bg-gray-800/80 border border-transparent focus:border-[var(--vibrant-sky-blue)] rounded-xl outline-none font-inter text-sm leading-relaxed text-gray-900 dark:text-gray-100 placeholder-gray-400 transition-all shadow-sm min-h-[180px] resize-y"
+                    />
+                  </div>
+                </div>
+
+                {/* Sticky Footer Actions */}
+                <div className="flex justify-end gap-3 p-4 sm:p-6 border-t border-gray-100 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-900/50 shrink-0">
+                  <button type="button" onClick={() => setShowForm(false)} className="px-6 py-3 font-syne text-xs font-bold uppercase tracking-wider text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl transition-all">
+                    Cancelar
+                  </button>
+                  <button type="submit" disabled={submitting} className="px-8 py-3 bg-black dark:bg-white text-white dark:text-black font-syne text-xs font-bold uppercase tracking-wider rounded-xl shadow-lg hover:scale-105 active:scale-95 transition-all disabled:opacity-50">
+                    {submitting ? 'Guardando...' : (editingProject ? 'Actualizar' : 'Crear Proyecto')}
+                  </button>
+                </div>
+              </form>
+            </motion.div>
           </div>
         )}
         </AnimatePresence>,
