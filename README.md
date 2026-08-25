@@ -1,7 +1,7 @@
 <div align="center">
   <img src="public/assets/ac-website-icon.svg" alt="Logo" width="100" />
   
-  # Andrés Cordero - Professional Portfolio & Personal Panel PWA (v5.1.0) 🏋️‍♂️✨
+  # Andrés Cordero - Professional Portfolio & Personal Panel PWA (v5.2.0) ✍️✨
   
   **Welcome to my personal ecosystem: a professional portfolio and a custom productivity hub.**  
   Built with UX/UI best practices, premium design, and a focus on mobile-first efficiency.
@@ -16,11 +16,11 @@
 
 ---
 
-## 🚀 Overview (Version 5.1.0)
+## 🚀 Overview (Version 5.2.0)
 
 This repository hosts a dual-purpose platform:
 1. **Professional Portfolio:** A high-end landing page showcasing my engineering background, skills, and achievements.
-2. **Personal Panel PWA (v5.1.0):** An executive personal operating system featuring **Gym & Workout Routines (Registro de Entrenamiento)** with Day A/B alternation, series/reps/failure weights, **Zero-Cost Smart Daily Briefing**, **Modo Supermercado Rápido**, and **PWA App Shortcuts**.
+2. **Personal Panel PWA (v5.2.0):** An executive personal operating system featuring **True In-Place Live WYSIWYG Rich Text Editing** (format applied directly on the canvas without mode tabs), **Gym & Workout Routines (Registro de Entrenamiento)** with Day A/B alternation, **Zero-Cost Smart Daily Briefing**, **Modo Supermercado Rápido**, and **PWA App Shortcuts**.
 
 ---
 
@@ -31,7 +31,7 @@ The productivity hub is a mobile-optimized private dashboard with 12 specialized
 *   📊 **Finance Manager (Finanzas):** Track monthly expenses, manage salary, category breakdown, and toggle **Privacy Mode** to mask sensitive monetary values.
 *   🏋️‍♂️ **Workout Log & Gym Routines (Entrenamiento):** Register tailored Day A / Day B alternation routines (un día sí y un día no) tracking target muscles, series, reps, approximate training weights, and maximum failure weights (`Fallo Max kg`).
 *   ✅ **Task Management (Pendientes):** Effective task list with default pending filter, status tabs, real-time search, sticky action modals, and rich formatted task descriptions.
-*   📝 **Important Notes (Notas Importantes):** Create and edit rich notes with unified Markdown toolbar (`H3`, `Negrita`, `Viñetas`, `Listas`) and instant live formatted preview.
+*   📝 **Important Notes (Notas Importantes):** Create and edit rich notes with live in-place formatting (`H3`, `Negrita`, `Viñetas`, `Listas`) directly applied while you type.
 *   🪴 **Plant Care Tracker (Mis Plantas):** Monitor watering schedules, species details, location recommendations, and rich care instructions.
 *   🔗 **Bookmarks & Quick Links (Enlaces Rápidos):** Organize web tools, portals, and categories for fast access.
 *   🔐 **Secure Vault (Bóveda de Textos):** Encrypted-access storage for sensitive texts (IDs, cards) with quick copy-to-clipboard functionality and formatted multiline text preview.
