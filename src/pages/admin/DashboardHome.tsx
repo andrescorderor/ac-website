@@ -71,6 +71,7 @@ export default function DashboardHome() {
   const [exporting, setExporting] = useState(false);
   const [isPrivacyMode, setIsPrivacyMode] = useState(true);
   const [showMandadoModal, setShowMandadoModal] = useState(false);
+  const [showExportModal, setShowExportModal] = useState(false);
   const { toast } = useToast();
 
   const translateType = (type: string) => {
@@ -296,7 +297,7 @@ export default function DashboardHome() {
     setLoading(false);
   };
 
-  const exportBackup = async () => {
+  const exportBackupJson = async () => {
     setExporting(true);
     try {
       const { data: { user } } = await supabase.auth.getUser();
@@ -323,7 +324,7 @@ export default function DashboardHome() {
       ]);
 
       const backupObj = {
-        version: '2.0',
+        version: '5.3.0',
         exported_at: new Date().toISOString(),
         user_email: user.email,
         tables: {
@@ -356,12 +357,68 @@ export default function DashboardHome() {
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
 
-      toast.success('Respaldo JSON descargado correctamente');
+      toast.success('Copia de seguridad JSON descargada correctamente');
+      setShowExportModal(false);
     } catch (err: any) {
       toast.error('Error al exportar respaldo: ' + err.message);
     } finally {
       setExporting(false);
     }
+  };
+
+  const exportBackupCsv = async () => {
+    setExporting(true);
+    try {
+      const [exp, tsk, shp, rem] = await Promise.all([
+        supabase.from('finance_expenses').select('date, concept, category, amount'),
+        supabase.from('tasks').select('title, priority, due_date, completed'),
+        supabase.from('shopping_list').select('name, location, price, bought'),
+        supabase.from('reminders').select('title, category, date, time'),
+      ]);
+
+      let csv = '=== GASTOS ===\nFecha,Concepto,Categoria,Monto\n';
+      exp.data?.forEach(e => {
+        csv += `"${e.date}","${e.concept || ''}","${e.category || ''}",${e.amount}\n`;
+      });
+
+      csv += '\n=== PENDIENTES ===\nTitulo,Prioridad,Fecha Limite,Completada\n';
+      tsk.data?.forEach(t => {
+        csv += `"${t.title}","${t.priority || ''}","${t.due_date || ''}",${t.completed ? 'SI' : 'NO'}\n`;
+      });
+
+      csv += '\n=== LISTA DE COMPRAS Y MANDADO ===\nProducto,Tienda/Pasillo,Precio,Comprado\n';
+      shp.data?.forEach(s => {
+        csv += `"${s.name}","${s.location || ''}",${s.price || 0},${s.bought ? 'SI' : 'NO'}\n`;
+      });
+
+      csv += '\n=== RECORDATORIOS Y FECHAS ===\nTitulo,Categoria,Fecha,Hora\n';
+      rem.data?.forEach(r => {
+        csv += `"${r.title}","${r.category || ''}","${r.date || ''}","${r.time || ''}"\n`;
+      });
+
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      const dateStr = new Date().toISOString().split('T')[0];
+      a.href = url;
+      a.download = `reporte_general_${dateStr}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+
+      toast.success('Reporte CSV descargado con éxito');
+      setShowExportModal(false);
+    } catch (err: any) {
+      toast.error('Error al generar CSV: ' + err.message);
+    } finally {
+      setExporting(false);
+    }
+  };
+
+  const handlePrintPdf = () => {
+    setShowExportModal(false);
+    window.print();
   };
 
   const handleTestNotification = async () => {
@@ -563,10 +620,11 @@ export default function DashboardHome() {
           </button>
 
           <button
-            onClick={exportBackup}
+            type="button"
+            onClick={() => setShowExportModal(true)}
             disabled={exporting}
             className="flex items-center gap-2 px-3 py-2.5 bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm text-xs font-syne font-bold uppercase tracking-wider text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 active:scale-95 transition-all disabled:opacity-50 shrink-0"
-            title="Descargar una copia de seguridad en JSON con todos tus datos"
+            title="Exportar copia de seguridad o reporte (JSON, CSV, PDF)"
           >
             {exporting ? (
               <div className="size-4 border-2 border-gray-400 border-t-black dark:border-t-white rounded-full animate-spin" />
@@ -904,6 +962,122 @@ export default function DashboardHome() {
         isOpen={showMandadoModal} 
         onClose={() => setShowMandadoModal(false)} 
       />
+
+      {/* Export & Backup Modal */}
+      <AnimatePresence>
+        {showExportModal && (
+          <div
+            className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm cursor-pointer"
+            onClick={(e) => {
+              if (e.target === e.currentTarget) setShowExportModal(false);
+            }}
+          >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 15 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 15 }}
+              onClick={(e) => e.stopPropagation()}
+              className="bg-white dark:bg-gray-900 rounded-[2rem] p-6 sm:p-7 max-w-md w-full border border-gray-100 dark:border-gray-800 shadow-2xl space-y-5 cursor-default"
+            >
+              <div className="flex items-start justify-between">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-2xl">📦</span>
+                    <h3 className="font-dm-sans text-xl font-bold text-gray-900 dark:text-white">
+                      Exportación & Respaldo
+                    </h3>
+                  </div>
+                  <p className="font-inter text-xs text-gray-400 mt-1">
+                    Descarga todos tus datos o genera reportes en el formato que prefieras:
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setShowExportModal(false)}
+                  className="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 rounded-xl transition-all"
+                >
+                  <HiX className="text-xl" />
+                </button>
+              </div>
+
+              <div className="space-y-3">
+                {/* 1. JSON Backup */}
+                <button
+                  type="button"
+                  onClick={exportBackupJson}
+                  disabled={exporting}
+                  className="w-full flex items-center justify-between p-4 rounded-2xl border border-blue-200 dark:border-blue-900/50 bg-blue-50/50 dark:bg-blue-950/30 hover:bg-blue-100/60 dark:hover:bg-blue-900/40 transition-all text-left group"
+                >
+                  <div className="flex items-center gap-3">
+                    <span className="text-2xl p-2.5 bg-blue-500 text-white rounded-xl shadow-xs">🗂️</span>
+                    <div>
+                      <div className="font-dm-sans font-bold text-sm text-gray-900 dark:text-white flex items-center gap-1.5">
+                        <span>Copia Completa (JSON)</span>
+                        <span className="text-[9px] font-syne font-bold uppercase tracking-wider bg-blue-500 text-white px-2 py-0.5 rounded-full">Recomendado</span>
+                      </div>
+                      <p className="font-inter text-[11px] text-gray-500 dark:text-gray-400 mt-0.5">
+                        Respaldo 100% íntegro de las 14 tablas del sistema listo para restaurar.
+                      </p>
+                    </div>
+                  </div>
+                  <HiOutlineDownload className="text-xl text-blue-500 group-hover:translate-x-1 transition-transform shrink-0 ml-2" />
+                </button>
+
+                {/* 2. CSV Summary */}
+                <button
+                  type="button"
+                  onClick={exportBackupCsv}
+                  disabled={exporting}
+                  className="w-full flex items-center justify-between p-4 rounded-2xl border border-emerald-200 dark:border-emerald-900/50 bg-emerald-50/50 dark:bg-emerald-950/30 hover:bg-emerald-100/60 dark:hover:bg-emerald-900/40 transition-all text-left group"
+                >
+                  <div className="flex items-center gap-3">
+                    <span className="text-2xl p-2.5 bg-emerald-500 text-white rounded-xl shadow-xs">📊</span>
+                    <div>
+                      <div className="font-dm-sans font-bold text-sm text-gray-900 dark:text-white">
+                        Reporte para Excel (CSV)
+                      </div>
+                      <p className="font-inter text-[11px] text-gray-500 dark:text-gray-400 mt-0.5">
+                        Tablas tabulares de tus finanzas, pendientes y compras de mandado.
+                      </p>
+                    </div>
+                  </div>
+                  <HiOutlineDownload className="text-xl text-emerald-500 group-hover:translate-x-1 transition-transform shrink-0 ml-2" />
+                </button>
+
+                {/* 3. Print / PDF */}
+                <button
+                  type="button"
+                  onClick={handlePrintPdf}
+                  className="w-full flex items-center justify-between p-4 rounded-2xl border border-purple-200 dark:border-purple-900/50 bg-purple-50/50 dark:bg-purple-950/30 hover:bg-purple-100/60 dark:hover:bg-purple-900/40 transition-all text-left group"
+                >
+                  <div className="flex items-center gap-3">
+                    <span className="text-2xl p-2.5 bg-purple-500 text-white rounded-xl shadow-xs">📄</span>
+                    <div>
+                      <div className="font-dm-sans font-bold text-sm text-gray-900 dark:text-white">
+                        Imprimir / Guardar como PDF
+                      </div>
+                      <p className="font-inter text-[11px] text-gray-500 dark:text-gray-400 mt-0.5">
+                        Abre el diálogo del navegador para imprimir o guardar en PDF.
+                      </p>
+                    </div>
+                  </div>
+                  <HiOutlineDownload className="text-xl text-purple-500 group-hover:translate-x-1 transition-transform shrink-0 ml-2" />
+                </button>
+              </div>
+
+              <div className="flex justify-end pt-1">
+                <button
+                  type="button"
+                  onClick={() => setShowExportModal(false)}
+                  className="px-4 py-2 text-xs font-syne font-bold uppercase tracking-wider text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl transition-all"
+                >
+                  Cerrar
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
