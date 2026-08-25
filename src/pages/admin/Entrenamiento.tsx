@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { supabase } from '@/lib/supabase';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -626,253 +627,255 @@ export default function Entrenamiento() {
         )}
       </div>
 
-      {/* ═══ CREATE / EDIT ROUTINE STICKY MODAL ═══ */}
-      <AnimatePresence>
-        {showModal && (
-          <div
-            className="fixed inset-0 z-[9999] flex items-center justify-center p-2 sm:p-6 bg-black/60 backdrop-blur-sm overflow-y-auto cursor-pointer"
-            onClick={e => {
-              if (e.target === e.currentTarget) setShowModal(false);
-            }}
-          >
-            <motion.div
-              onClick={e => e.stopPropagation()}
-              initial={{ opacity: 0, scale: 0.95, y: 20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              className="bg-white dark:bg-gray-900 rounded-[2.5rem] max-h-[90vh] flex flex-col max-w-2xl w-full border-none shadow-2xl my-8 cursor-default overflow-hidden"
+      {/* ═══ CREATE / EDIT ROUTINE MODAL (USING PORTAL) ═══ */}
+      {typeof document !== 'undefined' && createPortal(
+        <AnimatePresence>
+          {showModal && (
+            <div
+              className="fixed inset-0 z-[9999] flex items-center justify-center p-3 sm:p-6 bg-black/60 backdrop-blur-md cursor-pointer"
+              onClick={e => {
+                if (e.target === e.currentTarget) setShowModal(false);
+              }}
             >
-              {/* Sticky Header */}
-              <div className="flex items-center justify-between p-6 sm:p-8 pb-4 sm:pb-4 border-b border-gray-100 dark:border-gray-800 shrink-0">
-                <div>
-                  <h2 className="font-dm-sans text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
-                    <FaDumbbell className="text-rose-500 text-xl" />
-                    <span>{editingRoutine ? 'Editar Rutina' : 'Nueva Rutina de Entrenamiento'}</span>
-                  </h2>
-                  <p className="font-inter text-xs text-gray-400">
-                    Configura la alternancia (Día A / Día B), series, repeticiones y peso aproximado.
-                  </p>
+              <motion.div
+                onClick={e => e.stopPropagation()}
+                initial={{ opacity: 0, scale: 0.95, y: 15 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.95, y: 15 }}
+                className="bg-white dark:bg-gray-900 rounded-[2rem] sm:rounded-[2.5rem] h-[90vh] max-h-[820px] max-w-2xl w-full border border-gray-100 dark:border-gray-800 shadow-2xl flex flex-col overflow-hidden my-auto cursor-default"
+              >
+                {/* ═══ FIXED HEADER ═══ */}
+                <div className="flex items-center justify-between p-5 sm:p-7 pb-4 border-b border-gray-100 dark:border-gray-800 shrink-0">
+                  <div>
+                    <h2 className="font-dm-sans text-xl sm:text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                      <FaDumbbell className="text-rose-500 text-lg sm:text-xl" />
+                      <span>{editingRoutine ? 'Editar Rutina' : 'Nueva Rutina de Entrenamiento'}</span>
+                    </h2>
+                    <p className="font-inter text-xs text-gray-400 mt-0.5">
+                      Configura la alternancia (Día A / Día B), series, repeticiones y peso.
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setShowModal(false)}
+                    className="p-2 rounded-xl text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 transition-all shrink-0"
+                  >
+                    <HiX className="text-xl" />
+                  </button>
                 </div>
-                <button
-                  type="button"
-                  onClick={() => setShowModal(false)}
-                  className="p-2 rounded-xl text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 transition-all"
-                >
-                  <HiX className="text-xl" />
-                </button>
-              </div>
 
-              <form onSubmit={handleSaveRoutine} className="flex flex-col flex-1 min-h-0">
-                {/* Scrollable Body */}
-                <div className="p-6 sm:p-8 overflow-y-auto flex-1 space-y-6">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <label className="font-syne text-[10px] font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">
-                        Alternancia / Día *
-                      </label>
-                      <CustomSelect
-                        value={formDayType}
-                        onChange={val => setFormDayType(val as any)}
-                        options={[
-                          { value: 'Dia_A', label: '⚡ Día A (Un día sí)' },
-                          { value: 'Dia_B', label: '🔥 Día B (Día siguiente)' },
-                        ]}
-                      />
+                <form onSubmit={handleSaveRoutine} className="flex flex-col flex-1 min-h-0">
+                  {/* ═══ SINGLE SCROLLABLE BODY ═══ */}
+                  <div className="p-5 sm:p-7 overflow-y-auto flex-1 space-y-5 scrollbar-thin">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div className="space-y-1.5">
+                        <label className="font-syne text-[10px] font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">
+                          Alternancia / Día *
+                        </label>
+                        <CustomSelect
+                          value={formDayType}
+                          onChange={val => setFormDayType(val as any)}
+                          options={[
+                            { value: 'Dia_A', label: '⚡ Día A (Un día sí)' },
+                            { value: 'Dia_B', label: '🔥 Día B (Día siguiente)' },
+                          ]}
+                        />
+                      </div>
+
+                      <div className="space-y-1.5">
+                        <label className="font-syne text-[10px] font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">
+                          Músculos / Enfoque *
+                        </label>
+                        <input
+                          type="text"
+                          required
+                          placeholder="Ej. Pecho, Hombro, Tríceps"
+                          value={formFocus}
+                          onChange={e => setFormFocus(e.target.value)}
+                          className="w-full px-4 py-3 bg-gray-50/50 dark:bg-gray-800/80 border border-gray-100 dark:border-gray-700 rounded-xl outline-none font-inter text-sm text-gray-900 dark:text-gray-100 placeholder-gray-400 focus:border-rose-500"
+                        />
+                      </div>
                     </div>
 
-                    <div className="space-y-2">
+                    <div className="space-y-1.5">
                       <label className="font-syne text-[10px] font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">
-                        Músculos / Enfoque *
+                        Título de la Rutina *
                       </label>
                       <input
                         type="text"
                         required
-                        placeholder="Ej. Pecho, Hombro, Tríceps"
-                        value={formFocus}
-                        onChange={e => setFormFocus(e.target.value)}
-                        className="w-full px-5 py-3.5 bg-gray-50/50 dark:bg-gray-800/80 border border-gray-100 dark:border-gray-700 rounded-xl outline-none font-inter text-sm text-gray-900 dark:text-gray-100 placeholder-gray-400"
+                        placeholder="Ej. Rutina Día A: Empuje & Pierna"
+                        value={formTitle}
+                        onChange={e => setFormTitle(e.target.value)}
+                        className="w-full px-4 py-3 bg-gray-50/50 dark:bg-gray-800/80 border border-gray-100 dark:border-gray-700 rounded-xl outline-none font-inter text-sm text-gray-900 dark:text-gray-100 placeholder-gray-400 focus:border-rose-500"
                       />
                     </div>
-                  </div>
 
-                  <div className="space-y-2">
-                    <label className="font-syne text-[10px] font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">
-                      Título de la Rutina *
-                    </label>
-                    <input
-                      type="text"
-                      required
-                      placeholder="Ej. Rutina Día A: Empuje & Pierna"
-                      value={formTitle}
-                      onChange={e => setFormTitle(e.target.value)}
-                      className="w-full px-5 py-3.5 bg-gray-50/50 dark:bg-gray-800/80 border border-gray-100 dark:border-gray-700 rounded-xl outline-none font-inter text-sm text-gray-900 dark:text-gray-100 placeholder-gray-400"
+                    {/* Rich Text Description */}
+                    <RichTextEditor
+                      label="Notas & Recomendaciones"
+                      value={formDescription}
+                      onChange={val => setFormDescription(val)}
+                      placeholder="Instrucciones de calentamiento, tiempo de descanso entre series (ej. 90 seg), etc."
+                      minHeight="100px"
                     />
-                  </div>
 
-                  {/* Rich Text Description */}
-                  <RichTextEditor
-                    label="Notas & Recomendaciones (Soporta Markdown)"
-                    value={formDescription}
-                    onChange={val => setFormDescription(val)}
-                    placeholder="Instrucciones de calentamiento, tiempo de descanso entre series (ej. 90 seg), etc."
-                    minHeight="120px"
-                    rows={4}
-                  />
-
-                  {/* Exercise Builder Sub-Section */}
-                  <div className="space-y-4 pt-2 border-t border-gray-100 dark:border-gray-800">
-                    <div className="flex items-center justify-between">
-                      <h3 className="font-dm-sans text-base font-bold text-gray-900 dark:text-white flex items-center gap-2">
-                        <span>💪 Ejercicios de la Rutina</span>
-                        <span className="text-xs font-syne font-bold px-2 py-0.5 bg-rose-100 dark:bg-rose-950/60 text-rose-600 dark:text-rose-300 rounded-full">
-                          {formExercises.length}
-                        </span>
-                      </h3>
-                    </div>
-
-                    {/* Add Exercise Mini-Form */}
-                    <div className="p-4 bg-gray-50 dark:bg-gray-800/50 rounded-2xl border border-gray-100 dark:border-gray-700 space-y-3">
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        <input
-                          type="text"
-                          placeholder="Nombre del Ejercicio (ej. Press de Banca)"
-                          value={newExName}
-                          onChange={e => setNewExName(e.target.value)}
-                          className="w-full px-4 py-2.5 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl outline-none font-inter text-xs text-gray-900 dark:text-gray-100 placeholder-gray-400"
-                        />
-                        <input
-                          type="text"
-                          placeholder="Músculo (ej. Pecho Medio)"
-                          value={newExMuscle}
-                          onChange={e => setNewExMuscle(e.target.value)}
-                          className="w-full px-4 py-2.5 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl outline-none font-inter text-xs text-gray-900 dark:text-gray-100 placeholder-gray-400"
-                        />
+                    {/* Exercise Builder Sub-Section */}
+                    <div className="space-y-3.5 pt-2 border-t border-gray-100 dark:border-gray-800">
+                      <div className="flex items-center justify-between">
+                        <h3 className="font-dm-sans text-base font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                          <span>💪 Ejercicios de la Rutina</span>
+                          <span className="text-xs font-syne font-bold px-2 py-0.5 bg-rose-100 dark:bg-rose-950/60 text-rose-600 dark:text-rose-300 rounded-full">
+                            {formExercises.length}
+                          </span>
+                        </h3>
                       </div>
 
-                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                        <div>
-                          <label className="block font-syne text-[9px] font-bold uppercase tracking-wider text-gray-400 mb-1">
-                            Series
-                          </label>
+                      {/* Add Exercise Mini-Form */}
+                      <div className="p-4 bg-gray-50/90 dark:bg-gray-800/60 rounded-2xl border border-gray-100 dark:border-gray-700 space-y-3">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                           <input
-                            type="number"
-                            min="1"
-                            value={newExSets}
-                            onChange={e => setNewExSets(e.target.value)}
-                            className="w-full px-3 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl outline-none font-inter text-xs text-gray-900 dark:text-gray-100"
+                            type="text"
+                            placeholder="Nombre del Ejercicio (ej. Press de Banca)"
+                            value={newExName}
+                            onChange={e => setNewExName(e.target.value)}
+                            className="w-full px-3.5 py-2 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl outline-none font-inter text-xs text-gray-900 dark:text-gray-100 placeholder-gray-400 focus:border-rose-500"
+                          />
+                          <input
+                            type="text"
+                            placeholder="Músculo (ej. Pecho Medio)"
+                            value={newExMuscle}
+                            onChange={e => setNewExMuscle(e.target.value)}
+                            className="w-full px-3.5 py-2 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl outline-none font-inter text-xs text-gray-900 dark:text-gray-100 placeholder-gray-400 focus:border-rose-500"
                           />
                         </div>
 
-                        <div>
-                          <label className="block font-syne text-[9px] font-bold uppercase tracking-wider text-gray-400 mb-1">
-                            Reps
-                          </label>
-                          <input
-                            type="number"
-                            min="1"
-                            value={newExReps}
-                            onChange={e => setNewExReps(e.target.value)}
-                            className="w-full px-3 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl outline-none font-inter text-xs text-gray-900 dark:text-gray-100"
-                          />
-                        </div>
-
-                        <div>
-                          <label className="block font-syne text-[9px] font-bold uppercase tracking-wider text-gray-400 mb-1">
-                            Peso Aprox (kg)
-                          </label>
-                          <input
-                            type="number"
-                            step="0.5"
-                            placeholder="60"
-                            value={newExWeight}
-                            onChange={e => setNewExWeight(e.target.value)}
-                            className="w-full px-3 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl outline-none font-inter text-xs text-gray-900 dark:text-gray-100"
-                          />
-                        </div>
-
-                        <div>
-                          <label className="block font-syne text-[9px] font-bold uppercase tracking-wider text-amber-500 mb-1">
-                            Fallo Max (kg)
-                          </label>
-                          <input
-                            type="number"
-                            step="0.5"
-                            placeholder="75"
-                            value={newExMaxFailWeight}
-                            onChange={e => setNewExMaxFailWeight(e.target.value)}
-                            className="w-full px-3 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl outline-none font-inter text-xs text-gray-900 dark:text-gray-100"
-                          />
-                        </div>
-                      </div>
-
-                      <div className="flex flex-col sm:flex-row gap-2 items-stretch sm:items-center">
-                        <input
-                          type="text"
-                          placeholder="Notas de técnica / RPE (ej. RPE 9, 2 RIR)"
-                          value={newExNotes}
-                          onChange={e => setNewExNotes(e.target.value)}
-                          className="flex-1 px-4 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl outline-none font-inter text-xs text-gray-900 dark:text-gray-100 placeholder-gray-400"
-                        />
-                        <button
-                          type="button"
-                          onClick={handleAddExerciseToForm}
-                          className="px-5 py-2 bg-rose-600 hover:bg-rose-700 text-white font-syne text-xs font-bold uppercase tracking-wider rounded-xl transition-all shadow-xs flex items-center justify-center gap-1.5 shrink-0"
-                        >
-                          <HiOutlinePlus />
-                          <span>Añadir Ejercicio</span>
-                        </button>
-                      </div>
-                    </div>
-
-                    {/* Added Exercises Chips in Form */}
-                    {formExercises.length > 0 && (
-                      <div className="space-y-2">
-                        {formExercises.map((ex, i) => (
-                          <div
-                            key={ex.id || i}
-                            className="flex items-center justify-between p-3 bg-white dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700 text-xs"
-                          >
-                            <div className="flex items-center gap-2 truncate">
-                              <span className="font-bold text-rose-500">{i + 1}.</span>
-                              <span className="font-bold text-gray-900 dark:text-white truncate">{ex.name}</span>
-                              <span className="text-gray-400">({ex.sets} × {ex.reps} reps @ {ex.approxWeightKg} kg{ex.maxFailureWeightKg ? ` | Fallo: ${ex.maxFailureWeightKg}kg` : ''})</span>
-                            </div>
-                            <button
-                              type="button"
-                              onClick={() => handleRemoveExercise(ex.id)}
-                              className="p-1 text-red-400 hover:text-red-600 rounded-lg hover:bg-red-50 dark:hover:bg-red-950/30"
-                            >
-                              <HiX className="text-sm" />
-                            </button>
+                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+                          <div>
+                            <label className="block font-syne text-[9px] font-bold uppercase tracking-wider text-gray-400 mb-1">
+                              Series
+                            </label>
+                            <input
+                              type="number"
+                              min="1"
+                              value={newExSets}
+                              onChange={e => setNewExSets(e.target.value)}
+                              className="w-full px-3 py-1.5 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl outline-none font-inter text-xs text-gray-900 dark:text-gray-100"
+                            />
                           </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                </div>
 
-                {/* Sticky Footer Actions */}
-                <div className="flex justify-end gap-3 p-4 sm:p-6 border-t border-gray-100 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-900/50 shrink-0">
-                  <button
-                    type="button"
-                    onClick={() => setShowModal(false)}
-                    className="px-6 py-3 font-syne text-xs font-bold uppercase tracking-wider text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl transition-all"
-                  >
-                    Cancelar
-                  </button>
-                  <button
-                    type="submit"
-                    className="px-8 py-3 bg-black dark:bg-white text-white dark:text-black font-syne text-xs font-bold uppercase tracking-wider rounded-xl shadow-lg hover:scale-105 active:scale-95 transition-all flex items-center gap-2"
-                  >
-                    <FaDumbbell className="text-sm" />
-                    <span>Guardar Rutina</span>
-                  </button>
-                </div>
-              </form>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
+                          <div>
+                            <label className="block font-syne text-[9px] font-bold uppercase tracking-wider text-gray-400 mb-1">
+                              Reps
+                            </label>
+                            <input
+                              type="number"
+                              min="1"
+                              value={newExReps}
+                              onChange={e => setNewExReps(e.target.value)}
+                              className="w-full px-3 py-1.5 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl outline-none font-inter text-xs text-gray-900 dark:text-gray-100"
+                            />
+                          </div>
+
+                          <div>
+                            <label className="block font-syne text-[9px] font-bold uppercase tracking-wider text-gray-400 mb-1">
+                              Peso Aprox (kg)
+                            </label>
+                            <input
+                              type="number"
+                              step="0.5"
+                              placeholder="60"
+                              value={newExWeight}
+                              onChange={e => setNewExWeight(e.target.value)}
+                              className="w-full px-3 py-1.5 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl outline-none font-inter text-xs text-gray-900 dark:text-gray-100"
+                            />
+                          </div>
+
+                          <div>
+                            <label className="block font-syne text-[9px] font-bold uppercase tracking-wider text-amber-500 mb-1">
+                              Fallo Max (kg)
+                            </label>
+                            <input
+                              type="number"
+                              step="0.5"
+                              placeholder="75"
+                              value={newExMaxFailWeight}
+                              onChange={e => setNewExMaxFailWeight(e.target.value)}
+                              className="w-full px-3 py-1.5 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl outline-none font-inter text-xs text-gray-900 dark:text-gray-100"
+                            />
+                          </div>
+                        </div>
+
+                        <div className="flex flex-col sm:flex-row gap-2 items-stretch sm:items-center">
+                          <input
+                            type="text"
+                            placeholder="Notas de técnica / RPE (ej. RPE 9, 2 RIR)"
+                            value={newExNotes}
+                            onChange={e => setNewExNotes(e.target.value)}
+                            className="flex-1 px-3.5 py-1.5 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl outline-none font-inter text-xs text-gray-900 dark:text-gray-100 placeholder-gray-400"
+                          />
+                          <button
+                            type="button"
+                            onClick={handleAddExerciseToForm}
+                            className="px-4 py-1.5 bg-rose-600 hover:bg-rose-700 text-white font-syne text-xs font-bold uppercase tracking-wider rounded-xl transition-all shadow-xs flex items-center justify-center gap-1.5 shrink-0"
+                          >
+                            <HiOutlinePlus />
+                            <span>Añadir Ejercicio</span>
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Added Exercises Chips in Form */}
+                      {formExercises.length > 0 && (
+                        <div className="space-y-1.5">
+                          {formExercises.map((ex, i) => (
+                            <div
+                              key={ex.id || i}
+                              className="flex items-center justify-between p-2.5 bg-white dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700 text-xs"
+                            >
+                              <div className="flex items-center gap-2 truncate">
+                                <span className="font-bold text-rose-500">{i + 1}.</span>
+                                <span className="font-bold text-gray-900 dark:text-white truncate">{ex.name}</span>
+                                <span className="text-gray-400">({ex.sets} × {ex.reps} reps @ {ex.approxWeightKg} kg{ex.maxFailureWeightKg ? ` | Fallo: ${ex.maxFailureWeightKg}kg` : ''})</span>
+                              </div>
+                              <button
+                                type="button"
+                                onClick={() => handleRemoveExercise(ex.id)}
+                                className="p-1 text-red-400 hover:text-red-600 rounded-lg hover:bg-red-50 dark:hover:bg-red-950/30 shrink-0"
+                              >
+                                <HiX className="text-sm" />
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* ═══ FIXED FOOTER ACTIONS ═══ */}
+                  <div className="flex justify-end gap-3 p-4 sm:p-5 border-t border-gray-100 dark:border-gray-800 bg-gray-50/80 dark:bg-gray-900/80 shrink-0">
+                    <button
+                      type="button"
+                      onClick={() => setShowModal(false)}
+                      className="px-5 py-2.5 font-syne text-xs font-bold uppercase tracking-wider text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl transition-all"
+                    >
+                      Cancelar
+                    </button>
+                    <button
+                      type="submit"
+                      className="px-6 py-2.5 bg-black dark:bg-white text-white dark:text-black font-syne text-xs font-bold uppercase tracking-wider rounded-xl shadow-lg hover:scale-105 active:scale-95 transition-all flex items-center gap-2"
+                    >
+                      <FaDumbbell className="text-sm" />
+                      <span>Guardar Rutina</span>
+                    </button>
+                  </div>
+                </form>
+              </motion.div>
+            </div>
+          )}
+        </AnimatePresence>,
+        document.body
+      )}
     </div>
   );
 }
