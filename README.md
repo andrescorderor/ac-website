@@ -1,7 +1,7 @@
 <div align="center">
   <img src="public/assets/ac-website-icon.svg" alt="Logo" width="100" />
   
-  # Andrés Cordero - Professional Portfolio & Personal Panel PWA (v5.2.0) ✍️✨
+  # Andrés Cordero - Professional Portfolio & Personal Panel PWA (v5.3.0) ⚡🛒✨
   
   **Welcome to my personal ecosystem: a professional portfolio and a custom productivity hub.**  
   Built with UX/UI best practices, premium design, and a focus on mobile-first efficiency.
@@ -16,11 +16,11 @@
 
 ---
 
-## 🚀 Overview (Version 5.2.0)
+## 🚀 Overview (Version 5.3.0)
 
 This repository hosts a dual-purpose platform:
 1. **Professional Portfolio:** A high-end landing page showcasing my engineering background, skills, and achievements.
-2. **Personal Panel PWA (v5.2.0):** An executive personal operating system featuring **True In-Place Live WYSIWYG Rich Text Editing** (format applied directly on the canvas without mode tabs), **Gym & Workout Routines (Registro de Entrenamiento)** with Day A/B alternation, **Zero-Cost Smart Daily Briefing**, **Modo Supermercado Rápido**, and **PWA App Shortcuts**.
+2. **Personal Panel PWA (v5.3.0):** An executive personal operating system featuring **Dedicated Mobile Supermarket Mode (⚡ Modo Súper)** with full-card tap check-off, zero clutter, location/quantity clarity, and Screen WakeLock (`navigator.wakeLock`), **True In-Place Live WYSIWYG Rich Text Editing**, **Gym & Workout Routines (Registro de Entrenamiento)** with Day A/B alternation, **Zero-Cost Smart Daily Briefing**, and **PWA App Shortcuts**.
 
 ---
 
@@ -35,7 +35,7 @@ The productivity hub is a mobile-optimized private dashboard with 12 specialized
 *   🪴 **Plant Care Tracker (Mis Plantas):** Monitor watering schedules, species details, location recommendations, and rich care instructions.
 *   🔗 **Bookmarks & Quick Links (Enlaces Rápidos):** Organize web tools, portals, and categories for fast access.
 *   🔐 **Secure Vault (Bóveda de Textos):** Encrypted-access storage for sensitive texts (IDs, cards) with quick copy-to-clipboard functionality and formatted multiline text preview.
-*   🛒 **Smart Shopping List & Mandado Quincenal Modal 🥗:** Bi-weekly routine with **Modo Supermercado Rápido (⚡)**, high-touch tap targets, screen-lock prevention (`navigator.wakeLock`), and automated breakdown sync into **Finanzas** (`Comida 🍔` & `Insumos 🛒`).
+*   🛒 **Smart Shopping List & Mandado Quincenal Modal 🥗:** Bi-weekly routine with **Modo Supermercado Rápido (⚡ Modo Súper)**, whole-card tap-to-complete, screen-lock prevention (`navigator.wakeLock`), and automated breakdown sync into **Finanzas** (`Comida 🍔` & `Insumos 🛒`).
 *   📅 **Important Reminders (Fechas Importantes):** Categorized dates & optional times (Birthdays, Documents, Payments) with proximity alerts, recurring support, and rich descriptive notes.
 *   💸 **Debt Tracker (Mis Deudas):** Monitor pending payments and collections with default pending filters.
 *   🎨 **Creative Projects (Proyectos Creativos):** Private portfolio to manage side projects, track progress, organize sub-tasks, and write rich formatted project briefs.

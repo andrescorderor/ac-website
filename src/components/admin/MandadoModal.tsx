@@ -550,7 +550,7 @@ export default function MandadoModal({ isOpen, onClose }: MandadoModalProps) {
             </div>
 
             {/* Progress & Control Buttons Header */}
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 bg-emerald-50/60 dark:bg-emerald-950/30 p-3 sm:p-3.5 rounded-2xl border border-emerald-100 dark:border-emerald-900/40 w-full">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 bg-emerald-50/60 dark:bg-emerald-950/30 p-3 sm:p-3.5 rounded-2xl border border-emerald-100 dark:border-emerald-900/40 w-full">
               <div className="space-y-1 min-w-0 flex-1">
                 <div className="flex items-center gap-2 flex-wrap">
                   <span className="font-syne text-xs font-bold uppercase tracking-wider text-emerald-800 dark:text-emerald-300">
@@ -570,50 +570,57 @@ export default function MandadoModal({ isOpen, onClose }: MandadoModalProps) {
                 </div>
               </div>
 
-              <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap shrink-0">
+              <div className="flex items-center gap-1.5 flex-wrap shrink-0">
                 <button
+                  type="button"
                   onClick={() => setIsFocusMode(!isFocusMode)}
-                  className={`px-3.5 py-1.5 font-syne text-xs font-bold uppercase tracking-wider rounded-xl transition-all shadow-xs flex items-center justify-center gap-1.5 interactive-hover shrink-0 ${
+                  className={`px-3 py-1.5 font-syne text-xs font-bold uppercase tracking-wider rounded-xl transition-all shadow-xs flex items-center justify-center gap-1.5 interactive-hover shrink-0 ${
                     isFocusMode
-                      ? 'bg-amber-500 text-white animate-pulse'
-                      : 'bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200'
+                      ? 'bg-amber-500 text-white animate-pulse shadow-amber-500/20'
+                      : 'bg-amber-100 hover:bg-amber-200 dark:bg-amber-950/50 dark:hover:bg-amber-900/50 text-amber-800 dark:text-amber-300 border border-amber-300/40 dark:border-amber-700/40'
                   }`}
-                  title={isFocusMode ? 'Desactivar Modo Supermercado' : 'Activar Modo Supermercado (Botones grandes y pantalla siempre encendida)'}
+                  title={isFocusMode ? 'Desactivar Modo Supermercado' : 'Activar Modo Supermercado (Diseñado para comprar en el súper)'}
                 >
-                  <span>{isFocusMode ? '🛒 Modo Normal' : '⚡ Modo Supermercado'}</span>
+                  <span>{isFocusMode ? '🛒 Modo Normal' : '⚡ Modo Súper'}</span>
                 </button>
 
-                <button
-                  onClick={() => {
-                    if (showAddForm && editingId) {
-                      setEditingId(null);
-                      setInputName('');
-                      setInputQuantity('');
-                      setInputLocation('');
-                      setInputPrice('');
-                    }
-                    setShowAddForm(!showAddForm);
-                  }}
-                  className="px-3.5 py-1.5 bg-black dark:bg-white text-white dark:text-black font-syne text-xs font-bold uppercase tracking-wider rounded-xl transition-all shadow-xs flex items-center justify-center gap-1.5 interactive-hover shrink-0"
-                >
-                  {showAddForm ? <HiX className="text-sm" /> : <HiOutlinePlus className="text-sm" />}
-                  <span>{showAddForm ? (editingId ? 'Cancelar Edición' : 'Ocultar Formulario') : '+ Agregar Producto'}</span>
-                </button>
+                {!isFocusMode && (
+                  <>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (showAddForm && editingId) {
+                          setEditingId(null);
+                          setInputName('');
+                          setInputQuantity('');
+                          setInputLocation('');
+                          setInputPrice('');
+                        }
+                        setShowAddForm(!showAddForm);
+                      }}
+                      className="px-3 py-1.5 bg-black dark:bg-white text-white dark:text-black font-syne text-xs font-bold uppercase tracking-wider rounded-xl transition-all shadow-xs flex items-center justify-center gap-1.5 interactive-hover shrink-0"
+                    >
+                      {showAddForm ? <HiX className="text-sm" /> : <HiOutlinePlus className="text-sm" />}
+                      <span>{showAddForm ? (editingId ? 'Cancelar' : 'Ocultar') : '+ Producto'}</span>
+                    </button>
 
-                <button
-                  onClick={handleRenewQuincenal}
-                  className="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-syne text-xs font-bold uppercase tracking-wider rounded-xl transition-all shadow-xs flex items-center justify-center gap-1.5 interactive-hover shrink-0"
-                  title="Desmarca todos los artículos para iniciar una nueva quincena"
-                >
-                  <HiOutlineRefresh className="text-sm" />
-                  <span>Nueva Quincena 🔄</span>
-                </button>
+                    <button
+                      type="button"
+                      onClick={handleRenewQuincenal}
+                      className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-syne text-xs font-bold uppercase tracking-wider rounded-xl transition-all shadow-xs flex items-center justify-center gap-1.5 interactive-hover shrink-0"
+                      title="Desmarca todos los artículos para iniciar una nueva quincena"
+                    >
+                      <HiOutlineRefresh className="text-sm" />
+                      <span>Renovar</span>
+                    </button>
+                  </>
+                )}
               </div>
             </div>
 
             {/* Search & Filter Tabs Bar */}
-            <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5 w-full">
-              <div className="flex items-center gap-1 bg-gray-100 dark:bg-gray-800/80 p-1 rounded-xl overflow-x-auto shrink-0 scrollbar-none">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2 w-full">
+              <div className="flex items-center gap-1 bg-gray-100 dark:bg-gray-800/80 p-1 rounded-xl overflow-x-auto shrink-0 scrollbar-none max-w-full">
                 {[
                   { key: 'all', label: `Todos (${rawQuincenalList.length})` },
                   { key: 'pending', label: `Pendientes (${rawQuincenalList.filter(i => !i.bought).length})` },
@@ -622,6 +629,7 @@ export default function MandadoModal({ isOpen, onClose }: MandadoModalProps) {
                 ].map(tab => (
                   <button
                     key={tab.key}
+                    type="button"
                     onClick={() => setActiveTab(tab.key as any)}
                     className={`px-3 py-1 rounded-lg font-syne text-[10px] font-bold uppercase tracking-wider transition-all whitespace-nowrap ${
                       activeTab === tab.key
@@ -634,102 +642,150 @@ export default function MandadoModal({ isOpen, onClose }: MandadoModalProps) {
                 ))}
               </div>
 
-              <div className="relative flex-1 max-w-xs min-w-[160px]">
+              <div className="relative flex-1 min-w-0 sm:max-w-xs">
                 <input
                   type="text"
                   placeholder="Buscar en mandado..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-8 pr-3 py-1 bg-gray-50 dark:bg-gray-800/60 border border-gray-200 dark:border-gray-700/80 rounded-xl outline-none text-xs font-inter text-gray-900 dark:text-white placeholder-gray-400"
+                  className="w-full pl-8 pr-3 py-1.5 bg-gray-50 dark:bg-gray-800/60 border border-gray-200 dark:border-gray-700/80 rounded-xl outline-none text-xs font-inter text-gray-900 dark:text-white placeholder-gray-400 focus:border-emerald-500"
                 />
-                <HiOutlineSearch className="absolute left-2.5 top-1.5 text-xs text-gray-400" />
+                <HiOutlineSearch className="absolute left-2.5 top-2 text-xs text-gray-400" />
               </div>
             </div>
 
             {/* Collapsible Quick Add / Edit Form */}
             <AnimatePresence>
-              {showAddForm && (
+              {showAddForm && !isFocusMode && (
                 <motion.form
                   initial={{ opacity: 0, height: 0 }}
                   animate={{ opacity: 1, height: 'auto' }}
                   exit={{ opacity: 0, height: 0 }}
                   onSubmit={handleAddItem}
-                  className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 bg-gray-50 dark:bg-gray-800/60 p-3.5 rounded-2xl border border-gray-100 dark:border-gray-700/80 w-full relative z-20"
+                  className="overflow-hidden bg-gray-50/90 dark:bg-gray-800/90 p-3 sm:p-4 rounded-2xl border border-gray-200/80 dark:border-gray-700 space-y-3"
                 >
-                  <div>
-                    <label className="block font-syne text-[9px] font-bold uppercase tracking-widest text-gray-400 mb-1">Producto *</label>
-                    <input
-                      type="text"
-                      placeholder="Pechuga, Detergente..."
-                      value={inputName}
-                      onChange={(e) => setInputName(e.target.value)}
-                      className="w-full px-3 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl outline-none text-xs font-inter text-gray-900 dark:text-white"
-                    />
+                  <div className="flex items-center justify-between">
+                    <span className="font-syne text-[11px] font-bold uppercase tracking-widest text-gray-700 dark:text-gray-300">
+                      {editingId ? '✏️ Editar Producto' : '✨ Nuevo Producto'}
+                    </span>
+                    {editingId && (
+                      <span className="text-[10px] font-syne font-bold uppercase tracking-wider text-amber-500">
+                        Modo Edición
+                      </span>
+                    )}
                   </div>
 
-                  <div>
-                    <label className="block font-syne text-[9px] font-bold uppercase tracking-widest text-gray-400 mb-1">Cantidad</label>
-                    <input
-                      type="text"
-                      placeholder="ej. 1, 2, 500g, 1 kg"
-                      value={inputQuantity}
-                      onChange={(e) => setInputQuantity(e.target.value)}
-                      className="w-full px-3 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl outline-none text-xs font-inter text-gray-900 dark:text-white"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block font-syne text-[9px] font-bold uppercase tracking-widest text-gray-400 mb-1">Categoría</label>
-                    <CustomSelect
-                      value={inputCategory}
-                      onChange={(val) => setInputCategory(val as 'comida' | 'insumos')}
-                      options={[
-                        { value: 'comida', label: 'Comida 🍔' },
-                        { value: 'insumos', label: 'Insumos 🛒' },
-                      ]}
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block font-syne text-[9px] font-bold uppercase tracking-widest text-gray-400 mb-1">Frecuencia</label>
-                    <CustomSelect
-                      value={inputType}
-                      onChange={(val) => setInputType(val as 'quincenal' | 'ocasional')}
-                      options={[
-                        { value: 'quincenal', label: 'Quincenal 🥗' },
-                        { value: 'ocasional', label: 'Hasta Agotar 📦' },
-                      ]}
-                    />
-                  </div>
-
-                  <div className="col-span-1 sm:col-span-2 lg:col-span-4 grid grid-cols-1 sm:grid-cols-3 gap-2.5 pt-0.5">
-                    <div>
-                      <label className="block font-syne text-[9px] font-bold uppercase tracking-widest text-gray-400 mb-1">Precio Total ($)</label>
-                      <input
-                        type="number"
-                        step="0.01"
-                        placeholder="0.00 (Precio total)"
-                        value={inputPrice}
-                        onChange={(e) => setInputPrice(e.target.value)}
-                        className="w-full px-3 py-1.5 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl outline-none text-xs font-inter text-gray-900 dark:text-white"
-                      />
-                    </div>
-                    <div className="sm:col-span-2 flex flex-col sm:flex-row items-stretch sm:items-end gap-2">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2.5">
+                    <div className="sm:col-span-2 space-y-1">
+                      <label className="font-syne text-[9px] font-bold uppercase tracking-widest text-gray-400">
+                        Nombre del Producto *
+                      </label>
                       <input
                         type="text"
-                        placeholder="Lugar / Tienda (ej. Walmart, Costco)"
+                        required
+                        placeholder="Ej. Claras de Huevo San Juan"
+                        value={inputName}
+                        onChange={(e) => setInputName(e.target.value)}
+                        className="w-full px-3 py-1.5 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl outline-none text-xs font-inter text-gray-900 dark:text-white placeholder-gray-400 focus:border-emerald-500"
+                      />
+                    </div>
+
+                    <div className="space-y-1">
+                      <label className="font-syne text-[9px] font-bold uppercase tracking-widest text-gray-400">
+                        Cantidad / Porción
+                      </label>
+                      <input
+                        type="text"
+                        placeholder="Ej. 1 Litro, 500g, 2 paq"
+                        value={inputQuantity}
+                        onChange={(e) => setInputQuantity(e.target.value)}
+                        className="w-full px-3 py-1.5 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl outline-none text-xs font-inter text-gray-900 dark:text-white placeholder-gray-400 focus:border-emerald-500"
+                      />
+                    </div>
+
+                    <div className="space-y-1">
+                      <label className="font-syne text-[9px] font-bold uppercase tracking-widest text-gray-400">
+                        Tienda / Pasillo
+                      </label>
+                      <input
+                        type="text"
+                        placeholder="Ej. Walmart, Costco, Frutería"
                         value={inputLocation}
                         onChange={(e) => setInputLocation(e.target.value)}
-                        className="flex-1 px-3 py-1.5 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl outline-none text-xs font-inter text-gray-900 dark:text-white"
+                        className="w-full px-3 py-1.5 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl outline-none text-xs font-inter text-gray-900 dark:text-white placeholder-gray-400 focus:border-emerald-500"
                       />
-                      <button
-                        type="submit"
-                        className="px-5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-syne text-xs font-bold uppercase tracking-wider rounded-xl shadow-md hover:scale-105 active:scale-95 transition-all flex items-center justify-center gap-1 shrink-0 h-[32px]"
-                      >
-                        {editingId ? <HiOutlinePencil className="text-base" /> : <HiOutlinePlus className="text-base" />}
-                        <span>{editingId ? 'Guardar Cambios' : 'Guardar'}</span>
-                      </button>
                     </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 items-end">
+                    <div className="space-y-1">
+                      <label className="font-syne text-[9px] font-bold uppercase tracking-widest text-gray-400">
+                        Categoría *
+                      </label>
+                      <CustomSelect
+                        value={inputCategory}
+                        onChange={(val) => setInputCategory(val as any)}
+                        options={[
+                          { value: 'comida', label: '🍔 Comida & Despensa' },
+                          { value: 'insumos', label: '🛒 Insumos & Limpieza' },
+                        ]}
+                      />
+                    </div>
+
+                    <div className="space-y-1">
+                      <label className="font-syne text-[9px] font-bold uppercase tracking-widest text-gray-400">
+                        Tipo de Compra *
+                      </label>
+                      <CustomSelect
+                        value={inputType}
+                        onChange={(val) => setInputType(val as any)}
+                        options={[
+                          { value: 'quincenal', label: '🥗 Quincenal (Recurrente)' },
+                          { value: 'ocasional', label: '📦 Hasta Agotar (Ocasional)' },
+                        ]}
+                      />
+                    </div>
+
+                    <div className="space-y-1">
+                      <div className="flex items-center justify-between">
+                        <label className="font-syne text-[9px] font-bold uppercase tracking-widest text-gray-400">
+                          Precio Estimado ($)
+                        </label>
+                        {inputPrice && (
+                          <span className="font-syne text-[9px] font-bold text-emerald-600 dark:text-emerald-400">
+                            {inputType === 'quincenal' ? `×2 mensual: $${(parseFloat(inputPrice) * 2 || 0).toLocaleString()}` : ''}
+                          </span>
+                        )}
+                      </div>
+                      <input
+                        type="number"
+                        step="0.5"
+                        placeholder="Ej. 65"
+                        value={inputPrice}
+                        onChange={(e) => setInputPrice(e.target.value)}
+                        className="w-full px-3 py-1.5 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl outline-none text-xs font-inter text-gray-900 dark:text-white placeholder-gray-400 focus:border-emerald-500"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="flex justify-end gap-2 pt-1">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowAddForm(false);
+                        setEditingId(null);
+                      }}
+                      className="px-4 py-1.5 text-xs font-syne font-bold uppercase tracking-wider text-gray-500 hover:bg-gray-200/60 dark:hover:bg-gray-700 rounded-xl transition-all"
+                    >
+                      Cancelar
+                    </button>
+                    <button
+                      type="submit"
+                      className="px-5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-syne text-xs font-bold uppercase tracking-wider rounded-xl shadow-md transition-all flex items-center justify-center gap-1 shrink-0"
+                    >
+                      {editingId ? <HiOutlinePencil className="text-base" /> : <HiOutlinePlus className="text-base" />}
+                      <span>{editingId ? 'Guardar Cambios' : 'Guardar'}</span>
+                    </button>
                   </div>
                 </motion.form>
               )}
@@ -737,28 +793,80 @@ export default function MandadoModal({ isOpen, onClose }: MandadoModalProps) {
           </div>
 
           {/* ═══ SCROLLABLE PRODUCT LIST BODY ═══ */}
-          <div className="flex-1 min-h-0 overflow-y-auto py-3 space-y-2 pr-1 w-full touch-pan-y overscroll-contain scrollbar-thin">
+          <div className="flex-1 min-h-0 overflow-y-auto py-2.5 space-y-2 pr-1 w-full touch-pan-y overscroll-contain scrollbar-thin">
             {quincenalList.length === 0 ? (
               <div className="p-8 text-center bg-gray-50 dark:bg-gray-800/50 rounded-2xl text-gray-400 space-y-1 my-auto">
                 <p className="font-dm-sans font-bold text-base text-gray-800 dark:text-gray-200">No hay productos en tu mandado quincenal</p>
-                <p className="font-inter text-xs">Presiona "+ Agregar Producto" para registrar más productos.</p>
+                <p className="font-inter text-xs">Presiona "+ Producto" para registrar más productos.</p>
               </div>
+            ) : isFocusMode ? (
+              /* 🛒 SUPERMARKET FOCUS MODE: High touch targets, zero clutter, easy one-hand checkoff */
+              quincenalList.map((item) => (
+                <motion.div
+                  key={item.id}
+                  layout
+                  onClick={() => toggleBought(item.id, item.bought)}
+                  className={`flex items-center justify-between p-4 sm:p-5 rounded-2xl border transition-all cursor-pointer select-none active:scale-[0.98] ${
+                    item.bought
+                      ? 'bg-gray-100/60 dark:bg-gray-800/40 border-gray-200/50 dark:border-gray-800 opacity-40 line-through'
+                      : 'bg-white dark:bg-gray-800 border-emerald-300 dark:border-emerald-800 shadow-md hover:border-emerald-500'
+                  }`}
+                >
+                  <div className="flex items-center gap-3.5 min-w-0 flex-1 overflow-hidden">
+                    <div className="text-3xl sm:text-4xl shrink-0">
+                      {item.bought ? (
+                        <HiOutlineCheckCircle className="text-emerald-500" />
+                      ) : (
+                        <div className="size-8 rounded-full border-2 border-emerald-500 flex items-center justify-center text-transparent hover:text-emerald-500 transition-all">
+                          ✓
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="min-w-0 flex-1">
+                      <div className="font-dm-sans font-bold text-base sm:text-lg text-gray-900 dark:text-white truncate">
+                        {item.name}
+                      </div>
+                      <div className="flex items-center gap-2 mt-0.5 text-xs text-gray-500 dark:text-gray-400 truncate">
+                        {getItemQuantity(item) && (
+                          <span className="font-bold text-blue-600 dark:text-blue-400">
+                            Cant: {getItemQuantity(item)}
+                          </span>
+                        )}
+                        {getCleanStoreLocation(item.location) && (
+                          <span className="flex items-center gap-1 font-medium truncate">
+                            📍 {getCleanStoreLocation(item.location)}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="text-right shrink-0 pl-2">
+                    {item.price !== null && (
+                      <span className="font-syne font-bold text-sm text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700/80 px-2.5 py-1 rounded-xl">
+                        ${item.price}
+                      </span>
+                    )}
+                  </div>
+                </motion.div>
+              ))
             ) : (
+              /* 📋 REGULAR MODE WITH FULL EDIT CONTROLS */
               quincenalList.map((item) => (
                 <div
                   key={item.id}
-                  className={`flex flex-col sm:flex-row sm:items-center justify-between rounded-2xl border transition-all gap-2.5 w-full min-w-0 ${
-                    isFocusMode ? 'p-4 sm:p-5 text-base sm:text-lg' : 'p-3 text-sm sm:text-base'
-                  } ${
+                  className={`flex flex-col sm:flex-row sm:items-center justify-between p-3 rounded-2xl border transition-all gap-2.5 w-full min-w-0 ${
                     item.bought 
-                      ? 'bg-gray-50/80 dark:bg-gray-800/40 border-gray-100 dark:border-gray-800 opacity-50' 
+                      ? 'bg-gray-50/80 dark:bg-gray-800/40 border-gray-100 dark:border-gray-800 opacity-60' 
                       : 'bg-white dark:bg-gray-800/90 border-gray-100 dark:border-gray-700 shadow-xs hover:border-gray-200 dark:hover:border-gray-600'
                   }`}
                 >
                   <div className="flex items-start sm:items-center gap-3 min-w-0 flex-1 overflow-hidden">
                     <button
+                      type="button"
                       onClick={() => toggleBought(item.id, item.bought)}
-                      className={`${isFocusMode ? 'text-3xl sm:text-4xl min-h-[48px] min-w-[48px] flex items-center justify-center' : 'text-2xl'} transition-transform active:scale-90 shrink-0 mt-0.5 sm:mt-0`}
+                      className="text-2xl transition-transform active:scale-90 shrink-0 mt-0.5 sm:mt-0"
                       title={item.bought ? 'Marcar como pendiente' : 'Marcar como comprado'}
                     >
                       {item.bought ? (
@@ -770,9 +878,7 @@ export default function MandadoModal({ isOpen, onClose }: MandadoModalProps) {
 
                     <div className="min-w-0 flex-1 overflow-hidden">
                       <div className="flex items-center gap-1.5 flex-wrap">
-                        <span className={`font-dm-sans font-bold break-words ${
-                          isFocusMode ? 'text-base sm:text-lg' : 'text-sm sm:text-base'
-                        } ${
+                        <span className={`font-dm-sans font-bold text-sm sm:text-base break-words ${
                           item.bought ? 'line-through text-gray-400 dark:text-gray-500' : 'text-gray-900 dark:text-white'
                         }`}>
                           {item.name}
@@ -799,18 +905,6 @@ export default function MandadoModal({ isOpen, onClose }: MandadoModalProps) {
                         }`}>
                           {getItemType(item) === 'quincenal' ? '🥗 Quincenal' : '📦 Hasta Agotar'}
                         </span>
-
-                        {item.bought && (item.updated_at || item.created_at) && (
-                          <span className="px-2 py-0.5 rounded-full text-[9px] font-syne font-bold uppercase tracking-wider bg-emerald-100/80 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-300 shrink-0 flex items-center gap-1" title="Fecha en que se completó/compró">
-                            <span>🗓️</span>
-                            <span>
-                              {new Date(item.updated_at || item.created_at || '').toLocaleDateString('es-MX', {
-                                day: 'numeric',
-                                month: 'short',
-                              })}
-                            </span>
-                          </span>
-                        )}
                       </div>
 
                       {getCleanStoreLocation(item.location) && (
@@ -822,9 +916,10 @@ export default function MandadoModal({ isOpen, onClose }: MandadoModalProps) {
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-2 shrink-0 justify-end flex-wrap sm:flex-nowrap">
+                  <div className="flex items-center gap-1.5 shrink-0 justify-end flex-wrap sm:flex-nowrap">
                     {getItemType(item) === 'ocasional' && item.bought && (
                       <button
+                        type="button"
                         onClick={() => handleMarkAsAgotado(item.id)}
                         className="px-2.5 py-1 bg-amber-500/10 hover:bg-amber-500/20 text-amber-600 dark:text-amber-400 rounded-lg font-syne text-[10px] font-bold uppercase tracking-wider transition-all flex items-center gap-1 shrink-0"
                         title="Marcar producto como consumido/agotado para volverlo a comprar"
@@ -840,6 +935,7 @@ export default function MandadoModal({ isOpen, onClose }: MandadoModalProps) {
                     )}
 
                     <button
+                      type="button"
                       onClick={() => setHistoryModalItem(item)}
                       className="p-1.5 text-gray-400 hover:text-sky-500 dark:hover:text-sky-400 hover:bg-sky-50 dark:hover:bg-sky-950/40 rounded-xl transition-all shrink-0"
                       title="Ver historial de compras"
@@ -848,6 +944,7 @@ export default function MandadoModal({ isOpen, onClose }: MandadoModalProps) {
                     </button>
 
                     <button
+                      type="button"
                       onClick={() => handleOpenEdit(item)}
                       className="p-1.5 text-gray-400 hover:text-black dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl transition-all shrink-0"
                       title="Editar producto"
@@ -856,6 +953,7 @@ export default function MandadoModal({ isOpen, onClose }: MandadoModalProps) {
                     </button>
 
                     <button
+                      type="button"
                       onClick={() => deleteItem(item.id)}
                       className="p-1.5 text-red-500 dark:text-red-400 bg-red-500/10 dark:bg-red-500/20 hover:bg-red-500/20 dark:hover:bg-red-500/35 border border-red-500/20 dark:border-red-500/30 rounded-xl transition-all shrink-0"
                       title="Eliminar del mandado"
