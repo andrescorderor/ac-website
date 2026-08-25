@@ -47,8 +47,10 @@ export default function Login() {
       <div className="max-w-md w-full relative z-10">
         <div className="bg-white/80 dark:bg-gray-900/80 glass dark:dark-glass border border-gray-200/60 dark:border-gray-800 rounded-3xl p-8 shadow-2xl space-y-6">
           <div className="text-center space-y-3">
-            <div className="mx-auto size-14 bg-black dark:bg-white rounded-2xl flex items-center justify-center p-2.5 shadow-xl shadow-black/10 dark:shadow-white/10">
-              <img src="/assets/ac-website-icon.svg" alt="AC Logo" className="size-full object-contain filter invert dark:invert-0" />
+            <div className="mx-auto size-16 rounded-2xl overflow-hidden p-0.5 bg-gradient-to-tr from-[var(--vibrant-sky-blue)] via-indigo-500 to-[var(--magenta-pink)] shadow-xl shadow-sky-500/10">
+              <div className="size-full rounded-[14px] bg-white dark:bg-gray-900 flex items-center justify-center p-3 overflow-hidden">
+                <img src="/assets/ac-website-icon.svg" alt="AC Logo" className="size-full object-contain" />
+              </div>
             </div>
             <span className="inline-block px-3 py-1 bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-full font-syne text-[10px] font-bold tracking-widest text-gray-500 dark:text-gray-400 uppercase">
               Admin Portal

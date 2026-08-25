@@ -152,8 +152,10 @@ function DashboardLayoutContent() {
         className="hidden lg:flex flex-col h-screen sticky top-0 w-72 shrink-0 bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl border-r border-gray-200/50 dark:border-gray-800/50 transition-all duration-300"
       >
         <div className="p-6 flex items-center gap-3.5 shrink-0">
-          <Link to="/admin/panel" className="size-10 shrink-0 bg-black dark:bg-white rounded-xl flex items-center justify-center p-1.5 shadow-md hover:scale-105 active:scale-95 transition-all">
-            <img src="/assets/ac-website-icon.svg" alt="AC Logo" className="size-full object-contain filter invert dark:invert-0" />
+          <Link to="/admin/panel" className="size-11 shrink-0 rounded-2xl overflow-hidden p-0.5 bg-gradient-to-tr from-[var(--vibrant-sky-blue)] via-indigo-500 to-[var(--magenta-pink)] shadow-md hover:scale-105 active:scale-95 transition-all">
+            <div className="size-full rounded-[14px] bg-white dark:bg-gray-900 flex items-center justify-center p-2 overflow-hidden">
+              <img src="/assets/ac-website-icon.svg" alt="AC Logo" className="size-full object-contain" />
+            </div>
           </Link>
           <div className="flex flex-col min-w-0">
             <span className="font-dm-sans font-bold text-lg tracking-tight whitespace-nowrap text-black dark:text-white">
@@ -224,7 +226,7 @@ function DashboardLayoutContent() {
 
           <div className="text-center select-none pt-1">
             <span className="font-syne text-[9px] font-bold tracking-widest text-gray-400 dark:text-gray-600 block">
-              VERSIÓN v5.8.0
+              VERSIÓN v5.9.0
             </span>
           </div>
         </div>
@@ -235,8 +237,10 @@ function DashboardLayoutContent() {
         className="lg:hidden fixed top-0 left-0 right-0 h-16 bg-white/95 dark:bg-[#111827]/95 backdrop-blur-xl border-b border-gray-100 dark:border-gray-800 flex items-center justify-between px-4 z-40 transition-all duration-300 shadow-sm"
       >
         <Link to="/admin/panel" className="flex items-center gap-2.5">
-          <div className="size-9 bg-black dark:bg-white rounded-xl flex items-center justify-center p-1.5 shadow-md shrink-0">
-            <img src="/assets/ac-website-icon.svg" alt="AC Logo" className="size-full object-contain filter invert dark:invert-0" />
+          <div className="size-10 rounded-xl overflow-hidden p-0.5 bg-gradient-to-tr from-[var(--vibrant-sky-blue)] via-indigo-500 to-[var(--magenta-pink)] shadow-md shrink-0">
+            <div className="size-full rounded-[10px] bg-white dark:bg-gray-900 flex items-center justify-center p-1.5 overflow-hidden">
+              <img src="/assets/ac-website-icon.svg" alt="AC Logo" className="size-full object-contain" />
+            </div>
           </div>
           <span className="font-dm-sans font-bold text-sm sm:text-base tracking-tight text-black dark:text-white truncate">Panel Personal</span>
         </Link>
@@ -299,8 +303,10 @@ function DashboardLayoutContent() {
         className="lg:hidden fixed top-0 left-0 bottom-0 w-[80%] max-w-xs bg-white dark:bg-[#111827] z-50 flex flex-col shadow-2xl border-r border-gray-100 dark:border-gray-800"
       >
         <div className="flex items-center gap-3 p-6 pb-4 shrink-0">
-          <div className="size-11 bg-black dark:bg-white rounded-2xl flex items-center justify-center p-1.5 shadow-xl shrink-0">
-            <img src="/assets/ac-website-icon.svg" alt="AC Logo" className="size-full object-contain filter invert dark:invert-0" />
+          <div className="size-11 rounded-2xl overflow-hidden p-0.5 bg-gradient-to-tr from-[var(--vibrant-sky-blue)] via-indigo-500 to-[var(--magenta-pink)] shadow-xl shrink-0">
+            <div className="size-full rounded-[14px] bg-white dark:bg-gray-900 flex items-center justify-center p-2 overflow-hidden">
+              <img src="/assets/ac-website-icon.svg" alt="AC Logo" className="size-full object-contain" />
+            </div>
           </div>
           <div className="flex flex-col min-w-0">
             <span className="font-dm-sans font-bold text-lg tracking-tight text-black dark:text-white truncate">Panel Personal</span>
@@ -361,7 +367,7 @@ function DashboardLayoutContent() {
 
           <div className="text-center select-none pt-2">
             <span className="font-syne text-[9px] font-bold tracking-widest text-gray-400 dark:text-gray-600 block">
-              VERSIÓN v5.8.0
+              VERSIÓN v5.9.0
             </span>
           </div>
         </div>
@@ -423,10 +429,12 @@ function DashboardLayoutContent() {
               )}
             </button>
 
-            <div className="size-9 rounded-full bg-gradient-to-tr from-[var(--vibrant-sky-blue)] to-[var(--magenta-pink)] p-[2px]">
-              <div className="size-full rounded-full bg-white dark:bg-gray-900 flex items-center justify-center font-bold text-xs text-black dark:text-white">
-                AC
-              </div>
+            <div className="size-10 rounded-full bg-gradient-to-tr from-[var(--vibrant-sky-blue)] via-indigo-500 to-[var(--magenta-pink)] p-[2px] shadow-sm shrink-0">
+              <img
+                src="/assets/Profile.png"
+                alt="Andrés Cordero"
+                className="size-full rounded-full object-cover bg-white dark:bg-gray-900"
+              />
             </div>
           </div>
         </header>
