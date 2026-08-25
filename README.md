@@ -1,7 +1,7 @@
 <div align="center">
   <img src="public/assets/ac-website-icon.svg" alt="Logo" width="100" />
   
-  # Andrés Cordero - Professional Portfolio & Personal Panel PWA (v4.11.0) ✨
+  # Andrés Cordero - Professional Portfolio & Personal Panel PWA (v4.12.0) ✨
   
   **Welcome to my personal ecosystem: a professional portfolio and a custom productivity hub.**  
   Built with UX/UI best practices, premium design, and a focus on mobile-first efficiency.
@@ -20,7 +20,7 @@
 
 This repository hosts a dual-purpose platform:
 1. **Professional Portfolio:** A high-end landing page showcasing my engineering background, skills, and achievements.
-2. **Personal Panel PWA:** A private, secure productivity suite designed for daily life management with universal sticky headers/footers in all modals.
+2. **Personal Panel PWA:** A private, secure productivity suite designed for daily life management featuring universal sticky modal actions and **Unified Rich Text Editing (`RichTextEditor`)** with real-time live formatted preview across all text descriptions.
 
 ---
 
@@ -29,16 +29,16 @@ This repository hosts a dual-purpose platform:
 The productivity hub is a mobile-optimized private dashboard with 11 specialized modules:
 
 *   📊 **Finance Manager (Finanzas):** Track monthly expenses, manage salary, category breakdown, and toggle **Privacy Mode** to mask sensitive monetary values.
-*   ✅ **Task Management (Pendientes):** Effective task list with default pending filter, status tabs, real-time search, and sticky action modals.
-*   📝 **Important Notes (Notas Importantes):** Create and edit rich notes with optional bullet formatting, categories, and reference links.
-*   🪴 **Plant Care Tracker (Mis Plantas):** Monitor watering schedules, species details, location recommendations, and watering logs.
+*   ✅ **Task Management (Pendientes):** Effective task list with default pending filter, status tabs, real-time search, sticky action modals, and rich formatted task descriptions.
+*   📝 **Important Notes (Notas Importantes):** Create and edit rich notes with unified Markdown toolbar (`H3`, `Negrita`, `Viñetas`, `Listas`) and instant live formatted preview.
+*   🪴 **Plant Care Tracker (Mis Plantas):** Monitor watering schedules, species details, location recommendations, and rich care instructions.
 *   🔗 **Bookmarks & Quick Links (Enlaces Rápidos):** Organize web tools, portals, and categories for fast access.
-*   🔐 **Secure Vault (Bóveda de Textos):** Encrypted-access storage for sensitive texts (IDs, cards) with quick copy-to-clipboard functionality.
+*   🔐 **Secure Vault (Bóveda de Textos):** Encrypted-access storage for sensitive texts (IDs, cards) with quick copy-to-clipboard functionality and formatted multiline text preview.
 *   🛒 **Smart Shopping List & Mandado Quincenal Modal 🥗:** Comprehensive routine for bi-weekly diet and consumable supplies ("Hasta Agotar 📦") featuring hidden-by-default add form, checklist priority, store location tagging, direct launchers from Dashboard and Finanzas, and automated breakdown sync into **Finanzas** (`Comida 🍔` & `Insumos 🛒`).
-*   📅 **Important Reminders (Fechas Importantes):** Categorized dates & optional times (Birthdays, Documents, Payments) with proximity alerts and recurring support.
+*   📅 **Important Reminders (Fechas Importantes):** Categorized dates & optional times (Birthdays, Documents, Payments) with proximity alerts, recurring support, and rich descriptive notes.
 *   💸 **Debt Tracker (Mis Deudas):** Monitor pending payments and collections with default pending filters.
-*   🎨 **Creative Projects (Proyectos Creativos):** Private portfolio to manage side projects, track progress, organize sub-tasks, and filter dynamically by status and project category/type.
-*   🍳 **Recipe Book (Mis Recetas):** High-protein, healthy and quick recipes categorized with ingredient checklists and direct video links.
+*   🎨 **Creative Projects (Proyectos Creativos):** Private portfolio to manage side projects, track progress, organize sub-tasks, and write rich formatted project briefs.
+*   🍳 **Recipe Book (Mis Recetas):** High-protein, healthy and quick recipes categorized with ingredient checklists, direct video links, and step-by-step formatted cooking instructions.
 *   📋 **Monthly Checklist (Checklist Mensual):** Auto-resetting monthly routines and recurring payments with progress visualizer.
 *   📋 **Monthly Checklist (Checklist Mensual):** Recurring habits and payments tracker that auto-resets every month with historical read-only view.
 *   🍽️ **Recipe Book (Mis Recetas):** Recipe manager with ingredient purchase checklists, video/social media reference links, and bullet formatting.

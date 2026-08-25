@@ -7,6 +7,7 @@ import { useToast } from '@/components/common/ToastContext';
 import CustomSelect from '@/components/common/CustomSelect';
 import { togglePinItem, isItemPinned } from '@/lib/pinned';
 import AutoFormattedText from '@/components/common/AutoFormattedText';
+import RichTextEditor from '@/components/common/RichTextEditor';
 
 type VaultItem = {
   id: string;
@@ -275,14 +276,14 @@ export default function Vault() {
                           options={CATEGORIES.filter(c => c !== 'Todas').map(c => ({ value: c, label: c }))}
                         />
                       </div>
-                      <div className="space-y-2 md:col-span-2">
-                        <label className="font-syne text-[10px] font-bold uppercase tracking-widest text-[var(--gray)] dark:text-gray-400">Valor / Texto a Copiar</label>
-                        <textarea 
-                          rows={5}
+                      <div className="md:col-span-2">
+                        <RichTextEditor
+                          label="Valor / Texto a Copiar"
                           value={newItem.content}
-                          onChange={(e) => setNewItem({...newItem, content: e.target.value})}
-                          className="w-full px-5 py-3.5 rounded-xl bg-white dark:bg-gray-800 border border-transparent focus:border-[var(--vibrant-sky-blue)] outline-none font-inter text-sm text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 transition-all shadow-sm min-h-[140px] resize-y leading-relaxed"
+                          onChange={(val) => setNewItem({...newItem, content: val})}
                           placeholder="Escribe o pega aquí el texto, código, JSON o información a guardar..."
+                          minHeight="140px"
+                          rows={6}
                           required
                         />
                       </div>

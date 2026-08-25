@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { supabase } from '@/lib/supabase';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -18,6 +18,7 @@ import CustomSelect from '@/components/common/CustomSelect';
 import { togglePinItem, isItemPinned } from '@/lib/pinned';
 import { useSearchParams } from 'react-router-dom';
 import AutoFormattedText from '@/components/common/AutoFormattedText';
+import RichTextEditor from '@/components/common/RichTextEditor';
 
 type Ingredient = {
   id: string;
@@ -156,85 +157,6 @@ export default function Recetas() {
     } finally {
       setSubmitting(false);
     }
-  };
-
-  const descTextareaRef = useRef<HTMLTextAreaElement | null>(null);
-
-  const insertAtCursor = (
-    formatter: (selectedText: string, beforeText: string) => { textToInsert: string; cursorOffset?: number }
-  ) => {
-    const el = descTextareaRef.current;
-    const currentVal = form.description || '';
-
-    if (!el) {
-      const res = formatter('', currentVal);
-      setForm(prev => ({ ...prev, description: currentVal + res.textToInsert }));
-      return;
-    }
-
-    const start = el.selectionStart || 0;
-    const end = el.selectionEnd || 0;
-    const before = currentVal.substring(0, start);
-    const selected = currentVal.substring(start, end);
-    const after = currentVal.substring(end);
-
-    const { textToInsert, cursorOffset } = formatter(selected, before);
-
-    const newVal = before + textToInsert + after;
-    setForm(prev => ({ ...prev, description: newVal }));
-
-    setTimeout(() => {
-      if (el) {
-        el.focus();
-        const newCursorPos = cursorOffset !== undefined ? start + cursorOffset : start + textToInsert.length;
-        el.setSelectionRange(newCursorPos, newCursorPos);
-      }
-    }, 10);
-  };
-
-  const insertBullet = () => {
-    insertAtCursor((_, before) => {
-      const needsNewline = before.length > 0 && !before.endsWith('\n');
-      const prefix = needsNewline ? '\n• ' : '• ';
-      return { textToInsert: prefix };
-    });
-  };
-
-  const insertBold = () => {
-    insertAtCursor((selected) => {
-      if (selected) {
-        return { textToInsert: `**${selected}**` };
-      }
-      return { textToInsert: '**texto**', cursorOffset: 2 }; // coloca el cursor entre ** y **
-    });
-  };
-
-  const insertHeading = () => {
-    insertAtCursor((selected, before) => {
-      const needsNewline = before.length > 0 && !before.endsWith('\n');
-      const prefix = needsNewline ? '\n\n### ' : '### ';
-      const text = selected || 'Título de sección';
-      return { textToInsert: `${prefix}${text}` };
-    });
-  };
-
-  const insertNumberList = () => {
-    insertAtCursor((_, before) => {
-      const needsNewline = before.length > 0 && !before.endsWith('\n');
-      
-      const lines = before.split('\n');
-      let nextNum = 1;
-      for (let i = lines.length - 1; i >= 0; i--) {
-        const match = lines[i].trim().match(/^(\d+)[\.\)]\s+/);
-        if (match) {
-          nextNum = parseInt(match[1], 10) + 1;
-          break;
-        }
-      }
-
-      const prefix = needsNewline ? `\n${nextNum}. ` : `${nextNum}. `;
-      return { textToInsert: prefix };
-    });
   };
 
   const deleteRecipe = async (id: string) => {
@@ -438,51 +360,14 @@ export default function Recetas() {
                       </div>
                     </div>
 
-                    <div className="space-y-1">
-                      <div className="flex items-center justify-between gap-2 mb-1">
-                        <label className="font-syne text-[10px] font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">Instrucciones (Markdown)</label>
-                        <div className="flex items-center gap-1">
-                          <button
-                            type="button"
-                            onClick={insertHeading}
-                            className="px-2 py-0.5 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 rounded text-[10px] font-syne font-bold"
-                            title="Título"
-                          >
-                            H3
-                          </button>
-                          <button
-                            type="button"
-                            onClick={insertBold}
-                            className="px-2 py-0.5 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 rounded text-[10px] font-syne font-bold"
-                            title="Negrita"
-                          >
-                            B
-                          </button>
-                          <button
-                            type="button"
-                            onClick={insertNumberList}
-                            className="px-2 py-0.5 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 rounded text-[10px] font-syne font-bold"
-                            title="Lista 1,2,3"
-                          >
-                            1.
-                          </button>
-                          <button
-                            type="button"
-                            onClick={insertBullet}
-                            className="px-2 py-0.5 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 rounded text-[10px] font-syne font-bold"
-                            title="Viñeta"
-                          >
-                            •
-                          </button>
-                        </div>
-                      </div>
-                      <textarea
-                        ref={descTextareaRef}
-                        rows={8} value={form.description} onChange={e => setForm({ ...form, description: e.target.value })}
-                        placeholder="Instrucciones de preparación..."
-                        className="w-full px-4 py-2.5 bg-white dark:bg-gray-800 border border-transparent focus:border-[var(--vibrant-sky-blue)] rounded-xl outline-none font-inter text-sm leading-relaxed text-gray-900 dark:text-gray-100 placeholder-gray-400 transition-all shadow-sm min-h-[180px] resize-y"
-                      />
-                    </div>
+                    <RichTextEditor
+                      label="Instrucciones & Preparación"
+                      value={form.description}
+                      onChange={(val) => setForm({ ...form, description: val })}
+                      placeholder="Instrucciones paso a paso, tiempos de cocción, tips culinarios..."
+                      minHeight="180px"
+                      rows={8}
+                    />
 
                     {/* Ingredients */}
                     <div className="space-y-3">

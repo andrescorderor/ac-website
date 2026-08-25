@@ -9,6 +9,7 @@ import { togglePinItem, isItemPinned } from '@/lib/pinned';
 import { useSearchParams } from 'react-router-dom';
 import AutoFormattedText from '@/components/common/AutoFormattedText';
 import CustomDatePicker from '@/components/common/CustomDatePicker';
+import RichTextEditor from '@/components/common/RichTextEditor';
 
 type Task = {
   id: string;
@@ -275,18 +276,13 @@ export default function Pendientes() {
                     />
                   </div>
 
-                  <div>
-                    <label className="block font-syne text-[10px] font-bold uppercase tracking-widest text-[var(--gray)] dark:text-gray-400 mb-2">
-                      Descripción (Opcional)
-                    </label>
-                    <textarea
-                      rows={6}
-                      placeholder="Añade detalles o notas adicionales..."
-                      value={newTask.description}
-                      onChange={(e) => setNewTask({ ...newTask, description: e.target.value })}
-                      className="w-full px-5 py-3.5 bg-gray-50/50 dark:bg-gray-800/80 border border-gray-100 dark:border-gray-700 rounded-xl outline-none focus:border-gray-300 dark:focus:border-gray-500 font-inter text-sm text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 min-h-[140px] resize-y"
-                    />
-                  </div>
+                  <RichTextEditor
+                    label="Descripción (Opcional)"
+                    value={newTask.description}
+                    onChange={(val) => setNewTask({ ...newTask, description: val })}
+                    placeholder="Añade detalles, notas adicionales, listas o subtareas..."
+                    minHeight="140px"
+                  />
 
                   <div>
                     <label className="block font-syne text-[10px] font-bold uppercase tracking-widest text-[var(--gray)] dark:text-gray-400 mb-2">
