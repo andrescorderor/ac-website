@@ -39,6 +39,28 @@ export default function MandadoModal({ isOpen, onClose }: MandadoModalProps) {
   const [inputType, setInputType] = useState<'quincenal' | 'ocasional'>('quincenal');
   const [inputCategory, setInputCategory] = useState<'comida' | 'insumos'>('comida');
   const [historyModalItem, setHistoryModalItem] = useState<ShoppingItem | null>(null);
+  const [isFocusMode, setIsFocusMode] = useState(false);
+  const [wakeLock, setWakeLock] = useState<any>(null);
+
+  // Request screen wake lock when entering Focus Mode (prevent screen from turning off in supermarket)
+  useEffect(() => {
+    if (isFocusMode && 'wakeLock' in navigator) {
+      (navigator as any).wakeLock?.request('screen')
+        .then((lock: any) => {
+          setWakeLock(lock);
+        })
+        .catch(() => {});
+    } else if (!isFocusMode && wakeLock) {
+      wakeLock.release().catch(() => {});
+      setWakeLock(null);
+    }
+
+    return () => {
+      if (wakeLock) {
+        wakeLock.release().catch(() => {});
+      }
+    };
+  }, [isFocusMode]);
 
   const handleOpenEdit = (item: ShoppingItem) => {
     setEditingId(item.id);
@@ -550,6 +572,18 @@ export default function MandadoModal({ isOpen, onClose }: MandadoModalProps) {
 
               <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap shrink-0">
                 <button
+                  onClick={() => setIsFocusMode(!isFocusMode)}
+                  className={`px-3.5 py-1.5 font-syne text-xs font-bold uppercase tracking-wider rounded-xl transition-all shadow-xs flex items-center justify-center gap-1.5 interactive-hover shrink-0 ${
+                    isFocusMode
+                      ? 'bg-amber-500 text-white animate-pulse'
+                      : 'bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200'
+                  }`}
+                  title={isFocusMode ? 'Desactivar Modo Supermercado' : 'Activar Modo Supermercado (Botones grandes y pantalla siempre encendida)'}
+                >
+                  <span>{isFocusMode ? '🛒 Modo Normal' : '⚡ Modo Supermercado'}</span>
+                </button>
+
+                <button
                   onClick={() => {
                     if (showAddForm && editingId) {
                       setEditingId(null);
@@ -713,16 +747,18 @@ export default function MandadoModal({ isOpen, onClose }: MandadoModalProps) {
               quincenalList.map((item) => (
                 <div
                   key={item.id}
-                  className={`flex flex-col sm:flex-row sm:items-center justify-between p-3 rounded-2xl border transition-all gap-2.5 w-full min-w-0 ${
+                  className={`flex flex-col sm:flex-row sm:items-center justify-between rounded-2xl border transition-all gap-2.5 w-full min-w-0 ${
+                    isFocusMode ? 'p-4 sm:p-5 text-base sm:text-lg' : 'p-3 text-sm sm:text-base'
+                  } ${
                     item.bought 
-                      ? 'bg-gray-50/80 dark:bg-gray-800/40 border-gray-100 dark:border-gray-800 opacity-60' 
+                      ? 'bg-gray-50/80 dark:bg-gray-800/40 border-gray-100 dark:border-gray-800 opacity-50' 
                       : 'bg-white dark:bg-gray-800/90 border-gray-100 dark:border-gray-700 shadow-xs hover:border-gray-200 dark:hover:border-gray-600'
                   }`}
                 >
                   <div className="flex items-start sm:items-center gap-3 min-w-0 flex-1 overflow-hidden">
                     <button
                       onClick={() => toggleBought(item.id, item.bought)}
-                      className="text-2xl transition-transform active:scale-90 shrink-0 mt-0.5 sm:mt-0"
+                      className={`${isFocusMode ? 'text-3xl sm:text-4xl min-h-[48px] min-w-[48px] flex items-center justify-center' : 'text-2xl'} transition-transform active:scale-90 shrink-0 mt-0.5 sm:mt-0`}
                       title={item.bought ? 'Marcar como pendiente' : 'Marcar como comprado'}
                     >
                       {item.bought ? (
@@ -734,7 +770,9 @@ export default function MandadoModal({ isOpen, onClose }: MandadoModalProps) {
 
                     <div className="min-w-0 flex-1 overflow-hidden">
                       <div className="flex items-center gap-1.5 flex-wrap">
-                        <span className={`font-dm-sans font-bold text-sm sm:text-base break-words ${
+                        <span className={`font-dm-sans font-bold break-words ${
+                          isFocusMode ? 'text-base sm:text-lg' : 'text-sm sm:text-base'
+                        } ${
                           item.bought ? 'line-through text-gray-400 dark:text-gray-500' : 'text-gray-900 dark:text-white'
                         }`}>
                           {item.name}

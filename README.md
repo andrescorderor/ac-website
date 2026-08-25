@@ -1,7 +1,7 @@
 <div align="center">
   <img src="public/assets/ac-website-icon.svg" alt="Logo" width="100" />
   
-  # Andrés Cordero - Professional Portfolio & Personal Panel PWA (v4.12.0) ✨
+  # Andrés Cordero - Professional Portfolio & Personal Panel PWA (v5.0.0 Milestone Release) 🚀✨
   
   **Welcome to my personal ecosystem: a professional portfolio and a custom productivity hub.**  
   Built with UX/UI best practices, premium design, and a focus on mobile-first efficiency.
@@ -16,11 +16,11 @@
 
 ---
 
-## 🚀 Overview
+## 🚀 Overview (Version 5.0.0 Major Milestone)
 
 This repository hosts a dual-purpose platform:
 1. **Professional Portfolio:** A high-end landing page showcasing my engineering background, skills, and achievements.
-2. **Personal Panel PWA:** A private, secure productivity suite designed for daily life management featuring universal sticky modal actions and **Unified Rich Text Editing (`RichTextEditor`)** with real-time live formatted preview across all text descriptions.
+2. **Personal Panel PWA (v5.0.0):** An executive personal operating system featuring **Zero-Cost Smart Daily Briefing (Resumen Matutino)**, **Modo Supermercado Rápido (Focus Shopping Mode with Screen WakeLock)**, **PWA App Shortcuts (Atajos de App en Home Screen)**, and **Universal Sticky Action Modals with Live Rich Text Formatting**.
 
 ---
 
@@ -34,7 +34,7 @@ The productivity hub is a mobile-optimized private dashboard with 11 specialized
 *   🪴 **Plant Care Tracker (Mis Plantas):** Monitor watering schedules, species details, location recommendations, and rich care instructions.
 *   🔗 **Bookmarks & Quick Links (Enlaces Rápidos):** Organize web tools, portals, and categories for fast access.
 *   🔐 **Secure Vault (Bóveda de Textos):** Encrypted-access storage for sensitive texts (IDs, cards) with quick copy-to-clipboard functionality and formatted multiline text preview.
-*   🛒 **Smart Shopping List & Mandado Quincenal Modal 🥗:** Comprehensive routine for bi-weekly diet and consumable supplies ("Hasta Agotar 📦") featuring hidden-by-default add form, checklist priority, store location tagging, direct launchers from Dashboard and Finanzas, and automated breakdown sync into **Finanzas** (`Comida 🍔` & `Insumos 🛒`).
+*   🛒 **Smart Shopping List & Mandado Quincenal Modal 🥗:** Bi-weekly routine with **Modo Supermercado Rápido (⚡)**, high-touch tap targets, screen-lock prevention (`navigator.wakeLock`), and automated breakdown sync into **Finanzas** (`Comida 🍔` & `Insumos 🛒`).
 *   📅 **Important Reminders (Fechas Importantes):** Categorized dates & optional times (Birthdays, Documents, Payments) with proximity alerts, recurring support, and rich descriptive notes.
 *   💸 **Debt Tracker (Mis Deudas):** Monitor pending payments and collections with default pending filters.
 *   🎨 **Creative Projects (Proyectos Creativos):** Private portfolio to manage side projects, track progress, organize sub-tasks, and write rich formatted project briefs.

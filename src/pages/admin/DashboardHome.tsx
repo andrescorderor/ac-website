@@ -19,6 +19,7 @@ import {
   HiOutlineCheckCircle,
   HiOutlineBookOpen,
   HiOutlineSparkles,
+  HiX,
 } from 'react-icons/hi';
 import { Link } from 'react-router-dom';
 import { useToast } from '@/components/common/ToastContext';
@@ -43,6 +44,24 @@ export default function DashboardHome() {
     checklist: 0,
     recipes: 0,
     plants: 0,
+  });
+  const [briefing, setBriefing] = useState<{
+    plantsToWater: { id: string; nickname: string; emoji: string; daysDiff: number }[];
+    upcomingEvents: { id: string; title: string; category: string; daysLeft: number; time?: string }[];
+    urgentTasks: { id: string; title: string; due_date?: string; priority?: string }[];
+    pendingShoppingCount: number;
+    hasAlerts: boolean;
+  }>({
+    plantsToWater: [],
+    upcomingEvents: [],
+    urgentTasks: [],
+    pendingShoppingCount: 0,
+    hasAlerts: false,
+  });
+  const [isBriefingDismissed, setIsBriefingDismissed] = useState(() => {
+    const dismissedDate = localStorage.getItem('ac_briefing_dismissed_date');
+    const today = new Date().toISOString().split('T')[0];
+    return dismissedDate === today;
   });
   const [pinnedItems, setPinnedItems] = useState<PinnedItem[]>([]);
   const [pinnedFilter, setPinnedFilter] = useState<string>('all');
@@ -165,17 +184,17 @@ export default function DashboardHome() {
 
     const [exp, tsk, vlt, dbt, shp, rem, bkm, nts, prj, chk, rec, plt] = await Promise.all([
       supabase.from('finance_expenses').select('amount'),
-      supabase.from('tasks').select('id').eq('completed', false),
+      supabase.from('tasks').select('*').eq('completed', false),
       supabase.from('vault_items').select('id'),
       supabase.from('debts').select('amount').eq('settled', false),
-      supabase.from('shopping_list').select('id').eq('bought', false),
-      supabase.from('reminders').select('id'),
+      supabase.from('shopping_list').select('id, name, bought').eq('bought', false),
+      supabase.from('reminders').select('*'),
       supabase.from('bookmarks').select('id'),
       supabase.from('notes').select('id'),
       supabase.from('creative_projects').select('id'),
       supabase.from('monthly_checklist_logs').select('id').eq('month_year', currentMonthYear).eq('completed', true).eq('user_id', user.id),
       supabase.from('recipes').select('id'),
-      supabase.from('plants').select('id'),
+      supabase.from('plants').select('*'),
     ]);
 
     setStats({
@@ -192,6 +211,87 @@ export default function DashboardHome() {
       recipes: rec.data?.length || 0,
       plants: plt?.data?.length || 0,
     });
+
+    // 🌟 Zero-Cost Local Intelligence for Daily Briefing
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    // 1. Plants that need watering today or overdue
+    const plantsToWater: { id: string; nickname: string; emoji: string; daysDiff: number }[] = [];
+    if (plt?.data) {
+      for (const p of plt.data) {
+        if (!p.last_watered_at || !p.watering_frequency_days) continue;
+        const last = new Date(p.last_watered_at + 'T00:00:00');
+        const nextWater = new Date(last.getTime() + p.watering_frequency_days * 24 * 60 * 60 * 1000);
+        const daysDiff = Math.ceil((nextWater.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+        if (daysDiff <= 0) {
+          plantsToWater.push({
+            id: p.id,
+            nickname: p.nickname || p.species,
+            emoji: p.emoji || '🪴',
+            daysDiff,
+          });
+        }
+      }
+    }
+
+    // 2. Upcoming events / reminders in the next 3 days
+    const upcomingEvents: { id: string; title: string; category: string; daysLeft: number; time?: string }[] = [];
+    if (rem?.data) {
+      for (const r of rem.data) {
+        const dateVal = r.date || r.event_date;
+        if (!dateVal) continue;
+        let target: Date;
+        if (r.recurring) {
+          const parts = dateVal.split('-');
+          const month = parseInt(parts[1], 10) - 1;
+          const day = parseInt(parts[2], 10);
+          target = new Date(today.getFullYear(), month, day);
+          if (target < today) {
+            target = new Date(today.getFullYear() + 1, month, day);
+          }
+        } else {
+          target = new Date(dateVal + 'T00:00:00');
+        }
+        const diffDays = Math.ceil((target.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+        if (diffDays >= 0 && diffDays <= 3) {
+          upcomingEvents.push({
+            id: r.id,
+            title: r.title,
+            category: r.category,
+            daysLeft: diffDays,
+            time: r.time,
+          });
+        }
+      }
+    }
+
+    // 3. Urgent or high-priority tasks
+    const urgentTasks: { id: string; title: string; due_date?: string; priority?: string }[] = [];
+    if (tsk?.data) {
+      for (const t of tsk.data) {
+        if (t.priority === 'Alta' || t.priority === 'Urgente') {
+          urgentTasks.push({ id: t.id, title: t.title, due_date: t.due_date, priority: t.priority });
+        } else if (t.due_date) {
+          const target = new Date(t.due_date + 'T00:00:00');
+          const diffDays = Math.ceil((target.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+          if (diffDays >= 0 && diffDays <= 2) {
+            urgentTasks.push({ id: t.id, title: t.title, due_date: t.due_date, priority: 'Próxima a vencer' });
+          }
+        }
+      }
+    }
+
+    const hasAlerts = plantsToWater.length > 0 || upcomingEvents.length > 0 || urgentTasks.length > 0 || (shp.data?.length || 0) > 0;
+
+    setBriefing({
+      plantsToWater,
+      upcomingEvents,
+      urgentTasks: urgentTasks.slice(0, 4),
+      pendingShoppingCount: shp.data?.length || 0,
+      hasAlerts,
+    });
+
     setLoading(false);
   };
 
@@ -485,6 +585,146 @@ export default function DashboardHome() {
           </button>
         </div>
       </header>
+
+      {/* ☀️ Daily Briefing (Resumen Matutino Inteligente) */}
+      {!isBriefingDismissed && (
+        <motion.section
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="relative overflow-hidden rounded-[2rem] bg-gradient-to-br from-amber-500/10 via-sky-500/5 to-emerald-500/10 border border-amber-500/20 dark:border-amber-400/20 p-5 sm:p-6 shadow-sm"
+        >
+          <div className="flex items-start justify-between gap-4 mb-4">
+            <div className="flex items-center gap-2.5">
+              <div className="size-9 rounded-2xl bg-amber-500/20 dark:bg-amber-400/20 text-amber-600 dark:text-amber-300 flex items-center justify-center text-lg shadow-xs">
+                ☀️
+              </div>
+              <div>
+                <h2 className="font-dm-sans text-lg sm:text-xl font-bold text-gray-900 dark:text-white">
+                  Resumen Matutino Inteligente
+                </h2>
+                <p className="font-inter text-xs text-gray-500 dark:text-gray-400">
+                  Estado clave de tus plantas, compromisos próximos y prioridades del día.
+                </p>
+              </div>
+            </div>
+
+            <button
+              onClick={() => {
+                const today = new Date().toISOString().split('T')[0];
+                localStorage.setItem('ac_briefing_dismissed_date', today);
+                setIsBriefingDismissed(true);
+              }}
+              className="p-1.5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl transition-all text-sm shrink-0"
+              title="Ocultar resumen por hoy"
+            >
+              <HiX />
+            </button>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3.5">
+            {/* 1. Plantas que necesitan agua */}
+            <div className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-md rounded-2xl p-4 border border-gray-100 dark:border-gray-800 shadow-2xs space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="font-syne text-[10px] font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5">
+                  <span>🪴</span> Riego de Plantas
+                </span>
+                <Link to="/admin/plantas" className="text-[10px] font-syne font-bold text-gray-400 hover:text-emerald-500 transition-colors">
+                  Ver Jardín →
+                </Link>
+              </div>
+              {briefing.plantsToWater.length > 0 ? (
+                <div className="space-y-1.5">
+                  <p className="font-dm-sans text-xs font-bold text-gray-900 dark:text-white">
+                    {briefing.plantsToWater.length} {briefing.plantsToWater.length === 1 ? 'planta necesita' : 'plantas necesitan'} agua hoy:
+                  </p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {briefing.plantsToWater.map(p => (
+                      <span key={p.id} className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 font-inter text-xs font-medium border border-emerald-200/40 dark:border-emerald-800/40">
+                        <span>{p.emoji}</span>
+                        <span>{p.nickname}</span>
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              ) : (
+                <p className="font-inter text-xs text-gray-500 dark:text-gray-400">
+                  ✨ Todas tus plantas están hidratadas al día.
+                </p>
+              )}
+            </div>
+
+            {/* 2. Próximos 3 días de eventos / fechas */}
+            <div className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-md rounded-2xl p-4 border border-gray-100 dark:border-gray-800 shadow-2xs space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="font-syne text-[10px] font-bold uppercase tracking-wider text-pink-600 dark:text-pink-400 flex items-center gap-1.5">
+                  <span>📅</span> Fechas Importantes
+                </span>
+                <Link to="/admin/recordatorios" className="text-[10px] font-syne font-bold text-gray-400 hover:text-pink-500 transition-colors">
+                  Ver Todo →
+                </Link>
+              </div>
+              {briefing.upcomingEvents.length > 0 ? (
+                <div className="space-y-1.5">
+                  {briefing.upcomingEvents.map(e => (
+                    <div key={e.id} className="flex items-center justify-between text-xs gap-2">
+                      <span className="font-inter font-medium text-gray-800 dark:text-gray-200 truncate">
+                        {e.title}
+                      </span>
+                      <span className={`shrink-0 font-syne text-[9px] font-bold uppercase px-2 py-0.5 rounded-md ${
+                        e.daysLeft === 0 
+                          ? 'bg-red-100 dark:bg-red-950/60 text-red-600 dark:text-red-300 animate-pulse'
+                          : e.daysLeft === 1
+                          ? 'bg-amber-100 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300'
+                          : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400'
+                      }`}>
+                        {e.daysLeft === 0 ? '¡Hoy!' : e.daysLeft === 1 ? 'Mañana' : `En ${e.daysLeft} días`}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="font-inter text-xs text-gray-500 dark:text-gray-400">
+                  🏖️ Sin eventos ni pagos programados en los próximos 3 días.
+                </p>
+              )}
+            </div>
+
+            {/* 3. Tareas Prioritarias & Mandado */}
+            <div className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-md rounded-2xl p-4 border border-gray-100 dark:border-gray-800 shadow-2xs space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="font-syne text-[10px] font-bold uppercase tracking-wider text-sky-600 dark:text-sky-400 flex items-center gap-1.5">
+                  <span>🎯</span> Foco del Día
+                </span>
+                <Link to="/admin/pendientes" className="text-[10px] font-syne font-bold text-gray-400 hover:text-sky-500 transition-colors">
+                  Pendientes →
+                </Link>
+              </div>
+              {briefing.urgentTasks.length > 0 ? (
+                <div className="space-y-1.5">
+                  {briefing.urgentTasks.map(t => (
+                    <div key={t.id} className="flex items-center justify-between text-xs gap-2">
+                      <span className="font-inter font-medium text-gray-800 dark:text-gray-200 truncate">
+                        • {t.title}
+                      </span>
+                      {t.priority && (
+                        <span className="shrink-0 font-syne text-[9px] font-bold uppercase px-1.5 py-0.5 rounded bg-sky-50 dark:bg-sky-950/60 text-sky-600 dark:text-sky-300">
+                          {t.priority}
+                        </span>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="font-inter text-xs text-gray-500 dark:text-gray-400">
+                  {briefing.pendingShoppingCount > 0 
+                    ? `🛒 Tienes ${briefing.pendingShoppingCount} productos pendientes en tu mandado.` 
+                    : '🎉 ¡Todo limpio! No tienes tareas urgentes pendientes.'}
+                </p>
+              )}
+            </div>
+          </div>
+        </motion.section>
+      )}
 
       {/* 📌 Pinned Elements Section */}
       <section className="space-y-4">

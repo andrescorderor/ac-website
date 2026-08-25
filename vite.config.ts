@@ -25,6 +25,36 @@ export default defineConfig({
             type: 'image/svg+xml',
           },
         ],
+        shortcuts: [
+          {
+            name: 'Mandado Quincenal',
+            short_name: 'Mandado',
+            description: 'Abrir lista de compras y mandado',
+            url: '/admin/compras',
+            icons: [{ src: 'assets/ac-website-icon.svg', sizes: '192x192' }]
+          },
+          {
+            name: 'Mis Pendientes',
+            short_name: 'Tareas',
+            description: 'Ver tareas pendientes del día',
+            url: '/admin/pendientes',
+            icons: [{ src: 'assets/ac-website-icon.svg', sizes: '192x192' }]
+          },
+          {
+            name: 'Riego de Plantas',
+            short_name: 'Plantas',
+            description: 'Revisar plantas y registrar riego',
+            url: '/admin/plantas',
+            icons: [{ src: 'assets/ac-website-icon.svg', sizes: '192x192' }]
+          },
+          {
+            name: 'Notas Rápidas',
+            short_name: 'Notas',
+            description: 'Crear o consultar notas importantes',
+            url: '/admin/notas',
+            icons: [{ src: 'assets/ac-website-icon.svg', sizes: '192x192' }]
+          }
+        ],
       },
       workbox: {
         globPatterns: ['**/*.{js,css,html,ico,png,svg}'],
