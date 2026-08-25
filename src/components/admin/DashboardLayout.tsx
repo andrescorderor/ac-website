@@ -151,13 +151,18 @@ function DashboardLayoutContent() {
       <aside 
         className="hidden lg:flex flex-col h-screen sticky top-0 w-72 shrink-0 bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl border-r border-gray-200/50 dark:border-gray-800/50 transition-all duration-300"
       >
-        <div className="p-6 flex items-center gap-4 shrink-0">
-          <div className="size-10 shrink-0 bg-black dark:bg-white text-white dark:text-black rounded-xl flex items-center justify-center font-bold">
-            AC
+        <div className="p-6 flex items-center gap-3.5 shrink-0">
+          <Link to="/admin/panel" className="size-10 shrink-0 bg-black dark:bg-white rounded-xl flex items-center justify-center p-1.5 shadow-md hover:scale-105 active:scale-95 transition-all">
+            <img src="/assets/ac-website-icon.svg" alt="AC Logo" className="size-full object-contain filter invert dark:invert-0" />
+          </Link>
+          <div className="flex flex-col min-w-0">
+            <span className="font-dm-sans font-bold text-lg tracking-tight whitespace-nowrap text-black dark:text-white">
+              Panel Privado
+            </span>
+            <span className="font-syne text-[9px] font-bold uppercase tracking-widest text-gray-400">
+              Andrés Cordero
+            </span>
           </div>
-          <span className="font-dm-sans font-bold text-xl tracking-tight whitespace-nowrap text-black dark:text-white">
-            Panel Privado
-          </span>
         </div>
 
         <nav className="flex-1 px-3 space-y-1.5 overflow-y-auto scrollbar-none">
@@ -219,7 +224,7 @@ function DashboardLayoutContent() {
 
           <div className="text-center select-none pt-1">
             <span className="font-syne text-[9px] font-bold tracking-widest text-gray-400 dark:text-gray-600 block">
-              VERSIÓN v5.4.0
+              VERSIÓN v5.5.0
             </span>
           </div>
         </div>
@@ -229,10 +234,12 @@ function DashboardLayoutContent() {
       <div 
         className="lg:hidden fixed top-0 left-0 right-0 h-16 bg-white/95 dark:bg-[#111827]/95 backdrop-blur-xl border-b border-gray-100 dark:border-gray-800 flex items-center justify-between px-4 z-40 transition-all duration-300 shadow-sm"
       >
-        <div className="flex items-center gap-2.5">
-          <div className="size-9 bg-black dark:bg-white text-white dark:text-black rounded-xl flex items-center justify-center text-sm font-bold shadow-lg">AC</div>
+        <Link to="/admin/panel" className="flex items-center gap-2.5">
+          <div className="size-9 bg-black dark:bg-white rounded-xl flex items-center justify-center p-1.5 shadow-md shrink-0">
+            <img src="/assets/ac-website-icon.svg" alt="AC Logo" className="size-full object-contain filter invert dark:invert-0" />
+          </div>
           <span className="font-dm-sans font-bold text-sm sm:text-base tracking-tight text-black dark:text-white truncate">Panel Personal</span>
-        </div>
+        </Link>
         <div className="flex items-center gap-1.5">
           <button 
             onClick={() => setIsSearchOpen(true)}
@@ -291,11 +298,13 @@ function DashboardLayoutContent() {
         transition={{ type: 'spring', damping: 28, stiffness: 280 }}
         className="lg:hidden fixed top-0 left-0 bottom-0 w-[80%] max-w-xs bg-white dark:bg-[#111827] z-50 flex flex-col shadow-2xl border-r border-gray-100 dark:border-gray-800"
       >
-        <div className="flex items-center gap-4 p-6 pb-4 shrink-0">
-          <div className="size-11 bg-black dark:bg-white text-white dark:text-black rounded-2xl flex items-center justify-center font-bold text-lg shadow-xl">AC</div>
-          <div className="flex flex-col">
-            <span className="font-dm-sans font-bold text-lg tracking-tight text-black dark:text-white">Panel Personal</span>
-            <span className="font-syne text-[9px] font-bold uppercase tracking-widest text-gray-400">Panel de Control</span>
+        <div className="flex items-center gap-3 p-6 pb-4 shrink-0">
+          <div className="size-11 bg-black dark:bg-white rounded-2xl flex items-center justify-center p-1.5 shadow-xl shrink-0">
+            <img src="/assets/ac-website-icon.svg" alt="AC Logo" className="size-full object-contain filter invert dark:invert-0" />
+          </div>
+          <div className="flex flex-col min-w-0">
+            <span className="font-dm-sans font-bold text-lg tracking-tight text-black dark:text-white truncate">Panel Personal</span>
+            <span className="font-syne text-[9px] font-bold uppercase tracking-widest text-gray-400 truncate">Andrés Cordero</span>
           </div>
         </div>
 
@@ -352,7 +361,7 @@ function DashboardLayoutContent() {
 
           <div className="text-center select-none pt-2">
             <span className="font-syne text-[9px] font-bold tracking-widest text-gray-400 dark:text-gray-600 block">
-              VERSIÓN v5.4.0
+              VERSIÓN v5.5.0
             </span>
           </div>
         </div>
