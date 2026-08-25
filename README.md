@@ -1,7 +1,7 @@
 <div align="center">
   <img src="public/assets/ac-website-icon.svg" alt="Logo" width="100" />
   
-  # Andrés Cordero - Professional Portfolio & Personal Panel PWA (v5.5.0) 🎯✨
+  # Andrés Cordero - Professional Portfolio & Personal Panel PWA (v5.6.0) 🎯✨
   
   **Welcome to my personal ecosystem: a professional portfolio and a custom productivity hub.**  
   Built with UX/UI best practices, premium design, and a focus on mobile-first efficiency.
@@ -16,11 +16,11 @@
 
 ---
 
-## 🚀 Overview (Version 5.5.0)
+## 🚀 Overview (Version 5.6.0)
 
 This repository hosts a dual-purpose platform:
 1. **Professional Portfolio:** A high-end landing page showcasing my engineering background, skills, and achievements.
-2. **Personal Panel PWA (v5.5.0):** An executive personal operating system featuring **Unified Brand Logo & Crisp SVG Favicon Integration** (across browser tabs, mobile home screen icon, admin login, desktop sidebar, and mobile drawer), **Multi-Format Export & Backup Modal (JSON, CSV for Excel, and PDF/Print)**, **Dedicated Mobile Supermarket Mode (⚡ Modo Súper)**, **True In-Place Live WYSIWYG Rich Text Editing**, and **Gym & Workout Routines (Registro de Entrenamiento)**.
+2. **Personal Panel PWA (v5.6.0):** An executive personal operating system featuring **Direct Deep Navigation in Smart Daily Briefing** (fixed `/admin/panel/pendientes`, `/admin/panel/plantas`, and `/admin/panel/recordatorios` + 1-click Mandado Quincenal direct trigger), **Unified Brand Logo & Crisp SVG Favicon Integration**, **Multi-Format Export & Backup Modal (JSON, CSV for Excel, and PDF/Print)**, **Dedicated Mobile Supermarket Mode (⚡ Modo Súper)**, **True In-Place Live WYSIWYG Rich Text Editing**, and **Gym & Workout Routines (Registro de Entrenamiento)**.
 
 ---
 

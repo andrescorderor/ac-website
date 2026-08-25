@@ -695,7 +695,7 @@ export default function DashboardHome() {
                 <span className="font-syne text-[10px] font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5">
                   <span>🪴</span> Riego de Plantas
                 </span>
-                <Link to="/admin/plantas" className="text-[10px] font-syne font-bold text-gray-400 hover:text-emerald-500 transition-colors">
+                <Link to="/admin/panel/plantas" className="text-[10px] font-syne font-bold text-gray-400 hover:text-emerald-500 transition-colors">
                   Ver Jardín →
                 </Link>
               </div>
@@ -726,7 +726,7 @@ export default function DashboardHome() {
                 <span className="font-syne text-[10px] font-bold uppercase tracking-wider text-pink-600 dark:text-pink-400 flex items-center gap-1.5">
                   <span>📅</span> Fechas Importantes
                 </span>
-                <Link to="/admin/recordatorios" className="text-[10px] font-syne font-bold text-gray-400 hover:text-pink-500 transition-colors">
+                <Link to="/admin/panel/recordatorios" className="text-[10px] font-syne font-bold text-gray-400 hover:text-pink-500 transition-colors">
                   Ver Todo →
                 </Link>
               </div>
@@ -762,7 +762,7 @@ export default function DashboardHome() {
                 <span className="font-syne text-[10px] font-bold uppercase tracking-wider text-sky-600 dark:text-sky-400 flex items-center gap-1.5">
                   <span>🎯</span> Foco del Día
                 </span>
-                <Link to="/admin/pendientes" className="text-[10px] font-syne font-bold text-gray-400 hover:text-sky-500 transition-colors">
+                <Link to="/admin/panel/pendientes" className="text-[10px] font-syne font-bold text-gray-400 hover:text-sky-500 transition-colors">
                   Pendientes →
                 </Link>
               </div>
@@ -782,11 +782,20 @@ export default function DashboardHome() {
                   ))}
                 </div>
               ) : (
-                <p className="font-inter text-xs text-gray-500 dark:text-gray-400">
-                  {briefing.pendingShoppingCount > 0 
-                    ? `🛒 Tienes ${briefing.pendingShoppingCount} productos pendientes en tu mandado.` 
-                    : '🎉 ¡Todo limpio! No tienes tareas urgentes pendientes.'}
-                </p>
+                <div className="font-inter text-xs text-gray-500 dark:text-gray-400">
+                  {briefing.pendingShoppingCount > 0 ? (
+                    <button
+                      type="button"
+                      onClick={() => setShowMandadoModal(true)}
+                      className="text-left hover:text-emerald-500 transition-colors flex items-center gap-1 cursor-pointer"
+                    >
+                      <span>🛒 Tienes <strong>{briefing.pendingShoppingCount}</strong> productos pendientes en tu mandado.</span>
+                      <span className="font-syne text-[10px] font-bold text-emerald-600 dark:text-emerald-400 underline shrink-0 ml-1">Abrir →</span>
+                    </button>
+                  ) : (
+                    '🎉 ¡Todo limpio! No tienes tareas urgentes pendientes.'
+                  )}
+                </div>
               )}
             </div>
           </div>
