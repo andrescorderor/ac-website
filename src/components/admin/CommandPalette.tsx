@@ -24,9 +24,10 @@ import {
   HiOutlineTrash,
   HiOutlineExternalLink,
 } from 'react-icons/hi';
+import { FaDumbbell } from 'react-icons/fa';
 import { useToast } from '@/components/common/ToastContext';
 
-type ResultType = 'note' | 'task' | 'debt' | 'vault' | 'shopping' | 'reminder' | 'project' | 'checklist' | 'recipe' | 'finance' | 'plant' | 'bookmark';
+type ResultType = 'note' | 'task' | 'debt' | 'vault' | 'shopping' | 'reminder' | 'project' | 'checklist' | 'recipe' | 'finance' | 'plant' | 'bookmark' | 'workout';
 
 type SearchResult = {
   id: string;
@@ -63,6 +64,7 @@ const TYPE_META: Record<ResultType, { label: string; icon: React.ElementType; co
   finance:   { label: 'Gasto',         icon: HiOutlineCurrencyDollar,color: 'bg-blue-100 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300' },
   plant:     { label: 'Planta',        icon: HiOutlineSparkles,      color: 'bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300' },
   bookmark:  { label: 'Enlace',        icon: HiOutlineExternalLink,  color: 'bg-indigo-100 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300' },
+  workout:   { label: 'Rutina Gym',    icon: FaDumbbell,             color: 'bg-rose-100 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300' },
 };
 
 /** Component to highlight search matches */
@@ -417,6 +419,26 @@ export default function CommandPalette({ isOpen, onClose }: CommandPaletteProps)
         }
       });
 
+      // Workout Routines (stored in notes with category Fitness_Routine_Data:)
+      nts.data?.filter(n => n.category?.startsWith('Fitness_Routine_Data:')).forEach(w => {
+        let routineSub = 'Rutina de Entrenamiento Gym';
+        try {
+          const parsed = JSON.parse(w.content);
+          routineSub = `${parsed.dayType === 'Dia_A' ? '⚡ Día A' : '🔥 Día B'} • ${parsed.focusMuscles} (${parsed.exercises?.length || 0} ejercicios)`;
+        } catch {}
+        push({
+          id: w.id,
+          type: 'workout',
+          title: w.title.replace('🏋️ ', ''),
+          subtitle: routineSub,
+          path: '/admin/panel/entrenamiento',
+          icon: TYPE_META.workout.icon,
+          categoryLabel: TYPE_META.workout.label,
+          badgeColor: TYPE_META.workout.color,
+          rawTitle: w.title,
+        });
+      });
+
       setResults(items);
       setActiveIndex(-1);
     } catch (err) {
@@ -511,6 +533,9 @@ ${chk.data?.map(c => `- ${c.title} [${c.category}]`).join('\n') || 'Ninguno'}
 
 🪴 MIS PLANTAS:
 ${plt.data?.map(p => `- ${p.nickname} (${p.species}) en ${p.location || 'Sin ubicación'}. Riego: cada ${p.watering_frequency_days} días. Último riego: ${p.last_watered_at || 'Sin fecha'}`).join('\n') || 'Ninguno'}
+
+🏋️ RUTINAS DE ENTRENAMIENTO & GYM:
+${nts.data?.filter(n => n.category?.startsWith('Fitness_Routine_Data:')).map(w => `- ${w.title}: ${w.content}`).join('\n') || 'Ninguna'}
 
 🔗 ENLACES / MARCADORES:
 ${bkm.data?.map(b => `- ${b.title} [Categoría: ${b.category || 'General'}]: ${b.url}`).join('\n') || 'Ninguno'}

@@ -21,6 +21,7 @@ import {
   HiOutlineSparkles,
   HiX,
 } from 'react-icons/hi';
+import { FaDumbbell } from 'react-icons/fa';
 import { Link } from 'react-router-dom';
 import { useToast } from '@/components/common/ToastContext';
 import MandadoModal from '@/components/admin/MandadoModal';
@@ -488,6 +489,14 @@ export default function DashboardHome() {
       icon: HiOutlineSparkles, 
       color: 'bg-emerald-600', 
       path: '/admin/panel/plantas' 
+    },
+    { 
+      label: 'Gym & Rutinas', 
+      rawVal: 'Día A / B', 
+      isMonetary: false,
+      icon: FaDumbbell, 
+      color: 'bg-rose-600', 
+      path: '/admin/panel/entrenamiento' 
     },
   ];
 

@@ -35,6 +35,7 @@ import {
   HiOutlineSparkles,
   HiOutlineDotsHorizontal
 } from 'react-icons/hi';
+import { FaDumbbell } from 'react-icons/fa';
 
 const menuItems = [
   { icon: HiOutlineViewGrid, label: 'Inicio', path: '/admin/panel' },
@@ -45,6 +46,7 @@ const menuItems = [
   { icon: HiOutlineShoppingBag, label: 'Compras', path: '/admin/panel/compras' },
   { icon: HiOutlineCalendar, label: 'Fechas', path: '/admin/panel/recordatorios' },
   { icon: HiOutlineDocumentText, label: 'Notas', path: '/admin/panel/notas' },
+  { icon: FaDumbbell, label: 'Gym & Rutinas', path: '/admin/panel/entrenamiento' },
   { icon: HiOutlineColorSwatch, label: 'Proyectos', path: '/admin/panel/proyectos' },
   { icon: HiOutlineCheckCircle, label: 'Checklist', path: '/admin/panel/checklist' },
   { icon: HiOutlineBookOpen, label: 'Recetas', path: '/admin/panel/recetas' },
@@ -217,7 +219,7 @@ function DashboardLayoutContent() {
 
           <div className="text-center select-none pt-1">
             <span className="font-syne text-[9px] font-bold tracking-widest text-gray-400 dark:text-gray-600 block">
-              VERSIÓN v5.0.0
+              VERSIÓN v5.1.0
             </span>
           </div>
         </div>
@@ -350,7 +352,7 @@ function DashboardLayoutContent() {
 
           <div className="text-center select-none pt-2">
             <span className="font-syne text-[9px] font-bold tracking-widest text-gray-400 dark:text-gray-600 block">
-              VERSIÓN v5.0.0
+              VERSIÓN v5.1.0
             </span>
           </div>
         </div>
