@@ -147,6 +147,7 @@ const TATTOO_IDEAS_LIST = [
       const { data, error } = await supabase
         .from('notes')
         .select('*')
+        .not('category', 'like', 'Fitness_Routine_Data:%')
         .order('created_at', { ascending: false });
 
       if (error) {

@@ -343,6 +343,7 @@ export default function CommandPalette({ isOpen, onClose }: CommandPaletteProps)
       const push = (r: SearchResult) => items.push(r);
 
       nts.data?.forEach(n => {
+        if (n.category?.startsWith('Fitness_Routine_Data:')) return;
         if (!term || n.title.toLowerCase().includes(term) || n.content?.toLowerCase().includes(term) || n.category?.toLowerCase().includes(term)) {
           push({ id: n.id, type: 'note', title: n.title, subtitle: n.category || n.content?.slice(0, 70), path: '/admin/panel/notas', icon: TYPE_META.note.icon, categoryLabel: TYPE_META.note.label, badgeColor: TYPE_META.note.color, rawTitle: n.title });
         }

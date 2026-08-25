@@ -192,7 +192,7 @@ export default function DashboardHome() {
       supabase.from('shopping_list').select('id, name, bought').eq('bought', false),
       supabase.from('reminders').select('*'),
       supabase.from('bookmarks').select('id'),
-      supabase.from('notes').select('id'),
+      supabase.from('notes').select('id').not('category', 'like', 'Fitness_Routine_Data:%'),
       supabase.from('creative_projects').select('id'),
       supabase.from('monthly_checklist_logs').select('id').eq('month_year', currentMonthYear).eq('completed', true).eq('user_id', user.id),
       supabase.from('recipes').select('id'),
