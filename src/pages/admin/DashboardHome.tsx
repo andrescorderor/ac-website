@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { supabase } from '@/lib/supabase';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getPinnedItems, removePinnedItem, PinnedItem, syncPinnedItemsWithSupabase } from '@/lib/pinned';
@@ -972,121 +973,126 @@ export default function DashboardHome() {
         onClose={() => setShowMandadoModal(false)} 
       />
 
-      {/* Export & Backup Modal */}
-      <AnimatePresence>
-        {showExportModal && (
-          <div
-            className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm cursor-pointer"
-            onClick={(e) => {
-              if (e.target === e.currentTarget) setShowExportModal(false);
-            }}
-          >
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95, y: 15 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: 15 }}
-              onClick={(e) => e.stopPropagation()}
-              className="bg-white dark:bg-gray-900 rounded-[2rem] p-6 sm:p-7 max-w-md w-full border border-gray-100 dark:border-gray-800 shadow-2xl space-y-5 cursor-default"
+      {/* Export & Backup Modal (Rendered in Portal) */}
+      {typeof document !== 'undefined' && createPortal(
+        <AnimatePresence>
+          {showExportModal && (
+            <div
+              className="fixed inset-0 z-[9999] flex items-center justify-center p-3 sm:p-6 bg-black/60 backdrop-blur-md cursor-pointer"
+              onClick={(e) => {
+                if (e.target === e.currentTarget) setShowExportModal(false);
+              }}
             >
-              <div className="flex items-start justify-between">
-                <div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-2xl">📦</span>
-                    <h3 className="font-dm-sans text-xl font-bold text-gray-900 dark:text-white">
-                      Exportación & Respaldo
-                    </h3>
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95, y: 15 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.95, y: 15 }}
+                onClick={(e) => e.stopPropagation()}
+                className="bg-white dark:bg-gray-900 rounded-[2rem] p-6 sm:p-8 max-w-lg w-full border border-gray-100 dark:border-gray-800 shadow-2xl space-y-6 cursor-default overflow-hidden my-auto"
+              >
+                <div className="flex items-start justify-between shrink-0">
+                  <div className="flex items-center gap-3">
+                    <div className="size-11 rounded-2xl bg-gradient-to-tr from-sky-500 to-indigo-600 flex items-center justify-center text-xl text-white shadow-md">
+                      📦
+                    </div>
+                    <div>
+                      <h3 className="font-dm-sans text-xl font-bold text-gray-900 dark:text-white">
+                        Exportación & Respaldo
+                      </h3>
+                      <p className="font-inter text-xs text-gray-400 mt-0.5">
+                        Descarga tus datos o genera reportes en 1 clic:
+                      </p>
+                    </div>
                   </div>
-                  <p className="font-inter text-xs text-gray-400 mt-1">
-                    Descarga todos tus datos o genera reportes en el formato que prefieras:
-                  </p>
+                  <button
+                    type="button"
+                    onClick={() => setShowExportModal(false)}
+                    className="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-all shrink-0"
+                  >
+                    <HiX className="text-xl" />
+                  </button>
                 </div>
-                <button
-                  type="button"
-                  onClick={() => setShowExportModal(false)}
-                  className="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 rounded-xl transition-all"
-                >
-                  <HiX className="text-xl" />
-                </button>
-              </div>
 
-              <div className="space-y-3">
-                {/* 1. JSON Backup */}
-                <button
-                  type="button"
-                  onClick={exportBackupJson}
-                  disabled={exporting}
-                  className="w-full flex items-center justify-between p-4 rounded-2xl border border-blue-200 dark:border-blue-900/50 bg-blue-50/50 dark:bg-blue-950/30 hover:bg-blue-100/60 dark:hover:bg-blue-900/40 transition-all text-left group"
-                >
-                  <div className="flex items-center gap-3">
-                    <span className="text-2xl p-2.5 bg-blue-500 text-white rounded-xl shadow-xs">🗂️</span>
-                    <div>
-                      <div className="font-dm-sans font-bold text-sm text-gray-900 dark:text-white flex items-center gap-1.5">
-                        <span>Copia Completa (JSON)</span>
-                        <span className="text-[9px] font-syne font-bold uppercase tracking-wider bg-blue-500 text-white px-2 py-0.5 rounded-full">Recomendado</span>
+                <div className="space-y-3 overflow-y-auto max-h-[60vh] scrollbar-thin">
+                  {/* 1. JSON Backup */}
+                  <button
+                    type="button"
+                    onClick={exportBackupJson}
+                    disabled={exporting}
+                    className="w-full flex items-center justify-between p-4 rounded-2xl border border-blue-200 dark:border-blue-900/50 bg-blue-50/50 dark:bg-blue-950/30 hover:bg-blue-100/60 dark:hover:bg-blue-900/40 transition-all text-left group"
+                  >
+                    <div className="flex items-center gap-3.5">
+                      <span className="text-2xl p-2.5 bg-blue-500 text-white rounded-xl shadow-xs shrink-0">🗂️</span>
+                      <div>
+                        <div className="font-dm-sans font-bold text-sm text-gray-900 dark:text-white flex items-center gap-1.5 flex-wrap">
+                          <span>Copia Completa (JSON)</span>
+                          <span className="text-[9px] font-syne font-bold uppercase tracking-wider bg-blue-500 text-white px-2 py-0.5 rounded-full">Recomendado</span>
+                        </div>
+                        <p className="font-inter text-[11px] text-gray-500 dark:text-gray-400 mt-0.5">
+                          Respaldo 100% íntegro de las 14 tablas del sistema listo para restaurar.
+                        </p>
                       </div>
-                      <p className="font-inter text-[11px] text-gray-500 dark:text-gray-400 mt-0.5">
-                        Respaldo 100% íntegro de las 14 tablas del sistema listo para restaurar.
-                      </p>
                     </div>
-                  </div>
-                  <HiOutlineDownload className="text-xl text-blue-500 group-hover:translate-x-1 transition-transform shrink-0 ml-2" />
-                </button>
+                    <HiOutlineDownload className="text-xl text-blue-500 group-hover:translate-x-1 transition-transform shrink-0 ml-2" />
+                  </button>
 
-                {/* 2. CSV Summary */}
-                <button
-                  type="button"
-                  onClick={exportBackupCsv}
-                  disabled={exporting}
-                  className="w-full flex items-center justify-between p-4 rounded-2xl border border-emerald-200 dark:border-emerald-900/50 bg-emerald-50/50 dark:bg-emerald-950/30 hover:bg-emerald-100/60 dark:hover:bg-emerald-900/40 transition-all text-left group"
-                >
-                  <div className="flex items-center gap-3">
-                    <span className="text-2xl p-2.5 bg-emerald-500 text-white rounded-xl shadow-xs">📊</span>
-                    <div>
-                      <div className="font-dm-sans font-bold text-sm text-gray-900 dark:text-white">
-                        Reporte para Excel (CSV)
+                  {/* 2. CSV Summary */}
+                  <button
+                    type="button"
+                    onClick={exportBackupCsv}
+                    disabled={exporting}
+                    className="w-full flex items-center justify-between p-4 rounded-2xl border border-emerald-200 dark:border-emerald-900/50 bg-emerald-50/50 dark:bg-emerald-950/30 hover:bg-emerald-100/60 dark:hover:bg-emerald-900/40 transition-all text-left group"
+                  >
+                    <div className="flex items-center gap-3.5">
+                      <span className="text-2xl p-2.5 bg-emerald-500 text-white rounded-xl shadow-xs shrink-0">📊</span>
+                      <div>
+                        <div className="font-dm-sans font-bold text-sm text-gray-900 dark:text-white">
+                          Reporte para Excel (CSV)
+                        </div>
+                        <p className="font-inter text-[11px] text-gray-500 dark:text-gray-400 mt-0.5">
+                          Tablas tabulares de tus finanzas, pendientes y compras de mandado.
+                        </p>
                       </div>
-                      <p className="font-inter text-[11px] text-gray-500 dark:text-gray-400 mt-0.5">
-                        Tablas tabulares de tus finanzas, pendientes y compras de mandado.
-                      </p>
                     </div>
-                  </div>
-                  <HiOutlineDownload className="text-xl text-emerald-500 group-hover:translate-x-1 transition-transform shrink-0 ml-2" />
-                </button>
+                    <HiOutlineDownload className="text-xl text-emerald-500 group-hover:translate-x-1 transition-transform shrink-0 ml-2" />
+                  </button>
 
-                {/* 3. Print / PDF */}
-                <button
-                  type="button"
-                  onClick={handlePrintPdf}
-                  className="w-full flex items-center justify-between p-4 rounded-2xl border border-purple-200 dark:border-purple-900/50 bg-purple-50/50 dark:bg-purple-950/30 hover:bg-purple-100/60 dark:hover:bg-purple-900/40 transition-all text-left group"
-                >
-                  <div className="flex items-center gap-3">
-                    <span className="text-2xl p-2.5 bg-purple-500 text-white rounded-xl shadow-xs">📄</span>
-                    <div>
-                      <div className="font-dm-sans font-bold text-sm text-gray-900 dark:text-white">
-                        Imprimir / Guardar como PDF
+                  {/* 3. Print / PDF */}
+                  <button
+                    type="button"
+                    onClick={handlePrintPdf}
+                    className="w-full flex items-center justify-between p-4 rounded-2xl border border-purple-200 dark:border-purple-900/50 bg-purple-50/50 dark:bg-purple-950/30 hover:bg-purple-100/60 dark:hover:bg-purple-900/40 transition-all text-left group"
+                  >
+                    <div className="flex items-center gap-3.5">
+                      <span className="text-2xl p-2.5 bg-purple-500 text-white rounded-xl shadow-xs shrink-0">📄</span>
+                      <div>
+                        <div className="font-dm-sans font-bold text-sm text-gray-900 dark:text-white">
+                          Imprimir / Guardar como PDF
+                        </div>
+                        <p className="font-inter text-[11px] text-gray-500 dark:text-gray-400 mt-0.5">
+                          Abre el diálogo del navegador para imprimir o guardar en PDF.
+                        </p>
                       </div>
-                      <p className="font-inter text-[11px] text-gray-500 dark:text-gray-400 mt-0.5">
-                        Abre el diálogo del navegador para imprimir o guardar en PDF.
-                      </p>
                     </div>
-                  </div>
-                  <HiOutlineDownload className="text-xl text-purple-500 group-hover:translate-x-1 transition-transform shrink-0 ml-2" />
-                </button>
-              </div>
+                    <HiOutlineDownload className="text-xl text-purple-500 group-hover:translate-x-1 transition-transform shrink-0 ml-2" />
+                  </button>
+                </div>
 
-              <div className="flex justify-end pt-1">
-                <button
-                  type="button"
-                  onClick={() => setShowExportModal(false)}
-                  className="px-4 py-2 text-xs font-syne font-bold uppercase tracking-wider text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl transition-all"
-                >
-                  Cerrar
-                </button>
-              </div>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
+                <div className="flex justify-end pt-2 border-t border-gray-100 dark:border-gray-800 shrink-0">
+                  <button
+                    type="button"
+                    onClick={() => setShowExportModal(false)}
+                    className="px-6 py-2.5 text-xs font-syne font-bold uppercase tracking-wider text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl transition-all"
+                  >
+                    Cerrar
+                  </button>
+                </div>
+              </motion.div>
+            </div>
+          )}
+        </AnimatePresence>,
+        document.body
+      )}
     </div>
   );
 }
