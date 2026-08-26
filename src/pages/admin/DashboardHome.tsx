@@ -973,102 +973,97 @@ export default function DashboardHome() {
         <AnimatePresence>
           {showExportModal && (
             <div
-              className="fixed inset-0 z-[9999] flex items-center justify-center p-4 sm:p-6 bg-black/70 backdrop-blur-md cursor-pointer"
+              className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm cursor-pointer"
               onClick={(e) => {
                 if (e.target === e.currentTarget) setShowExportModal(false);
               }}
             >
               <motion.div
-                initial={{ opacity: 0, scale: 0.95, y: 15 }}
+                initial={{ opacity: 0, scale: 0.95, y: 10 }}
                 animate={{ opacity: 1, scale: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.95, y: 15 }}
+                exit={{ opacity: 0, scale: 0.95, y: 10 }}
                 onClick={(e) => e.stopPropagation()}
-                className="bg-white dark:bg-[#111827] rounded-3xl sm:rounded-[2rem] p-6 sm:p-7 max-w-lg w-full border border-gray-200/80 dark:border-gray-800 shadow-2xl space-y-6 cursor-default overflow-hidden my-auto"
+                className="bg-white dark:bg-gray-900 rounded-3xl p-6 sm:p-7 max-w-md w-full border border-gray-100 dark:border-gray-800 shadow-2xl space-y-5 cursor-default my-auto"
               >
                 {/* Header */}
-                <div className="flex items-center justify-between pb-2 border-b border-gray-100 dark:border-gray-800/80">
-                  <div className="flex items-center gap-3.5">
-                    <div className="size-11 rounded-2xl bg-gradient-to-tr from-sky-500 via-indigo-500 to-purple-600 flex items-center justify-center text-xl text-white shadow-md shrink-0">
-                      📦
-                    </div>
-                    <div>
-                      <h3 className="font-dm-sans text-lg sm:text-xl font-bold text-gray-900 dark:text-white">
-                        Exportación & Respaldo
-                      </h3>
-                      <p className="font-inter text-xs text-gray-500 dark:text-gray-400 mt-0.5">
-                        Selecciona el formato de exportación:
-                      </p>
-                    </div>
+                <div className="flex items-center justify-between pb-3 border-b border-gray-100 dark:border-gray-800">
+                  <div>
+                    <h3 className="font-dm-sans text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                      <span>📦</span>
+                      <span>Exportar Datos</span>
+                    </h3>
+                    <p className="font-inter text-xs text-gray-400 mt-0.5">
+                      Descarga una copia de seguridad o reporte
+                    </p>
                   </div>
                   <button
                     type="button"
                     onClick={() => setShowExportModal(false)}
-                    className="p-2 text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-all shrink-0"
+                    className="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-all"
                   >
                     <HiX className="text-xl" />
                   </button>
                 </div>
 
-                {/* Cards Options */}
-                <div className="space-y-3.5">
-                  {/* 1. JSON Backup */}
+                {/* Options List */}
+                <div className="space-y-3">
+                  {/* Option 1: JSON */}
                   <button
                     type="button"
                     onClick={exportBackupJson}
                     disabled={exporting}
-                    className="w-full flex items-center justify-between p-4.5 rounded-2xl border border-sky-200/80 dark:border-sky-900/40 bg-gradient-to-r from-sky-50/80 to-indigo-50/40 dark:from-sky-950/20 dark:to-indigo-950/20 hover:from-sky-100/80 hover:to-indigo-100/60 dark:hover:from-sky-950/40 dark:hover:to-indigo-950/40 transition-all text-left group shadow-xs active:scale-[0.99]"
+                    className="w-full flex items-center gap-3.5 p-4 rounded-2xl border border-gray-100 dark:border-gray-800 bg-gray-50/70 dark:bg-gray-800/50 hover:bg-gray-100/90 dark:hover:bg-gray-800 transition-all text-left group"
                   >
-                    <div className="flex items-start gap-3.5 min-w-0 flex-1">
-                      <div className="size-10 rounded-xl bg-sky-500/10 dark:bg-sky-500/20 text-sky-600 dark:text-sky-400 flex items-center justify-center text-lg shrink-0 mt-0.5 border border-sky-200 dark:border-sky-800/60 font-bold">
-                        JSON
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <span className="font-dm-sans font-bold text-sm text-gray-900 dark:text-white">
-                            Copia Completa de Seguridad
-                          </span>
-                          <span className="text-[9px] font-syne font-bold uppercase tracking-wider bg-sky-500 text-white px-2 py-0.5 rounded-full shadow-xs">
-                            Recomendado
-                          </span>
-                        </div>
-                        <p className="font-inter text-xs text-gray-500 dark:text-gray-400 mt-1 leading-relaxed">
-                          Descarga un archivo <strong>.json</strong> con todos los datos y registros de tus 14 módulos (finanzas, notas, boveda, entrenamientos, etc.).
-                        </p>
-                      </div>
+                    <div className="size-11 rounded-xl bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 flex items-center justify-center text-xl shrink-0 font-dm-sans font-bold border border-blue-100 dark:border-blue-900/40">
+                      <HiOutlineDownload className="text-xl" />
                     </div>
-                    <HiOutlineDownload className="text-xl text-sky-500 group-hover:translate-x-1 transition-transform shrink-0 ml-3" />
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="font-dm-sans font-bold text-sm text-gray-900 dark:text-white">
+                          Copia Total (JSON)
+                        </span>
+                        <span className="text-[9px] font-syne font-bold uppercase tracking-wider text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/60 px-2 py-0.5 rounded-md border border-blue-200/50 dark:border-blue-800/40 shrink-0">
+                          Completo
+                        </span>
+                      </div>
+                      <p className="font-inter text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                        Respaldo íntegro de las 14 tablas del sistema.
+                      </p>
+                    </div>
                   </button>
 
-                  {/* 2. CSV Summary */}
+                  {/* Option 2: CSV */}
                   <button
                     type="button"
                     onClick={exportBackupCsv}
                     disabled={exporting}
-                    className="w-full flex items-center justify-between p-4.5 rounded-2xl border border-emerald-200/80 dark:border-emerald-900/40 bg-gradient-to-r from-emerald-50/80 to-teal-50/40 dark:from-emerald-950/20 dark:to-teal-950/20 hover:from-emerald-100/80 hover:to-teal-100/60 dark:hover:from-emerald-950/40 dark:hover:to-teal-950/40 transition-all text-left group shadow-xs active:scale-[0.99]"
+                    className="w-full flex items-center gap-3.5 p-4 rounded-2xl border border-gray-100 dark:border-gray-800 bg-gray-50/70 dark:bg-gray-800/50 hover:bg-gray-100/90 dark:hover:bg-gray-800 transition-all text-left group"
                   >
-                    <div className="flex items-start gap-3.5 min-w-0 flex-1">
-                      <div className="size-10 rounded-xl bg-emerald-500/10 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-lg shrink-0 mt-0.5 border border-emerald-200 dark:border-emerald-800/60 font-bold">
-                        CSV
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <div className="font-dm-sans font-bold text-sm text-gray-900 dark:text-white">
-                          Reporte Tabular para Excel
-                        </div>
-                        <p className="font-inter text-xs text-gray-500 dark:text-gray-400 mt-1 leading-relaxed">
-                          Genera un archivo <strong>.csv</strong> estructurado con desglose de gastos, pendientes, lista de mandado y recordatorios.
-                        </p>
-                      </div>
+                    <div className="size-11 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-xl shrink-0 font-dm-sans font-bold border border-emerald-100 dark:border-emerald-900/40">
+                      <HiOutlineDownload className="text-xl" />
                     </div>
-                    <HiOutlineDownload className="text-xl text-emerald-500 group-hover:translate-x-1 transition-transform shrink-0 ml-3" />
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="font-dm-sans font-bold text-sm text-gray-900 dark:text-white">
+                          Reporte Excel (CSV)
+                        </span>
+                        <span className="text-[9px] font-syne font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/60 px-2 py-0.5 rounded-md border border-emerald-200/50 dark:border-emerald-800/40 shrink-0">
+                          Tablas
+                        </span>
+                      </div>
+                      <p className="font-inter text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                        Gastos, tareas, mandado y recordatorios.
+                      </p>
+                    </div>
                   </button>
                 </div>
 
                 {/* Footer */}
-                <div className="flex justify-end pt-3 border-t border-gray-100 dark:border-gray-800/80 shrink-0">
+                <div className="flex justify-end pt-2 border-t border-gray-100 dark:border-gray-800">
                   <button
                     type="button"
                     onClick={() => setShowExportModal(false)}
-                    className="px-6 py-2.5 bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 font-syne text-xs font-bold uppercase tracking-wider rounded-xl transition-all active:scale-95"
+                    className="px-5 py-2 text-xs font-syne font-bold uppercase tracking-wider text-gray-500 hover:text-gray-800 dark:hover:text-gray-200 rounded-xl transition-all"
                   >
                     Cerrar
                   </button>
