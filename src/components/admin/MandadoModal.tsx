@@ -513,7 +513,9 @@ export default function MandadoModal({ isOpen, onClose }: MandadoModalProps) {
   return createPortal(
     <AnimatePresence>
       <div 
-        className="fixed inset-0 z-[9999] flex items-center justify-center p-2 sm:p-6 bg-black/60 backdrop-blur-sm overflow-y-auto cursor-pointer"
+        className={`fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-md cursor-pointer transition-all ${
+          isFocusMode ? 'p-0 sm:p-0' : 'p-2 sm:p-6 overflow-y-auto'
+        }`}
         onClick={(e) => {
           if (e.target === e.currentTarget) onClose();
         }}
@@ -523,7 +525,11 @@ export default function MandadoModal({ isOpen, onClose }: MandadoModalProps) {
           initial={{ opacity: 0, scale: 0.95, y: 20 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.95, y: 20 }}
-          className="bg-white dark:bg-gray-900 rounded-[1.5rem] sm:rounded-[2.5rem] p-4 sm:p-7 h-[92vh] max-h-[850px] max-w-3xl w-full border-none shadow-2xl flex flex-col overflow-hidden my-auto cursor-default"
+          className={`bg-white dark:bg-gray-900 border-none shadow-2xl flex flex-col overflow-hidden cursor-default transition-all duration-300 ${
+            isFocusMode
+              ? 'fixed inset-0 h-screen w-screen max-w-none max-h-none rounded-none p-4 sm:p-6 z-[9999]'
+              : 'rounded-[1.5rem] sm:rounded-[2.5rem] p-4 sm:p-7 h-[92vh] max-h-[850px] max-w-3xl w-full my-auto'
+          }`}
         >
           {/* ═══ FIXED HEADER SECTION ═══ */}
           <div className="shrink-0 space-y-3.5 pb-3.5 border-b border-gray-100 dark:border-gray-800">

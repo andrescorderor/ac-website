@@ -417,11 +417,6 @@ export default function DashboardHome() {
     }
   };
 
-  const handlePrintPdf = () => {
-    setShowExportModal(false);
-    window.print();
-  };
-
   const handleTestNotification = async () => {
     const granted = await requestNotificationPermission();
     if (granted) {
@@ -1019,7 +1014,7 @@ export default function DashboardHome() {
                     type="button"
                     onClick={exportBackupJson}
                     disabled={exporting}
-                    className="w-full flex items-center justify-between p-4 rounded-2xl border border-blue-200 dark:border-blue-900/50 bg-blue-50/50 dark:bg-blue-950/30 hover:bg-blue-100/60 dark:hover:bg-blue-900/40 transition-all text-left group"
+                    className="w-full flex items-center justify-between p-4.5 rounded-2xl border border-blue-200 dark:border-blue-900/50 bg-blue-50/50 dark:bg-blue-950/30 hover:bg-blue-100/60 dark:hover:bg-blue-900/40 transition-all text-left group"
                   >
                     <div className="flex items-center gap-3.5">
                       <span className="text-2xl p-2.5 bg-blue-500 text-white rounded-xl shadow-xs shrink-0">🗂️</span>
@@ -1028,12 +1023,12 @@ export default function DashboardHome() {
                           <span>Copia Completa (JSON)</span>
                           <span className="text-[9px] font-syne font-bold uppercase tracking-wider bg-blue-500 text-white px-2 py-0.5 rounded-full">Recomendado</span>
                         </div>
-                        <p className="font-inter text-[11px] text-gray-500 dark:text-gray-400 mt-0.5">
-                          Respaldo 100% íntegro de las 14 tablas del sistema listo para restaurar.
+                        <p className="font-inter text-[11px] text-gray-500 dark:text-gray-400 mt-1 leading-relaxed">
+                          Respaldo 100% íntegro de las 14 tablas del sistema con todas tus notas, finanzas, boveda, plantas y entrenamientos.
                         </p>
                       </div>
                     </div>
-                    <HiOutlineDownload className="text-xl text-blue-500 group-hover:translate-x-1 transition-transform shrink-0 ml-2" />
+                    <HiOutlineDownload className="text-2xl text-blue-500 group-hover:translate-x-1 transition-transform shrink-0 ml-2" />
                   </button>
 
                   {/* 2. CSV Summary */}
@@ -1041,40 +1036,20 @@ export default function DashboardHome() {
                     type="button"
                     onClick={exportBackupCsv}
                     disabled={exporting}
-                    className="w-full flex items-center justify-between p-4 rounded-2xl border border-emerald-200 dark:border-emerald-900/50 bg-emerald-50/50 dark:bg-emerald-950/30 hover:bg-emerald-100/60 dark:hover:bg-emerald-900/40 transition-all text-left group"
+                    className="w-full flex items-center justify-between p-4.5 rounded-2xl border border-emerald-200 dark:border-emerald-900/50 bg-emerald-50/50 dark:bg-emerald-950/30 hover:bg-emerald-100/60 dark:hover:bg-emerald-900/40 transition-all text-left group"
                   >
                     <div className="flex items-center gap-3.5">
                       <span className="text-2xl p-2.5 bg-emerald-500 text-white rounded-xl shadow-xs shrink-0">📊</span>
                       <div>
                         <div className="font-dm-sans font-bold text-sm text-gray-900 dark:text-white">
-                          Reporte para Excel (CSV)
+                          Reporte Tabular para Excel (CSV)
                         </div>
-                        <p className="font-inter text-[11px] text-gray-500 dark:text-gray-400 mt-0.5">
-                          Tablas tabulares de tus finanzas, pendientes y compras de mandado.
+                        <p className="font-inter text-[11px] text-gray-500 dark:text-gray-400 mt-1 leading-relaxed">
+                          Tablas organizadas con desglose de tus finanzas, pendientes, compras de mandado y recordatorios.
                         </p>
                       </div>
                     </div>
-                    <HiOutlineDownload className="text-xl text-emerald-500 group-hover:translate-x-1 transition-transform shrink-0 ml-2" />
-                  </button>
-
-                  {/* 3. Print / PDF */}
-                  <button
-                    type="button"
-                    onClick={handlePrintPdf}
-                    className="w-full flex items-center justify-between p-4 rounded-2xl border border-purple-200 dark:border-purple-900/50 bg-purple-50/50 dark:bg-purple-950/30 hover:bg-purple-100/60 dark:hover:bg-purple-900/40 transition-all text-left group"
-                  >
-                    <div className="flex items-center gap-3.5">
-                      <span className="text-2xl p-2.5 bg-purple-500 text-white rounded-xl shadow-xs shrink-0">📄</span>
-                      <div>
-                        <div className="font-dm-sans font-bold text-sm text-gray-900 dark:text-white">
-                          Imprimir / Guardar como PDF
-                        </div>
-                        <p className="font-inter text-[11px] text-gray-500 dark:text-gray-400 mt-0.5">
-                          Abre el diálogo del navegador para imprimir o guardar en PDF.
-                        </p>
-                      </div>
-                    </div>
-                    <HiOutlineDownload className="text-xl text-purple-500 group-hover:translate-x-1 transition-transform shrink-0 ml-2" />
+                    <HiOutlineDownload className="text-2xl text-emerald-500 group-hover:translate-x-1 transition-transform shrink-0 ml-2" />
                   </button>
                 </div>
 
