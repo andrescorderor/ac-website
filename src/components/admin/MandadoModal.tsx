@@ -188,6 +188,7 @@ export default function MandadoModal({ isOpen, onClose }: MandadoModalProps) {
       const itemPrice = inputPrice ? parseFloat(inputPrice) : null;
       const nowIso = new Date().toISOString();
 
+      const existingItem = editingId ? items.find((i) => i.id === editingId) : null;
       const payload: any = {
         user_id: user.id,
         name: inputName.trim(),
@@ -197,7 +198,7 @@ export default function MandadoModal({ isOpen, onClose }: MandadoModalProps) {
         priority: 'Media',
         type: inputType,
         category: inputCategory,
-        bought: false,
+        bought: existingItem ? existingItem.bought : false,
         updated_at: nowIso,
       };
 
@@ -218,7 +219,7 @@ export default function MandadoModal({ isOpen, onClose }: MandadoModalProps) {
 
         if (error) throw error;
 
-        setItems(items.map((i) => (i.id === editingId ? { ...i, ...payload, type: inputType, category: inputCategory, quantity: inputQuantity.trim() || null } : i)));
+        setItems(items.map((i) => (i.id === editingId ? { ...i, ...payload, type: inputType, category: inputCategory, quantity: inputQuantity.trim() || null, bought: existingItem ? existingItem.bought : i.bought } : i)));
         setInputName('');
         setInputQuantity('');
         setInputLocation('');
