@@ -21,7 +21,7 @@ jobs:
 
       - name: Install web-push and supabase dependencies
         run: |
-          npm install web-push @supabase/supabase-js
+          npm install --no-save --legacy-peer-deps web-push @supabase/supabase-js
 
       - name: Send Web Push Notifications
         env:
