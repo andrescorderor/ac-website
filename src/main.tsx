@@ -25,6 +25,7 @@ import ChecklistMensual from '@pages/admin/ChecklistMensual';
 import Recetas from '@pages/admin/Recetas';
 import Plantas from '@pages/admin/Plantas';
 import Entrenamiento from '@pages/admin/Entrenamiento';
+import NotFound from '@pages/NotFound';
 
 registerSW({ immediate: true });
 
@@ -104,6 +105,10 @@ const router = createBrowserRouter([
         element: <Entrenamiento />,
       },
     ],
+  },
+  {
+    path: '*',
+    element: <NotFound />,
   },
 ]);
 

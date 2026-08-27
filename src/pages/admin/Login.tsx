@@ -11,6 +11,7 @@ export default function Login() {
   const navigate = useNavigate();
 
   useEffect(() => {
+    document.title = 'Acceso • Panel Privado | Andrés Cordero';
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session) {
         navigate('/admin/panel', { replace: true });

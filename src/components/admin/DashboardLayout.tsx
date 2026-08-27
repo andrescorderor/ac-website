@@ -89,6 +89,27 @@ function DashboardLayoutContent() {
   }, []);
 
   useEffect(() => {
+    const routeTitles: Record<string, string> = {
+      '/admin/panel': 'Inicio • Panel Privado',
+      '/admin/panel/finanzas': 'Finanzas • Panel Privado',
+      '/admin/panel/pendientes': 'Pendientes & Tareas • Panel Privado',
+      '/admin/panel/deudas': 'Deudas & Cobros • Panel Privado',
+      '/admin/panel/vault': 'Bóveda de Textos • Panel Privado',
+      '/admin/panel/compras': 'Lista de Compras & Mandado • Panel Privado',
+      '/admin/panel/recordatorios': 'Fechas & Recordatorios • Panel Privado',
+      '/admin/panel/enlaces': 'Enlaces Rápidos • Panel Privado',
+      '/admin/panel/notas': 'Notas Importantes • Panel Privado',
+      '/admin/panel/entrenamiento': 'Gym & Rutinas • Panel Privado',
+      '/admin/panel/proyectos': 'Proyectos Creativos • Panel Privado',
+      '/admin/panel/checklist': 'Checklist Mensual • Panel Privado',
+      '/admin/panel/recetas': 'Recetario Fitness • Panel Privado',
+      '/admin/panel/plantas': 'Mis Plantas • Panel Privado',
+    };
+    const title = routeTitles[location.pathname] || 'Panel Privado';
+    document.title = `${title} | Andrés Cordero`;
+  }, [location.pathname]);
+
+  useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
         e.preventDefault();
@@ -226,7 +247,7 @@ function DashboardLayoutContent() {
 
           <div className="text-center select-none pt-1">
             <span className="font-syne text-[9px] font-bold tracking-widest text-gray-400 dark:text-gray-600 block">
-              VERSIÓN v5.13.0
+              VERSIÓN v6.0.0
             </span>
           </div>
         </div>
@@ -367,7 +388,7 @@ function DashboardLayoutContent() {
 
           <div className="text-center select-none pt-2">
             <span className="font-syne text-[9px] font-bold tracking-widest text-gray-400 dark:text-gray-600 block">
-              VERSIÓN v5.13.0
+              VERSIÓN v6.0.0
             </span>
           </div>
         </div>

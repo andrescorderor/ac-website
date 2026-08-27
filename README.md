@@ -1,7 +1,7 @@
 <div align="center">
   <img src="public/assets/ac-website-icon.svg" alt="Logo" width="100" />
   
-  # Andrés Cordero - Professional Portfolio & Personal Panel PWA (v5.13.0) 📦🎯
+  # Andrés Cordero - Professional Portfolio & Personal Panel PWA (v6.0.0) 🚀✨
   
   **Welcome to my personal ecosystem: a professional portfolio and a custom productivity hub.**  
   Built with UX/UI best practices, premium design, and a focus on mobile-first efficiency.
@@ -16,11 +16,18 @@
 
 ---
 
-## 🚀 Overview (Version 5.13.0)
+## 🚀 Overview (Version 6.0.0 - Major Milestone)
 
 This repository hosts a dual-purpose platform:
-1. **Professional Portfolio:** A high-end landing page showcasing my engineering background, skills, and achievements.
-2. **Personal Panel PWA (v5.13.0):** An executive personal operating system featuring **Harmonious & Minimalist Export Modal (Exportar Datos)** (streamlined proportion, discrete badges, balanced typography, and cohesive dark/light surfaces), **True Full-Screen Supermarket Focus Mode (⚡ Modo Súper a Pantalla Completa)**, **Portal-Rendered Modals with Clean Single-Scroll Architecture**, **Refined Aesthetic Brand Presentation & Authentic Profile Avatar Integration**, and **Gym & Workout Routines (Registro de Entrenamiento)**.
+1. **Professional Portfolio:** A high-end landing page showcasing my engineering background, skills, and achievements with dynamic copyright year updates and zero horizontal overflow.
+2. **Personal Panel PWA (v6.0.0):** An executive personal operating system featuring:
+   * **Full Horizontal Overflow Protection:** Multi-layer containment across desktop, mobile and tablet.
+   * **Custom Interactive 404 Page (`NotFound.tsx`):** Glassmorphism design, ambient lighting, and one-click restoration navigation.
+   * **Dynamic Route Title Synchronization:** Real-time document title updates reflecting the active section.
+   * **Safe Environment Protection & API Key Masking:** Comprehensive `.gitignore` protection and `.env.example` templates.
+   * **True Full-Screen Supermarket Focus Mode (`⚡ Modo Súper`):** Single-hand shopping with Screen WakeLock.
+   * **Universal Toast System & Feedback:** Success, error, information and undoable destructive action management across all 14 modules.
+   * **Gym & Workout Routines (Registro de Entrenamiento):** Day A / Day B tracking with failure maximum weights.
 
 ---
 

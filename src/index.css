@@ -42,6 +42,11 @@
 .font-syne    { font-family: 'Syne', sans-serif; }
 .font-dm-sans { font-family: 'DM Sans', sans-serif; }
 
+html, body {
+  overflow-x: hidden;
+  max-width: 100vw;
+}
+
 body {
   font-family: 'Inter', sans-serif;
   background-color: var(--soft-light-gray);
