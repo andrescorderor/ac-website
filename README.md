@@ -1,7 +1,7 @@
 <div align="center">
   <img src="public/assets/ac-website-icon.svg" alt="Logo" width="100" />
   
-  # Andrés Cordero - Professional Portfolio & Personal Panel PWA (v6.0.0) 🚀✨
+  # Andrés Cordero - Professional Portfolio & Personal Panel PWA (v6.1.0) 📝⚡
   
   **Welcome to my personal ecosystem: a professional portfolio and a custom productivity hub.**  
   Built with UX/UI best practices, premium design, and a focus on mobile-first efficiency.
@@ -16,11 +16,12 @@
 
 ---
 
-## 🚀 Overview (Version 6.0.0 - Major Milestone)
+## 🚀 Overview (Version 6.1.0)
 
 This repository hosts a dual-purpose platform:
 1. **Professional Portfolio:** A high-end landing page showcasing my engineering background, skills, and achievements with dynamic copyright year updates and zero horizontal overflow.
-2. **Personal Panel PWA (v6.0.0):** An executive personal operating system featuring:
+2. **Personal Panel PWA (v6.1.0):** An executive personal operating system featuring:
+   * **Smart Rich Text Editor & Live Preview Mode (`RichTextEditor.tsx`):** Eliminates caret jumping and formatting collisions. Supports **smart `Enter` bullet auto-continuation**, numbered lists, instant markdown insertion tools (`H3`, `Negrita`, `Viñeta`, `Lista`), and a seamless **Editor / Vista Previa** tab toggle.
    * **Full Horizontal Overflow Protection:** Multi-layer containment across desktop, mobile and tablet.
    * **Custom Interactive 404 Page (`NotFound.tsx`):** Glassmorphism design, ambient lighting, and one-click restoration navigation.
    * **Dynamic Route Title Synchronization:** Real-time document title updates reflecting the active section.
