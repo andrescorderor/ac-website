@@ -1,7 +1,7 @@
 <div align="center">
   <img src="public/assets/ac-website-icon.svg" alt="Logo" width="100" />
   
-  # Andrés Cordero - Professional Portfolio & Personal Panel PWA (v6.2.0) 🥗🔒
+  # Andrés Cordero - Professional Portfolio & Personal Panel PWA (v6.3.0) 🪴💧
   
   **Welcome to my personal ecosystem: a professional portfolio and a custom productivity hub.**  
   Built with UX/UI best practices, premium design, and a focus on mobile-first efficiency.
@@ -16,13 +16,14 @@
 
 ---
 
-## 🚀 Overview (Version 6.2.0)
+## 🚀 Overview (Version 6.3.0)
 
 This repository hosts a dual-purpose platform:
 1. **Professional Portfolio:** A high-end landing page showcasing my engineering background, skills, and achievements with dynamic copyright year updates and zero horizontal overflow.
-2. **Personal Panel PWA (v6.2.0):** An executive personal operating system featuring:
-   * **Preservation of Purchase State during Mandado Edits (`MandadoModal.tsx`):** Editing an item's price, quantity, category or store location now safely preserves its current bought/checked status (`bought: boolean`) without accidentally unmarking items.
-   * **Smart Rich Text Editor & Live Preview Mode (`RichTextEditor.tsx`):** Eliminates caret jumping and formatting collisions with **smart `Enter` bullet auto-continuation**, numbered lists, and instant markdown tools.
+2. **Personal Panel PWA (v6.3.0):** An executive personal operating system featuring:
+   * **Precise Day-Of Plant Watering Notifications (`notifications.ts`):** Plant watering alerts are strictly scheduled to dispatch **only on the exact day of watering (`diffDays <= 0`)**, eliminating premature "1 day before" advance alerts so you only get notified when your plants actually need water.
+   * **Preservation of Purchase State during Mandado Edits (`MandadoModal.tsx`):** Safely preserves bought status when updating details.
+   * **Smart Rich Text Editor & Live Preview Mode (`RichTextEditor.tsx`):** Eliminates caret jumping with **smart `Enter` bullet auto-continuation**, numbered lists, and instant markdown tools.
    * **Full Horizontal Overflow Protection:** Multi-layer containment across desktop, mobile and tablet.
    * **Custom Interactive 404 Page (`NotFound.tsx`):** Glassmorphism design, ambient lighting, and one-click restoration navigation.
    * **Dynamic Route Title Synchronization:** Real-time document title updates reflecting the active section.

@@ -219,13 +219,9 @@ export async function scanAndNotifyUpcomingEvents() {
         const diffDays = Math.ceil((nextWatering.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
         const plantNotifId = `plant_${p.id}_${diffDays}`;
 
-        if (diffDays <= 1 && !notifiedSet.has(plantNotifId)) {
-          let msg = '';
-          if (diffDays <= 0) msg = `¡Es hora de regar a ${p.nickname}! (${p.species})`;
-          else msg = `Mañana toca regar a ${p.nickname} (${p.species})`;
-
+        if (diffDays <= 0 && !notifiedSet.has(plantNotifId)) {
           sendBrowserNotification(`${p.emoji || '🪴'} Riego de Planta: ${p.nickname}`, {
-            body: `${msg}. Frecuencia: cada ${p.watering_frequency_days} días.`,
+            body: `¡Hoy toca regar a ${p.nickname} (${p.species})! Frecuencia: cada ${p.watering_frequency_days} días.`,
             tag: plantNotifId,
           });
 
