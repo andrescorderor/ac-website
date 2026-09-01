@@ -1,0 +1,19 @@
+{
+  "exported_at": "2026-09-01T02:48:21.643Z",
+  "tables": {
+    "finance_expenses": [],
+    "finance_salary": [],
+    "tasks": [],
+    "debts": [],
+    "vault_items": [],
+    "shopping_list": [],
+    "reminders": [],
+    "notes": [],
+    "bookmarks": [],
+    "creative_projects": [],
+    "monthly_checklist_items": [],
+    "monthly_checklist_logs": [],
+    "recipes": [],
+    "plants": []
+  }
+}
