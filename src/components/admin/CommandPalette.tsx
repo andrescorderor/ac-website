@@ -284,146 +284,116 @@ export default function CommandPalette({ isOpen, onClose }: CommandPaletteProps)
     const termNorm = term.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
 
     try {
-      // Use cached lightweight snapshot when opening or searching, drastically saving Egress
-      const cacheKey = term ? `search_${term}` : 'search_initial';
-
-      const resultsData = await fetchWithCache(cacheKey, async () => {
-        let notesQ = supabase.from('notes').select('id, title, category, content, created_at').order('created_at', { ascending: false });
-        let remindersQ = supabase.from('reminders').select('id, title, category, date, time, event_date, created_at').order('created_at', { ascending: false });
-        let tasksQ = supabase.from('tasks').select('id, title, description, completed, due_date, created_at').order('created_at', { ascending: false });
-        let debtsQ = supabase.from('debts').select('id, debtor_name, amount, concept, settled, created_at').order('created_at', { ascending: false });
-        let vaultQ = supabase.from('vault_items').select('id, title, category, content, created_at').order('created_at', { ascending: false }).limit(200);
-        let shoppingQ = supabase.from('shopping_list').select('id, name, location, price, bought, created_at').order('created_at', { ascending: false });
-        let projectsQ = supabase.from('creative_projects').select('id, name, description, category, status, emoji, created_at').order('created_at', { ascending: false });
-        let checklistQ = supabase.from('monthly_checklist_items').select('id, title, category, created_at').order('created_at', { ascending: false });
-        let recipesQ = supabase.from('recipes').select('id, name, description, category, emoji, created_at').order('created_at', { ascending: false });
-        let financeQ = supabase.from('finance_expenses').select('id, concept, amount, category, date, created_at').order('created_at', { ascending: false });
-        let plantsQ = supabase.from('plants').select('id, nickname, species, location, notes, emoji, created_at').order('created_at', { ascending: false });
-        let bookmarksQ = supabase.from('bookmarks').select('id, title, url, category, created_at').order('created_at', { ascending: false });
-
-        if (term) {
-          notesQ = notesQ.or(`title.ilike.%${term}%,content.ilike.%${term}%,category.ilike.%${term}%`).limit(30);
-          remindersQ = remindersQ.or(`title.ilike.%${term}%,category.ilike.%${term}%`).limit(30);
-          tasksQ = tasksQ.or(`title.ilike.%${term}%,description.ilike.%${term}%`).limit(30);
-          debtsQ = debtsQ.or(`debtor_name.ilike.%${term}%,concept.ilike.%${term}%`).limit(30);
-          shoppingQ = shoppingQ.or(`name.ilike.%${term}%,location.ilike.%${term}%`).limit(30);
-          projectsQ = projectsQ.or(`name.ilike.%${term}%,description.ilike.%${term}%,category.ilike.%${term}%`).limit(30);
-          checklistQ = checklistQ.or(`title.ilike.%${term}%,category.ilike.%${term}%`).limit(30);
-          recipesQ = recipesQ.or(`name.ilike.%${term}%,description.ilike.%${term}%,category.ilike.%${term}%`).limit(30);
-          financeQ = financeQ.or(`concept.ilike.%${term}%,category.ilike.%${term}%`).limit(30);
-          plantsQ = plantsQ.or(`nickname.ilike.%${term}%,species.ilike.%${term}%,location.ilike.%${term}%,notes.ilike.%${term}%`).limit(30);
-          bookmarksQ = bookmarksQ.or(`title.ilike.%${term}%,url.ilike.%${term}%,category.ilike.%${term}%`).limit(30);
-        } else {
-          notesQ = notesQ.limit(15);
-          remindersQ = remindersQ.limit(15);
-          tasksQ = tasksQ.limit(15);
-          debtsQ = debtsQ.limit(15);
-          shoppingQ = shoppingQ.limit(15);
-          projectsQ = projectsQ.limit(15);
-          checklistQ = checklistQ.limit(15);
-          recipesQ = recipesQ.limit(15);
-          financeQ = financeQ.limit(15);
-          plantsQ = plantsQ.limit(15);
-          bookmarksQ = bookmarksQ.limit(15);
-        }
-
+      // Use cached lightweight snapshot of the user's data with 2-minute TTL
+      // This loads all lightweight entries once and performs 100% accent-insensitive matching client-side
+      const resultsData = await fetchWithCache('search_global_dataset', async () => {
         const [nts, rem, tsk, dbt, vlt, shp, prj, chk, rec, fin, plt, bkmRes] = await Promise.all([
-          notesQ,
-          remindersQ,
-          tasksQ,
-          debtsQ,
-          vaultQ,
-          shoppingQ,
-          projectsQ,
-          checklistQ,
-          recipesQ,
-          financeQ,
-          plantsQ,
-          bookmarksQ,
+          supabase.from('notes').select('id, title, category, content, created_at').order('created_at', { ascending: false }).limit(200),
+          supabase.from('reminders').select('id, title, category, date, time, event_date, created_at').order('created_at', { ascending: false }).limit(200),
+          supabase.from('tasks').select('id, title, description, completed, due_date, created_at').order('created_at', { ascending: false }).limit(200),
+          supabase.from('debts').select('id, debtor_name, amount, concept, settled, created_at').order('created_at', { ascending: false }).limit(200),
+          supabase.from('vault_items').select('id, title, category, content, created_at').order('created_at', { ascending: false }).limit(200),
+          supabase.from('shopping_list').select('id, name, location, price, bought, created_at').order('created_at', { ascending: false }).limit(200),
+          supabase.from('creative_projects').select('id, name, description, category, status, emoji, created_at').order('created_at', { ascending: false }).limit(200),
+          supabase.from('monthly_checklist_items').select('id, title, category, created_at').order('created_at', { ascending: false }).limit(200),
+          supabase.from('recipes').select('id, name, description, category, emoji, created_at').order('created_at', { ascending: false }).limit(200),
+          supabase.from('finance_expenses').select('id, concept, amount, category, date, created_at').order('created_at', { ascending: false }).limit(200),
+          supabase.from('plants').select('id, nickname, species, location, notes, emoji, created_at').order('created_at', { ascending: false }).limit(200),
+          supabase.from('bookmarks').select('id, title, url, category, created_at').order('created_at', { ascending: false }).limit(200),
         ]);
 
         return { nts, rem, tsk, dbt, vlt, shp, prj, chk, rec, fin, plt, bkmRes };
-      }, 60 * 1000); // 1-minute TTL for instant searches without duplicate network requests
+      }, 2 * 60 * 1000);
 
       const { nts, rem, tsk, dbt, vlt, shp, prj, chk, rec, fin, plt, bkmRes } = resultsData;
 
       const items: SearchResult[] = [];
       const push = (r: SearchResult) => items.push(r);
 
+      // Helper function for diacritics removal
+      const normalize = (s: string | null | undefined) => (s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+
       nts.data?.forEach(n => {
         if (n.category?.startsWith('Fitness_Routine_Data:')) return;
-        if (!term || n.title.toLowerCase().includes(term) || n.content?.toLowerCase().includes(term) || n.category?.toLowerCase().includes(term)) {
+        const match = !termNorm || normalize(n.title).includes(termNorm) || normalize(n.content).includes(termNorm) || normalize(n.category).includes(termNorm);
+        if (match) {
           push({ id: n.id, type: 'note', title: n.title, subtitle: n.category || n.content?.slice(0, 70), path: '/admin/panel/notas', icon: TYPE_META.note.icon, categoryLabel: TYPE_META.note.label, badgeColor: TYPE_META.note.color, rawTitle: n.title });
         }
       });
 
       rem.data?.forEach(r => {
-        if (!term || r.title.toLowerCase().includes(term) || r.category?.toLowerCase().includes(term)) {
+        const match = !termNorm || normalize(r.title).includes(termNorm) || normalize(r.category).includes(termNorm);
+        if (match) {
           push({ id: r.id, type: 'reminder', title: r.title, subtitle: `${r.date || r.event_date || 'Sin fecha'}${r.time ? ` · ${r.time}` : ''}`, path: '/admin/panel/recordatorios', icon: TYPE_META.reminder.icon, categoryLabel: TYPE_META.reminder.label, badgeColor: TYPE_META.reminder.color, rawTitle: r.title });
         }
       });
 
       tsk.data?.forEach(t => {
-        if (!term || t.title.toLowerCase().includes(term) || t.description?.toLowerCase().includes(term)) {
+        const match = !termNorm || normalize(t.title).includes(termNorm) || normalize(t.description).includes(termNorm);
+        if (match) {
           push({ id: t.id, type: 'task', title: t.title, subtitle: t.completed ? '✓ Completada' : t.due_date ? `Vence: ${t.due_date}` : 'Pendiente', path: '/admin/panel/pendientes', icon: TYPE_META.task.icon, categoryLabel: TYPE_META.task.label, badgeColor: TYPE_META.task.color, rawTitle: t.title });
         }
       });
 
       dbt.data?.forEach(d => {
-        if (!term || d.debtor_name.toLowerCase().includes(term) || d.concept?.toLowerCase().includes(term)) {
+        const match = !termNorm || normalize(d.debtor_name).includes(termNorm) || normalize(d.concept).includes(termNorm);
+        if (match) {
           push({ id: d.id, type: 'debt', title: d.debtor_name, subtitle: `$${d.amount}${d.concept ? ` · ${d.concept}` : ''}`, path: '/admin/panel/deudas', icon: TYPE_META.debt.icon, categoryLabel: TYPE_META.debt.label, badgeColor: TYPE_META.debt.color, rawTitle: d.debtor_name });
         }
       });
 
       vlt.data?.forEach(v => {
-        // Normalize diacritics in both the field and the search term for robust accent-insensitive matching
-        const normalize = (s: string) => s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-        const titleNorm = normalize(v.title);
-        const contentNorm = v.content ? normalize(v.content) : '';
-        const catNorm = v.category ? normalize(v.category) : '';
-        if (!termNorm || titleNorm.includes(termNorm) || contentNorm.includes(termNorm) || catNorm.includes(termNorm)) {
+        const match = !termNorm || normalize(v.title).includes(termNorm) || normalize(v.content).includes(termNorm) || normalize(v.category).includes(termNorm);
+        if (match) {
           push({ id: v.id, type: 'vault', title: v.title, subtitle: v.category ? `${v.category} · ${v.content?.slice(0, 50)}...` : (v.content?.slice(0, 70) || '🔒 Texto seguro en bóveda'), path: '/admin/panel/vault', icon: TYPE_META.vault.icon, categoryLabel: TYPE_META.vault.label, badgeColor: TYPE_META.vault.color, rawTitle: v.title });
         }
       });
 
       shp.data?.forEach(s => {
-        if (!term || s.name.toLowerCase().includes(term) || s.location?.toLowerCase().includes(term)) {
+        const match = !termNorm || normalize(s.name).includes(termNorm) || normalize(s.location).includes(termNorm);
+        if (match) {
           push({ id: s.id, type: 'shopping', title: s.name, subtitle: `${s.bought ? '✓ Comprado' : 'Por comprar'}${s.location ? ` · ${s.location}` : ''}`, path: '/admin/panel/compras', icon: TYPE_META.shopping.icon, categoryLabel: TYPE_META.shopping.label, badgeColor: TYPE_META.shopping.color, rawTitle: s.name });
         }
       });
 
       prj.data?.forEach(p => {
-        if (!term || p.name.toLowerCase().includes(term) || p.description?.toLowerCase().includes(term) || p.category?.toLowerCase().includes(term)) {
+        const match = !termNorm || normalize(p.name).includes(termNorm) || normalize(p.description).includes(termNorm) || normalize(p.category).includes(termNorm);
+        if (match) {
           push({ id: p.id, type: 'project', title: `${p.emoji || '🎨'} ${p.name}`, subtitle: p.category, path: '/admin/panel/proyectos', icon: TYPE_META.project.icon, categoryLabel: TYPE_META.project.label, badgeColor: TYPE_META.project.color, rawTitle: p.name });
         }
       });
 
       chk.data?.forEach(c => {
-        if (!term || c.title.toLowerCase().includes(term) || c.category?.toLowerCase().includes(term)) {
+        const match = !termNorm || normalize(c.title).includes(termNorm) || normalize(c.category).includes(termNorm);
+        if (match) {
           push({ id: c.id, type: 'checklist', title: c.title, subtitle: c.category, path: '/admin/panel/checklist', icon: TYPE_META.checklist.icon, categoryLabel: TYPE_META.checklist.label, badgeColor: TYPE_META.checklist.color, rawTitle: c.title });
         }
       });
 
       rec.data?.forEach(r => {
-        if (!term || r.name.toLowerCase().includes(term) || r.category?.toLowerCase().includes(term) || r.description?.toLowerCase().includes(term)) {
+        const match = !termNorm || normalize(r.name).includes(termNorm) || normalize(r.category).includes(termNorm) || normalize(r.description).includes(termNorm);
+        if (match) {
           push({ id: r.id, type: 'recipe', title: `${r.emoji || '🍽️'} ${r.name}`, subtitle: r.category, path: '/admin/panel/recetas', icon: TYPE_META.recipe.icon, categoryLabel: TYPE_META.recipe.label, badgeColor: TYPE_META.recipe.color, rawTitle: r.name });
         }
       });
 
       fin.data?.forEach(f => {
-        if (!term || f.concept.toLowerCase().includes(term) || f.category?.toLowerCase().includes(term)) {
+        const match = !termNorm || normalize(f.concept).includes(termNorm) || normalize(f.category).includes(termNorm);
+        if (match) {
           push({ id: f.id, type: 'finance', title: f.concept, subtitle: `$${f.amount} · ${f.category}`, path: '/admin/panel/finanzas', icon: TYPE_META.finance.icon, categoryLabel: TYPE_META.finance.label, badgeColor: TYPE_META.finance.color, rawTitle: f.concept });
         }
       });
 
       plt.data?.forEach(p => {
-        if (!term || p.nickname.toLowerCase().includes(term) || p.species.toLowerCase().includes(term) || p.notes?.toLowerCase().includes(term)) {
+        const match = !termNorm || normalize(p.nickname).includes(termNorm) || normalize(p.species).includes(termNorm) || normalize(p.notes).includes(termNorm);
+        if (match) {
           push({ id: p.id, type: 'plant', title: `${p.emoji || '🪴'} ${p.nickname}`, subtitle: `${p.species}${p.location ? ` · ${p.location}` : ''}`, path: '/admin/panel/plantas', icon: TYPE_META.plant.icon, categoryLabel: TYPE_META.plant.label, badgeColor: TYPE_META.plant.color, rawTitle: p.nickname });
         }
       });
 
       bkmRes.data?.forEach(b => {
-        if (!term || b.title.toLowerCase().includes(term) || b.url.toLowerCase().includes(term) || b.category?.toLowerCase().includes(term)) {
+        const match = !termNorm || normalize(b.title).includes(termNorm) || normalize(b.url).includes(termNorm) || normalize(b.category).includes(termNorm);
+        if (match) {
           push({ id: b.id, type: 'bookmark', title: b.title, subtitle: `${b.category || 'General'} · ${b.url}`, path: '/admin/panel/enlaces', icon: TYPE_META.bookmark.icon, categoryLabel: TYPE_META.bookmark.label, badgeColor: TYPE_META.bookmark.color, rawTitle: b.title });
         }
       });
@@ -435,17 +405,20 @@ export default function CommandPalette({ isOpen, onClose }: CommandPaletteProps)
           const parsed = JSON.parse(w.content);
           routineSub = `${parsed.dayType === 'Dia_A' ? '⚡ Día A' : '🔥 Día B'} • ${parsed.focusMuscles} (${parsed.exercises?.length || 0} ejercicios)`;
         } catch {}
-        push({
-          id: w.id,
-          type: 'workout',
-          title: w.title.replace('🏋️ ', ''),
-          subtitle: routineSub,
-          path: '/admin/panel/entrenamiento',
-          icon: TYPE_META.workout.icon,
-          categoryLabel: TYPE_META.workout.label,
-          badgeColor: TYPE_META.workout.color,
-          rawTitle: w.title,
-        });
+        const match = !termNorm || normalize(w.title).includes(termNorm) || normalize(routineSub).includes(termNorm);
+        if (match) {
+          push({
+            id: w.id,
+            type: 'workout',
+            title: w.title.replace('🏋️ ', ''),
+            subtitle: routineSub,
+            path: '/admin/panel/entrenamiento',
+            icon: TYPE_META.workout.icon,
+            categoryLabel: TYPE_META.workout.label,
+            badgeColor: TYPE_META.workout.color,
+            rawTitle: w.title,
+          });
+        }
       });
 
       setResults(items);
