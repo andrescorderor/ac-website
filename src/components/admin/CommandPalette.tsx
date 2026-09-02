@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/lib/supabase';
+import { fetchWithCache } from '@/lib/cache';
 import { motion, AnimatePresence } from 'framer-motion';
 import { togglePinItem, isItemPinned } from '@/lib/pinned';
 import {
@@ -283,61 +284,68 @@ export default function CommandPalette({ isOpen, onClose }: CommandPaletteProps)
     const termNorm = term.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
 
     try {
-      let notesQ = supabase.from('notes').select('*').order('created_at', { ascending: false });
-      let remindersQ = supabase.from('reminders').select('*').order('created_at', { ascending: false });
-      let tasksQ = supabase.from('tasks').select('*').order('created_at', { ascending: false });
-      let debtsQ = supabase.from('debts').select('*').order('created_at', { ascending: false });
-      // Vault: always load ALL items — filtered 100% client-side with accent-insensitive comparison
-      const vaultQ = supabase.from('vault_items').select('*').order('created_at', { ascending: false }).limit(500);
-      let shoppingQ = supabase.from('shopping_list').select('*').order('created_at', { ascending: false });
-      let projectsQ = supabase.from('creative_projects').select('*').order('created_at', { ascending: false });
-      let checklistQ = supabase.from('monthly_checklist_items').select('*').order('created_at', { ascending: false });
-      let recipesQ = supabase.from('recipes').select('*').order('created_at', { ascending: false });
-      let financeQ = supabase.from('finance_expenses').select('*').order('created_at', { ascending: false });
-      let plantsQ = supabase.from('plants').select('*').order('created_at', { ascending: false });
-      let bookmarksQ = supabase.from('bookmarks').select('*').order('created_at', { ascending: false });
+      // Use cached lightweight snapshot when opening or searching, drastically saving Egress
+      const cacheKey = term ? `search_${term}` : 'search_initial';
 
-      if (term) {
-        notesQ = notesQ.or(`title.ilike.%${term}%,content.ilike.%${term}%,category.ilike.%${term}%`).limit(50);
-        remindersQ = remindersQ.or(`title.ilike.%${term}%,category.ilike.%${term}%`).limit(50);
-        tasksQ = tasksQ.or(`title.ilike.%${term}%,description.ilike.%${term}%`).limit(50);
-        debtsQ = debtsQ.or(`debtor_name.ilike.%${term}%,concept.ilike.%${term}%`).limit(50);
-        // vault has no server-side filter — all items already loaded above
-        shoppingQ = shoppingQ.or(`name.ilike.%${term}%,location.ilike.%${term}%`).limit(50);
-        projectsQ = projectsQ.or(`name.ilike.%${term}%,description.ilike.%${term}%,category.ilike.%${term}%`).limit(50);
-        checklistQ = checklistQ.or(`title.ilike.%${term}%,category.ilike.%${term}%`).limit(50);
-        recipesQ = recipesQ.or(`name.ilike.%${term}%,description.ilike.%${term}%,category.ilike.%${term}%`).limit(50);
-        financeQ = financeQ.or(`concept.ilike.%${term}%,category.ilike.%${term}%`).limit(50);
-        plantsQ = plantsQ.or(`nickname.ilike.%${term}%,species.ilike.%${term}%,location.ilike.%${term}%,notes.ilike.%${term}%`).limit(50);
-        bookmarksQ = bookmarksQ.or(`title.ilike.%${term}%,url.ilike.%${term}%,category.ilike.%${term}%`).limit(50);
-      } else {
-        notesQ = notesQ.limit(20);
-        remindersQ = remindersQ.limit(20);
-        tasksQ = tasksQ.limit(20);
-        debtsQ = debtsQ.limit(20);
-        shoppingQ = shoppingQ.limit(20);
-        projectsQ = projectsQ.limit(20);
-        checklistQ = checklistQ.limit(20);
-        recipesQ = recipesQ.limit(20);
-        financeQ = financeQ.limit(20);
-        plantsQ = plantsQ.limit(20);
-        bookmarksQ = bookmarksQ.limit(20);
-      }
+      const resultsData = await fetchWithCache(cacheKey, async () => {
+        let notesQ = supabase.from('notes').select('id, title, category, content, created_at').order('created_at', { ascending: false });
+        let remindersQ = supabase.from('reminders').select('id, title, category, date, time, event_date, created_at').order('created_at', { ascending: false });
+        let tasksQ = supabase.from('tasks').select('id, title, description, completed, due_date, created_at').order('created_at', { ascending: false });
+        let debtsQ = supabase.from('debts').select('id, debtor_name, amount, concept, settled, created_at').order('created_at', { ascending: false });
+        let vaultQ = supabase.from('vault_items').select('id, title, category, content, created_at').order('created_at', { ascending: false }).limit(200);
+        let shoppingQ = supabase.from('shopping_list').select('id, name, location, price, bought, created_at').order('created_at', { ascending: false });
+        let projectsQ = supabase.from('creative_projects').select('id, name, description, category, status, emoji, created_at').order('created_at', { ascending: false });
+        let checklistQ = supabase.from('monthly_checklist_items').select('id, title, category, created_at').order('created_at', { ascending: false });
+        let recipesQ = supabase.from('recipes').select('id, name, description, category, emoji, created_at').order('created_at', { ascending: false });
+        let financeQ = supabase.from('finance_expenses').select('id, concept, amount, category, date, created_at').order('created_at', { ascending: false });
+        let plantsQ = supabase.from('plants').select('id, nickname, species, location, notes, emoji, created_at').order('created_at', { ascending: false });
+        let bookmarksQ = supabase.from('bookmarks').select('id, title, url, category, created_at').order('created_at', { ascending: false });
 
-      const [nts, rem, tsk, dbt, vlt, shp, prj, chk, rec, fin, plt, bkmRes] = await Promise.all([
-        notesQ,
-        remindersQ,
-        tasksQ,
-        debtsQ,
-        vaultQ,
-        shoppingQ,
-        projectsQ,
-        checklistQ,
-        recipesQ,
-        financeQ,
-        plantsQ,
-        bookmarksQ,
-      ]);
+        if (term) {
+          notesQ = notesQ.or(`title.ilike.%${term}%,content.ilike.%${term}%,category.ilike.%${term}%`).limit(30);
+          remindersQ = remindersQ.or(`title.ilike.%${term}%,category.ilike.%${term}%`).limit(30);
+          tasksQ = tasksQ.or(`title.ilike.%${term}%,description.ilike.%${term}%`).limit(30);
+          debtsQ = debtsQ.or(`debtor_name.ilike.%${term}%,concept.ilike.%${term}%`).limit(30);
+          shoppingQ = shoppingQ.or(`name.ilike.%${term}%,location.ilike.%${term}%`).limit(30);
+          projectsQ = projectsQ.or(`name.ilike.%${term}%,description.ilike.%${term}%,category.ilike.%${term}%`).limit(30);
+          checklistQ = checklistQ.or(`title.ilike.%${term}%,category.ilike.%${term}%`).limit(30);
+          recipesQ = recipesQ.or(`name.ilike.%${term}%,description.ilike.%${term}%,category.ilike.%${term}%`).limit(30);
+          financeQ = financeQ.or(`concept.ilike.%${term}%,category.ilike.%${term}%`).limit(30);
+          plantsQ = plantsQ.or(`nickname.ilike.%${term}%,species.ilike.%${term}%,location.ilike.%${term}%,notes.ilike.%${term}%`).limit(30);
+          bookmarksQ = bookmarksQ.or(`title.ilike.%${term}%,url.ilike.%${term}%,category.ilike.%${term}%`).limit(30);
+        } else {
+          notesQ = notesQ.limit(15);
+          remindersQ = remindersQ.limit(15);
+          tasksQ = tasksQ.limit(15);
+          debtsQ = debtsQ.limit(15);
+          shoppingQ = shoppingQ.limit(15);
+          projectsQ = projectsQ.limit(15);
+          checklistQ = checklistQ.limit(15);
+          recipesQ = recipesQ.limit(15);
+          financeQ = financeQ.limit(15);
+          plantsQ = plantsQ.limit(15);
+          bookmarksQ = bookmarksQ.limit(15);
+        }
+
+        const [nts, rem, tsk, dbt, vlt, shp, prj, chk, rec, fin, plt, bkmRes] = await Promise.all([
+          notesQ,
+          remindersQ,
+          tasksQ,
+          debtsQ,
+          vaultQ,
+          shoppingQ,
+          projectsQ,
+          checklistQ,
+          recipesQ,
+          financeQ,
+          plantsQ,
+          bookmarksQ,
+        ]);
+
+        return { nts, rem, tsk, dbt, vlt, shp, prj, chk, rec, fin, plt, bkmRes };
+      }, 60 * 1000); // 1-minute TTL for instant searches without duplicate network requests
+
+      const { nts, rem, tsk, dbt, vlt, shp, prj, chk, rec, fin, plt, bkmRes } = resultsData;
 
       const items: SearchResult[] = [];
       const push = (r: SearchResult) => items.push(r);
@@ -480,22 +488,27 @@ export default function CommandPalette({ isOpen, onClose }: CommandPaletteProps)
     setAiThinking(true);
 
     try {
-      // Fetch full database snapshot for context
-      const [exp, tsk, dbt, vlt, shp, rem, nts, prj, chk, rec, plt, bkm, sal] = await Promise.all([
-        supabase.from('finance_expenses').select('amount, category, date, concept').order('date', { ascending: false }).limit(25),
-        supabase.from('tasks').select('title, completed, due_date').order('created_at', { ascending: false }).limit(25),
-        supabase.from('debts').select('debtor_name, amount, concept, settled').order('created_at', { ascending: false }).limit(25),
-        supabase.from('vault_items').select('title, category').limit(25),
-        supabase.from('shopping_list').select('name, location, bought, quantity').limit(25),
-        supabase.from('reminders').select('title, category, date, time').order('date', { ascending: false }).limit(25),
-        supabase.from('notes').select('title, category, content').order('created_at', { ascending: false }).limit(25),
-        supabase.from('creative_projects').select('name, category, status, description').limit(25),
-        supabase.from('monthly_checklist_items').select('title, category').limit(25),
-        supabase.from('recipes').select('name, category, ingredients, description').limit(25),
-        supabase.from('plants').select('nickname, species, location, watering_frequency_days, last_watered_at').limit(25),
-        supabase.from('bookmarks').select('title, url, category').limit(25),
-        supabase.from('finance_salary').select('amount').limit(1),
-      ]);
+      // Fetch full database snapshot for context (cached for 3 minutes to eliminate egress on multiple chat questions)
+      const aiContextData = await fetchWithCache('ai_db_snapshot', async () => {
+        const [exp, tsk, dbt, vlt, shp, rem, nts, prj, chk, rec, plt, bkm, sal] = await Promise.all([
+          supabase.from('finance_expenses').select('amount, category, date, concept').order('date', { ascending: false }).limit(25),
+          supabase.from('tasks').select('title, completed, due_date').order('created_at', { ascending: false }).limit(25),
+          supabase.from('debts').select('debtor_name, amount, concept, settled').order('created_at', { ascending: false }).limit(25),
+          supabase.from('vault_items').select('title, category').limit(25),
+          supabase.from('shopping_list').select('name, location, bought, quantity').limit(25),
+          supabase.from('reminders').select('title, category, date, time').order('date', { ascending: false }).limit(25),
+          supabase.from('notes').select('title, category, content').order('created_at', { ascending: false }).limit(25),
+          supabase.from('creative_projects').select('name, category, status, description').limit(25),
+          supabase.from('monthly_checklist_items').select('title, category').limit(25),
+          supabase.from('recipes').select('name, category, ingredients, description').limit(25),
+          supabase.from('plants').select('nickname, species, location, watering_frequency_days, last_watered_at').limit(25),
+          supabase.from('bookmarks').select('title, url, category').limit(25),
+          supabase.from('finance_salary').select('amount').limit(1),
+        ]);
+        return { exp, tsk, dbt, vlt, shp, rem, nts, prj, chk, rec, plt, bkm, sal };
+      }, 3 * 60 * 1000);
+
+      const { exp, tsk, dbt, vlt, shp, rem, nts, prj, chk, rec, plt, bkm, sal } = aiContextData;
 
       const salaryAmount = sal.data?.[0]?.amount || 0;
 
