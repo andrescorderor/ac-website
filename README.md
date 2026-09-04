@@ -1,7 +1,7 @@
 <div align="center">
   <img src="public/assets/ac-website-icon.svg" alt="Logo" width="100" />
   
-  # Andrés Cordero - Professional Portfolio & Personal Panel PWA (v6.6.0) 🔍✨
+  # Andrés Cordero - Professional Portfolio & Personal Panel PWA (v6.7.0) 🔍✨
   
   **Welcome to my personal ecosystem: a professional portfolio and a custom productivity hub.**  
   Built with UX/UI best practices, premium design, and a focus on mobile-first efficiency.
@@ -16,12 +16,12 @@
 
 ---
 
-## 🚀 Overview (Version 6.6.0)
+## 🚀 Overview (Version 6.7.0)
 
 This repository hosts a dual-purpose platform:
 1. **Professional Portfolio:** A high-end landing page showcasing my engineering background, skills, and achievements with dynamic copyright year updates and zero horizontal overflow.
-2. **Personal Panel PWA (v6.6.0):** An executive personal operating system featuring:
-   * **Simultaneous Live Rich Text Editor & Real-Time Preview (`RichTextEditor.tsx`):** Completely eliminates tab switching between "Editor" and "Vista Previa". Both the markdown textarea and the live formatted preview are displayed simultaneously in a responsive dual-pane split view (side-by-side on desktop/tablets, clean stacked flow on mobile) with instant real-time updates, no text truncation, and smart bullet/numbered list continuation on <kbd>Enter</kbd>.
+2. **Personal Panel PWA (v6.7.0):** An executive personal operating system featuring:
+   * **Unified In-Place Live Rich Text Editor (`RichTextEditor.tsx`):** Eliminates separate preview panes or tabs entirely. Editing and rich formatted preview happen **directly in the very same input field in real time** (WYSIWYG: titles, bold text, bullet lists, numbered lists rendered in-place as you write) with zero cursor jumping, native list continuation on <kbd>Enter</kbd>, and markdown typing shortcuts.
    * **Universal Accent-Insensitive Global Search (`CommandPalette.tsx`):** All 14 modules (Notas, Tareas, Deudas, Bóveda, Mandado, Proyectos, Recetas, Finanzas, Plantas, Enlaces, Rutinas Gym, etc.) match queries seamlessly whether you type with or without accents/diacritics (`á`, `é`, `í`, `ó`, `ú`, `ñ`).
    * **Supabase Egress Bandwidth Optimization & High-Speed Cache (`cache.ts` / `CommandPalette.tsx`):** Client-side memory + sessionStorage caching with TTL and specific column projections (`select('id, title, ...')`). Drastically reduces outgoing database traffic by ~90% during global searches and AI assistant interactions, guaranteeing compliance with Supabase Free plan limits.
    * **Precise Day-Of Plant Watering Notifications (`notifications.ts`):** Plant watering alerts are strictly scheduled to dispatch **only on the exact day of watering (`diffDays <= 0`)**, eliminating premature "1 day before" advance alerts so you only get notified when your plants actually need water.

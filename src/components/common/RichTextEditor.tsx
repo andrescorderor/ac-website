@@ -1,6 +1,4 @@
-import { useRef, useEffect } from 'react';
-import { HiOutlineDocumentText, HiOutlineEye } from 'react-icons/hi';
-import AutoFormattedText from './AutoFormattedText';
+import { useRef, useEffect, useCallback, useState } from 'react';
 
 interface RichTextEditorProps {
   value: string;
@@ -13,159 +11,292 @@ interface RichTextEditorProps {
   className?: string;
 }
 
+/**
+ * Converts Markdown string to clean semantic HTML for in-place live WYSIWYG editing
+ */
+function markdownToHtml(md: string): string {
+  if (!md) return '';
+
+  const lines = md.split('\n');
+  const result: string[] = [];
+  let inUl = false;
+  let inOl = false;
+
+  const closeLists = () => {
+    if (inUl) {
+      result.push('</ul>');
+      inUl = false;
+    }
+    if (inOl) {
+      result.push('</ol>');
+      inOl = false;
+    }
+  };
+
+  const formatInline = (text: string) => {
+    // Escape HTML special characters
+    let escaped = text
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;');
+    // **bold** -> <strong>bold</strong>
+    escaped = escaped.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+    return escaped;
+  };
+
+  for (let i = 0; i < lines.length; i++) {
+    const rawLine = lines[i];
+    const trimmed = rawLine.trim();
+
+    if (!trimmed) {
+      closeLists();
+      result.push('<p><br></p>');
+      continue;
+    }
+
+    // Heading (### Heading or ## or #)
+    if (/^#{1,3}\s+/.test(trimmed)) {
+      closeLists();
+      const headingContent = trimmed.replace(/^#{1,3}\s+/, '');
+      result.push(`<h3>${formatInline(headingContent)}</h3>`);
+      continue;
+    }
+
+    // Bullet item (• item, - item, * item)
+    if (/^[•\-\*]\s+/.test(trimmed)) {
+      if (inOl) closeLists();
+      if (!inUl) {
+        result.push('<ul>');
+        inUl = true;
+      }
+      const itemContent = trimmed.replace(/^[•\-\*]\s+/, '');
+      result.push(`<li>${formatInline(itemContent)}</li>`);
+      continue;
+    }
+
+    // Numbered item (1. item, 2. item, 1) item)
+    const numMatch = trimmed.match(/^(\d+)[\.\)]\s+(.*)/);
+    if (numMatch) {
+      if (inUl) closeLists();
+      if (!inOl) {
+        result.push('<ol>');
+        inOl = true;
+      }
+      result.push(`<li>${formatInline(numMatch[2])}</li>`);
+      continue;
+    }
+
+    // Normal paragraph
+    closeLists();
+    result.push(`<p>${formatInline(trimmed)}</p>`);
+  }
+
+  closeLists();
+  return result.join('');
+}
+
+/**
+ * Converts semantic HTML from contentEditable back into clean Markdown string
+ */
+function htmlToMarkdown(html: string): string {
+  if (!html) return '';
+
+  const temp = document.createElement('div');
+  temp.innerHTML = html;
+
+  const processNode = (node: Node): string => {
+    // Text node
+    if (node.nodeType === Node.TEXT_NODE) {
+      return node.textContent || '';
+    }
+
+    // Element node
+    if (node.nodeType === Node.ELEMENT_NODE) {
+      const el = node as HTMLElement;
+      const tag = el.tagName.toLowerCase();
+
+      // Recurse children
+      const childText = Array.from(el.childNodes).map(processNode).join('');
+
+      if (tag === 'h1' || tag === 'h2' || tag === 'h3' || tag === 'h4') {
+        const text = childText.trim();
+        return text ? `\n### ${text}\n` : '';
+      }
+
+      if (tag === 'strong' || tag === 'b') {
+        const text = childText.trim();
+        return text ? `**${text}**` : '';
+      }
+
+      if (tag === 'ul') {
+        return `\n${childText}\n`;
+      }
+
+      if (tag === 'ol') {
+        return `\n${childText}\n`;
+      }
+
+      if (tag === 'li') {
+        const text = childText.trim();
+        if (!text) return '';
+        const parentTag = el.parentElement?.tagName.toLowerCase();
+        if (parentTag === 'ol') {
+          const siblings = Array.from(el.parentElement?.children || []).filter(c => c.tagName.toLowerCase() === 'li');
+          const index = siblings.indexOf(el) + 1;
+          return `${index}. ${text}\n`;
+        }
+        return `• ${text}\n`;
+      }
+
+      if (tag === 'p' || tag === 'div') {
+        const text = childText.trim();
+        return text ? `${text}\n` : '\n';
+      }
+
+      if (tag === 'br') {
+        return '\n';
+      }
+
+      return childText;
+    }
+
+    return '';
+  };
+
+  const md = Array.from(temp.childNodes).map(processNode).join('');
+  return md.replace(/\n{3,}/g, '\n\n').trim();
+}
+
 export default function RichTextEditor({
   value,
   onChange,
-  placeholder = 'Escribe aquí tu texto... Puedes usar listas, viñetas, títulos y negritas.',
+  placeholder = 'Escribe aquí tu descripción... Puedes usar listas, viñetas, títulos y negritas en vivo.',
   minHeight = '180px',
   label,
   required = false,
   className = '',
 }: RichTextEditorProps) {
-  const textareaRef = useRef<HTMLTextAreaElement | null>(null);
+  const editorRef = useRef<HTMLDivElement | null>(null);
+  const lastMdRef = useRef<string>(value || '');
+  const [isEmpty, setIsEmpty] = useState<boolean>(!value || !value.trim());
 
-  // Auto-resize textarea smoothly without jumping
+  // Initialize and synchronize content when value changes externally
   useEffect(() => {
-    const el = textareaRef.current;
-    if (el) {
-      el.style.height = 'auto';
-      const parsedMin = parseInt(minHeight, 10) || 180;
-      el.style.height = `${Math.max(el.scrollHeight, parsedMin)}px`;
+    // Only update innerHTML if value changed externally (e.g. modal open, form reset)
+    if (value !== lastMdRef.current) {
+      lastMdRef.current = value || '';
+      if (editorRef.current) {
+        editorRef.current.innerHTML = markdownToHtml(value || '');
+        const text = editorRef.current.textContent || '';
+        setIsEmpty(!text.trim());
+      }
     }
-  }, [value, minHeight]);
+  }, [value]);
 
-  /**
-   * Inserts formatting text at the exact cursor or wraps the selection
-   */
-  const insertFormatting = (prefix: string, suffix: string = '', defaultText: string = '') => {
-    const textarea = textareaRef.current;
-    if (!textarea) return;
+  // Initial load
+  useEffect(() => {
+    if (editorRef.current) {
+      editorRef.current.innerHTML = markdownToHtml(value || '');
+      const text = editorRef.current.textContent || '';
+      setIsEmpty(!text.trim());
+    }
+    // Ensure default paragraph separator is standard paragraph
+    try {
+      document.execCommand('defaultParagraphSeparator', false, 'p');
+    } catch {
+      // Ignore if not supported in test environments
+    }
+  }, []);
 
-    textarea.focus();
-    const start = textarea.selectionStart;
-    const end = textarea.selectionEnd;
-    const currentVal = textarea.value;
+  const handleInput = useCallback(() => {
+    if (!editorRef.current) return;
+    const currentHtml = editorRef.current.innerHTML;
+    const text = editorRef.current.textContent || '';
+    setIsEmpty(!text.trim());
 
-    const selectedText = currentVal.substring(start, end) || defaultText;
-    const replacement = `${prefix}${selectedText}${suffix}`;
+    const md = htmlToMarkdown(currentHtml);
+    lastMdRef.current = md;
+    onChange(md);
+  }, [onChange]);
 
-    const newVal = currentVal.substring(0, start) + replacement + currentVal.substring(end);
-    onChange(newVal);
+  // Format actions preserving selection
+  const executeFormat = (action: () => void) => {
+    if (editorRef.current) {
+      editorRef.current.focus();
+    }
+    action();
+    handleInput();
+  };
 
-    // Re-position cursor inside formatting
-    setTimeout(() => {
-      textarea.focus();
-      const newCursorPos = start + prefix.length + selectedText.length;
-      textarea.setSelectionRange(
-        selectedText ? newCursorPos : start + prefix.length,
-        selectedText ? newCursorPos : start + prefix.length
-      );
-    }, 10);
+  const toggleHeading = () => {
+    executeFormat(() => {
+      document.execCommand('formatBlock', false, '<h3>');
+    });
+  };
+
+  const toggleBold = () => {
+    executeFormat(() => {
+      document.execCommand('bold');
+    });
+  };
+
+  const toggleBulletList = () => {
+    executeFormat(() => {
+      document.execCommand('insertUnorderedList');
+    });
+  };
+
+  const toggleOrderedList = () => {
+    executeFormat(() => {
+      document.execCommand('insertOrderedList');
+    });
   };
 
   /**
-   * Inserts prefix on a new line or at line start
+   * Smart key listener for Markdown shortcuts right inside the same field
    */
-  const insertLinePrefix = (prefix: string, defaultText: string = '') => {
-    const textarea = textareaRef.current;
-    if (!textarea) return;
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    if (e.key === ' ') {
+      const selection = window.getSelection();
+      if (!selection || !selection.isCollapsed) return;
 
-    textarea.focus();
-    const start = textarea.selectionStart;
-    const end = textarea.selectionEnd;
-    const currentVal = textarea.value;
+      const node = selection.anchorNode;
+      if (!node || node.nodeType !== Node.TEXT_NODE) return;
 
-    // Check if cursor is at the beginning of a line
-    const isAtStartOfLine = start === 0 || currentVal[start - 1] === '\n';
-    const cleanPrefix = isAtStartOfLine ? prefix : `\n${prefix}`;
+      const textBeforeCursor = node.textContent?.slice(0, selection.anchorOffset) || '';
 
-    const selectedText = currentVal.substring(start, end) || defaultText;
-    const replacement = `${cleanPrefix}${selectedText}`;
-
-    const newVal = currentVal.substring(0, start) + replacement + currentVal.substring(end);
-    onChange(newVal);
-
-    setTimeout(() => {
-      textarea.focus();
-      const newCursorPos = start + cleanPrefix.length + selectedText.length;
-      textarea.setSelectionRange(newCursorPos, newCursorPos);
-    }, 10);
-  };
-
-  /**
-   * Smart Enter Handler: continues bullet points and numbered lists automatically
-   */
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    if (e.key === 'Enter') {
-      const textarea = textareaRef.current;
-      if (!textarea) return;
-
-      const cursorPos = textarea.selectionStart;
-      const val = textarea.value;
-
-      // Find the start of the current line
-      const lastNewLine = val.lastIndexOf('\n', cursorPos - 1);
-      const lineStart = lastNewLine === -1 ? 0 : lastNewLine + 1;
-      const currentLine = val.substring(lineStart, cursorPos);
-
-      // 1. Bullet point continuation (• or - )
-      if (/^[•\-]\s+/.test(currentLine)) {
+      // Heading shortcut (### + space)
+      if (textBeforeCursor === '###' || textBeforeCursor === '##' || textBeforeCursor === '#') {
         e.preventDefault();
-        const contentAfterBullet = currentLine.replace(/^[•\-]\s+/, '').trim();
-
-        if (!contentAfterBullet) {
-          // Empty bullet -> terminate bullet list (clear line)
-          const newVal = val.substring(0, lineStart) + val.substring(cursorPos);
-          onChange(newVal);
-          setTimeout(() => {
-            textarea.setSelectionRange(lineStart, lineStart);
-          }, 10);
-        } else {
-          // Insert new bullet on next line
-          const insertText = '\n• ';
-          const newVal = val.substring(0, cursorPos) + insertText + val.substring(cursorPos);
-          onChange(newVal);
-          setTimeout(() => {
-            const nextPos = cursorPos + insertText.length;
-            textarea.setSelectionRange(nextPos, nextPos);
-          }, 10);
-        }
+        node.textContent = node.textContent?.slice(selection.anchorOffset) || '';
+        document.execCommand('formatBlock', false, '<h3>');
+        handleInput();
         return;
       }
 
-      // 2. Numbered list continuation (1. 2. 3.)
-      const numMatch = currentLine.match(/^(\d+)[\.\)]\s+(.*)/);
-      if (numMatch) {
+      // Bullet shortcut (- + space, * + space, • + space)
+      if (textBeforeCursor === '-' || textBeforeCursor === '*' || textBeforeCursor === '•') {
         e.preventDefault();
-        const currentNum = parseInt(numMatch[1], 10);
-        const contentAfterNum = numMatch[2].trim();
+        node.textContent = node.textContent?.slice(selection.anchorOffset) || '';
+        document.execCommand('insertUnorderedList');
+        handleInput();
+        return;
+      }
 
-        if (!contentAfterNum) {
-          // Empty number item -> terminate list
-          const newVal = val.substring(0, lineStart) + val.substring(cursorPos);
-          onChange(newVal);
-          setTimeout(() => {
-            textarea.setSelectionRange(lineStart, lineStart);
-          }, 10);
-        } else {
-          // Insert incremented number
-          const nextNum = currentNum + 1;
-          const insertText = `\n${nextNum}. `;
-          const newVal = val.substring(0, cursorPos) + insertText + val.substring(cursorPos);
-          onChange(newVal);
-          setTimeout(() => {
-            const nextPos = cursorPos + insertText.length;
-            textarea.setSelectionRange(nextPos, nextPos);
-          }, 10);
-        }
+      // Numbered list shortcut (1. + space)
+      if (/^1[\.\)]$/.test(textBeforeCursor)) {
+        e.preventDefault();
+        node.textContent = node.textContent?.slice(selection.anchorOffset) || '';
+        document.execCommand('insertOrderedList');
+        handleInput();
         return;
       }
     }
   };
 
   return (
-    <div className={`space-y-2.5 ${className}`}>
-      {/* Top Bar with Label and Quick Formatting Tools */}
+    <div className={`space-y-2 ${className}`}>
+      {/* Header with Label and In-Place Formatting Tools */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
         {label && (
           <label className="block font-syne text-[10px] font-bold uppercase tracking-widest text-[var(--gray)] dark:text-gray-400">
@@ -173,13 +304,16 @@ export default function RichTextEditor({
           </label>
         )}
 
-        {/* Quick Format Tools */}
+        {/* In-Place WYSIWYG Toolbar */}
         <div className="flex items-center gap-1 bg-gray-100/90 dark:bg-gray-800 p-1 rounded-xl border border-gray-200/80 dark:border-gray-700/80 shadow-2xs self-start sm:self-auto sm:ml-auto">
           <button
             type="button"
-            onClick={() => insertLinePrefix('### ', 'Título de Sección')}
+            onMouseDown={(e) => {
+              e.preventDefault();
+              toggleHeading();
+            }}
             className="px-2.5 py-1 hover:bg-white dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-lg text-xs font-syne font-bold transition-all shrink-0 flex items-center gap-1 shadow-2xs interactive-hover"
-            title="Insertar Encabezado de Sección (### Título)"
+            title="Convertir a Encabezado (H3)"
           >
             <span className="text-[var(--vibrant-sky-blue)] font-bold text-[11px]">H3</span>
             <span className="hidden sm:inline text-[11px]">Título</span>
@@ -187,9 +321,12 @@ export default function RichTextEditor({
 
           <button
             type="button"
-            onClick={() => insertFormatting('**', '**', 'Texto en negrita')}
+            onMouseDown={(e) => {
+              e.preventDefault();
+              toggleBold();
+            }}
             className="px-2.5 py-1 hover:bg-white dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-lg text-xs font-syne font-bold transition-all shrink-0 shadow-2xs interactive-hover"
-            title="Insertar Negrita (**texto**)"
+            title="Formato Negrita"
           >
             <strong className="text-[11px]">B</strong>
             <span className="hidden sm:inline ml-1 text-[11px]">Negrita</span>
@@ -197,9 +334,12 @@ export default function RichTextEditor({
 
           <button
             type="button"
-            onClick={() => insertLinePrefix('• ', 'Elemento de lista')}
+            onMouseDown={(e) => {
+              e.preventDefault();
+              toggleBulletList();
+            }}
             className="px-2.5 py-1 hover:bg-white dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-lg text-xs font-syne font-bold transition-all shrink-0 shadow-2xs interactive-hover"
-            title="Insertar Viñeta (• item)"
+            title="Lista con Viñetas"
           >
             <span className="text-[var(--vibrant-sky-blue)] font-bold text-sm leading-none">•</span>
             <span className="hidden sm:inline ml-1 text-[11px]">Viñeta</span>
@@ -207,9 +347,12 @@ export default function RichTextEditor({
 
           <button
             type="button"
-            onClick={() => insertLinePrefix('1. ', 'Primer paso')}
+            onMouseDown={(e) => {
+              e.preventDefault();
+              toggleOrderedList();
+            }}
             className="px-2.5 py-1 hover:bg-white dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-lg text-xs font-syne font-bold transition-all shrink-0 shadow-2xs interactive-hover"
-            title="Insertar Lista Numerada (1., 2...)"
+            title="Lista Numerada"
           >
             <span className="text-[11px] font-bold">1.</span>
             <span className="hidden sm:inline ml-1 text-[11px]">Lista</span>
@@ -217,72 +360,39 @@ export default function RichTextEditor({
         </div>
       </div>
 
-      {/* Simultaneous Dual-Pane Workspace: Editor & Live Preview */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4 items-stretch">
-        {/* Column 1: Textarea Editor */}
-        <div className="flex flex-col h-full">
-          <div className="flex items-center justify-between mb-1.5 px-1">
-            <span className="text-[10px] font-syne font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400 flex items-center gap-1.5">
-              <HiOutlineDocumentText className="text-xs text-[var(--vibrant-sky-blue)]" />
-              Editor
-            </span>
-            <span className="text-[10px] text-gray-400 dark:text-gray-500 font-mono">
-              Markdown
-            </span>
+      {/* SINGLE UNIFIED FIELD: Live In-Place Editing and Formatted Preview */}
+      <div className="relative">
+        {isEmpty && (
+          <div className="absolute top-4 left-5 right-5 pointer-events-none text-gray-400 dark:text-gray-500 font-inter text-sm select-none leading-relaxed">
+            {placeholder}
           </div>
+        )}
 
-          <textarea
-            ref={textareaRef}
-            value={value}
-            onChange={(e) => onChange(e.target.value)}
-            onKeyDown={handleKeyDown}
-            placeholder={placeholder}
-            style={{ minHeight }}
-            className="w-full flex-1 min-h-[160px] sm:min-h-[200px] px-4 sm:px-5 py-3.5 sm:py-4 bg-gray-50/70 dark:bg-gray-800/80 border border-gray-200/80 dark:border-gray-700/80 rounded-2xl outline-none focus:border-[var(--vibrant-sky-blue)] dark:focus:border-[var(--vibrant-sky-blue)] font-inter text-sm leading-relaxed text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 transition-colors resize-y shadow-2xs"
-          />
-        </div>
-
-        {/* Column 2: Real-time Live Preview */}
-        <div className="flex flex-col h-full">
-          <div className="flex items-center justify-between mb-1.5 px-1">
-            <span className="text-[10px] font-syne font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400 flex items-center gap-1.5">
-              <span className="relative flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
-              </span>
-              Vista Previa en Vivo
-            </span>
-            <span className="text-[10px] text-gray-400 dark:text-gray-500 font-mono">
-              {value ? `${value.length} car.` : '0 car.'}
-            </span>
-          </div>
-
-          <div
-            style={{ minHeight }}
-            className="w-full flex-1 min-h-[160px] sm:min-h-[200px] max-h-[320px] md:max-h-none px-4 sm:px-5 py-3.5 sm:py-4 bg-white/60 dark:bg-gray-800/40 border border-dashed border-gray-200/90 dark:border-gray-700/80 rounded-2xl font-inter text-sm leading-relaxed text-gray-900 dark:text-gray-100 overflow-y-auto"
-          >
-            {value && value.trim().length > 0 ? (
-              <AutoFormattedText text={value} expandable={false} />
-            ) : (
-              <div className="h-full min-h-[130px] flex flex-col items-center justify-center text-center text-gray-400 dark:text-gray-500 text-xs p-4 gap-1.5">
-                <HiOutlineEye className="text-2xl text-gray-300 dark:text-gray-600" />
-                <span className="font-medium text-gray-500 dark:text-gray-400">Vista previa en tiempo real</span>
-                <span className="text-[11px] text-gray-400 dark:text-gray-500 max-w-[220px]">
-                  Escribe en el editor para ver aquí el formato de viñetas, títulos y negritas.
-                </span>
-              </div>
-            )}
-          </div>
-        </div>
+        <div
+          ref={editorRef}
+          contentEditable
+          suppressContentEditableWarning
+          onInput={handleInput}
+          onKeyDown={handleKeyDown}
+          style={{ minHeight }}
+          className="w-full px-5 py-4 bg-gray-50/70 dark:bg-gray-800/80 border border-gray-200/80 dark:border-gray-700/80 rounded-2xl outline-none focus:border-[var(--vibrant-sky-blue)] dark:focus:border-[var(--vibrant-sky-blue)] font-inter text-sm leading-relaxed text-gray-900 dark:text-gray-100 overflow-y-auto resize-y transition-colors shadow-2xs
+          [&_h3]:font-dm-sans [&_h3]:font-bold [&_h3]:text-base [&_h3]:text-[var(--vibrant-sky-blue)] dark:[&_h3]:text-sky-400 [&_h3]:mt-2 [&_h3]:mb-1
+          [&_strong]:font-bold [&_strong]:text-gray-900 dark:[&_strong]:text-white
+          [&_b]:font-bold [&_b]:text-gray-900 dark:[&_b]:text-white
+          [&_ul]:list-disc [&_ul]:list-outside [&_ul]:pl-5 [&_ul]:space-y-1 [&_ul]:my-1.5
+          [&_ol]:list-decimal [&_ol]:list-outside [&_ol]:pl-5 [&_ol]:space-y-1 [&_ol]:my-1.5
+          [&_li]:leading-relaxed [&_li]:text-gray-800 dark:[&_li]:text-gray-200
+          [&_p]:my-1 [&_p]:leading-relaxed"
+        />
       </div>
 
       {/* Helper Footer */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 text-[11px] text-gray-400 dark:text-gray-500 px-1 pt-0.5">
         <span>
-          Tip: Presiona <kbd className="px-1.5 py-0.5 rounded bg-gray-100 dark:bg-gray-800 font-mono text-[10px] border border-gray-200 dark:border-gray-700">Enter</kbd> en una viñeta para crear la siguiente automáticamente.
+          Tip: Escribe con formato directo o usa los botones para aplicar títulos, negritas y listas en el mismo campo.
         </span>
         <span className="font-mono text-[10px] text-gray-400">
-          {value ? `${value.split(/\s+/).filter(Boolean).length} palabras` : '0 palabras'}
+          {value ? `${value.length} caracteres` : '0 caracteres'}
         </span>
       </div>
     </div>
