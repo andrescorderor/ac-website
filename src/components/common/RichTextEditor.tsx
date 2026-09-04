@@ -1,4 +1,5 @@
-import { useRef, useState, useEffect } from 'react';
+import { useRef, useEffect } from 'react';
+import { HiOutlineDocumentText, HiOutlineEye } from 'react-icons/hi';
 import AutoFormattedText from './AutoFormattedText';
 
 interface RichTextEditorProps {
@@ -15,22 +16,23 @@ interface RichTextEditorProps {
 export default function RichTextEditor({
   value,
   onChange,
-  placeholder = 'Escribe aquí tu nota... Puedes usar listas, viñetas, títulos y negritas.',
+  placeholder = 'Escribe aquí tu texto... Puedes usar listas, viñetas, títulos y negritas.',
   minHeight = '180px',
   label,
   required = false,
   className = '',
 }: RichTextEditorProps) {
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
-  const [activeTab, setActiveTab] = useState<'edit' | 'preview'>('edit');
 
-  // Adjust textarea height automatically to match content
+  // Auto-resize textarea smoothly without jumping
   useEffect(() => {
-    if (textareaRef.current) {
-      textareaRef.current.style.height = 'auto';
-      textareaRef.current.style.height = `${Math.max(textareaRef.current.scrollHeight, 180)}px`;
+    const el = textareaRef.current;
+    if (el) {
+      el.style.height = 'auto';
+      const parsedMin = parseInt(minHeight, 10) || 180;
+      el.style.height = `${Math.max(el.scrollHeight, parsedMin)}px`;
     }
-  }, [value, activeTab]);
+  }, [value, minHeight]);
 
   /**
    * Inserts formatting text at the exact cursor or wraps the selection
@@ -162,8 +164,8 @@ export default function RichTextEditor({
   };
 
   return (
-    <div className={`space-y-2 ${className}`}>
-      {/* Top Bar with Label, Quick Formatting Buttons and View Mode */}
+    <div className={`space-y-2.5 ${className}`}>
+      {/* Top Bar with Label and Quick Formatting Tools */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
         {label && (
           <label className="block font-syne text-[10px] font-bold uppercase tracking-widest text-[var(--gray)] dark:text-gray-400">
@@ -171,93 +173,64 @@ export default function RichTextEditor({
           </label>
         )}
 
-        <div className="flex items-center gap-2 flex-wrap ml-auto">
-          {/* Quick Format Tools */}
-          <div className="flex items-center gap-1 bg-gray-100/90 dark:bg-gray-800 p-1 rounded-xl border border-gray-200/80 dark:border-gray-700/80 shadow-2xs">
-            <button
-              type="button"
-              onClick={() => {
-                setActiveTab('edit');
-                insertLinePrefix('### ', 'Título de Sección');
-              }}
-              className="px-2.5 py-1 hover:bg-white dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-lg text-xs font-syne font-bold transition-all shrink-0 flex items-center gap-1 shadow-2xs interactive-hover"
-              title="Insertar Encabezado de Sección (### Título)"
-            >
-              <span className="text-[var(--vibrant-sky-blue)] font-bold text-[11px]">H3</span>
-              <span className="hidden sm:inline text-[11px]">Título</span>
-            </button>
+        {/* Quick Format Tools */}
+        <div className="flex items-center gap-1 bg-gray-100/90 dark:bg-gray-800 p-1 rounded-xl border border-gray-200/80 dark:border-gray-700/80 shadow-2xs self-start sm:self-auto sm:ml-auto">
+          <button
+            type="button"
+            onClick={() => insertLinePrefix('### ', 'Título de Sección')}
+            className="px-2.5 py-1 hover:bg-white dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-lg text-xs font-syne font-bold transition-all shrink-0 flex items-center gap-1 shadow-2xs interactive-hover"
+            title="Insertar Encabezado de Sección (### Título)"
+          >
+            <span className="text-[var(--vibrant-sky-blue)] font-bold text-[11px]">H3</span>
+            <span className="hidden sm:inline text-[11px]">Título</span>
+          </button>
 
-            <button
-              type="button"
-              onClick={() => {
-                setActiveTab('edit');
-                insertFormatting('**', '**', 'Texto en negrita');
-              }}
-              className="px-2.5 py-1 hover:bg-white dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-lg text-xs font-syne font-bold transition-all shrink-0 shadow-2xs interactive-hover"
-              title="Insertar Negrita (**texto**)"
-            >
-              <strong className="text-[11px]">B</strong>
-              <span className="hidden sm:inline ml-1 text-[11px]">Negrita</span>
-            </button>
+          <button
+            type="button"
+            onClick={() => insertFormatting('**', '**', 'Texto en negrita')}
+            className="px-2.5 py-1 hover:bg-white dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-lg text-xs font-syne font-bold transition-all shrink-0 shadow-2xs interactive-hover"
+            title="Insertar Negrita (**texto**)"
+          >
+            <strong className="text-[11px]">B</strong>
+            <span className="hidden sm:inline ml-1 text-[11px]">Negrita</span>
+          </button>
 
-            <button
-              type="button"
-              onClick={() => {
-                setActiveTab('edit');
-                insertLinePrefix('• ', 'Elemento de lista');
-              }}
-              className="px-2.5 py-1 hover:bg-white dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-lg text-xs font-syne font-bold transition-all shrink-0 shadow-2xs interactive-hover"
-              title="Insertar Viñeta (• item)"
-            >
-              <span className="text-[var(--vibrant-sky-blue)] font-bold text-sm leading-none">•</span>
-              <span className="hidden sm:inline ml-1 text-[11px]">Viñeta</span>
-            </button>
+          <button
+            type="button"
+            onClick={() => insertLinePrefix('• ', 'Elemento de lista')}
+            className="px-2.5 py-1 hover:bg-white dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-lg text-xs font-syne font-bold transition-all shrink-0 shadow-2xs interactive-hover"
+            title="Insertar Viñeta (• item)"
+          >
+            <span className="text-[var(--vibrant-sky-blue)] font-bold text-sm leading-none">•</span>
+            <span className="hidden sm:inline ml-1 text-[11px]">Viñeta</span>
+          </button>
 
-            <button
-              type="button"
-              onClick={() => {
-                setActiveTab('edit');
-                insertLinePrefix('1. ', 'Primer paso');
-              }}
-              className="px-2.5 py-1 hover:bg-white dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-lg text-xs font-syne font-bold transition-all shrink-0 shadow-2xs interactive-hover"
-              title="Insertar Lista Numerada (1., 2...)"
-            >
-              <span className="text-[11px] font-bold">1.</span>
-              <span className="hidden sm:inline ml-1 text-[11px]">Lista</span>
-            </button>
-          </div>
-
-          {/* Edit vs Preview Toggle */}
-          <div className="flex items-center bg-gray-100 dark:bg-gray-800 p-1 rounded-xl border border-gray-200/80 dark:border-gray-700/80">
-            <button
-              type="button"
-              onClick={() => setActiveTab('edit')}
-              className={`px-3 py-1 rounded-lg text-[10px] font-syne font-bold uppercase tracking-wider transition-all ${
-                activeTab === 'edit'
-                  ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-2xs'
-                  : 'text-gray-500 hover:text-gray-900 dark:hover:text-white'
-              }`}
-            >
-              Editor
-            </button>
-            <button
-              type="button"
-              onClick={() => setActiveTab('preview')}
-              className={`px-3 py-1 rounded-lg text-[10px] font-syne font-bold uppercase tracking-wider transition-all ${
-                activeTab === 'preview'
-                  ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-2xs'
-                  : 'text-gray-500 hover:text-gray-900 dark:hover:text-white'
-              }`}
-            >
-              Vista Previa
-            </button>
-          </div>
+          <button
+            type="button"
+            onClick={() => insertLinePrefix('1. ', 'Primer paso')}
+            className="px-2.5 py-1 hover:bg-white dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-lg text-xs font-syne font-bold transition-all shrink-0 shadow-2xs interactive-hover"
+            title="Insertar Lista Numerada (1., 2...)"
+          >
+            <span className="text-[11px] font-bold">1.</span>
+            <span className="hidden sm:inline ml-1 text-[11px]">Lista</span>
+          </button>
         </div>
       </div>
 
-      {/* Editor & Preview Workspace */}
-      <div className="relative">
-        {activeTab === 'edit' ? (
+      {/* Simultaneous Dual-Pane Workspace: Editor & Live Preview */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4 items-stretch">
+        {/* Column 1: Textarea Editor */}
+        <div className="flex flex-col h-full">
+          <div className="flex items-center justify-between mb-1.5 px-1">
+            <span className="text-[10px] font-syne font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400 flex items-center gap-1.5">
+              <HiOutlineDocumentText className="text-xs text-[var(--vibrant-sky-blue)]" />
+              Editor
+            </span>
+            <span className="text-[10px] text-gray-400 dark:text-gray-500 font-mono">
+              Markdown
+            </span>
+          </div>
+
           <textarea
             ref={textareaRef}
             value={value}
@@ -265,29 +238,53 @@ export default function RichTextEditor({
             onKeyDown={handleKeyDown}
             placeholder={placeholder}
             style={{ minHeight }}
-            className="w-full px-5 py-4 bg-gray-50/50 dark:bg-gray-800/80 border border-gray-100 dark:border-gray-700 rounded-2xl outline-none focus:border-[var(--vibrant-sky-blue)] dark:focus:border-[var(--vibrant-sky-blue)] font-inter text-sm leading-relaxed text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 transition-all resize-y shadow-xs"
+            className="w-full flex-1 min-h-[160px] sm:min-h-[200px] px-4 sm:px-5 py-3.5 sm:py-4 bg-gray-50/70 dark:bg-gray-800/80 border border-gray-200/80 dark:border-gray-700/80 rounded-2xl outline-none focus:border-[var(--vibrant-sky-blue)] dark:focus:border-[var(--vibrant-sky-blue)] font-inter text-sm leading-relaxed text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 transition-colors resize-y shadow-2xs"
           />
-        ) : (
+        </div>
+
+        {/* Column 2: Real-time Live Preview */}
+        <div className="flex flex-col h-full">
+          <div className="flex items-center justify-between mb-1.5 px-1">
+            <span className="text-[10px] font-syne font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400 flex items-center gap-1.5">
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
+              </span>
+              Vista Previa en Vivo
+            </span>
+            <span className="text-[10px] text-gray-400 dark:text-gray-500 font-mono">
+              {value ? `${value.length} car.` : '0 car.'}
+            </span>
+          </div>
+
           <div
             style={{ minHeight }}
-            className="w-full px-5 py-4 bg-gray-50/70 dark:bg-gray-800/60 border border-gray-100 dark:border-gray-700 rounded-2xl font-inter text-sm leading-relaxed text-gray-900 dark:text-gray-100 overflow-y-auto"
+            className="w-full flex-1 min-h-[160px] sm:min-h-[200px] max-h-[320px] md:max-h-none px-4 sm:px-5 py-3.5 sm:py-4 bg-white/60 dark:bg-gray-800/40 border border-dashed border-gray-200/90 dark:border-gray-700/80 rounded-2xl font-inter text-sm leading-relaxed text-gray-900 dark:text-gray-100 overflow-y-auto"
           >
-            {value ? (
-              <AutoFormattedText text={value} />
+            {value && value.trim().length > 0 ? (
+              <AutoFormattedText text={value} expandable={false} />
             ) : (
-              <span className="text-gray-400 dark:text-gray-500 italic text-xs">
-                No hay contenido escrito para previsualizar.
-              </span>
+              <div className="h-full min-h-[130px] flex flex-col items-center justify-center text-center text-gray-400 dark:text-gray-500 text-xs p-4 gap-1.5">
+                <HiOutlineEye className="text-2xl text-gray-300 dark:text-gray-600" />
+                <span className="font-medium text-gray-500 dark:text-gray-400">Vista previa en tiempo real</span>
+                <span className="text-[11px] text-gray-400 dark:text-gray-500 max-w-[220px]">
+                  Escribe en el editor para ver aquí el formato de viñetas, títulos y negritas.
+                </span>
+              </div>
             )}
           </div>
-        )}
+        </div>
       </div>
 
-      <div className="flex items-center justify-between text-[11px] text-gray-400 dark:text-gray-500 px-1">
-        <span>Tip: Presiona <kbd className="px-1.5 py-0.5 rounded bg-gray-100 dark:bg-gray-800 font-mono text-[10px] border border-gray-200 dark:border-gray-700">Enter</kbd> en una viñeta para crear la siguiente automáticamente.</span>
-        <span>{value ? value.length : 0} caracteres</span>
+      {/* Helper Footer */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 text-[11px] text-gray-400 dark:text-gray-500 px-1 pt-0.5">
+        <span>
+          Tip: Presiona <kbd className="px-1.5 py-0.5 rounded bg-gray-100 dark:bg-gray-800 font-mono text-[10px] border border-gray-200 dark:border-gray-700">Enter</kbd> en una viñeta para crear la siguiente automáticamente.
+        </span>
+        <span className="font-mono text-[10px] text-gray-400">
+          {value ? `${value.split(/\s+/).filter(Boolean).length} palabras` : '0 palabras'}
+        </span>
       </div>
     </div>
   );
 }
-

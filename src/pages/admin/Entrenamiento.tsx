@@ -642,7 +642,7 @@ export default function Entrenamiento() {
                 initial={{ opacity: 0, scale: 0.95, y: 15 }}
                 animate={{ opacity: 1, scale: 1, y: 0 }}
                 exit={{ opacity: 0, scale: 0.95, y: 15 }}
-                className="bg-white dark:bg-gray-900 rounded-[2rem] sm:rounded-[2.5rem] h-[90vh] max-h-[820px] max-w-2xl w-full border border-gray-100 dark:border-gray-800 shadow-2xl flex flex-col overflow-hidden my-auto cursor-default"
+                className="bg-white dark:bg-gray-900 rounded-[2rem] sm:rounded-[2.5rem] h-[90vh] max-h-[820px] max-w-3xl lg:max-w-4xl w-full border border-gray-100 dark:border-gray-800 shadow-2xl flex flex-col overflow-hidden my-auto cursor-default"
               >
                 {/* ═══ FIXED HEADER ═══ */}
                 <div className="flex items-center justify-between p-5 sm:p-7 pb-4 border-b border-gray-100 dark:border-gray-800 shrink-0">
