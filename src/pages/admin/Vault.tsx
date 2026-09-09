@@ -8,6 +8,7 @@ import CustomSelect from '@/components/common/CustomSelect';
 import { togglePinItem, isItemPinned } from '@/lib/pinned';
 import AutoFormattedText from '@/components/common/AutoFormattedText';
 import RichTextEditor from '@/components/common/RichTextEditor';
+import { invalidateCache } from '@/lib/cache';
 
 type VaultItem = {
   id: string;
@@ -98,6 +99,7 @@ export default function Vault() {
       }
       setNewItem({ title: '', content: '', category: 'General' });
       setShowAddForm(false);
+      invalidateCache('search_global_dataset');
       toast.success('Texto guardado en la bóveda');
     } catch (err: any) {
       toast.error('Error al guardar en la bóveda: ' + err.message);
@@ -113,6 +115,7 @@ export default function Vault() {
       if (error) throw error;
 
       setItems(items.filter(item => item.id !== id));
+      invalidateCache('search_global_dataset');
       
       toast.undoable('Texto eliminado de la bóveda', async () => {
         try {
@@ -131,6 +134,7 @@ export default function Vault() {
             restoreErr = fallbackRes.error;
           }
           if (restoreErr) throw restoreErr;
+          invalidateCache('search_global_dataset');
           fetchVaultItems();
           toast.success('Texto restaurado en la bóveda ↩️');
         } catch (err: any) {
@@ -149,9 +153,12 @@ export default function Vault() {
     setTimeout(() => setCopiedId(null), 2000);
   };
 
+  const normalize = (s: string | null | undefined) => (s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+
+  const normSearch = normalize(searchTerm);
   const filteredItems = items.filter(item => 
     (selectedCategory === 'Todas' || item.category === selectedCategory) &&
-    (!searchTerm || item.title.toLowerCase().includes(searchTerm.toLowerCase()) || item.content.toLowerCase().includes(searchTerm.toLowerCase()))
+    (!normSearch || normalize(item.title).includes(normSearch) || normalize(item.content).includes(normSearch))
   );
 
   if (loading) return (

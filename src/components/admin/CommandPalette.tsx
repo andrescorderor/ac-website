@@ -286,13 +286,13 @@ export default function CommandPalette({ isOpen, onClose }: CommandPaletteProps)
     try {
       // Use cached lightweight snapshot of the user's data with 2-minute TTL
       // This loads all lightweight entries once and performs 100% accent-insensitive matching client-side
-      const resultsData = await fetchWithCache('search_global_dataset', async () => {
+      const resultsData = await fetchWithCache('search_global_dataset_v2', async () => {
         const [nts, rem, tsk, dbt, vlt, shp, prj, chk, rec, fin, plt, bkmRes] = await Promise.all([
           supabase.from('notes').select('id, title, category, content, created_at').order('created_at', { ascending: false }).limit(200),
-          supabase.from('reminders').select('id, title, category, date, time, event_date, created_at').order('created_at', { ascending: false }).limit(200),
+          supabase.from('reminders').select('*').order('created_at', { ascending: false }).limit(200),
           supabase.from('tasks').select('id, title, description, completed, due_date, created_at').order('created_at', { ascending: false }).limit(200),
           supabase.from('debts').select('id, debtor_name, amount, concept, settled, created_at').order('created_at', { ascending: false }).limit(200),
-          supabase.from('vault_items').select('id, title, category, content, created_at').order('created_at', { ascending: false }).limit(200),
+          supabase.from('vault_items').select('*').order('created_at', { ascending: false }).limit(200),
           supabase.from('shopping_list').select('id, name, location, price, bought, created_at').order('created_at', { ascending: false }).limit(200),
           supabase.from('creative_projects').select('id, name, description, category, status, emoji, created_at').order('created_at', { ascending: false }).limit(200),
           supabase.from('monthly_checklist_items').select('id, title, category, created_at').order('created_at', { ascending: false }).limit(200),
@@ -345,7 +345,18 @@ export default function CommandPalette({ isOpen, onClose }: CommandPaletteProps)
       vlt.data?.forEach(v => {
         const match = !termNorm || normalize(v.title).includes(termNorm) || normalize(v.content).includes(termNorm) || normalize(v.category).includes(termNorm);
         if (match) {
-          push({ id: v.id, type: 'vault', title: v.title, subtitle: v.category ? `${v.category} · ${v.content?.slice(0, 50)}...` : (v.content?.slice(0, 70) || '🔒 Texto seguro en bóveda'), path: '/admin/panel/vault', icon: TYPE_META.vault.icon, categoryLabel: TYPE_META.vault.label, badgeColor: TYPE_META.vault.color, rawTitle: v.title });
+          let snippet = v.content || '';
+          if (termNorm && normalize(v.content).includes(termNorm)) {
+            const matchIdx = normalize(v.content).indexOf(termNorm);
+            const start = Math.max(0, matchIdx - 20);
+            const end = Math.min(v.content.length, matchIdx + termNorm.length + 40);
+            snippet = (start > 0 ? '...' : '') + v.content.slice(start, end).trim() + (end < v.content.length ? '...' : '');
+          } else {
+            snippet = (v.content?.slice(0, 50) || '') + ((v.content?.length || 0) > 50 ? '...' : '');
+          }
+          const sub = v.category ? `${v.category} · ${snippet}` : (snippet || '🔒 Texto seguro en bóveda');
+
+          push({ id: v.id, type: 'vault', title: v.title, subtitle: sub, path: '/admin/panel/vault', icon: TYPE_META.vault.icon, categoryLabel: TYPE_META.vault.label, badgeColor: TYPE_META.vault.color, rawTitle: v.title });
         }
       });
 
@@ -462,14 +473,14 @@ export default function CommandPalette({ isOpen, onClose }: CommandPaletteProps)
 
     try {
       // Fetch full database snapshot for context (cached for 3 minutes to eliminate egress on multiple chat questions)
-      const aiContextData = await fetchWithCache('ai_db_snapshot', async () => {
+      const aiContextData = await fetchWithCache('ai_db_snapshot_v2', async () => {
         const [exp, tsk, dbt, vlt, shp, rem, nts, prj, chk, rec, plt, bkm, sal] = await Promise.all([
           supabase.from('finance_expenses').select('amount, category, date, concept').order('date', { ascending: false }).limit(25),
           supabase.from('tasks').select('title, completed, due_date').order('created_at', { ascending: false }).limit(25),
           supabase.from('debts').select('debtor_name, amount, concept, settled').order('created_at', { ascending: false }).limit(25),
-          supabase.from('vault_items').select('title, category').limit(25),
+          supabase.from('vault_items').select('*').limit(25),
           supabase.from('shopping_list').select('name, location, bought, quantity').limit(25),
-          supabase.from('reminders').select('title, category, date, time').order('date', { ascending: false }).limit(25),
+          supabase.from('reminders').select('*').order('created_at', { ascending: false }).limit(25),
           supabase.from('notes').select('title, category, content').order('created_at', { ascending: false }).limit(25),
           supabase.from('creative_projects').select('name, category, status, description').limit(25),
           supabase.from('monthly_checklist_items').select('title, category').limit(25),
@@ -504,10 +515,10 @@ ${rec.data?.map(r => `- ${r.name} [Categoría: ${r.category}]${r.ingredients ? `
 ${prj.data?.map(p => `- ${p.name} [Categoría: ${p.category}, Estado: ${p.status}]${p.description ? `: ${p.description}` : ''}`).join('\n') || 'Ninguno'}
 
 📅 FECHAS / RECORDATORIOS:
-${rem.data?.map(r => `- ${r.title} [${r.category}] Fecha: ${r.date || 'Sin fecha'}${r.time ? ` ${r.time}` : ''}`).join('\n') || 'Ninguno'}
+${rem.data?.map(r => `- ${r.title} [${r.category}] Fecha: ${r.date || r.event_date || 'Sin fecha'}${r.time ? ` ${r.time}` : ''}`).join('\n') || 'Ninguno'}
 
 🔒 BÓVEDA (TÍTULOS):
-${vlt.data?.map(v => `- ${v.title} [${v.category}]`).join('\n') || 'Ninguno'}
+${vlt.data?.map(v => `- ${v.title} [${v.category || 'General'}]`).join('\n') || 'Ninguno'}
 
 📝 NOTAS IMPORTANTES:
 ${nts.data?.map(n => `- ${n.title} [${n.category}]: ${n.content?.slice(0, 100) || ''}`).join('\n') || 'Ninguna'}

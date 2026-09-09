@@ -1,7 +1,7 @@
 <div align="center">
   <img src="public/assets/ac-website-icon.svg" alt="Logo" width="100" />
   
-  # Andrés Cordero - Professional Portfolio & Personal Panel PWA (v6.7.0) 🔍✨
+  # Andrés Cordero - Professional Portfolio & Personal Panel PWA (v6.8.0) 🔍✨
   
   **Welcome to my personal ecosystem: a professional portfolio and a custom productivity hub.**  
   Built with UX/UI best practices, premium design, and a focus on mobile-first efficiency.
@@ -16,11 +16,12 @@
 
 ---
 
-## 🚀 Overview (Version 6.7.0)
+## 🚀 Overview (Version 6.8.0)
 
 This repository hosts a dual-purpose platform:
 1. **Professional Portfolio:** A high-end landing page showcasing my engineering background, skills, and achievements with dynamic copyright year updates and zero horizontal overflow.
-2. **Personal Panel PWA (v6.7.0):** An executive personal operating system featuring:
+2. **Personal Panel PWA (v6.8.0):** An executive personal operating system featuring:
+   * **Resilient Vault & Multi-Entity Search Resolution (`CommandPalette.tsx` & `Vault.tsx`):** Fixed schema-tolerant query projections for `vault_items` (handling optional `category` column safely with `select('*')`), dynamic contextual snippet highlighting centered around matched search terms (e.g. finding bank items like "BBVA" inside texts/cards), automatic search cache invalidation upon saving/deleting vault entries, and accent-insensitive internal filtering in the Vault module.
    * **Unified In-Place Live Rich Text Editor (`RichTextEditor.tsx`):** Eliminates separate preview panes or tabs entirely. Editing and rich formatted preview happen **directly in the very same input field in real time** (WYSIWYG: titles, bold text, bullet lists, numbered lists rendered in-place as you write) with zero cursor jumping, native list continuation on <kbd>Enter</kbd>, and markdown typing shortcuts.
    * **Universal Accent-Insensitive Global Search (`CommandPalette.tsx`):** All 14 modules (Notas, Tareas, Deudas, Bóveda, Mandado, Proyectos, Recetas, Finanzas, Plantas, Enlaces, Rutinas Gym, etc.) match queries seamlessly whether you type with or without accents/diacritics (`á`, `é`, `í`, `ó`, `ú`, `ñ`).
    * **Supabase Egress Bandwidth Optimization & High-Speed Cache (`cache.ts` / `CommandPalette.tsx`):** Client-side memory + sessionStorage caching with TTL and specific column projections (`select('id, title, ...')`). Drastically reduces outgoing database traffic by ~90% during global searches and AI assistant interactions, guaranteeing compliance with Supabase Free plan limits.
