@@ -14,6 +14,16 @@ function urlBase64ToUint8Array(base64String: string) {
   return outputArray;
 }
 
+function arrayBufferToBase64(buffer: ArrayBuffer | null): string {
+  if (!buffer) return '';
+  const bytes = new Uint8Array(buffer);
+  let binary = '';
+  for (let i = 0; i < bytes.byteLength; i++) {
+    binary += String.fromCharCode(bytes[i]);
+  }
+  return window.btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+}
+
 export async function registerPushSubscription(): Promise<boolean> {
   if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
     console.warn('Este dispositivo/navegador no soporta PushManager.');
@@ -35,17 +45,23 @@ export async function registerPushSubscription(): Promise<boolean> {
     if (subscription) {
       const subJson = subscription.toJSON();
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return true;
 
-      const endpoint = subJson.endpoint || '';
-      const p256dh = subJson.keys?.p256dh || '';
-      const auth = subJson.keys?.auth || '';
+      const endpoint = subJson.endpoint || subscription.endpoint || '';
+      let p256dh = subJson.keys?.p256dh || '';
+      let auth = subJson.keys?.auth || '';
+
+      if (!p256dh && typeof subscription.getKey === 'function') {
+        p256dh = arrayBufferToBase64(subscription.getKey('p256dh'));
+      }
+      if (!auth && typeof subscription.getKey === 'function') {
+        auth = arrayBufferToBase64(subscription.getKey('auth'));
+      }
 
       if (endpoint && p256dh && auth) {
         // Upsert subscription to Supabase push_subscriptions table
-        await supabase.from('push_subscriptions').upsert(
+        const { error } = await supabase.from('push_subscriptions').upsert(
           {
-            user_id: user.id,
+            user_id: user?.id || null,
             endpoint,
             p256dh,
             auth,
@@ -54,7 +70,12 @@ export async function registerPushSubscription(): Promise<boolean> {
           },
           { onConflict: 'endpoint' }
         );
-        console.log('✅ Suscripción Web Push sincronizada en Supabase para iOS / Móvil.');
+
+        if (error) {
+          console.warn('⚠️ No se pudo guardar la suscripción push en Supabase:', error.message);
+        } else {
+          console.log('✅ Suscripción Web Push sincronizada en Supabase para iOS / Móvil.');
+        }
       }
       return true;
     }
@@ -114,10 +135,20 @@ export function sendBrowserNotification(title: string, options?: NotificationOpt
   }
 }
 
-export async function scanAndNotifyUpcomingEvents() {
+/**
+ * Escanea eventos próximos (recordatorios, pendientes, plantas).
+ * Por defecto, si el usuario ya tiene la aplicación abierta y visible en pantalla,
+ * NO dispara banners nativos ruidosos del sistema operativo para evitar la sensación
+ * de que "las notificaciones solo aparecen al meterse a la app".
+ */
+export async function scanAndNotifyUpcomingEvents(options?: { forceSystemNotification?: boolean }) {
   if (!('Notification' in window) || Notification.permission !== 'granted') {
     return;
   }
+
+  // Si la pestaña está en primer plano y visible, evitamos spam de banners nativos
+  const isPageVisible = typeof document !== 'undefined' && document.visibilityState === 'visible';
+  const shouldSendSystemNotification = !isPageVisible || Boolean(options?.forceSystemNotification);
 
   try {
     const todayStr = new Date().toISOString().split('T')[0];
@@ -161,10 +192,12 @@ export async function scanAndNotifyUpcomingEvents() {
           else if (diffDays === 1) msg = `Mañana tienes un evento registrado (${r.category})`;
           else msg = `En 2 días: ${r.category}`;
 
-          sendBrowserNotification(`📌 ${r.title}`, {
-            body: `${msg}${r.time ? ` a las ${r.time} hrs` : ''}. ${r.notes || ''}`,
-            tag: eventId,
-          });
+          if (shouldSendSystemNotification) {
+            sendBrowserNotification(`📌 ${r.title}`, {
+              body: `${msg}${r.time ? ` a las ${r.time} hrs` : ''}. ${r.notes || ''}`,
+              tag: eventId,
+            });
+          }
 
           notifiedSet.add(eventId);
         }
@@ -190,10 +223,12 @@ export async function scanAndNotifyUpcomingEvents() {
           else if (diffDays === 1) msg = 'Esta tarea vence mañana';
           else msg = 'Esta tarea vence en 2 días';
 
-          sendBrowserNotification(`✅ Tarea Pendiente: ${t.title}`, {
-            body: `${msg}. ${t.description || ''}`,
-            tag: taskId,
-          });
+          if (shouldSendSystemNotification) {
+            sendBrowserNotification(`✅ Tarea Pendiente: ${t.title}`, {
+              body: `${msg}. ${t.description || ''}`,
+              tag: taskId,
+            });
+          }
 
           notifiedSet.add(taskId);
         }
@@ -220,10 +255,12 @@ export async function scanAndNotifyUpcomingEvents() {
         const plantNotifId = `plant_${p.id}_${diffDays}`;
 
         if (diffDays <= 0 && !notifiedSet.has(plantNotifId)) {
-          sendBrowserNotification(`${p.emoji || '🪴'} Riego de Planta: ${p.nickname}`, {
-            body: `¡Hoy toca regar a ${p.nickname} (${p.species})! Frecuencia: cada ${p.watering_frequency_days} días.`,
-            tag: plantNotifId,
-          });
+          if (shouldSendSystemNotification) {
+            sendBrowserNotification(`${p.emoji || '🪴'} Riego de Planta: ${p.nickname}`, {
+              body: `¡Hoy toca regar a ${p.nickname} (${p.species})! Frecuencia: cada ${p.watering_frequency_days} días.`,
+              tag: plantNotifId,
+            });
+          }
 
           notifiedSet.add(plantNotifId);
         }

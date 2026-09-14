@@ -6,6 +6,7 @@ import { ToastProvider, useToast } from '@/components/common/ToastContext';
 import { ThemeProvider, useTheme } from '@/components/common/ThemeContext';
 import { 
   requestNotificationPermission, 
+  registerPushSubscription,
   getNotificationPermissionState, 
   sendBrowserNotification, 
   scanAndNotifyUpcomingEvents 
@@ -128,7 +129,7 @@ function DashboardLayoutContent() {
       setLoading(false);
       scanAndNotifyUpcomingEvents();
       if ('Notification' in window && Notification.permission === 'granted') {
-        requestNotificationPermission();
+        registerPushSubscription();
       }
     }
   };
@@ -157,7 +158,7 @@ function DashboardLayoutContent() {
       sendBrowserNotification('🔔 Notificaciones Activadas', {
         body: 'Te notificaremos automáticamente sobre tus próximas fechas importantes y tareas pendientes.',
       });
-      scanAndNotifyUpcomingEvents();
+      scanAndNotifyUpcomingEvents({ forceSystemNotification: true });
     }
   };
 
@@ -247,7 +248,7 @@ function DashboardLayoutContent() {
 
           <div className="text-center select-none pt-1">
             <span className="font-syne text-[9px] font-bold tracking-widest text-gray-400 dark:text-gray-600 block">
-              VERSIÓN v6.8.0
+              VERSIÓN v6.9.0
             </span>
           </div>
         </div>
@@ -388,7 +389,7 @@ function DashboardLayoutContent() {
 
           <div className="text-center select-none pt-2">
             <span className="font-syne text-[9px] font-bold tracking-widest text-gray-400 dark:text-gray-600 block">
-              VERSIÓN v6.8.0
+              VERSIÓN v6.9.0
             </span>
           </div>
         </div>
