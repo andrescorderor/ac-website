@@ -17,15 +17,19 @@ self.addEventListener('push', (event) => {
   const title = payload.title || 'Andrés Cordero • Notificación';
   const options = {
     body: payload.body || '',
-    icon: payload.icon || '/assets/ac-website-icon.svg',
-    badge: payload.badge || '/assets/ac-website-icon.svg',
-    vibrate: [200, 100, 200],
-    data: payload.data || { url: '/admin/panel/dashboard' },
+    icon: payload.icon || '/assets/ac-website-icon-192.png',
+    data: payload.data || { url: '/admin/panel' },
     tag: payload.tag || `ac-push-${Date.now()}`,
-    renotify: true,
   };
 
-  event.waitUntil(self.registration.showNotification(title, options));
+  event.waitUntil(
+    self.registration.showNotification(title, options).catch(() => {
+      // Fallback a notificación mínima garantizada para compatibilidad estricta de iOS WebKit
+      return self.registration.showNotification(title, {
+        body: payload.body || '',
+      });
+    })
+  );
 });
 
 self.addEventListener('notificationclick', (event) => {

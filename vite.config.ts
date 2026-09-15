@@ -13,15 +13,23 @@ export default defineConfig({
         short_name: 'PanelPersonal',
         description: 'Strategic Dashboard & Personal Productivity Hub',
         theme_color: '#000000',
+        background_color: '#000000',
+        display: 'standalone',
+        start_url: '/admin/panel',
         icons: [
           {
-            src: 'assets/ac-website-icon.svg',
+            src: 'assets/ac-website-icon-192.png',
             sizes: '192x192',
-            type: 'image/svg+xml',
+            type: 'image/png',
+          },
+          {
+            src: 'assets/ac-website-icon-512.png',
+            sizes: '512x512',
+            type: 'image/png',
           },
           {
             src: 'assets/ac-website-icon.svg',
-            sizes: '512x512',
+            sizes: 'any',
             type: 'image/svg+xml',
           },
         ],

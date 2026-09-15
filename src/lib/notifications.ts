@@ -32,6 +32,9 @@ export async function registerPushSubscription(): Promise<boolean> {
 
   try {
     const registration = await navigator.serviceWorker.ready;
+    // Forzar actualización del Service Worker para cargar sw-push.js si estaba obsoleto
+    registration.update().catch(() => {});
+
     let subscription = await registration.pushManager.getSubscription();
 
     if (!subscription) {
@@ -118,20 +121,29 @@ export function sendBrowserNotification(title: string, options?: NotificationOpt
   }
 
   const defaultOptions: any = {
-    icon: '/assets/ac-website-icon.svg',
-    badge: '/assets/ac-website-icon.svg',
-    vibrate: [200, 100, 200],
+    icon: '/assets/ac-website-icon-192.png',
     ...options,
   };
 
-  if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+  if ('serviceWorker' in navigator) {
     navigator.serviceWorker.ready.then((registration) => {
-      registration.showNotification(title, defaultOptions);
+      registration.showNotification(title, defaultOptions).catch(() => {
+        // Fallback mínimo para iOS si falla alguna opción específica
+        registration.showNotification(title, { body: options?.body || '' }).catch(() => {});
+      });
     }).catch(() => {
-      new Notification(title, defaultOptions);
+      try {
+        new Notification(title, defaultOptions);
+      } catch {
+        // En iOS Safari 'new Notification' lanza TypeError si no es a través de serviceWorker
+      }
     });
   } else {
-    new Notification(title, defaultOptions);
+    try {
+      new Notification(title, defaultOptions);
+    } catch {
+      // Ignorar fallback en navegadores móviles sin constructor Notification
+    }
   }
 }
 

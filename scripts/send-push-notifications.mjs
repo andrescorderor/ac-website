@@ -175,8 +175,8 @@ async function checkAndSendPushNotifications() {
       const payload = JSON.stringify({
         title: notif.title,
         body: notif.body,
-        icon: '/assets/ac-website-icon.svg',
-        badge: '/assets/ac-website-icon.svg',
+        icon: '/assets/ac-website-icon-192.png',
+        badge: '/assets/ac-website-icon-192.png',
         data: { url: notif.url || '/admin/panel/dashboard' },
         tag: notif.tag || `push-${Date.now()}`,
       });
