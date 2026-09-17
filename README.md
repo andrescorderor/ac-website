@@ -1,7 +1,7 @@
 <div align="center">
   <img src="public/assets/ac-website-icon.svg" alt="Logo" width="100" />
   
-  # Andrés Cordero - Professional Portfolio & Personal Panel PWA (v6.10.0) 🔍✨
+  # Andrés Cordero - Professional Portfolio & Personal Panel PWA (v6.11.0) 🔍✨
   
   **Welcome to my personal ecosystem: a professional portfolio and a custom productivity hub.**  
   Built with UX/UI best practices, premium design, and a focus on mobile-first efficiency.
@@ -16,11 +16,12 @@
 
 ---
 
-## 🚀 Overview (Version 6.10.0)
+## 🚀 Overview (Version 6.11.0)
 
 This repository hosts a dual-purpose platform:
 1. **Professional Portfolio:** A high-end landing page showcasing my engineering background, skills, and achievements with dynamic copyright year updates and zero horizontal overflow.
-2. **Personal Panel PWA (v6.10.0):** An executive personal operating system featuring:
+2. **Personal Panel PWA (v6.11.0):** An executive personal operating system featuring:
+   * **Bidirectional Debt Management & Net Balance Calculation (`Deudas.tsx` & `CommandPalette.tsx`):** Complete adaptation to track both **Cuentas por Cobrar** (*"Me Deben"*) and **Deudas por Pagar** (*"Yo Debo"*, ej. deudas con familiares como "Deuda para mi hermano"). Includes an intuitive modal with visual type toggle, contextual action buttons (`💰 Marcar como Cobrada` vs `💳 Marcar como Pagada`), live Net Balance metric ($\text{Me Deben} - \text{Yo Debo}$), category filters (`Todas`, `Me Deben`, `Yo Debo`), status sub-filters (`Pendientes`, `Saldadas`), defensive metadata fallback (`[Yo Debo]` prefix) for 100% backward schema compatibility, and full integration into the AI Assistant context prompt and Global Search.
    * **Intuitive One-Touch Debt Collection & Responsive Card View (`Deudas.tsx`):** Complete UX/UI redesign for Cuentas por Cobrar. Replaced confusing passive status pill badges with an explicit, prominent emerald action button (`💰 Marcar como Cobrada`) featuring one-tap completion, optimistic UI updates, and universal `toast.undoable` restoration. Debts now render in an adaptive card grid with debtor initial avatars, highlighted monetary values, concept cards, quick edit modal (`HiOutlinePencil`), reversible reopen controls, and accent-insensitive search.
    * **True Background Web Push Notifications & Quiet In-App Scanning (`sw-push.js`, `send-push-notifications.mjs`, `notifications.ts`):** Complete resolution for mobile and desktop notifications. Implements a dedicated Web Push Service Worker listener (`sw-push.js` via Workbox `importScripts`), a daily server-side dispatcher via GitHub Actions with Node 22 (`realtime: false` to eliminate WebSocket crashes), and an optional Supabase RPC function (`get_daily_notifications_to_send()`) running as `SECURITY DEFINER` to safely aggregate due reminders, pending tasks, and plant watering schedules. When the user opens the application in the foreground (`document.visibilityState === 'visible'`), loud operating-system banners are suppressed, ending redundant in-app popup spam.
    * **Resilient Vault & Multi-Entity Search Resolution (`CommandPalette.tsx` & `Vault.tsx`):** Fixed schema-tolerant query projections for `vault_items` (handling optional `category` column safely with `select('*')`), dynamic contextual snippet highlighting centered around matched search terms (e.g. finding bank items like "BBVA" inside texts/cards), automatic search cache invalidation upon saving/deleting vault entries, and accent-insensitive internal filtering in the Vault module.

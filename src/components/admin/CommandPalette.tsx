@@ -291,7 +291,7 @@ export default function CommandPalette({ isOpen, onClose }: CommandPaletteProps)
           supabase.from('notes').select('id, title, category, content, created_at').order('created_at', { ascending: false }).limit(200),
           supabase.from('reminders').select('*').order('created_at', { ascending: false }).limit(200),
           supabase.from('tasks').select('id, title, description, completed, due_date, created_at').order('created_at', { ascending: false }).limit(200),
-          supabase.from('debts').select('id, debtor_name, amount, concept, settled, created_at').order('created_at', { ascending: false }).limit(200),
+          supabase.from('debts').select('*').order('created_at', { ascending: false }).limit(200),
           supabase.from('vault_items').select('*').order('created_at', { ascending: false }).limit(200),
           supabase.from('shopping_list').select('id, name, location, price, bought, created_at').order('created_at', { ascending: false }).limit(200),
           supabase.from('creative_projects').select('id, name, description, category, status, emoji, created_at').order('created_at', { ascending: false }).limit(200),
@@ -335,10 +335,24 @@ export default function CommandPalette({ isOpen, onClose }: CommandPaletteProps)
         }
       });
 
-      dbt.data?.forEach(d => {
-        const match = !termNorm || normalize(d.debtor_name).includes(termNorm) || normalize(d.concept).includes(termNorm);
+      dbt.data?.forEach((d: any) => {
+        const isPayable = d.type === 'payable' || (d.concept && d.concept.startsWith('[Yo Debo]'));
+        const cleanConcept = d.concept ? d.concept.replace(/^\[(Yo Debo|Me Deben)\]\s*/i, '') : '';
+        const match = !termNorm || normalize(d.debtor_name).includes(termNorm) || (cleanConcept && normalize(cleanConcept).includes(termNorm));
         if (match) {
-          push({ id: d.id, type: 'debt', title: d.debtor_name, subtitle: `$${d.amount}${d.concept ? ` · ${d.concept}` : ''}`, path: '/admin/panel/deudas', icon: TYPE_META.debt.icon, categoryLabel: TYPE_META.debt.label, badgeColor: TYPE_META.debt.color, rawTitle: d.debtor_name });
+          const typeLabel = isPayable ? 'Yo Debo' : 'Me Deben';
+          const statusLabel = d.settled ? (isPayable ? '✓ Pagada' : '✓ Cobrada') : (isPayable ? 'Por Pagar' : 'Por Cobrar');
+          push({ 
+            id: d.id, 
+            type: 'debt', 
+            title: `${d.debtor_name} (${typeLabel})`, 
+            subtitle: `$${d.amount.toLocaleString()} · ${statusLabel}${cleanConcept ? ` · ${cleanConcept}` : ''}`, 
+            path: '/admin/panel/deudas', 
+            icon: TYPE_META.debt.icon, 
+            categoryLabel: typeLabel, 
+            badgeColor: isPayable ? 'rose' : TYPE_META.debt.color, 
+            rawTitle: d.debtor_name 
+          });
         }
       });
 
@@ -477,7 +491,7 @@ export default function CommandPalette({ isOpen, onClose }: CommandPaletteProps)
         const [exp, tsk, dbt, vlt, shp, rem, nts, prj, chk, rec, plt, bkm, sal] = await Promise.all([
           supabase.from('finance_expenses').select('amount, category, date, concept').order('date', { ascending: false }).limit(25),
           supabase.from('tasks').select('title, completed, due_date').order('created_at', { ascending: false }).limit(25),
-          supabase.from('debts').select('debtor_name, amount, concept, settled').order('created_at', { ascending: false }).limit(25),
+          supabase.from('debts').select('*').order('created_at', { ascending: false }).limit(40),
           supabase.from('vault_items').select('*').limit(25),
           supabase.from('shopping_list').select('name, location, bought, quantity').limit(25),
           supabase.from('reminders').select('*').order('created_at', { ascending: false }).limit(25),
@@ -496,14 +510,30 @@ export default function CommandPalette({ isOpen, onClose }: CommandPaletteProps)
 
       const salaryAmount = sal.data?.[0]?.amount || 0;
 
+      // Desglose de deudas: Lo que me deben (Cobrar) vs Lo que yo debo (Pagar)
+      const debtsRaw = dbt.data || [];
+      const receivablesList = debtsRaw.filter((d: any) => d.type !== 'payable' && !(d.concept && d.concept.startsWith('[Yo Debo]')));
+      const payablesList = debtsRaw.filter((d: any) => d.type === 'payable' || (d.concept && d.concept.startsWith('[Yo Debo]')));
+      
+      const pendingReceivablesTotal = receivablesList.filter((d: any) => !d.settled).reduce((acc: number, curr: any) => acc + (Number(curr.amount) || 0), 0);
+      const pendingPayablesTotal = payablesList.filter((d: any) => !d.settled).reduce((acc: number, curr: any) => acc + (Number(curr.amount) || 0), 0);
+      const netDebtsBalance = pendingReceivablesTotal - pendingPayablesTotal;
+
       const formattedContext = `
 💵 SALARIO MENSUAL CONFIGURADO: $${salaryAmount}
 
 📌 TAREAS:
 ${tsk.data?.map(t => `- [${t.completed ? 'Completada' : 'Pendiente'}] ${t.title}${t.due_date ? ` (Vence: ${t.due_date})` : ''}`).join('\n') || 'Ninguna'}
 
-💰 DEUDAS / CUENTAS POR COBRAR:
-${dbt.data?.map(d => `- [${d.settled ? 'Cobrada' : 'Pendiente'}] ${d.debtor_name}: $${d.amount}${d.concept ? ` (${d.concept})` : ''}`).join('\n') || 'Ninguna'}
+💰 CUENTAS QUE ME DEBEN (POR COBRAR):
+- Total pendiente a mi favor: $${pendingReceivablesTotal}
+${receivablesList.map((d: any) => `- [${d.settled ? 'Cobrada' : 'Pendiente'}] ${d.debtor_name}: $${d.amount}${d.concept ? ` (${d.concept.replace(/^\[(Yo Debo|Me Deben)\]\s*/i, '')})` : ''}`).join('\n') || 'Ninguna'}
+
+💳 DEUDAS QUE YO DEBO (POR PAGAR):
+- Total pendiente que debo pagar: $${pendingPayablesTotal}
+${payablesList.map((d: any) => `- [${d.settled ? 'Pagada' : 'Pendiente'}] A: ${d.debtor_name}: $${d.amount}${d.concept ? ` (${d.concept.replace(/^\[(Yo Debo|Me Deben)\]\s*/i, '')})` : ''}`).join('\n') || 'Ninguna'}
+
+⚖️ BALANCE NETO DEUDAS: ${netDebtsBalance >= 0 ? `+$${netDebtsBalance} (a favor)` : `-$${Math.abs(netDebtsBalance)} (en contra)`}
 
 📊 GASTOS RECIENTES:
 ${exp.data?.map(e => `- $${e.amount} [${e.category}] ${e.concept || ''} (${e.date})`).join('\n') || 'Ninguno'}
