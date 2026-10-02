@@ -60,9 +60,9 @@ Este documento define las directrices maestras, arquitectura y criterios obligat
      - Incluir la entidad en las consultas y tipos de búsqueda global (`searchAll`).
      - Inyectar el resumen o datos de la entidad en el prompt de contexto del Asistente de IA (`system_prompt`) para que siempre responda con conocimiento actualizado de toda la app.
 
-4. **🥗 Lógica de Negocio de Mandado vs Finanzas Mensuales:**
-   - Todos los productos de mandado quincenales (`isQuincenalItem` / `tipo: quincenal`) representan compras recurrentes cada 15 días.
-   - En el módulo de Finanzas (`src/pages/admin/Finanzas.tsx`), el total del mandado se multiplica automáticamente $\times 2$ (`item.price * 2`) para calcular con exactitud el gasto mensual proyectado y el balance salarial restante.
+4. **🥗 Lógica de Negocio de Mandado Semanal vs Finanzas Mensuales:**
+   - Todos los productos de mandado semanal (`isMandadoItem` / `tipo: semanal` o retrocompatible `quincenal`) representan compras recurrentes de dieta e insumos realizadas cada 7 días.
+   - En el modal de Mandado (`src/components/admin/MandadoModal.tsx`), el estimador mensual proyecta $\times 4$ el costo semanal (`item.price * 4`), mientras que el registro de compras reales en Modo Súper (`⚡ Modo Súper`) ingresa gastos fechados individualmente al historial de Finanzas (`finance_expenses`).
 
 5. **🌓 Soporte Bimodal Estricto (Dark Mode & Light Mode):**
    - Todo componente, formulario, tarjeta, modal o estado de carga debe estar diseñado con soporte nativo para **Modo Claro** y **Modo Oscuro** usando clases Tailwind explícitas:

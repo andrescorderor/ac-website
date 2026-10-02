@@ -23,7 +23,7 @@ type ShoppingItem = {
   location: string | null;
   price: number | null;
   priority: 'Baja' | 'Media' | 'Alta';
-  type?: 'quincenal' | 'ocasional';
+  type?: 'semanal' | 'quincenal' | 'ocasional';
   category?: string | null;
   bought: boolean;
 };
@@ -52,7 +52,7 @@ export default function Compras() {
     location: '',
     price: '',
     priority: 'Media' as 'Baja' | 'Media' | 'Alta',
-    type: 'quincenal' as 'quincenal' | 'ocasional',
+    type: 'semanal' as 'semanal' | 'ocasional',
   });
   const { toast } = useToast();
 
@@ -80,9 +80,21 @@ export default function Compras() {
   }, [searchParams]);
 
   const isMandadoItem = (item: ShoppingItem): boolean => {
-    if (item.type === 'quincenal' || item.type === 'ocasional') return true;
-    if (item.category === 'quincenal' || item.category === 'ocasional' || item.category === 'comida' || item.category === 'insumos') return true;
-    if (item.location?.includes('Quincenal') || item.location?.includes('Agotar') || item.location?.includes('Agotamiento') || item.location?.includes('Mandado') || item.location?.includes('Comida') || item.location?.includes('Insumos') || item.location?.includes('🍔') || item.location?.includes('🛒') || item.location?.includes('🥗') || item.location?.includes('📦')) return true;
+    if (item.type === 'semanal' || item.type === 'quincenal' || item.type === 'ocasional') return true;
+    if (item.category === 'semanal' || item.category === 'quincenal' || item.category === 'ocasional' || item.category === 'comida' || item.category === 'insumos') return true;
+    if (
+      item.location?.includes('Semanal') ||
+      item.location?.includes('Quincenal') ||
+      item.location?.includes('Agotar') ||
+      item.location?.includes('Agotamiento') ||
+      item.location?.includes('Mandado') ||
+      item.location?.includes('Comida') ||
+      item.location?.includes('Insumos') ||
+      item.location?.includes('🍔') ||
+      item.location?.includes('🛒') ||
+      item.location?.includes('🥗') ||
+      item.location?.includes('📦')
+    ) return true;
     return false;
   };
 
@@ -170,12 +182,19 @@ export default function Compras() {
   const quincenalList = items.filter(isMandadoItem);
   const generalList = items.filter((i) => !isMandadoItem(i));
 
+  // Normalize diacritics / accents for seamless searching
+  const normalize = (s: string | null | undefined) =>
+    (s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+
+  const normSearch = normalize(searchTerm.trim());
+
   const filteredItems = generalList.filter((i) => {
     const matchesFilter =
       filter === 'all' ? true : filter === 'pending' ? !i.bought : i.bought;
     const matchesSearch =
-      i.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (i.location && i.location.toLowerCase().includes(searchTerm.toLowerCase()));
+      !normSearch ||
+      normalize(i.name).includes(normSearch) ||
+      (i.location && normalize(i.location).includes(normSearch));
     return matchesFilter && matchesSearch;
   });
 
@@ -213,7 +232,7 @@ export default function Compras() {
             Lista de <span className="text-gradient">Compras</span>
           </h1>
           <p className="font-inter mt-2 text-[var(--dark-gray)] dark:text-gray-400 font-light text-sm">
-            Gestiona tus compras generales y accede a tu rutina de mandado quincenal.
+            Gestiona tus compras generales y accede a tu rutina de mandado semanal.
           </p>
         </div>
 
@@ -232,9 +251,9 @@ export default function Compras() {
           <button
             onClick={() => setShowQuincenaModal(true)}
             className="px-5 py-3.5 bg-emerald-600 hover:bg-emerald-700 text-white font-syne text-xs font-bold uppercase tracking-wider rounded-2xl transition-all shadow-md flex items-center justify-center gap-2 shrink-0 interactive-hover"
-            title="Abre tu listado aislado de mandado quincenal de dieta"
+            title="Abre tu listado aislado de mandado semanal de dieta e insumos"
           >
-            <span>🥗 Mandado Quincenal</span>
+            <span>🥗 Mandado Semanal</span>
             <span className="px-2 py-0.5 bg-emerald-700/80 rounded-full text-[10px] font-bold">
               {quincenalList.filter(i => !i.bought).length}
             </span>

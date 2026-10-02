@@ -601,7 +601,7 @@ export default function DashboardHome() {
             type="button"
             onClick={() => setShowMandadoModal(true)}
             className="flex items-center gap-2 px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-2xl shadow-md text-xs font-syne font-bold uppercase tracking-wider active:scale-95 transition-all shrink-0 interactive-hover"
-            title="Abrir directamente tu listado de Mandado Quincenal e Insumos"
+            title="Abrir directamente tu listado de Mandado Semanal e Insumos"
           >
             <span>🥗 Mandado</span>
           </button>

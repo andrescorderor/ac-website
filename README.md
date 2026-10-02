@@ -1,7 +1,7 @@
 <div align="center">
   <img src="public/assets/ac-website-icon.svg" alt="Logo" width="100" />
   
-  # Andrés Cordero - Professional Portfolio & Personal Panel PWA (v6.12.0) 🔍✨
+  # Andrés Cordero - Professional Portfolio & Personal Panel PWA (v6.13.0) 🔍✨
   
   **Welcome to my personal ecosystem: a professional portfolio and a custom productivity hub.**  
   Built with UX/UI best practices, premium design, and a focus on mobile-first efficiency.
@@ -16,11 +16,17 @@
 
 ---
 
-## 🚀 Overview (Version 6.12.0)
+## 🚀 Overview (Version 6.13.0)
 
 This repository hosts a dual-purpose platform:
 1. **Professional Portfolio:** A high-end landing page showcasing my engineering background, skills, and achievements with dynamic copyright year updates and zero horizontal overflow.
-2. **Personal Panel PWA (v6.12.0):** An executive personal operating system featuring:
+2. **Personal Panel PWA (v6.13.0):** An executive personal operating system featuring:
+   * **Weekly Mandado & Accent-Insensitive Product Search (`MandadoModal.tsx` & `Compras.tsx`):**
+     * **Accent-Insensitive Search:** Built-in diacritic normalization (`normalize = (s) => s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')`) in both the Weekly Mandado modal and General Shopping List. Users can search naturally without worrying about accents or tildes (e.g. searching *"platano"* finds *"Plátanos"*, *"limon"* finds *"Limón"*, *"azucar"* finds *"Azúcar"*, *"champinon"* finds *"Champiñones"*).
+     * **Full Weekly Grocery Transition:** Complete redesign from biweekly (*"quincenal"*) to weekly (*"semanal"*) grocery management, aligning with realistic weekly shopping habits.
+     * **$\times 4$ Monthly Expense Projection:** Updated estimated monthly cost projection in product creation to reflect 4 weeks per month (`price * 4`).
+     * **1-Tap Weekly List Reset:** Replaced the reset control with *"Desmarca todos los artículos para iniciar una nueva semana"*, preparing the full pantry list for the upcoming week while keeping purchase histories intact.
+     * **Backward-Compatible Schema Integration:** Seamlessly maps legacy database items tagged with `'quincenal'` to `'semanal'` without data loss.
    * **Supermarket Check-Off Purchases & Biweekly Expense History (`MandadoModal.tsx` & `Finanzas.tsx`):**
      * **Effortless Product Registration:** Eliminated quantity requirements when adding products to the shopping list, focusing solely on item planning.
      * **Interactive Check-Off Modal in Supermarket Mode (`⚡ Modo Súper`):** Tapping an unbought item in Modo Súper opens a high-contrast, tactile purchase modal asking *"¿Cuánto estás gastando? ($)"* (with pre-filled estimated price) and *"¿Qué cantidad compraste?"* (with 1-tap quick chips: `1 pza`, `2 pzas`, `1 kg`, `1/2 kg`, `1 paq`, `1 litro`).

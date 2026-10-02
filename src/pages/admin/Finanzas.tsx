@@ -326,9 +326,9 @@ export default function Finanzas() {
           <button
             onClick={() => setShowMandadoModal(true)}
             className="flex items-center gap-2 px-5 py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-2xl font-syne text-xs font-bold uppercase tracking-wider transition-all shadow-md shrink-0 interactive-hover min-h-[44px]"
-            title="Abrir lista de Mandado Quincenal y Modo Súper"
+            title="Abrir lista de Mandado Semanal y Modo Súper"
           >
-            <span>🥗 Mandado & Modo Súper</span>
+            <span>🥗 Mandado Semanal & Modo Súper</span>
           </button>
 
           <button

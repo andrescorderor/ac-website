@@ -13,7 +13,7 @@ type ShoppingItem = {
   location: string | null;
   price: number | null;
   priority: 'Baja' | 'Media' | 'Alta';
-  type?: 'quincenal' | 'ocasional';
+  type?: 'semanal' | 'quincenal' | 'ocasional';
   category?: string | null;
   bought: boolean;
   purchase_history?: string[] | null;
@@ -36,7 +36,7 @@ export default function MandadoModal({ isOpen, onClose }: MandadoModalProps) {
   const [inputQuantity, setInputQuantity] = useState('');
   const [inputLocation, setInputLocation] = useState('');
   const [inputPrice, setInputPrice] = useState('');
-  const [inputType, setInputType] = useState<'quincenal' | 'ocasional'>('quincenal');
+  const [inputType, setInputType] = useState<'semanal' | 'ocasional'>('semanal');
   const [inputCategory, setInputCategory] = useState<'comida' | 'insumos'>('comida');
   const [historyModalItem, setHistoryModalItem] = useState<ShoppingItem | null>(null);
   const [buyingItem, setBuyingItem] = useState<ShoppingItem | null>(null);
@@ -104,16 +104,30 @@ export default function MandadoModal({ isOpen, onClose }: MandadoModalProps) {
   const [activeTab, setActiveTab] = useState<'all' | 'pending' | 'comida' | 'insumos'>('all');
 
   const isMandadoItem = (item: ShoppingItem): boolean => {
-    if (item.type === 'quincenal' || item.type === 'ocasional') return true;
-    if (item.category === 'quincenal' || item.category === 'ocasional' || item.category === 'comida' || item.category === 'insumos') return true;
-    if (item.location?.includes('Quincenal') || item.location?.includes('Agotar') || item.location?.includes('Agotamiento') || item.location?.includes('Mandado') || item.location?.includes('Comida') || item.location?.includes('Insumos') || item.location?.includes('🍔') || item.location?.includes('🛒') || item.location?.includes('🥗') || item.location?.includes('📦')) return true;
+    if (item.type === 'semanal' || item.type === 'quincenal' || item.type === 'ocasional') return true;
+    if (item.category === 'semanal' || item.category === 'quincenal' || item.category === 'ocasional' || item.category === 'comida' || item.category === 'insumos') return true;
+    if (
+      item.location?.includes('Semanal') ||
+      item.location?.includes('Quincenal') ||
+      item.location?.includes('Agotar') ||
+      item.location?.includes('Agotamiento') ||
+      item.location?.includes('Mandado') ||
+      item.location?.includes('Comida') ||
+      item.location?.includes('Insumos') ||
+      item.location?.includes('🍔') ||
+      item.location?.includes('🛒') ||
+      item.location?.includes('🥗') ||
+      item.location?.includes('📦')
+    ) return true;
     return false;
   };
 
-  const getItemType = (item: ShoppingItem): 'quincenal' | 'ocasional' => {
-    if (item.type === 'quincenal' || item.type === 'ocasional') return item.type;
-    if (item.category === 'quincenal' || item.category === 'ocasional') return item.category as 'quincenal' | 'ocasional';
-    if (item.location?.includes('Quincenal') || item.name.includes('[Quincenal]')) return 'quincenal';
+  const getItemType = (item: ShoppingItem): 'semanal' | 'ocasional' => {
+    if (item.type === 'semanal' || item.type === 'quincenal') return 'semanal';
+    if (item.type === 'ocasional') return 'ocasional';
+    if (item.category === 'semanal' || item.category === 'quincenal') return 'semanal';
+    if (item.category === 'ocasional') return 'ocasional';
+    if (item.location?.includes('Semanal') || item.location?.includes('Quincenal') || item.name.includes('[Semanal]') || item.name.includes('[Quincenal]')) return 'semanal';
     if (item.location?.includes('Ocasional') || item.location?.includes('Agotar') || item.location?.includes('Agotamiento')) return 'ocasional';
     return 'ocasional';
   };
@@ -142,7 +156,14 @@ export default function MandadoModal({ isOpen, onClose }: MandadoModalProps) {
       const store = parts[parts.length - 1].trim();
       return store || null;
     }
-    if (location.startsWith('🍔') || location.startsWith('🛒') || location.includes('Quincenal') || location.includes('Agotar') || location.includes('Agotamiento')) {
+    if (
+      location.startsWith('🍔') ||
+      location.startsWith('🛒') ||
+      location.includes('Semanal') ||
+      location.includes('Quincenal') ||
+      location.includes('Agotar') ||
+      location.includes('Agotamiento')
+    ) {
       return null;
     }
     return location.trim();
@@ -150,14 +171,23 @@ export default function MandadoModal({ isOpen, onClose }: MandadoModalProps) {
 
   const allMandado = items.filter(isMandadoItem);
 
+  // Normalize diacritics / accents for seamless searching (eg. platano matches Plátanos, limon matches Limón)
+  const normalize = (s: string | null | undefined) =>
+    (s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+
   // Filter out any duplicates with identical product names
   const rawQuincenalList = allMandado.filter((item, index, self) =>
     index === self.findIndex((t) => t.name.trim().toLowerCase() === item.name.trim().toLowerCase())
   );
 
+  const normSearch = normalize(searchTerm.trim());
+
   const quincenalList = rawQuincenalList
     .filter((item) => {
-      const matchesSearch = item.name.toLowerCase().includes(searchTerm.toLowerCase()) || (item.location && item.location.toLowerCase().includes(searchTerm.toLowerCase()));
+      const matchesSearch =
+        !normSearch ||
+        normalize(item.name).includes(normSearch) ||
+        (item.location && normalize(item.location).includes(normSearch));
       if (!matchesSearch) return false;
       if (activeTab === 'pending') return !item.bought;
       if (activeTab === 'comida') return getItemCategory(item) === 'comida';
@@ -183,7 +213,7 @@ export default function MandadoModal({ isOpen, onClose }: MandadoModalProps) {
       const cantText = inputQuantity.trim() ? ` | Cant: ${inputQuantity.trim()}` : '';
       const storeText = inputLocation.trim();
       const catText = inputCategory === 'comida' ? '🍔 Comida' : '🛒 Insumos';
-      const freqText = inputType === 'quincenal' ? '🥗 Quincenal' : '📦 Hasta Agotar';
+      const freqText = inputType === 'semanal' ? '🥗 Semanal' : '📦 Hasta Agotar';
       const locText = storeText
         ? `${catText} | ${freqText}${cantText} — ${storeText}`
         : `${catText} | ${freqText}${cantText}`;
@@ -278,7 +308,7 @@ export default function MandadoModal({ isOpen, onClose }: MandadoModalProps) {
     const cantText = spentQuantity.trim() ? ` | Cant: ${spentQuantity.trim()}` : '';
     const cleanStore = getCleanStoreLocation(buyingItem.location);
     const catText = getItemCategory(buyingItem) === 'comida' ? '🍔 Comida' : '🛒 Insumos';
-    const freqText = getItemType(buyingItem) === 'quincenal' ? '🥗 Quincenal' : '📦 Hasta Agotar';
+    const freqText = getItemType(buyingItem) === 'semanal' ? '🥗 Semanal' : '📦 Hasta Agotar';
     const updatedLocation = cleanStore
       ? `${catText} | ${freqText}${cantText} — ${cleanStore}`
       : `${catText} | ${freqText}${cantText}`;
@@ -391,23 +421,23 @@ export default function MandadoModal({ isOpen, onClose }: MandadoModalProps) {
     }
   };
 
-  const handleRenewQuincenal = async () => {
+  const handleRenewWeekly = async () => {
     if (quincenalList.length === 0) {
       toast.info('No tienes artículos en tu Mandado 🥗');
       return;
     }
 
     try {
-      const quincenalIds = quincenalList.map((i) => i.id);
+      const weeklyIds = quincenalList.map((i) => i.id);
       const { error } = await supabase
         .from('shopping_list')
         .update({ bought: false })
-        .in('id', quincenalIds);
+        .in('id', weeklyIds);
 
       if (error) throw error;
 
       setItems(items.map((i) => (isMandadoItem(i) ? { ...i, bought: false } : i)));
-      toast.success(`🥗 ¡Mandado desmarcado! Todos los productos están listos para la nueva quincena.`);
+      toast.success(`🥗 ¡Mandado desmarcado! Todos los productos están listos para la nueva semana.`);
     } catch (err: any) {
       toast.error('Error al renovar mandado: ' + err.message);
     }
@@ -593,11 +623,11 @@ export default function MandadoModal({ isOpen, onClose }: MandadoModalProps) {
                 <div className="flex items-center gap-2">
                   <span className="text-2xl shrink-0">🥗</span>
                   <h2 className="font-dm-sans text-xl sm:text-2xl font-bold text-gray-900 dark:text-white truncate">
-                    Mandado Quincenal & Insumos
+                    Mandado Semanal & Insumos
                   </h2>
                 </div>
                 <p className="font-inter text-xs text-gray-400 mt-0.5 truncate">
-                  Listado de compras recurrente para tu alimentación e insumos de casa.
+                  Listado de compras recurrente para tu alimentación semanal e insumos de casa.
                 </p>
               </div>
               <button
@@ -666,9 +696,9 @@ export default function MandadoModal({ isOpen, onClose }: MandadoModalProps) {
 
                     <button
                       type="button"
-                      onClick={handleRenewQuincenal}
+                      onClick={handleRenewWeekly}
                       className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-syne text-xs font-bold uppercase tracking-wider rounded-xl transition-all shadow-xs flex items-center justify-center gap-1.5 interactive-hover shrink-0"
-                      title="Desmarca todos los artículos para iniciar una nueva quincena"
+                      title="Desmarca todos los artículos para iniciar una nueva semana"
                     >
                       <HiOutlineRefresh className="text-sm" />
                       <span>Renovar</span>
@@ -802,7 +832,7 @@ export default function MandadoModal({ isOpen, onClose }: MandadoModalProps) {
                         value={inputType}
                         onChange={(val) => setInputType(val as any)}
                         options={[
-                          { value: 'quincenal', label: '🥗 Quincenal (Recurrente)' },
+                          { value: 'semanal', label: '🥗 Semanal (Recurrente)' },
                           { value: 'ocasional', label: '📦 Hasta Agotar (Ocasional)' },
                         ]}
                       />
@@ -815,7 +845,7 @@ export default function MandadoModal({ isOpen, onClose }: MandadoModalProps) {
                         </label>
                         {inputPrice && (
                           <span className="font-syne text-[9px] font-bold text-emerald-600 dark:text-emerald-400">
-                            {inputType === 'quincenal' ? `×2 mensual: $${(parseFloat(inputPrice) * 2 || 0).toLocaleString()}` : ''}
+                            {inputType === 'semanal' ? `×4 mensual: $${(parseFloat(inputPrice) * 4 || 0).toLocaleString()}` : ''}
                           </span>
                         )}
                       </div>
@@ -858,7 +888,7 @@ export default function MandadoModal({ isOpen, onClose }: MandadoModalProps) {
           <div className="flex-1 min-h-0 overflow-y-auto py-2.5 space-y-2 pr-1 w-full touch-pan-y overscroll-contain scrollbar-thin">
             {quincenalList.length === 0 ? (
               <div className="p-8 text-center bg-gray-50 dark:bg-gray-800/50 rounded-2xl text-gray-400 space-y-1 my-auto">
-                <p className="font-dm-sans font-bold text-base text-gray-800 dark:text-gray-200">No hay productos en tu mandado quincenal</p>
+                <p className="font-dm-sans font-bold text-base text-gray-800 dark:text-gray-200">No hay productos en tu mandado semanal</p>
                 <p className="font-inter text-xs">Presiona "+ Producto" para registrar más productos.</p>
               </div>
             ) : isFocusMode ? (
@@ -961,11 +991,11 @@ export default function MandadoModal({ isOpen, onClose }: MandadoModalProps) {
                         </span>
 
                         <span className={`px-2 py-0.5 rounded-full text-[9px] font-syne font-bold uppercase tracking-wider shrink-0 ${
-                          getItemType(item) === 'quincenal'
+                          getItemType(item) === 'semanal'
                             ? 'bg-emerald-100 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-300'
                             : 'bg-purple-100 dark:bg-purple-950/60 text-purple-600 dark:text-purple-300'
                         }`}>
-                          {getItemType(item) === 'quincenal' ? '🥗 Quincenal' : '📦 Hasta Agotar'}
+                          {getItemType(item) === 'semanal' ? '🥗 Semanal' : '📦 Hasta Agotar'}
                         </span>
                       </div>
 
@@ -1106,7 +1136,7 @@ export default function MandadoModal({ isOpen, onClose }: MandadoModalProps) {
                     <div className="flex items-center justify-between text-xs">
                       <span className="font-syne font-bold uppercase tracking-wider text-gray-400">Categoría & Tipo:</span>
                       <span className="font-dm-sans font-medium text-gray-700 dark:text-gray-200">
-                        {getItemCategory(historyModalItem) === 'comida' ? '🍔 Comida' : '🛒 Insumos'} • {getItemType(historyModalItem) === 'quincenal' ? '🥗 Quincenal' : '📦 Hasta Agotar'}
+                        {getItemCategory(historyModalItem) === 'comida' ? '🍔 Comida' : '🛒 Insumos'} • {getItemType(historyModalItem) === 'semanal' ? '🥗 Semanal' : '📦 Hasta Agotar'}
                       </span>
                     </div>
 
