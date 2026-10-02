@@ -1,7 +1,7 @@
 <div align="center">
   <img src="public/assets/ac-website-icon.svg" alt="Logo" width="100" />
   
-  # Andrés Cordero - Professional Portfolio & Personal Panel PWA (v6.13.0) 🔍✨
+  # Andrés Cordero - Professional Portfolio & Personal Panel PWA (v6.14.0) 🔍✨
   
   **Welcome to my personal ecosystem: a professional portfolio and a custom productivity hub.**  
   Built with UX/UI best practices, premium design, and a focus on mobile-first efficiency.
@@ -16,11 +16,20 @@
 
 ---
 
-## 🚀 Overview (Version 6.13.0)
+## 🚀 Overview (Version 6.14.0)
 
 This repository hosts a dual-purpose platform:
 1. **Professional Portfolio:** A high-end landing page showcasing my engineering background, skills, and achievements with dynamic copyright year updates and zero horizontal overflow.
-2. **Personal Panel PWA (v6.13.0):** An executive personal operating system featuring:
+2. **Personal Panel PWA (v6.14.0):** An executive personal operating system featuring:
+   * **Master Engineering Discipline & Production Standards (`AGENTS.md` v6.14.0):**
+     * **Production-Grade Mindset (Rule 0):** Zero test/mock/placeholder labels exposed to final users; complete executive polish across all screens.
+     * **Strict $0 USD Tier Architecture & Mandatory Payment Alert (Rule 0.1):** 100% cost-free development utilizing open-source and free tiers (Supabase Free, Netlify Free, GitHub Actions, PWA APIs). Mandatory protocol requiring explicit prior approval from Andrés before incurring any recurring or paid external services.
+     * **Universal Interactive Cursor Standard (Rule 0.2):** Enforces `cursor: pointer` on all clickable components (buttons, links, select triggers, cards, switches, checkboxes).
+     * **Elimination of Native Browser Dialogs (Rule 0.3):** Full prohibition of `alert()`, `confirm()`, `prompt()`, relying exclusively on in-app toasts with non-blocking execution and universal `toast.undoable` support.
+     * **Professional Device Neutrality (Rule 0.4):** Avoids explicit device brand names ("iPad", "Tablet") in favor of professional terms (*"Dispositivo móvil"*, *"Pantalla táctil"*).
+     * **Visual Hygiene & On-Demand Tooltips (Rule 0.5):** Replaces cluttered permanent helper text with on-demand interactive tooltips (`title="..."` and discreet info icons) and direct verb action buttons.
+     * **Strict 4-Part Modal Architecture:** Standardized structure with backdrop dismiss, sticky header with touch `X` button, scrollable central body (`overflow-y-auto`), and sticky footer with secondary Cancel and primary Save controls.
+     * **Tactile Ergonomics (WCAG 2.5.5 / 2.5.8):** Minimum 44px-48px touch targets, 8px-12px adjacent button spacing, and `touch-action: manipulation` for mobile responsiveness.
    * **Weekly Mandado & Accent-Insensitive Product Search (`MandadoModal.tsx` & `Compras.tsx`):**
      * **Accent-Insensitive Search:** Built-in diacritic normalization (`normalize = (s) => s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')`) in both the Weekly Mandado modal and General Shopping List. Users can search naturally without worrying about accents or tildes (e.g. searching *"platano"* finds *"Plátanos"*, *"limon"* finds *"Limón"*, *"azucar"* finds *"Azúcar"*, *"champinon"* finds *"Champiñones"*).
      * **Full Weekly Grocery Transition:** Complete redesign from biweekly (*"quincenal"*) to weekly (*"semanal"*) grocery management, aligning with realistic weekly shopping habits.
