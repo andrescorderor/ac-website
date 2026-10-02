@@ -1,7 +1,7 @@
 <div align="center">
   <img src="public/assets/ac-website-icon.svg" alt="Logo" width="100" />
   
-  # Andrés Cordero - Professional Portfolio & Personal Panel PWA (v6.11.0) 🔍✨
+  # Andrés Cordero - Professional Portfolio & Personal Panel PWA (v6.12.0) 🔍✨
   
   **Welcome to my personal ecosystem: a professional portfolio and a custom productivity hub.**  
   Built with UX/UI best practices, premium design, and a focus on mobile-first efficiency.
@@ -16,11 +16,19 @@
 
 ---
 
-## 🚀 Overview (Version 6.11.0)
+## 🚀 Overview (Version 6.12.0)
 
 This repository hosts a dual-purpose platform:
 1. **Professional Portfolio:** A high-end landing page showcasing my engineering background, skills, and achievements with dynamic copyright year updates and zero horizontal overflow.
-2. **Personal Panel PWA (v6.11.0):** An executive personal operating system featuring:
+2. **Personal Panel PWA (v6.12.0):** An executive personal operating system featuring:
+   * **Supermarket Check-Off Purchases & Biweekly Expense History (`MandadoModal.tsx` & `Finanzas.tsx`):**
+     * **Effortless Product Registration:** Eliminated quantity requirements when adding products to the shopping list, focusing solely on item planning.
+     * **Interactive Check-Off Modal in Supermarket Mode (`⚡ Modo Súper`):** Tapping an unbought item in Modo Súper opens a high-contrast, tactile purchase modal asking *"¿Cuánto estás gastando? ($)"* (with pre-filled estimated price) and *"¿Qué cantidad compraste?"* (with 1-tap quick chips: `1 pza`, `2 pzas`, `1 kg`, `1/2 kg`, `1 paq`, `1 litro`).
+     * **Automatic Expense Logging with Real Dates:** Every checked-off purchase is instantly logged to `finance_expenses` with today's date, exact price, and quantity.
+     * **Biweekly vs. Monthly Financial Tracking (`Finanzas.tsx`):** Complete temporal engine allowing users to view finances by **Mes Completo**, **1ra Quincena (1 - 15)**, or **2da Quincena (16 - Fin)** with dynamic biweekly budget adaptation ($\text{Salario} / 2$).
+     * **Quincenal Comparison Dashboard:** Real-time comparison cards showing Q1 vs Q2 total spent, remaining balance (Ahorro / Déficit), and monthly totals.
+     * **Chronological Expense History View:** Full timeline of supermarket purchases and recurring services with quincenal badges, date stamps, category tags, and universal `toast.undoable` restoration.
+     * **Integrated Date Picker for Services:** Added `CustomDatePicker` to schedule service payments into their exact quincenal billing window.
    * **Bidirectional Debt Management & Net Balance Calculation (`Deudas.tsx` & `CommandPalette.tsx`):** Complete adaptation to track both **Cuentas por Cobrar** (*"Me Deben"*) and **Deudas por Pagar** (*"Yo Debo"*, ej. deudas con familiares como "Deuda para mi hermano"). Includes an intuitive modal with visual type toggle, contextual action buttons (`💰 Marcar como Cobrada` vs `💳 Marcar como Pagada`), live Net Balance metric ($\text{Me Deben} - \text{Yo Debo}$), category filters (`Todas`, `Me Deben`, `Yo Debo`), status sub-filters (`Pendientes`, `Saldadas`), defensive metadata fallback (`[Yo Debo]` prefix) for 100% backward schema compatibility, and full integration into the AI Assistant context prompt and Global Search.
    * **Intuitive One-Touch Debt Collection & Responsive Card View (`Deudas.tsx`):** Complete UX/UI redesign for Cuentas por Cobrar. Replaced confusing passive status pill badges with an explicit, prominent emerald action button (`💰 Marcar como Cobrada`) featuring one-tap completion, optimistic UI updates, and universal `toast.undoable` restoration. Debts now render in an adaptive card grid with debtor initial avatars, highlighted monetary values, concept cards, quick edit modal (`HiOutlinePencil`), reversible reopen controls, and accent-insensitive search.
    * **True Background Web Push Notifications & Quiet In-App Scanning (`sw-push.js`, `send-push-notifications.mjs`, `notifications.ts`):** Complete resolution for mobile and desktop notifications. Implements a dedicated Web Push Service Worker listener (`sw-push.js` via Workbox `importScripts`), a daily server-side dispatcher via GitHub Actions with Node 22 (`realtime: false` to eliminate WebSocket crashes), and an optional Supabase RPC function (`get_daily_notifications_to_send()`) running as `SECURITY DEFINER` to safely aggregate due reminders, pending tasks, and plant watering schedules. When the user opens the application in the foreground (`document.visibilityState === 'visible'`), loud operating-system banners are suppressed, ending redundant in-app popup spam.

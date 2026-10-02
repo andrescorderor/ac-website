@@ -520,7 +520,9 @@ export default function CommandPalette({ isOpen, onClose }: CommandPaletteProps)
       const netDebtsBalance = pendingReceivablesTotal - pendingPayablesTotal;
 
       const formattedContext = `
-💵 SALARIO MENSUAL CONFIGURADO: $${salaryAmount}
+💵 SALARIO CONFIGURADO:
+- Salario Mensual: $${salaryAmount}
+- Salario Quincenal: $${salaryAmount / 2}
 
 📌 TAREAS:
 ${tsk.data?.map(t => `- [${t.completed ? 'Completada' : 'Pendiente'}] ${t.title}${t.due_date ? ` (Vence: ${t.due_date})` : ''}`).join('\n') || 'Ninguna'}

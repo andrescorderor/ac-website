@@ -39,6 +39,9 @@ export default function MandadoModal({ isOpen, onClose }: MandadoModalProps) {
   const [inputType, setInputType] = useState<'quincenal' | 'ocasional'>('quincenal');
   const [inputCategory, setInputCategory] = useState<'comida' | 'insumos'>('comida');
   const [historyModalItem, setHistoryModalItem] = useState<ShoppingItem | null>(null);
+  const [buyingItem, setBuyingItem] = useState<ShoppingItem | null>(null);
+  const [spentAmount, setSpentAmount] = useState<string>('');
+  const [spentQuantity, setSpentQuantity] = useState<string>('');
   const [isFocusMode, setIsFocusMode] = useState(false);
   const [wakeLock, setWakeLock] = useState<any>(null);
 
@@ -251,76 +254,126 @@ export default function MandadoModal({ isOpen, onClose }: MandadoModalProps) {
         setInputLocation('');
         setInputPrice('');
         setShowAddForm(false);
-
-        // AUTOMATIC FINANZAS LOGGING - ONLY FOR QUINCENAL (NON-EXHAUSTIBLE) ITEMS
-        if (itemPrice && itemPrice > 0 && inputType === 'quincenal') {
-          await supabase.from('finance_expenses').insert([{
-            user_id: user.id,
-            concept: `Mandado — ${payload.name}`,
-            amount: itemPrice,
-            category: inputCategory,
-          }]);
-          window.dispatchEvent(new Event('ac_finance_changed'));
-          toast.success(`💸 $${itemPrice.toLocaleString()} en ${inputCategory === 'comida' ? 'Comida 🍔' : 'Insumos 🛒'} auto-registrado en Finanzas`);
-        } else {
-          toast.success(`Producto agregado al Mandado (${inputCategory === 'comida' ? 'Comida 🍔' : 'Insumos 🛒'})`);
-        }
+        toast.success(`Producto agregado al Mandado (${inputCategory === 'comida' ? 'Comida 🍔' : 'Insumos 🛒'})`);
       }
     } catch (err: any) {
       toast.error('Error al guardar: ' + err.message);
     }
   };
 
+  const handleInitiateBuy = (item: ShoppingItem) => {
+    setBuyingItem(item);
+    setSpentAmount(item.price !== null && item.price !== undefined ? String(item.price) : '');
+    setSpentQuantity(getItemQuantity(item) || '');
+  };
+
+  const handleConfirmPurchase = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!buyingItem) return;
+
+    const parsedPrice = spentAmount ? parseFloat(spentAmount) : (buyingItem.price || 0);
+    const nowIso = new Date().toISOString();
+    const todayDate = nowIso.split('T')[0];
+
+    const cantText = spentQuantity.trim() ? ` | Cant: ${spentQuantity.trim()}` : '';
+    const cleanStore = getCleanStoreLocation(buyingItem.location);
+    const catText = getItemCategory(buyingItem) === 'comida' ? '🍔 Comida' : '🛒 Insumos';
+    const freqText = getItemType(buyingItem) === 'quincenal' ? '🥗 Quincenal' : '📦 Hasta Agotar';
+    const updatedLocation = cleanStore
+      ? `${catText} | ${freqText}${cantText} — ${cleanStore}`
+      : `${catText} | ${freqText}${cantText}`;
+
+    // Update purchase_history
+    let updatedHistory = Array.isArray(buyingItem.purchase_history) ? [...buyingItem.purchase_history] : [];
+    updatedHistory = [nowIso, ...updatedHistory.filter(ts => ts !== nowIso)];
+
+    try {
+      const payload: any = {
+        bought: true,
+        price: parsedPrice,
+        quantity: spentQuantity.trim() || null,
+        location: updatedLocation,
+        updated_at: nowIso,
+        purchase_history: updatedHistory,
+      };
+
+      let { error } = await supabase
+        .from('shopping_list')
+        .update(payload)
+        .eq('id', buyingItem.id);
+
+      if (error && (error.message?.includes('quantity') || error.message?.includes('purchase_history') || error.message?.includes('updated_at'))) {
+        delete payload.quantity;
+        delete payload.purchase_history;
+        delete payload.updated_at;
+        const res = await supabase.from('shopping_list').update(payload).eq('id', buyingItem.id);
+        error = res.error;
+      }
+
+      if (error) throw error;
+
+      // Update state
+      setItems(items.map(i => i.id === buyingItem.id ? {
+        ...i,
+        bought: true,
+        price: parsedPrice,
+        quantity: spentQuantity.trim() || null,
+        location: updatedLocation,
+        updated_at: nowIso,
+        purchase_history: updatedHistory,
+      } : i));
+
+      // Register real purchase expense in finance_expenses
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const cat = getItemCategory(buyingItem);
+        const qtySuffix = spentQuantity.trim() ? ` (${spentQuantity.trim()})` : '';
+        const concept = `Mandado — ${buyingItem.name}${qtySuffix}`;
+
+        await supabase.from('finance_expenses').insert([{
+          user_id: user.id,
+          concept,
+          amount: parsedPrice,
+          category: cat,
+          date: todayDate,
+        }]);
+
+        window.dispatchEvent(new Event('ac_finance_changed'));
+      }
+
+      toast.success(`🛒 Comprado: $${parsedPrice.toLocaleString()} registrado en Finanzas`);
+      setBuyingItem(null);
+    } catch (err: any) {
+      toast.error('Error al registrar compra: ' + err.message);
+    }
+  };
+
   const toggleBought = async (id: string, currentStatus: boolean) => {
     const item = items.find((i) => i.id === id);
-    const nowIso = new Date().toISOString();
-    const newStatus = !currentStatus;
+    if (!item) return;
 
-    // Build new purchase_history array
-    let updatedHistory = Array.isArray(item?.purchase_history) ? [...item.purchase_history] : [];
-    if (newStatus) {
-      // Append current purchase timestamp if marking as bought
-      updatedHistory = [nowIso, ...updatedHistory.filter(ts => ts !== nowIso)];
+    // If currently pending, opening checkoff dialog to ask for amount & quantity
+    if (!currentStatus) {
+      handleInitiateBuy(item);
+      return;
     }
 
+    // Unmarking (returning to pending)
+    const nowIso = new Date().toISOString();
     try {
       let { error } = await supabase
         .from('shopping_list')
-        .update({ bought: newStatus, updated_at: nowIso, purchase_history: updatedHistory })
+        .update({ bought: false, updated_at: nowIso })
         .eq('id', id);
 
-      if (error && (error.message?.includes('purchase_history') || error.message?.includes('updated_at'))) {
-        const fallback = await supabase
-          .from('shopping_list')
-          .update({ bought: newStatus, updated_at: nowIso })
-          .eq('id', id);
-        if (fallback.error && fallback.error.message?.includes('updated_at')) {
-          await supabase.from('shopping_list').update({ bought: newStatus }).eq('id', id);
-        }
+      if (error && error.message?.includes('updated_at')) {
+        await supabase.from('shopping_list').update({ bought: false }).eq('id', id);
       } else if (error) {
         throw error;
       }
 
-      setItems(items.map((i) => (i.id === id ? { ...i, bought: newStatus, updated_at: nowIso, purchase_history: updatedHistory } : i)));
-
-      // AUTOMATIC FINANZAS LOGGING WHEN MARKING MANDADO ITEM AS BOUGHT (ONLY FOR QUINCENAL ITEMS)
-      if (newStatus && item && item.price && item.price > 0 && getItemType(item) === 'quincenal') {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (user) {
-          const cat = getItemCategory(item);
-          await supabase.from('finance_expenses').insert([{
-            user_id: user.id,
-            concept: `Mandado — ${item.name}`,
-            amount: item.price,
-            category: cat,
-          }]);
-          window.dispatchEvent(new Event('ac_finance_changed'));
-          toast.success(`🛒 Comprado + 💸 $${item.price.toLocaleString()} auto-registrado en Finanzas (${cat === 'comida' ? 'Comida 🍔' : 'Insumos 🛒'})`);
-          return;
-        }
-      }
-
-      toast.info(newStatus ? 'Artículo comprado 🛒' : 'Artículo marcado como pendiente');
+      setItems(items.map((i) => (i.id === id ? { ...i, bought: false, updated_at: nowIso } : i)));
+      toast.info('Producto devuelto a pendientes ⏳');
     } catch (err: any) {
       toast.error('Error al actualizar estado: ' + err.message);
     }
@@ -682,8 +735,8 @@ export default function MandadoModal({ isOpen, onClose }: MandadoModalProps) {
                     )}
                   </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2.5">
-                    <div className="sm:col-span-2 space-y-1">
+                  <div className={`grid gap-2.5 ${editingId ? 'grid-cols-1 sm:grid-cols-2 md:grid-cols-4' : 'grid-cols-1 sm:grid-cols-3'}`}>
+                    <div className={`${editingId ? 'sm:col-span-2' : 'sm:col-span-2'} space-y-1`}>
                       <label className="font-syne text-[9px] font-bold uppercase tracking-widest text-gray-400">
                         Nombre del Producto *
                       </label>
@@ -697,18 +750,20 @@ export default function MandadoModal({ isOpen, onClose }: MandadoModalProps) {
                       />
                     </div>
 
-                    <div className="space-y-1">
-                      <label className="font-syne text-[9px] font-bold uppercase tracking-widest text-gray-400">
-                        Cantidad / Porción
-                      </label>
-                      <input
-                        type="text"
-                        placeholder="Ej. 1 Litro, 500g, 2 paq"
-                        value={inputQuantity}
-                        onChange={(e) => setInputQuantity(e.target.value)}
-                        className="w-full px-3 py-1.5 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl outline-none text-xs font-inter text-gray-900 dark:text-white placeholder-gray-400 focus:border-emerald-500"
-                      />
-                    </div>
+                    {editingId && (
+                      <div className="space-y-1">
+                        <label className="font-syne text-[9px] font-bold uppercase tracking-widest text-gray-400">
+                          Cantidad / Porción
+                        </label>
+                        <input
+                          type="text"
+                          placeholder="Ej. 1 Litro, 500g, 2 paq"
+                          value={inputQuantity}
+                          onChange={(e) => setInputQuantity(e.target.value)}
+                          className="w-full px-3 py-1.5 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl outline-none text-xs font-inter text-gray-900 dark:text-white placeholder-gray-400 focus:border-emerald-500"
+                        />
+                      </div>
+                    )}
 
                     <div className="space-y-1">
                       <label className="font-syne text-[9px] font-bold uppercase tracking-widest text-gray-400">
@@ -1159,6 +1214,127 @@ export default function MandadoModal({ isOpen, onClose }: MandadoModalProps) {
                     Entendido
                   </button>
                 </div>
+              </motion.div>
+            </div>
+          )}
+        </AnimatePresence>
+
+        {/* ═══ MODAL: CHECK-OFF PURCHASE IN SUPERMARKET (MODO SÚPER) ═══ */}
+        <AnimatePresence>
+          {buyingItem && (
+            <div
+              className="fixed inset-0 z-[100001] flex items-center justify-center p-4 sm:p-6 bg-black/75 backdrop-blur-md cursor-pointer"
+              onClick={(e) => {
+                if (e.target === e.currentTarget) setBuyingItem(null);
+              }}
+            >
+              <motion.div
+                onClick={(e) => e.stopPropagation()}
+                initial={{ opacity: 0, scale: 0.92, y: 30 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.92, y: 30 }}
+                className="bg-white dark:bg-gray-900 rounded-[2.5rem] p-6 sm:p-8 max-h-[90vh] overflow-y-auto max-w-md w-full border border-gray-100 dark:border-gray-800 shadow-2xl space-y-5 my-auto cursor-default"
+              >
+                {/* Header */}
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div className="p-3 bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 rounded-2xl shrink-0">
+                      <HiOutlineCheckCircle className="text-2xl" />
+                    </div>
+                    <div className="min-w-0">
+                      <span className="font-syne text-[10px] font-bold uppercase tracking-widest text-emerald-600 dark:text-emerald-400 block">
+                        Tachar como Comprado
+                      </span>
+                      <h3 className="font-dm-sans text-xl sm:text-2xl font-bold text-gray-900 dark:text-white leading-tight truncate">
+                        {buyingItem.name}
+                      </h3>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setBuyingItem(null)}
+                    className="p-2 rounded-xl text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 transition-all shrink-0"
+                  >
+                    <HiX className="text-xl" />
+                  </button>
+                </div>
+
+                <form onSubmit={handleConfirmPurchase} className="space-y-4">
+                  {/* Input 1: ¿Cuánto estás gastando? */}
+                  <div className="space-y-1.5">
+                    <label className="font-syne text-[10px] font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400 flex items-center justify-between">
+                      <span>¿Cuánto estás gastando? ($) *</span>
+                      {buyingItem.price !== null && (
+                        <span className="text-gray-400 dark:text-gray-500 normal-case font-inter text-[10px]">
+                          Estimado: ${buyingItem.price}
+                        </span>
+                      )}
+                    </label>
+                    <div className="relative">
+                      <span className="absolute left-4 top-1/2 -translate-y-1/2 font-dm-sans font-bold text-lg text-gray-400">
+                        $
+                      </span>
+                      <input
+                        type="number"
+                        step="0.5"
+                        autoFocus
+                        required
+                        placeholder="0.00"
+                        value={spentAmount}
+                        onChange={(e) => setSpentAmount(e.target.value)}
+                        className="w-full pl-9 pr-4 py-3 bg-gray-50 dark:bg-gray-800/80 border border-gray-200 dark:border-gray-700 rounded-2xl outline-none font-dm-sans text-lg font-bold text-gray-900 dark:text-white placeholder-gray-400 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition-all"
+                      />
+                    </div>
+                    <p className="font-inter text-[11px] text-gray-400">
+                      Este gasto se registrará directamente en tu módulo de Finanzas.
+                    </p>
+                  </div>
+
+                  {/* Input 2: ¿Qué cantidad compraste? */}
+                  <div className="space-y-1.5">
+                    <label className="font-syne text-[10px] font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">
+                      ¿Qué cantidad compraste?
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="Ej. 1 kg, 2 paquetes, 500g, 1 litro..."
+                      value={spentQuantity}
+                      onChange={(e) => setSpentQuantity(e.target.value)}
+                      className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-800/80 border border-gray-200 dark:border-gray-700 rounded-2xl outline-none font-inter text-sm text-gray-900 dark:text-white placeholder-gray-400 focus:border-emerald-500 transition-all"
+                    />
+                    {/* Quick Chips */}
+                    <div className="flex flex-wrap gap-1.5 pt-1">
+                      {['1 pza', '2 pzas', '1 kg', '1/2 kg', '1 paq', '2 paq', '1 litro'].map((chip) => (
+                        <button
+                          key={chip}
+                          type="button"
+                          onClick={() => setSpentQuantity(chip)}
+                          className="px-2.5 py-1 bg-gray-100 dark:bg-gray-800 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 hover:text-emerald-600 dark:hover:text-emerald-400 text-gray-600 dark:text-gray-300 rounded-xl font-syne text-[10px] font-bold transition-all border border-gray-200/50 dark:border-gray-700/50"
+                        >
+                          {chip}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Buttons */}
+                  <div className="pt-2 flex flex-col sm:flex-row gap-2.5">
+                    <button
+                      type="button"
+                      onClick={() => setBuyingItem(null)}
+                      className="w-full sm:w-auto px-5 py-3 text-xs font-syne font-bold uppercase tracking-wider text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-2xl transition-all text-center order-2 sm:order-1"
+                    >
+                      Cancelar
+                    </button>
+                    <button
+                      type="submit"
+                      className="flex-1 min-h-[48px] px-6 py-3.5 bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-syne text-xs font-bold uppercase tracking-wider rounded-2xl shadow-lg shadow-emerald-600/20 transition-all flex items-center justify-center gap-2 order-1 sm:order-2"
+                    >
+                      <HiOutlineCheckCircle className="text-xl" />
+                      <span>Confirmar Compra</span>
+                    </button>
+                  </div>
+                </form>
               </motion.div>
             </div>
           )}
