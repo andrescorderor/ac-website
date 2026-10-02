@@ -360,13 +360,24 @@ export default function MandadoModal({ isOpen, onClose }: MandadoModalProps) {
         const qtySuffix = spentQuantity.trim() ? ` (${spentQuantity.trim()})` : '';
         const concept = `Mandado — ${buyingItem.name}${qtySuffix}`;
 
-        await supabase.from('finance_expenses').insert([{
+        const expensePayload: any = {
           user_id: user.id,
           concept,
           amount: parsedPrice,
           category: cat,
+          created_at: new Date(todayDate + 'T12:00:00Z').toISOString(),
+        };
+
+        // Try inserting with date column, fallback without date if column does not exist in Supabase
+        const { error: insErr } = await supabase.from('finance_expenses').insert([{
+          ...expensePayload,
           date: todayDate,
         }]);
+
+        if (insErr) {
+          // Fallback without date column
+          await supabase.from('finance_expenses').insert([expensePayload]);
+        }
 
         window.dispatchEvent(new Event('ac_finance_changed'));
       }

@@ -297,7 +297,7 @@ export default function CommandPalette({ isOpen, onClose }: CommandPaletteProps)
           supabase.from('creative_projects').select('id, name, description, category, status, emoji, created_at').order('created_at', { ascending: false }).limit(200),
           supabase.from('monthly_checklist_items').select('id, title, category, created_at').order('created_at', { ascending: false }).limit(200),
           supabase.from('recipes').select('id, name, description, category, emoji, created_at').order('created_at', { ascending: false }).limit(200),
-          supabase.from('finance_expenses').select('id, concept, amount, category, date, created_at').order('created_at', { ascending: false }).limit(200),
+          supabase.from('finance_expenses').select('id, concept, amount, category, created_at').order('created_at', { ascending: false }).limit(200),
           supabase.from('plants').select('id, nickname, species, location, notes, emoji, created_at').order('created_at', { ascending: false }).limit(200),
           supabase.from('bookmarks').select('id, title, url, category, created_at').order('created_at', { ascending: false }).limit(200),
         ]);
@@ -489,7 +489,7 @@ export default function CommandPalette({ isOpen, onClose }: CommandPaletteProps)
       // Fetch full database snapshot for context (cached for 3 minutes to eliminate egress on multiple chat questions)
       const aiContextData = await fetchWithCache('ai_db_snapshot_v2', async () => {
         const [exp, tsk, dbt, vlt, shp, rem, nts, prj, chk, rec, plt, bkm, sal] = await Promise.all([
-          supabase.from('finance_expenses').select('amount, category, date, concept').order('date', { ascending: false }).limit(25),
+          supabase.from('finance_expenses').select('amount, category, concept, created_at').order('created_at', { ascending: false }).limit(25),
           supabase.from('tasks').select('title, completed, due_date').order('created_at', { ascending: false }).limit(25),
           supabase.from('debts').select('*').order('created_at', { ascending: false }).limit(40),
           supabase.from('vault_items').select('*').limit(25),
@@ -538,7 +538,7 @@ ${payablesList.map((d: any) => `- [${d.settled ? 'Pagada' : 'Pendiente'}] A: ${d
 ⚖️ BALANCE NETO DEUDAS: ${netDebtsBalance >= 0 ? `+$${netDebtsBalance} (a favor)` : `-$${Math.abs(netDebtsBalance)} (en contra)`}
 
 📊 GASTOS RECIENTES:
-${exp.data?.map(e => `- $${e.amount} [${e.category}] ${e.concept || ''} (${e.date})`).join('\n') || 'Ninguno'}
+${exp.data?.map(e => `- $${e.amount} [${e.category}] ${e.concept || ''} (${(e as any).date || (e.created_at ? e.created_at.split('T')[0] : 'Base')})`).join('\n') || 'Ninguno'}
 
 🍽️ RECETAS GUARDADAS:
 ${rec.data?.map(r => `- ${r.name} [Categoría: ${r.category}]${r.ingredients ? ` (Ingredientes: ${r.ingredients.map((i: any) => i.name).join(', ')})` : ''}`).join('\n') || 'Ninguna'}

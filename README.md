@@ -1,7 +1,7 @@
 <div align="center">
   <img src="public/assets/ac-website-icon.svg" alt="Logo" width="100" />
   
-  # Andrés Cordero - Professional Portfolio & Personal Panel PWA (v6.15.0) 🔍✨
+  # Andrés Cordero - Professional Portfolio & Personal Panel PWA (v6.16.0) 🔍✨
   
   **Welcome to my personal ecosystem: a professional portfolio and a custom productivity hub.**  
   Built with UX/UI best practices, premium design, and a focus on mobile-first efficiency.
@@ -16,11 +16,18 @@
 
 ---
 
-## 🚀 Overview (Version 6.15.0)
+## 🚀 Overview (Version 6.16.0)
 
 This repository hosts a dual-purpose platform:
 1. **Professional Portfolio:** A high-end landing page showcasing my engineering background, skills, and achievements with dynamic copyright year updates and zero horizontal overflow.
-2. **Personal Panel PWA (v6.15.0):** An executive personal operating system featuring:
+2. **Personal Panel PWA (v6.16.0):** An executive personal operating system featuring:
+   * **Permanent Base Fija Recurrente & Schema Resilience in Finanzas (`Finanzas.tsx`, `MandadoModal.tsx`, `CommandPalette.tsx`):**
+     * **Zero-Downtime Schema Resilience:** Fully resolved the `column finance_expenses.date does not exist` database error. Queries in `Finanzas.tsx` and `CommandPalette.tsx` are ordered by `created_at` with safe property access, and inserts feature defensive multi-tier fallback (tries with `date` column, instantly falls back without `date` if the column is absent). Added companion migration `scratch/add_date_column_finance_expenses.sql` for optional database alignment.
+     * **Permanent Baseline Expenses (`Base Fija Recurrente`):** Fixed monthly commitments (Internet, Renta, Servicios CFE, Suscripciones) now serve as a permanent financial baseline across all calendar months, ensuring they remain visible and budgeted regardless of which month is selected.
+     * **Adaptive Quincenal Allocation:** Base expenses support configurable distribution: **Ambas Quincenas (50% / 50%)**, **Solo 1ª Quincena (Q1)**, or **Solo 2ª Quincena (Q2)**.
+     * **Layered Mandado Expense Accumulation:** Supermarket purchases checked off in Modo Súper (`Mandado — ...`) and occasional grocery expenses accumulate dynamically on top of the fixed baseline month-by-month and quincena-by-quincena.
+     * **Dual Breakdown Dashboards:** Summary cards for Q1, Q2, and Mes Completo distinctly report `Base Fija: $X` and `Mandado: $Y`, computing true total commitment ($\text{Base} + \text{Mandado}$) and precise remaining salary ($\text{Presupuesto} - \text{Total}$).
+     * **1-Tap Recurrence & Quincena Controls:** Interactive chips to toggle between Base Fija and Gasto Ocasional, and 1-tap cycling between distribution modes.
    * **Clean Mobile Navigation Experience (`DashboardLayout.tsx`):**
      * **Closed by Default on Load:** The mobile sidebar navigation drawer is now closed upon loading the application (`isSidebarOpen: false`), eliminating the obstructive overlay backdrop that covered the screen initially on mobile devices.
      * **Automatic Route-Change Dismissal:** When tapping any route or navigating between modules, the mobile drawer automatically closes (`useEffect` on `location.pathname`), keeping the viewport unobstructed.

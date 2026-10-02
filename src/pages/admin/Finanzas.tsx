@@ -11,7 +11,8 @@ import {
   HiOutlineCalendar,
   HiChevronLeft,
   HiChevronRight,
-  HiOutlineClock
+  HiOutlineClock,
+  HiOutlineRefresh
 } from 'react-icons/hi';
 import { useToast } from '@/components/common/ToastContext';
 import CustomSelect from '@/components/common/CustomSelect';
@@ -28,11 +29,83 @@ export type Expense = {
   created_at?: string | null;
 };
 
+export type RecurrenceDist = 'split' | 'q1' | 'q2';
+
+export interface ParsedExpenseInfo {
+  isBase: boolean;
+  recurrenceDist: RecurrenceDist;
+  cleanConcept: string;
+  isMandado: boolean;
+}
+
+/**
+ * Helper to identify whether an expense is a permanent Base Fija or a variable/dated purchase.
+ * - [Fijo] or [Fijo Q1] or [Fijo Q2] -> Permanent Base Fija applied every month.
+ * - [Ocasional] -> Specific variable expense of that month.
+ * - Defaults:
+ *   - 'servicios' (without Mandado prefix) defaults to Base Fija (split 50/50).
+ *   - 'comida' or 'insumos' or starting with 'Mandado — ' default to variable monthly purchase.
+ */
+export const parseExpenseInfo = (exp: Expense): ParsedExpenseInfo => {
+  const concept = exp.concept || '';
+  const isMandado = concept.startsWith('Mandado — ') || concept.startsWith('Mandado - ');
+
+  if (concept.includes('[Fijo Q1]')) {
+    return {
+      isBase: true,
+      recurrenceDist: 'q1',
+      cleanConcept: concept.replace(/\[Fijo Q1\]/g, '').trim(),
+      isMandado: false,
+    };
+  }
+  if (concept.includes('[Fijo Q2]')) {
+    return {
+      isBase: true,
+      recurrenceDist: 'q2',
+      cleanConcept: concept.replace(/\[Fijo Q2\]/g, '').trim(),
+      isMandado: false,
+    };
+  }
+  if (concept.includes('[Fijo]')) {
+    return {
+      isBase: true,
+      recurrenceDist: 'split',
+      cleanConcept: concept.replace(/\[Fijo\]/g, '').trim(),
+      isMandado: false,
+    };
+  }
+  if (concept.includes('[Ocasional]')) {
+    return {
+      isBase: false,
+      recurrenceDist: 'split',
+      cleanConcept: concept.replace(/\[Ocasional\]/g, '').trim(),
+      isMandado,
+    };
+  }
+
+  // Automatic heuristic for backward compatibility:
+  if (exp.category === 'servicios' && !isMandado) {
+    return {
+      isBase: true,
+      recurrenceDist: 'split',
+      cleanConcept: concept.trim(),
+      isMandado: false,
+    };
+  }
+
+  return {
+    isBase: false,
+    recurrenceDist: 'split',
+    cleanConcept: concept.trim(),
+    isMandado,
+  };
+};
+
 const CATEGORIES_MAP: Record<string, string> = {
   Todas: 'Todas las categorías',
-  comida: 'Supermercado & Alimentación',
+  servicios: 'Servicios & Base Fija',
+  comida: 'Supermercado & Mandado',
   insumos: 'Insumos & Casa',
-  servicios: 'Servicios & Suscripciones',
 };
 
 const MONTH_NAMES = [
@@ -42,6 +115,7 @@ const MONTH_NAMES = [
 
 type PeriodFilter = 'month' | 'q1' | 'q2';
 type ViewMode = 'categories' | 'history';
+type HistoryFilter = 'all' | 'base' | 'variable';
 
 export default function Finanzas() {
   const [expenses, setExpenses] = useState<Expense[]>([]);
@@ -54,6 +128,7 @@ export default function Finanzas() {
   const [showMandadoModal, setShowMandadoModal] = useState(false);
   const [filterCategory, setFilterCategory] = useState('Todas');
   const [searchTerm, setSearchTerm] = useState('');
+  const [historyFilter, setHistoryFilter] = useState<HistoryFilter>('all');
   
   // Date and Period Filter State
   const now = new Date();
@@ -68,6 +143,8 @@ export default function Finanzas() {
     amount: '',
     category: 'servicios' as 'comida' | 'insumos' | 'servicios',
     date: new Date().toISOString().split('T')[0],
+    isBase: true,
+    quincenaDist: 'split' as RecurrenceDist,
   });
 
   const { toast } = useToast();
@@ -90,11 +167,12 @@ export default function Finanzas() {
     if (!user) return;
 
     try {
+      // Query ordered by created_at to avoid crashing if `date` column doesn't exist yet
       const [expRes, salRes] = await Promise.all([
         supabase
           .from('finance_expenses')
           .select('*')
-          .order('date', { ascending: false }),
+          .order('created_at', { ascending: false }),
         supabase
           .from('finance_salary')
           .select('amount')
@@ -147,32 +225,123 @@ export default function Finanzas() {
 
     try {
       const expenseDate = newExpense.date || new Date().toISOString().split('T')[0];
-      const { data, error } = await supabase.from('finance_expenses').insert([
-        {
-          user_id: user.id,
-          category,
-          concept: newExpense.concept.trim(),
-          amount: parseFloat(newExpense.amount),
-          date: expenseDate,
-        },
-      ]).select();
+      let finalConcept = newExpense.concept.trim();
 
-      if (error) throw error;
+      if (newExpense.isBase) {
+        if (newExpense.quincenaDist === 'q1') {
+          finalConcept = `[Fijo Q1] ${finalConcept}`;
+        } else if (newExpense.quincenaDist === 'q2') {
+          finalConcept = `[Fijo Q2] ${finalConcept}`;
+        } else {
+          if (category !== 'servicios') {
+            finalConcept = `[Fijo] ${finalConcept}`;
+          }
+        }
+      } else {
+        if (category === 'servicios') {
+          finalConcept = `[Ocasional] ${finalConcept}`;
+        }
+      }
 
-      if (data && data[0]) {
-        setExpenses([data[0], ...expenses]);
+      const expensePayload: any = {
+        user_id: user.id,
+        category,
+        concept: finalConcept,
+        amount: parseFloat(newExpense.amount),
+        created_at: new Date(expenseDate + 'T12:00:00Z').toISOString(),
+      };
+
+      let insertedData: any = null;
+      // Try inserting with date column first, fallback without date if column doesn't exist
+      const { data: insData, error: insErr } = await supabase
+        .from('finance_expenses')
+        .insert([{ ...expensePayload, date: expenseDate }])
+        .select();
+
+      if (insErr) {
+        const { data: fbData, error: fbErr } = await supabase
+          .from('finance_expenses')
+          .insert([expensePayload])
+          .select();
+        if (fbErr) throw fbErr;
+        insertedData = fbData;
+      } else {
+        insertedData = insData;
+      }
+
+      if (insertedData && insertedData[0]) {
+        setExpenses([insertedData[0], ...expenses]);
         setNewExpense({
           concept: '',
           amount: '',
           category: 'servicios',
           date: new Date().toISOString().split('T')[0],
+          isBase: true,
+          quincenaDist: 'split',
         });
-        toast.success('Gasto registrado correctamente ✨');
+        toast.success(newExpense.isBase ? 'Gasto Base Recurrente registrado ✨' : 'Gasto registrado correctamente ✨');
       }
     } catch (err: any) {
       toast.error('Error al registrar gasto: ' + err.message);
     } finally {
       setSubmittingCat(null);
+    }
+  };
+
+  const handleToggleRecurrence = async (exp: Expense) => {
+    const info = parseExpenseInfo(exp);
+    let newConcept = '';
+
+    if (info.isBase) {
+      newConcept = exp.category === 'servicios' ? `[Ocasional] ${info.cleanConcept}` : info.cleanConcept;
+    } else {
+      newConcept = exp.category === 'servicios' ? info.cleanConcept : `[Fijo] ${info.cleanConcept}`;
+    }
+
+    try {
+      const { error } = await supabase
+        .from('finance_expenses')
+        .update({ concept: newConcept })
+        .eq('id', exp.id);
+
+      if (error) throw error;
+      setExpenses(prev => prev.map(e => e.id === exp.id ? { ...e, concept: newConcept } : e));
+      toast.success(info.isBase ? 'Cambiado a Gasto de este mes 📅' : 'Cambiado a Base Fija Recurrente 🔄');
+    } catch (err: any) {
+      toast.error('Error al actualizar: ' + err.message);
+    }
+  };
+
+  const handleCycleQuincenaDist = async (exp: Expense) => {
+    const info = parseExpenseInfo(exp);
+    if (!info.isBase) return;
+
+    let nextDist: RecurrenceDist = 'split';
+    if (info.recurrenceDist === 'split') nextDist = 'q1';
+    else if (info.recurrenceDist === 'q1') nextDist = 'q2';
+    else nextDist = 'split';
+
+    let newConcept = '';
+    if (nextDist === 'q1') {
+      newConcept = `[Fijo Q1] ${info.cleanConcept}`;
+    } else if (nextDist === 'q2') {
+      newConcept = `[Fijo Q2] ${info.cleanConcept}`;
+    } else {
+      newConcept = exp.category === 'servicios' ? info.cleanConcept : `[Fijo] ${info.cleanConcept}`;
+    }
+
+    try {
+      const { error } = await supabase
+        .from('finance_expenses')
+        .update({ concept: newConcept })
+        .eq('id', exp.id);
+
+      if (error) throw error;
+      setExpenses(prev => prev.map(e => e.id === exp.id ? { ...e, concept: newConcept } : e));
+      const label = nextDist === 'split' ? 'Ambas Quincenas (50/50)' : nextDist === 'q1' ? 'Solo 1ra Quincena (Q1)' : 'Solo 2da Quincena (Q2)';
+      toast.success(`Distribución: ${label}`);
+    } catch (err: any) {
+      toast.error('Error al cambiar distribución: ' + err.message);
     }
   };
 
@@ -209,7 +378,7 @@ export default function Finanzas() {
 
   // Helper to extract year, month, day and quincena
   const getExpenseMeta = (exp: Expense) => {
-    const dateStr = exp.date || exp.created_at || new Date().toISOString();
+    const dateStr = exp.date || (exp.created_at ? exp.created_at.split('T')[0] : new Date().toISOString().split('T')[0]);
     const cleanDate = dateStr.split('T')[0];
     const [y, m, d] = cleanDate.split('-').map(Number);
     const day = !isNaN(d) ? d : 1;
@@ -219,45 +388,118 @@ export default function Finanzas() {
     return { year, month, day, quincena, cleanDate };
   };
 
-  // Filter expenses strictly by selected Month & Year
-  const currentMonthExpenses = useMemo(() => {
-    return expenses.filter((e) => {
+  // ═══ SEPARACIÓN DE BASE FIJA RECURRENTE VS GASTOS VARIABLES DE MANDADO ═══
+  const baseExpensesList = useMemo(() => {
+    return expenses.filter(e => parseExpenseInfo(e).isBase);
+  }, [expenses]);
+
+  const variableExpensesList = useMemo(() => {
+    return expenses.filter(e => !parseExpenseInfo(e).isBase);
+  }, [expenses]);
+
+  // Gastos variables filtrados estrictamente por Mes y Año seleccionados
+  const currentMonthVariableExpenses = useMemo(() => {
+    return variableExpensesList.filter((e) => {
       const meta = getExpenseMeta(e);
       return meta.year === selectedYear && meta.month === selectedMonth;
     });
-  }, [expenses, selectedYear, selectedMonth]);
+  }, [variableExpensesList, selectedYear, selectedMonth]);
 
-  // Quincena 1 and Quincena 2 subsets for the current month
-  const q1Expenses = useMemo(() => {
-    return currentMonthExpenses.filter((e) => getExpenseMeta(e).quincena === 1);
-  }, [currentMonthExpenses]);
+  const q1VariableExpenses = useMemo(() => {
+    return currentMonthVariableExpenses.filter((e) => getExpenseMeta(e).quincena === 1);
+  }, [currentMonthVariableExpenses]);
 
-  const q2Expenses = useMemo(() => {
-    return currentMonthExpenses.filter((e) => getExpenseMeta(e).quincena === 2);
-  }, [currentMonthExpenses]);
+  const q2VariableExpenses = useMemo(() => {
+    return currentMonthVariableExpenses.filter((e) => getExpenseMeta(e).quincena === 2);
+  }, [currentMonthVariableExpenses]);
 
-  // Active period expenses based on selectedPeriod filter
-  const activePeriodExpenses = useMemo(() => {
-    if (selectedPeriod === 'q1') return q1Expenses;
-    if (selectedPeriod === 'q2') return q2Expenses;
-    return currentMonthExpenses;
-  }, [selectedPeriod, q1Expenses, q2Expenses, currentMonthExpenses]);
+  // Cuánto impacta un gasto base según el período visto (Mes, Q1, Q2)
+  const getBaseExpenseAmountForPeriod = (exp: Expense, period: PeriodFilter): number => {
+    const info = parseExpenseInfo(exp);
+    if (!info.isBase) return 0;
+    if (period === 'month') return exp.amount;
+    if (period === 'q1') {
+      if (info.recurrenceDist === 'q1') return exp.amount;
+      if (info.recurrenceDist === 'q2') return 0;
+      return exp.amount / 2;
+    }
+    if (period === 'q2') {
+      if (info.recurrenceDist === 'q2') return exp.amount;
+      if (info.recurrenceDist === 'q1') return 0;
+      return exp.amount / 2;
+    }
+    return exp.amount;
+  };
 
-  // Calculations for Summary Cards
-  const totalQ1 = q1Expenses.reduce((acc, curr) => acc + curr.amount, 0);
-  const totalQ2 = q2Expenses.reduce((acc, curr) => acc + curr.amount, 0);
-  const totalMonth = currentMonthExpenses.reduce((acc, curr) => acc + curr.amount, 0);
+  // Totales de Base Fija por Período
+  const baseMonthTotal = useMemo(() => {
+    return baseExpensesList.reduce((acc, e) => acc + e.amount, 0);
+  }, [baseExpensesList]);
 
-  // Period-adaptive budget and total
+  const baseQ1Total = useMemo(() => {
+    return baseExpensesList.reduce((acc, e) => acc + getBaseExpenseAmountForPeriod(e, 'q1'), 0);
+  }, [baseExpensesList]);
+
+  const baseQ2Total = useMemo(() => {
+    return baseExpensesList.reduce((acc, e) => acc + getBaseExpenseAmountForPeriod(e, 'q2'), 0);
+  }, [baseExpensesList]);
+
+  // Totales de Mandado y Variables
+  const varMonthTotal = useMemo(() => {
+    return currentMonthVariableExpenses.reduce((acc, e) => acc + e.amount, 0);
+  }, [currentMonthVariableExpenses]);
+
+  const varQ1Total = useMemo(() => {
+    return q1VariableExpenses.reduce((acc, e) => acc + e.amount, 0);
+  }, [q1VariableExpenses]);
+
+  const varQ2Total = useMemo(() => {
+    return q2VariableExpenses.reduce((acc, e) => acc + e.amount, 0);
+  }, [q2VariableExpenses]);
+
+  // Totales Combinados (Base Fija + Mandado/Variables)
+  const totalQ1 = baseQ1Total + varQ1Total;
+  const totalQ2 = baseQ2Total + varQ2Total;
+  const totalMonth = baseMonthTotal + varMonthTotal;
+
+  // Totales del período activo seleccionado
+  const activeBaseTotal = selectedPeriod === 'month' ? baseMonthTotal : selectedPeriod === 'q1' ? baseQ1Total : baseQ2Total;
+  const activeVariableTotal = selectedPeriod === 'month' ? varMonthTotal : selectedPeriod === 'q1' ? varQ1Total : varQ2Total;
+  const periodTotalSpent = activeBaseTotal + activeVariableTotal;
   const periodSalary = selectedPeriod === 'month' ? salary : salary / 2;
-  const periodTotalSpent = activePeriodExpenses.reduce((acc, curr) => acc + curr.amount, 0);
   const periodRemaining = periodSalary - periodTotalSpent;
 
-  // Category totals for the active period
+  // Lista activa de gastos para mostrar en la vista
+  const activePeriodBaseExpenses = useMemo(() => {
+    return baseExpensesList.filter((e) => {
+      const info = parseExpenseInfo(e);
+      if (selectedPeriod === 'month') return true;
+      if (selectedPeriod === 'q1') return info.recurrenceDist !== 'q2';
+      if (selectedPeriod === 'q2') return info.recurrenceDist !== 'q1';
+      return true;
+    });
+  }, [baseExpensesList, selectedPeriod]);
+
+  const activePeriodVariableExpenses = useMemo(() => {
+    if (selectedPeriod === 'q1') return q1VariableExpenses;
+    if (selectedPeriod === 'q2') return q2VariableExpenses;
+    return currentMonthVariableExpenses;
+  }, [selectedPeriod, q1VariableExpenses, q2VariableExpenses, currentMonthVariableExpenses]);
+
+  const activePeriodExpenses = useMemo(() => {
+    return [...activePeriodBaseExpenses, ...activePeriodVariableExpenses];
+  }, [activePeriodBaseExpenses, activePeriodVariableExpenses]);
+
+  // Total por categoría para el período activo
   const getCategoryTotal = (category: string) => {
-    return activePeriodExpenses
-      .filter((e) => e.category === category)
-      .reduce((acc, curr) => acc + curr.amount, 0);
+    let sum = 0;
+    activePeriodBaseExpenses.filter((e) => e.category === category).forEach((e) => {
+      sum += getBaseExpenseAmountForPeriod(e, selectedPeriod);
+    });
+    activePeriodVariableExpenses.filter((e) => e.category === category).forEach((e) => {
+      sum += e.amount;
+    });
+    return sum;
   };
 
   // Month navigation helpers
@@ -318,14 +560,14 @@ export default function Finanzas() {
             Control de <span className="text-gradient">Finanzas</span>
           </h1>
           <p className="font-inter mt-2 text-[var(--dark-gray)] dark:text-gray-400 font-light text-sm">
-            Historial de gastos reales por quincena y mes, presupuesto y control salarial preciso.
+            Base fija recurrente de servicios mensual y gastos acumulativos de mandado por quincena.
           </p>
         </div>
 
         <div className="flex flex-wrap items-center gap-3">
           <button
             onClick={() => setShowMandadoModal(true)}
-            className="flex items-center gap-2 px-5 py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-2xl font-syne text-xs font-bold uppercase tracking-wider transition-all shadow-md shrink-0 interactive-hover min-h-[44px]"
+            className="cursor-pointer flex items-center gap-2 px-5 py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-2xl font-syne text-xs font-bold uppercase tracking-wider transition-all shadow-md shrink-0 min-h-[44px]"
             title="Abrir lista de Mandado Semanal y Modo Súper"
           >
             <span>🥗 Mandado Semanal & Modo Súper</span>
@@ -338,20 +580,22 @@ export default function Finanzas() {
                 amount: '',
                 category: 'servicios',
                 date: new Date().toISOString().split('T')[0],
+                isBase: true,
+                quincenaDist: 'split',
               });
               setShowAddModal(true);
             }}
-            className="flex items-center gap-2 px-5 py-3 bg-black dark:bg-white text-white dark:text-black rounded-2xl font-syne text-xs font-bold uppercase tracking-wider hover:scale-105 active:scale-95 transition-all shadow-md shrink-0 min-h-[44px]"
+            className="cursor-pointer flex items-center gap-2 px-5 py-3 bg-black dark:bg-white text-white dark:text-black rounded-2xl font-syne text-xs font-bold uppercase tracking-wider hover:scale-105 active:scale-95 transition-all shadow-md shrink-0 min-h-[44px]"
           >
             <HiOutlinePlus className="text-lg" />
-            <span>Nuevo Gasto / Servicio</span>
+            <span>Nuevo Gasto / Base Fija</span>
           </button>
 
           <motion.button
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             onClick={() => setIsPrivacyMode(!isPrivacyMode)}
-            className="flex items-center gap-2 px-4 py-3 bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-xs text-xs font-syne font-bold uppercase tracking-wider text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 transition-all min-h-[44px]"
+            className="cursor-pointer flex items-center gap-2 px-4 py-3 bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-xs text-xs font-syne font-bold uppercase tracking-wider text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 transition-all min-h-[44px]"
           >
             {isPrivacyMode ? (
               <>
@@ -398,7 +642,7 @@ export default function Finanzas() {
           <div className="flex items-center bg-gray-100 dark:bg-gray-800/80 rounded-2xl p-1 border border-gray-200/50 dark:border-gray-700/50">
             <button
               onClick={handlePrevMonth}
-              className="p-2 rounded-xl text-gray-600 dark:text-gray-300 hover:bg-white dark:hover:bg-gray-700 hover:shadow-xs transition-all"
+              className="cursor-pointer p-2 rounded-xl text-gray-600 dark:text-gray-300 hover:bg-white dark:hover:bg-gray-700 hover:shadow-xs transition-all"
               title="Mes anterior"
             >
               <HiChevronLeft className="text-base" />
@@ -409,7 +653,7 @@ export default function Finanzas() {
             </span>
             <button
               onClick={handleNextMonth}
-              className="p-2 rounded-xl text-gray-600 dark:text-gray-300 hover:bg-white dark:hover:bg-gray-700 hover:shadow-xs transition-all"
+              className="cursor-pointer p-2 rounded-xl text-gray-600 dark:text-gray-300 hover:bg-white dark:hover:bg-gray-700 hover:shadow-xs transition-all"
               title="Mes siguiente"
             >
               <HiChevronRight className="text-base" />
@@ -419,7 +663,7 @@ export default function Finanzas() {
           {!isCurrentMonth && (
             <button
               onClick={handleResetToCurrentMonth}
-              className="px-3 py-2 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-100 rounded-xl font-syne text-[10px] font-bold uppercase tracking-wider transition-all"
+              className="cursor-pointer px-3 py-2 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-100 rounded-xl font-syne text-[10px] font-bold uppercase tracking-wider transition-all"
             >
               Mes Actual
             </button>
@@ -430,7 +674,7 @@ export default function Finanzas() {
         <div className="flex items-center gap-1 bg-gray-100 dark:bg-gray-800/80 p-1.5 rounded-2xl border border-gray-200/50 dark:border-gray-700/50 overflow-x-auto scrollbar-none">
           <button
             onClick={() => setSelectedPeriod('month')}
-            className={`px-3.5 py-2 rounded-xl font-syne text-xs font-bold uppercase tracking-wider transition-all whitespace-nowrap flex items-center gap-1.5 ${
+            className={`cursor-pointer px-3.5 py-2 rounded-xl font-syne text-xs font-bold uppercase tracking-wider transition-all whitespace-nowrap flex items-center gap-1.5 ${
               selectedPeriod === 'month'
                 ? 'bg-white dark:bg-gray-900 text-gray-900 dark:text-white shadow-xs'
                 : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
@@ -440,7 +684,7 @@ export default function Finanzas() {
           </button>
           <button
             onClick={() => setSelectedPeriod('q1')}
-            className={`px-3.5 py-2 rounded-xl font-syne text-xs font-bold uppercase tracking-wider transition-all whitespace-nowrap flex items-center gap-1.5 ${
+            className={`cursor-pointer px-3.5 py-2 rounded-xl font-syne text-xs font-bold uppercase tracking-wider transition-all whitespace-nowrap flex items-center gap-1.5 ${
               selectedPeriod === 'q1'
                 ? 'bg-emerald-500 text-white shadow-xs'
                 : 'text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/40'
@@ -451,7 +695,7 @@ export default function Finanzas() {
           </button>
           <button
             onClick={() => setSelectedPeriod('q2')}
-            className={`px-3.5 py-2 rounded-xl font-syne text-xs font-bold uppercase tracking-wider transition-all whitespace-nowrap flex items-center gap-1.5 ${
+            className={`cursor-pointer px-3.5 py-2 rounded-xl font-syne text-xs font-bold uppercase tracking-wider transition-all whitespace-nowrap flex items-center gap-1.5 ${
               selectedPeriod === 'q2'
                 ? 'bg-sky-500 text-white shadow-xs'
                 : 'text-sky-600 dark:text-sky-400 hover:bg-sky-50 dark:hover:bg-sky-950/40'
@@ -463,7 +707,7 @@ export default function Finanzas() {
         </div>
       </div>
 
-      {/* ═══ TARJETAS COMPARATIVAS DE QUINCENAS (RESUMEN QUINCENAL) ═══ */}
+      {/* ═══ TARJETAS COMPARATIVAS DE QUINCENAS (RESUMEN QUINCENAL CON BASE + MANDADO) ═══ */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {/* Q1 Card */}
         <div 
@@ -487,9 +731,10 @@ export default function Finanzas() {
               {(salary / 2) - totalQ1 >= 0 ? 'Ahorro' : 'Déficit'}
             </span>
           </div>
+
           <div className="flex items-baseline justify-between">
             <div>
-              <p className="text-[10px] font-syne font-bold uppercase tracking-wider text-gray-400">Total Gastado</p>
+              <p className="text-[10px] font-syne font-bold uppercase tracking-wider text-gray-400">Total Comprometido</p>
               <p className="font-dm-sans text-2xl font-bold text-gray-900 dark:text-white">
                 {formatAmount(totalQ1)}
               </p>
@@ -503,9 +748,15 @@ export default function Finanzas() {
               </p>
             </div>
           </div>
-          <p className="font-inter text-[11px] text-gray-400 mt-2">
-            Presupuesto: {formatAmount(salary / 2)} • {q1Expenses.length} compras / gastos
-          </p>
+
+          <div className="mt-3 pt-2.5 border-t border-gray-100 dark:border-gray-800 flex items-center justify-between text-[11px] font-inter text-gray-500 dark:text-gray-400">
+            <span className="flex items-center gap-1">
+              <span className="font-syne font-bold text-gray-700 dark:text-gray-300">Base Fija:</span> {formatAmount(baseQ1Total)}
+            </span>
+            <span className="flex items-center gap-1">
+              <span className="font-syne font-bold text-emerald-600 dark:text-emerald-400">Mandado:</span> {formatAmount(varQ1Total)}
+            </span>
+          </div>
         </div>
 
         {/* Q2 Card */}
@@ -530,9 +781,10 @@ export default function Finanzas() {
               {(salary / 2) - totalQ2 >= 0 ? 'Ahorro' : 'Déficit'}
             </span>
           </div>
+
           <div className="flex items-baseline justify-between">
             <div>
-              <p className="text-[10px] font-syne font-bold uppercase tracking-wider text-gray-400">Total Gastado</p>
+              <p className="text-[10px] font-syne font-bold uppercase tracking-wider text-gray-400">Total Comprometido</p>
               <p className="font-dm-sans text-2xl font-bold text-gray-900 dark:text-white">
                 {formatAmount(totalQ2)}
               </p>
@@ -546,9 +798,15 @@ export default function Finanzas() {
               </p>
             </div>
           </div>
-          <p className="font-inter text-[11px] text-gray-400 mt-2">
-            Presupuesto: {formatAmount(salary / 2)} • {q2Expenses.length} compras / gastos
-          </p>
+
+          <div className="mt-3 pt-2.5 border-t border-gray-100 dark:border-gray-800 flex items-center justify-between text-[11px] font-inter text-gray-500 dark:text-gray-400">
+            <span className="flex items-center gap-1">
+              <span className="font-syne font-bold text-gray-700 dark:text-gray-300">Base Fija:</span> {formatAmount(baseQ2Total)}
+            </span>
+            <span className="flex items-center gap-1">
+              <span className="font-syne font-bold text-sky-600 dark:text-sky-400">Mandado:</span> {formatAmount(varQ2Total)}
+            </span>
+          </div>
         </div>
 
         {/* Mes Completo Summary Card */}
@@ -573,6 +831,7 @@ export default function Finanzas() {
               {salary - totalMonth >= 0 ? 'Ahorro Mes' : 'Déficit Mes'}
             </span>
           </div>
+
           <div className="flex items-baseline justify-between">
             <div>
               <p className="text-[10px] font-syne font-bold uppercase tracking-wider text-gray-400">Total Gastado</p>
@@ -589,9 +848,15 @@ export default function Finanzas() {
               </p>
             </div>
           </div>
-          <p className="font-inter text-[11px] text-gray-400 mt-2">
-            Salario Mensual: {formatAmount(salary)} • {currentMonthExpenses.length} gastos totales
-          </p>
+
+          <div className="mt-3 pt-2.5 border-t border-gray-100 dark:border-gray-800 flex items-center justify-between text-[11px] font-inter text-gray-500 dark:text-gray-400">
+            <span className="flex items-center gap-1">
+              <span className="font-syne font-bold text-gray-700 dark:text-gray-300">Base Fija:</span> {formatAmount(baseMonthTotal)}
+            </span>
+            <span className="flex items-center gap-1">
+              <span className="font-syne font-bold text-purple-600 dark:text-purple-400">Mandado:</span> {formatAmount(varMonthTotal)}
+            </span>
+          </div>
         </div>
       </div>
 
@@ -605,21 +870,23 @@ export default function Finanzas() {
             bg: 'bg-white dark:bg-gray-900' 
           },
           { 
-            label: 'Comida', 
-            value: getCategoryTotal('comida'), 
-            color: 'text-[var(--color-info)]', 
-            bg: 'bg-white dark:bg-gray-900' 
+            label: 'Base Fija (Recurrente)', 
+            value: activeBaseTotal, 
+            color: 'text-purple-600 dark:text-purple-400', 
+            bg: 'bg-white dark:bg-gray-900',
+            badge: `${baseExpensesList.length} fijos`
           },
           { 
-            label: 'Insumos', 
-            value: getCategoryTotal('insumos'), 
-            color: 'text-[var(--color-warning)]', 
-            bg: 'bg-white dark:bg-gray-900' 
+            label: 'Mandado & Compras', 
+            value: activeVariableTotal, 
+            color: 'text-emerald-600 dark:text-emerald-400', 
+            bg: 'bg-white dark:bg-gray-900',
+            badge: `${activePeriodVariableExpenses.length} items`
           },
           { 
             label: 'Servicios', 
             value: getCategoryTotal('servicios'), 
-            color: 'text-[var(--color-success)]', 
+            color: 'text-[var(--color-info)]', 
             bg: 'bg-white dark:bg-gray-900' 
           },
           { 
@@ -653,9 +920,11 @@ export default function Finanzas() {
               </p>
               {item.badge && (
                 <span className={`px-2 py-0.5 rounded-full text-[8px] font-syne font-bold uppercase tracking-wider ${
-                  periodRemaining >= 0 
+                  item.badge === 'Ahorro'
                     ? 'bg-emerald-100 dark:bg-emerald-900/60 text-emerald-700 dark:text-emerald-300' 
-                    : 'bg-red-100 dark:bg-red-900/60 text-red-700 dark:text-red-300'
+                    : item.badge === 'Déficit'
+                    ? 'bg-red-100 dark:bg-red-900/60 text-red-700 dark:text-red-300'
+                    : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300'
                 }`}>
                   {item.badge}
                 </span>
@@ -675,7 +944,7 @@ export default function Finanzas() {
           <div className="flex items-center gap-1.5 p-1 bg-gray-100 dark:bg-gray-800/80 rounded-2xl border border-gray-200/50 dark:border-gray-700/50 shrink-0">
             <button
               onClick={() => setViewMode('categories')}
-              className={`px-4 py-2 rounded-xl text-xs font-syne font-bold uppercase tracking-wider transition-all ${
+              className={`cursor-pointer px-4 py-2 rounded-xl text-xs font-syne font-bold uppercase tracking-wider transition-all ${
                 viewMode === 'categories'
                   ? 'bg-white dark:bg-gray-900 text-gray-900 dark:text-white shadow-xs'
                   : 'text-gray-500 hover:text-gray-900 dark:hover:text-white'
@@ -685,14 +954,14 @@ export default function Finanzas() {
             </button>
             <button
               onClick={() => setViewMode('history')}
-              className={`px-4 py-2 rounded-xl text-xs font-syne font-bold uppercase tracking-wider transition-all flex items-center gap-1.5 ${
+              className={`cursor-pointer px-4 py-2 rounded-xl text-xs font-syne font-bold uppercase tracking-wider transition-all flex items-center gap-1.5 ${
                 viewMode === 'history'
                   ? 'bg-white dark:bg-gray-900 text-gray-900 dark:text-white shadow-xs'
                   : 'text-gray-500 hover:text-gray-900 dark:hover:text-white'
               }`}
             >
               <HiOutlineClock className="text-sm" />
-              <span>📜 Historial de Gastos ({activePeriodExpenses.length})</span>
+              <span>📜 Historial y Base Fija ({activePeriodExpenses.length})</span>
             </button>
           </div>
 
@@ -700,17 +969,17 @@ export default function Finanzas() {
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
             {viewMode === 'categories' && (
               <div className="flex items-center gap-1 overflow-x-auto pb-1 sm:pb-0 scrollbar-none">
-                {Object.entries(CATEGORIES_MAP).map(([catKey]) => (
+                {Object.entries(CATEGORIES_MAP).map(([catKey, label]) => (
                   <button
                     key={catKey}
                     onClick={() => setFilterCategory(catKey)}
-                    className={`px-3.5 py-2 rounded-xl text-[10px] font-syne font-bold uppercase tracking-wider transition-all whitespace-nowrap ${
+                    className={`cursor-pointer px-3.5 py-2 rounded-xl text-[10px] font-syne font-bold uppercase tracking-wider transition-all whitespace-nowrap ${
                       filterCategory === catKey
                         ? 'bg-black dark:bg-white text-white dark:text-black shadow-xs'
                         : 'bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-300 border border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700'
                     }`}
                   >
-                    {catKey === 'Todas' ? 'Todas' : catKey}
+                    {label}
                   </button>
                 ))}
               </div>
@@ -732,7 +1001,7 @@ export default function Finanzas() {
         {/* ═══ VISTA 1: COLUMNAS POR CATEGORÍA ═══ */}
         {viewMode === 'categories' && (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8">
-            {(['comida', 'insumos', 'servicios'] as const)
+            {(['servicios', 'comida', 'insumos'] as const)
               .filter(c => filterCategory === 'Todas' || filterCategory === c)
               .map((cat, catIndex) => {
                 const catExpenses = activePeriodExpenses.filter(
@@ -750,7 +1019,7 @@ export default function Finanzas() {
                     <div className="flex items-center justify-between flex-wrap gap-2">
                       <div className="flex items-center gap-2">
                         <h2 className="font-dm-sans text-xl font-bold capitalize text-black dark:text-white">
-                          {cat === 'comida' ? 'Comida 🍔' : cat === 'insumos' ? 'Insumos 🛒' : 'Servicios ⚡'}
+                          {cat === 'servicios' ? 'Servicios & Base Fija ⚡' : cat === 'comida' ? 'Mandado & Comida 🍔' : 'Insumos & Casa 🛒'}
                         </h2>
                       </div>
                       
@@ -763,17 +1032,19 @@ export default function Finanzas() {
                                 amount: '',
                                 category: 'servicios',
                                 date: new Date().toISOString().split('T')[0],
+                                isBase: true,
+                                quincenaDist: 'split',
                               });
                               setShowAddModal(true);
                             } else {
                               setShowMandadoModal(true);
                             }
                           }}
-                          className="px-2.5 py-1.5 bg-black dark:bg-white text-white dark:text-black font-syne text-[10px] font-bold uppercase tracking-wider rounded-xl hover:scale-105 active:scale-95 transition-all shadow-xs flex items-center gap-1"
-                          title={cat === 'servicios' ? 'Registrar servicio recurrente' : 'Abrir Mandado para comprar en Modo Súper'}
+                          className="cursor-pointer px-2.5 py-1.5 bg-black dark:bg-white text-white dark:text-black font-syne text-[10px] font-bold uppercase tracking-wider rounded-xl hover:scale-105 active:scale-95 transition-all shadow-xs flex items-center gap-1"
+                          title={cat === 'servicios' ? 'Registrar servicio o gasto fijo recurrente' : 'Abrir Mandado para comprar en Modo Súper'}
                         >
                           <HiOutlinePlus className="text-xs" />
-                          <span>{cat === 'servicios' ? '+ Servicio' : 'Modo Súper'}</span>
+                          <span>{cat === 'servicios' ? '+ Base Fija' : 'Modo Súper'}</span>
                         </button>
                         <span className="font-syne text-[11px] font-bold text-gray-700 dark:text-gray-300 bg-gray-100/80 dark:bg-gray-800/80 px-3 py-1 rounded-full border border-gray-200/50 dark:border-gray-700/50 shadow-xs">
                           Total: <span className="text-[var(--color-info)] dark:text-[var(--vibrant-sky-blue)]">{formatAmount(getCategoryTotal(cat))}</span>
@@ -782,10 +1053,15 @@ export default function Finanzas() {
                     </div>
 
                     <div className="bg-white/80 dark:bg-gray-900/80 glass dark:dark-glass rounded-[2rem] overflow-hidden shadow-xs border border-gray-200/50 dark:border-gray-800 flex flex-col">
-                      <div className="flex-1 p-3 md:p-4 space-y-2 max-h-[460px] overflow-y-auto scrollbar-thin">
+                      <div className="flex-1 p-3 md:p-4 space-y-2.5 max-h-[480px] overflow-y-auto scrollbar-thin">
                         <AnimatePresence>
                           {catExpenses.map((exp) => {
                             const meta = getExpenseMeta(exp);
+                            const info = parseExpenseInfo(exp);
+                            const effectiveAmount = info.isBase 
+                              ? getBaseExpenseAmountForPeriod(exp, selectedPeriod)
+                              : exp.amount;
+
                             return (
                               <motion.div 
                                 layout
@@ -796,30 +1072,63 @@ export default function Finanzas() {
                                 className="group bg-white dark:bg-gray-800/90 p-3.5 rounded-2xl border border-gray-100 dark:border-gray-700/60 flex items-center justify-between transition-colors hover:border-gray-300 dark:hover:border-gray-600 gap-3"
                               >
                                 <div className="flex flex-col min-w-0 flex-1">
-                                  <div className="flex items-center gap-2 flex-wrap">
+                                  <div className="flex items-center gap-1.5 flex-wrap">
                                     <span className="font-inter text-sm text-gray-800 dark:text-gray-100 font-medium truncate">
-                                      {exp.concept}
+                                      {info.cleanConcept}
                                     </span>
-                                    <span className={`px-2 py-0.5 rounded-full text-[8px] font-syne font-bold uppercase tracking-wider ${
-                                      meta.quincena === 1
-                                        ? 'bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300'
-                                        : 'bg-sky-100 dark:bg-sky-950/60 text-sky-700 dark:text-sky-300'
-                                    }`}>
-                                      Q{meta.quincena} ({meta.day} {MONTH_NAMES[meta.month].slice(0, 3)})
-                                    </span>
+                                    
+                                    {info.isBase ? (
+                                      <button
+                                        type="button"
+                                        onClick={() => handleCycleQuincenaDist(exp)}
+                                        className="cursor-pointer px-2 py-0.5 rounded-full text-[8px] font-syne font-bold uppercase tracking-wider bg-purple-100 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 border border-purple-200/60 dark:border-purple-800/50 hover:scale-105 transition-all flex items-center gap-1"
+                                        title="Clic para cambiar distribución: 50/50, Solo Q1 o Solo Q2"
+                                      >
+                                        <HiOutlineRefresh className="text-[10px]" />
+                                        <span>
+                                          Base Fija ({info.recurrenceDist === 'split' ? '50/50' : info.recurrenceDist.toUpperCase()})
+                                        </span>
+                                      </button>
+                                    ) : (
+                                      <span className={`px-2 py-0.5 rounded-full text-[8px] font-syne font-bold uppercase tracking-wider ${
+                                        meta.quincena === 1
+                                          ? 'bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300'
+                                          : 'bg-sky-100 dark:bg-sky-950/60 text-sky-700 dark:text-sky-300'
+                                      }`}>
+                                        Q{meta.quincena} ({meta.day} {MONTH_NAMES[meta.month].slice(0, 3)})
+                                      </span>
+                                    )}
                                   </div>
-                                  <span className="font-dm-sans text-sm font-bold text-[var(--color-info)] dark:text-[var(--vibrant-sky-blue)] mt-1">
-                                    {formatAmount(exp.amount)}
-                                  </span>
+
+                                  <div className="flex items-center gap-2 mt-1">
+                                    <span className="font-dm-sans text-sm font-bold text-[var(--color-info)] dark:text-[var(--vibrant-sky-blue)]">
+                                      {formatAmount(effectiveAmount)}
+                                    </span>
+                                    {info.isBase && selectedPeriod !== 'month' && info.recurrenceDist === 'split' && (
+                                      <span className="text-[10px] font-inter text-gray-400">
+                                        ({formatAmount(exp.amount)}/mes)
+                                      </span>
+                                    )}
+                                  </div>
                                 </div>
 
-                                <button
-                                  onClick={() => handleDeleteExpense(exp.id)}
-                                  className="p-2 text-red-500 dark:text-red-400 bg-red-500/10 dark:bg-red-500/20 hover:bg-red-500/20 dark:hover:bg-red-500/35 border border-red-500/20 dark:border-red-500/30 rounded-xl transition-all opacity-100 lg:opacity-0 lg:group-hover:opacity-100 active:scale-95 shrink-0"
-                                  title="Eliminar gasto"
-                                >
-                                  <HiOutlineTrash className="text-base" />
-                                </button>
+                                <div className="flex items-center gap-1.5 shrink-0">
+                                  <button
+                                    onClick={() => handleToggleRecurrence(exp)}
+                                    className="cursor-pointer p-1.5 text-gray-400 hover:text-purple-600 dark:hover:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-950/40 rounded-xl transition-all opacity-100 lg:opacity-0 lg:group-hover:opacity-100 text-xs"
+                                    title={info.isBase ? "Cambiar a gasto ocasional de este mes" : "Convertir en Base Fija mensual recurrente"}
+                                  >
+                                    <HiOutlineRefresh className="text-sm" />
+                                  </button>
+
+                                  <button
+                                    onClick={() => handleDeleteExpense(exp.id)}
+                                    className="cursor-pointer p-2 text-red-500 dark:text-red-400 bg-red-500/10 dark:bg-red-500/20 hover:bg-red-500/20 dark:hover:bg-red-500/35 border border-red-500/20 dark:border-red-500/30 rounded-xl transition-all opacity-100 lg:opacity-0 lg:group-hover:opacity-100 active:scale-95 shrink-0"
+                                    title="Eliminar gasto"
+                                  >
+                                    <HiOutlineTrash className="text-base" />
+                                  </button>
+                                </div>
                               </motion.div>
                             );
                           })}
@@ -830,7 +1139,7 @@ export default function Finanzas() {
                               animate={{ opacity: 1 }}
                               className="p-8 text-center text-xs text-gray-400 dark:text-gray-500 font-inter"
                             >
-                              No hay gastos en este período
+                              No hay gastos en esta categoría para el período seleccionado
                             </motion.div>
                           )}
                         </AnimatePresence>
@@ -842,22 +1151,52 @@ export default function Finanzas() {
           </div>
         )}
 
-        {/* ═══ VISTA 2: HISTORIAL CRONOLÓGICO DE GASTOS ═══ */}
+        {/* ═══ VISTA 2: HISTORIAL Y BASE FIJA ═══ */}
         {viewMode === 'history' && (
           <div className="bg-white/80 dark:bg-gray-900/80 glass dark:dark-glass rounded-[2rem] border border-gray-200/50 dark:border-gray-800 shadow-xs p-4 sm:p-6 space-y-4">
-            <div className="flex items-center justify-between pb-3 border-b border-gray-100 dark:border-gray-800">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b border-gray-100 dark:border-gray-800 gap-3">
               <div>
                 <h3 className="font-dm-sans text-lg font-bold text-gray-900 dark:text-white">
-                  Histórico de Gastos • {selectedPeriod === 'q1' ? '1ra Quincena' : selectedPeriod === 'q2' ? '2da Quincena' : 'Mes Completo'} ({MONTH_NAMES[selectedMonth]} {selectedYear})
+                  Histórico y Base Fija • {selectedPeriod === 'q1' ? '1ra Quincena' : selectedPeriod === 'q2' ? '2da Quincena' : 'Mes Completo'} ({MONTH_NAMES[selectedMonth]} {selectedYear})
                 </h3>
                 <p className="font-inter text-xs text-gray-400">
-                  Desglose ordenado cronológicamente de todas las compras del súper y pagos de servicios.
+                  Desglose de la base mensual fija recurrente y las compras reales de mandado acumuladas.
                 </p>
               </div>
 
-              <span className="font-syne text-xs font-bold px-3 py-1.5 bg-gray-100 dark:bg-gray-800 rounded-xl text-gray-700 dark:text-gray-300">
-                Total: {formatAmount(periodTotalSpent)}
-              </span>
+              {/* Subfiltro de Historial: Todos / Solo Base Fija / Solo Mandado */}
+              <div className="flex items-center gap-1 bg-gray-100 dark:bg-gray-800/80 p-1 rounded-xl self-start sm:self-auto">
+                <button
+                  onClick={() => setHistoryFilter('all')}
+                  className={`cursor-pointer px-3 py-1.5 rounded-lg text-[10px] font-syne font-bold uppercase tracking-wider transition-all ${
+                    historyFilter === 'all'
+                      ? 'bg-white dark:bg-gray-900 text-gray-900 dark:text-white shadow-xs'
+                      : 'text-gray-500 hover:text-gray-900 dark:hover:text-white'
+                  }`}
+                >
+                  Todos ({activePeriodExpenses.length})
+                </button>
+                <button
+                  onClick={() => setHistoryFilter('base')}
+                  className={`cursor-pointer px-3 py-1.5 rounded-lg text-[10px] font-syne font-bold uppercase tracking-wider transition-all flex items-center gap-1 ${
+                    historyFilter === 'base'
+                      ? 'bg-purple-600 text-white shadow-xs'
+                      : 'text-purple-600 dark:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-950/40'
+                  }`}
+                >
+                  <span>📌 Base Fija ({activePeriodBaseExpenses.length})</span>
+                </button>
+                <button
+                  onClick={() => setHistoryFilter('variable')}
+                  className={`cursor-pointer px-3 py-1.5 rounded-lg text-[10px] font-syne font-bold uppercase tracking-wider transition-all flex items-center gap-1 ${
+                    historyFilter === 'variable'
+                      ? 'bg-emerald-600 text-white shadow-xs'
+                      : 'text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/40'
+                  }`}
+                >
+                  <span>🥗 Mandado ({activePeriodVariableExpenses.length})</span>
+                </button>
+              </div>
             </div>
 
             {activePeriodExpenses.length === 0 ? (
@@ -866,68 +1205,122 @@ export default function Finanzas() {
                   No hay gastos registrados en este período
                 </p>
                 <p className="font-inter text-xs">
-                  Al tachar compras en el Modo Súper o registrar servicios, aparecerán aquí automáticamente.
+                  Al tachar compras en el Modo Súper o registrar base fija de servicios, aparecerán aquí automáticamente.
                 </p>
               </div>
             ) : (
               <div className="space-y-2.5">
                 {activePeriodExpenses
-                  .filter((e) => !searchTerm || e.concept.toLowerCase().includes(searchTerm.toLowerCase()))
+                  .filter((e) => {
+                    const info = parseExpenseInfo(e);
+                    if (historyFilter === 'base' && !info.isBase) return false;
+                    if (historyFilter === 'variable' && info.isBase) return false;
+                    if (searchTerm && !e.concept.toLowerCase().includes(searchTerm.toLowerCase())) return false;
+                    return true;
+                  })
                   .sort((a, b) => {
+                    const infoA = parseExpenseInfo(a);
+                    const infoB = parseExpenseInfo(b);
+                    // Base items pinned first in list
+                    if (infoA.isBase && !infoB.isBase) return -1;
+                    if (!infoA.isBase && infoB.isBase) return 1;
                     const dateA = a.date || a.created_at || '';
                     const dateB = b.date || b.created_at || '';
                     return dateB.localeCompare(dateA);
                   })
                   .map((exp) => {
                     const meta = getExpenseMeta(exp);
+                    const info = parseExpenseInfo(exp);
+                    const effectiveAmount = info.isBase 
+                      ? getBaseExpenseAmountForPeriod(exp, selectedPeriod)
+                      : exp.amount;
+
                     return (
                       <div
                         key={exp.id}
-                        className="group flex flex-col sm:flex-row sm:items-center justify-between p-4 rounded-2xl bg-white dark:bg-gray-800/80 border border-gray-100 dark:border-gray-700/60 hover:border-gray-300 dark:hover:border-gray-600 transition-all gap-3"
+                        className={`group flex flex-col sm:flex-row sm:items-center justify-between p-4 rounded-2xl border transition-all gap-3 ${
+                          info.isBase
+                            ? 'bg-purple-50/30 dark:bg-purple-950/20 border-purple-200/60 dark:border-purple-900/40 hover:border-purple-400'
+                            : 'bg-white dark:bg-gray-800/80 border-gray-100 dark:border-gray-700/60 hover:border-gray-300 dark:hover:border-gray-600'
+                        }`}
                       >
                         <div className="flex items-start sm:items-center gap-3.5 min-w-0 flex-1">
                           <div className={`p-2.5 rounded-xl shrink-0 ${
-                            exp.category === 'comida'
-                              ? 'bg-amber-100/70 dark:bg-amber-950/50 text-amber-600 dark:text-amber-400'
-                              : exp.category === 'insumos'
-                              ? 'bg-indigo-100/70 dark:bg-indigo-950/50 text-indigo-600 dark:text-indigo-400'
-                              : 'bg-purple-100/70 dark:bg-purple-950/50 text-purple-600 dark:text-purple-400'
+                            info.isBase
+                              ? 'bg-purple-100 dark:bg-purple-950/60 text-purple-600 dark:text-purple-400'
+                              : exp.category === 'comida'
+                              ? 'bg-emerald-100/70 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400'
+                              : 'bg-indigo-100/70 dark:bg-indigo-950/50 text-indigo-600 dark:text-indigo-400'
                           }`}>
                             <span className="text-lg">
-                              {exp.category === 'comida' ? '🍔' : exp.category === 'insumos' ? '🛒' : '⚡'}
+                              {info.isBase ? '🔄' : exp.category === 'comida' ? '🥗' : '🛒'}
                             </span>
                           </div>
 
                           <div className="min-w-0 flex-1">
                             <div className="flex items-center gap-2 flex-wrap">
                               <span className="font-dm-sans font-bold text-sm sm:text-base text-gray-900 dark:text-white truncate">
-                                {exp.concept}
+                                {info.cleanConcept}
                               </span>
-                              <span className={`px-2 py-0.5 rounded-full text-[9px] font-syne font-bold uppercase tracking-wider ${
-                                meta.quincena === 1
-                                  ? 'bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300'
-                                  : 'bg-sky-100 dark:bg-sky-950/60 text-sky-700 dark:text-sky-300'
-                              }`}>
-                                {meta.quincena === 1 ? '1ra Quincena' : '2da Quincena'}
-                              </span>
+
+                              {info.isBase ? (
+                                <button
+                                  type="button"
+                                  onClick={() => handleCycleQuincenaDist(exp)}
+                                  className="cursor-pointer px-2 py-0.5 rounded-full text-[9px] font-syne font-bold uppercase tracking-wider bg-purple-100 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 hover:scale-105 transition-all flex items-center gap-1"
+                                  title="Clic para cambiar distribución: 50/50, Solo Q1 o Solo Q2"
+                                >
+                                  <HiOutlineRefresh className="text-[10px]" />
+                                  <span>
+                                    Base Fija • {info.recurrenceDist === 'split' ? 'Ambas Q (50/50)' : info.recurrenceDist === 'q1' ? 'Solo Q1' : 'Solo Q2'}
+                                  </span>
+                                </button>
+                              ) : (
+                                <span className={`px-2 py-0.5 rounded-full text-[9px] font-syne font-bold uppercase tracking-wider ${
+                                  meta.quincena === 1
+                                    ? 'bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300'
+                                    : 'bg-sky-100 dark:bg-sky-950/60 text-sky-700 dark:text-sky-300'
+                                }`}>
+                                  {meta.quincena === 1 ? '1ra Quincena' : '2da Quincena'}
+                                </span>
+                              )}
+
                               <span className="px-2 py-0.5 rounded-full text-[9px] font-syne font-bold uppercase tracking-wider bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300">
                                 {exp.category}
                               </span>
                             </div>
+
                             <p className="font-inter text-xs text-gray-400 dark:text-gray-500 mt-0.5">
-                              📅 {meta.day} de {MONTH_NAMES[meta.month]} de {meta.year}
+                              {info.isBase 
+                                ? '📌 Siempre cobrado mensualmente de base' 
+                                : `📅 ${meta.day} de ${MONTH_NAMES[meta.month]} de ${meta.year}`}
                             </p>
                           </div>
                         </div>
 
                         <div className="flex items-center justify-between sm:justify-end gap-3 shrink-0">
-                          <span className="font-dm-sans font-bold text-base sm:text-lg text-gray-900 dark:text-white">
-                            {formatAmount(exp.amount)}
-                          </span>
+                          <div className="text-right">
+                            <span className="font-dm-sans font-bold text-base sm:text-lg text-gray-900 dark:text-white block">
+                              {formatAmount(effectiveAmount)}
+                            </span>
+                            {info.isBase && selectedPeriod !== 'month' && info.recurrenceDist === 'split' && (
+                              <span className="font-inter text-[10px] text-gray-400 block">
+                                Total: {formatAmount(exp.amount)}/mes
+                              </span>
+                            )}
+                          </div>
+
+                          <button
+                            onClick={() => handleToggleRecurrence(exp)}
+                            className="cursor-pointer p-2 text-gray-400 hover:text-purple-600 dark:hover:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-950/40 rounded-xl transition-all"
+                            title={info.isBase ? "Cambiar a gasto ocasional de este mes" : "Convertir en Base Fija mensual"}
+                          >
+                            <HiOutlineRefresh className="text-base" />
+                          </button>
 
                           <button
                             onClick={() => handleDeleteExpense(exp.id)}
-                            className="p-2 text-red-500 dark:text-red-400 bg-red-500/10 dark:bg-red-500/20 hover:bg-red-500/20 dark:hover:bg-red-500/35 border border-red-500/20 dark:border-red-500/30 rounded-xl transition-all active:scale-95 shrink-0"
+                            className="cursor-pointer p-2 text-red-500 dark:text-red-400 bg-red-500/10 dark:bg-red-500/20 hover:bg-red-500/20 dark:hover:bg-red-500/35 border border-red-500/20 dark:border-red-500/30 rounded-xl transition-all active:scale-95 shrink-0"
                             title="Eliminar gasto"
                           >
                             <HiOutlineTrash className="text-base" />
@@ -942,7 +1335,7 @@ export default function Finanzas() {
         )}
       </div>
 
-      {/* ═══ MODAL: AGREGAR SERVICIO / GASTO CON DATEPICKER ═══ */}
+      {/* ═══ MODAL: AGREGAR GASTO / BASE FIJA CON SOPORTE DE DISTRIBUCIÓN ═══ */}
       {createPortal(
         <AnimatePresence>
           {showAddModal && (
@@ -962,13 +1355,13 @@ export default function Finanzas() {
                 {/* Header */}
                 <div className="flex items-center justify-between p-6 sm:p-8 pb-4 sm:pb-4 border-b border-gray-100 dark:border-gray-800 shrink-0">
                   <div>
-                    <h2 className="font-dm-sans text-2xl font-bold text-gray-900 dark:text-white">Registrar Gasto / Servicio ⚡</h2>
-                    <p className="font-inter text-xs text-gray-400">Ingresa tu servicio recurrente o gasto del período.</p>
+                    <h2 className="font-dm-sans text-2xl font-bold text-gray-900 dark:text-white">Registrar Gasto Financiero ⚡</h2>
+                    <p className="font-inter text-xs text-gray-400">Configura un gasto base recurrente o un gasto fechado del mes.</p>
                   </div>
                   <button
                     type="button"
                     onClick={() => setShowAddModal(false)}
-                    className="p-2 rounded-xl text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 transition-all shrink-0"
+                    className="cursor-pointer p-2 rounded-xl text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 transition-all shrink-0"
                   >
                     <HiX className="text-xl" />
                   </button>
@@ -981,6 +1374,77 @@ export default function Finanzas() {
                 }} className="flex flex-col flex-1 min-h-0">
                   {/* Body */}
                   <div className="p-6 sm:p-8 overflow-y-auto flex-1 space-y-4">
+                    {/* Switch: Base Fija vs Gasto de este mes */}
+                    <div>
+                      <label className="block font-syne text-[10px] font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400 mb-2">
+                        Tipo de Compromiso *
+                      </label>
+                      <div className="grid grid-cols-2 gap-2 p-1 bg-gray-100 dark:bg-gray-800/80 rounded-2xl border border-gray-200/50 dark:border-gray-700/50">
+                        <button
+                          type="button"
+                          onClick={() => setNewExpense({ ...newExpense, isBase: true })}
+                          className={`cursor-pointer py-2.5 px-3 rounded-xl font-syne text-xs font-bold uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 ${
+                            newExpense.isBase
+                              ? 'bg-purple-600 text-white shadow-xs'
+                              : 'text-gray-600 dark:text-gray-300 hover:text-purple-600'
+                          }`}
+                        >
+                          <HiOutlineRefresh className="text-sm" />
+                          <span>🔄 Base Fija</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setNewExpense({ ...newExpense, isBase: false })}
+                          className={`cursor-pointer py-2.5 px-3 rounded-xl font-syne text-xs font-bold uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 ${
+                            !newExpense.isBase
+                              ? 'bg-emerald-600 text-white shadow-xs'
+                              : 'text-gray-600 dark:text-gray-300 hover:text-emerald-600'
+                          }`}
+                        >
+                          <HiOutlineCalendar className="text-sm" />
+                          <span>📅 Este Mes</span>
+                        </button>
+                      </div>
+                      <p className="font-inter text-[11px] text-gray-400 mt-1.5">
+                        {newExpense.isBase
+                          ? 'Se cobra siempre cada mes como base fija (Internet, Renta, Suscripciones, etc.).'
+                          : 'Aplica únicamente a la fecha/quincena específica elegida.'}
+                      </p>
+                    </div>
+
+                    {/* Distribución Quincenal para Base Fija */}
+                    {newExpense.isBase && (
+                      <motion.div
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: 'auto' }}
+                        className="p-3.5 bg-purple-50/50 dark:bg-purple-950/20 border border-purple-200/60 dark:border-purple-900/40 rounded-2xl space-y-2"
+                      >
+                        <label className="block font-syne text-[10px] font-bold uppercase tracking-widest text-purple-700 dark:text-purple-300">
+                          Distribución en Quincenas
+                        </label>
+                        <div className="grid grid-cols-3 gap-1.5">
+                          {[
+                            { id: 'split', label: 'Ambas (50/50)' },
+                            { id: 'q1', label: 'Solo 1ª Q (1-15)' },
+                            { id: 'q2', label: 'Solo 2ª Q (16-Fin)' },
+                          ].map((item) => (
+                            <button
+                              key={item.id}
+                              type="button"
+                              onClick={() => setNewExpense({ ...newExpense, quincenaDist: item.id as RecurrenceDist })}
+                              className={`cursor-pointer py-2 px-1 text-center rounded-xl font-syne text-[10px] font-bold uppercase tracking-wider transition-all ${
+                                newExpense.quincenaDist === item.id
+                                  ? 'bg-purple-600 text-white shadow-xs'
+                                  : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border border-purple-200/50 dark:border-purple-800/40'
+                              }`}
+                            >
+                              {item.label}
+                            </button>
+                          ))}
+                        </div>
+                      </motion.div>
+                    )}
+
                     <div>
                       <label className="block font-syne text-[10px] font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400 mb-2">Categoría *</label>
                       <CustomSelect
@@ -988,7 +1452,7 @@ export default function Finanzas() {
                         onChange={(val) => setNewExpense({ ...newExpense, category: val as any })}
                         options={[
                           { value: 'servicios', label: 'Servicios & Suscripciones ⚡' },
-                          { value: 'comida', label: 'Supermercado & Alimentación 🍔' },
+                          { value: 'comida', label: 'Supermercado & Mandado 🍔' },
                           { value: 'insumos', label: 'Insumos & Casa 🛒' },
                         ]}
                       />
@@ -998,7 +1462,7 @@ export default function Finanzas() {
                       <label className="block font-syne text-[10px] font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400 mb-2">Concepto del Gasto / Servicio *</label>
                       <input
                         required
-                        placeholder="Ej. Luz CFE, Internet Totalplay, Agua, Netflix..."
+                        placeholder="Ej. Internet Totalplay, Renta, Luz CFE, Spotify..."
                         value={newExpense.concept}
                         onChange={(e) => setNewExpense({ ...newExpense, concept: e.target.value })}
                         className="w-full px-5 py-3.5 bg-gray-50 dark:bg-gray-800/80 border border-gray-100 dark:border-gray-700 rounded-xl outline-none font-inter text-sm text-gray-900 dark:text-gray-100 placeholder-gray-400 focus:border-emerald-500"
@@ -1018,16 +1482,18 @@ export default function Finanzas() {
                       />
                     </div>
 
-                    <div>
-                      <label className="block font-syne text-[10px] font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400 mb-2">Fecha del Gasto / Pago *</label>
-                      <CustomDatePicker
-                        value={newExpense.date}
-                        onChange={(val) => setNewExpense({ ...newExpense, date: val })}
-                      />
-                      <p className="font-inter text-[11px] text-gray-400 mt-1">
-                        Determina si se computa en la 1ra Quincena (1-15) o en la 2da Quincena (16+).
-                      </p>
-                    </div>
+                    {!newExpense.isBase && (
+                      <motion.div
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: 'auto' }}
+                      >
+                        <label className="block font-syne text-[10px] font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400 mb-2">Fecha del Gasto *</label>
+                        <CustomDatePicker
+                          value={newExpense.date}
+                          onChange={(val) => setNewExpense({ ...newExpense, date: val })}
+                        />
+                      </motion.div>
+                    )}
                   </div>
 
                   {/* Footer */}
@@ -1035,16 +1501,16 @@ export default function Finanzas() {
                     <button
                       type="button"
                       onClick={() => setShowAddModal(false)}
-                      className="px-6 py-3 font-syne text-xs font-bold uppercase tracking-wider text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl transition-all"
+                      className="cursor-pointer px-6 py-3 font-syne text-xs font-bold uppercase tracking-wider text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl transition-all"
                     >
                       Cancelar
                     </button>
                     <button
                       type="submit"
                       disabled={submittingCat !== null}
-                      className="px-8 py-3 bg-black dark:bg-white text-white dark:text-black font-syne text-xs font-bold uppercase tracking-wider rounded-xl shadow-lg hover:scale-105 active:scale-95 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+                      className="cursor-pointer px-8 py-3 bg-black dark:bg-white text-white dark:text-black font-syne text-xs font-bold uppercase tracking-wider rounded-xl shadow-lg hover:scale-105 active:scale-95 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
                     >
-                      {submittingCat !== null ? 'Guardando...' : 'Guardar Gasto'}
+                      {submittingCat !== null ? 'Guardando...' : newExpense.isBase ? 'Guardar Base Fija' : 'Guardar Gasto'}
                     </button>
                   </div>
                 </form>

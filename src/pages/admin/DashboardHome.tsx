@@ -371,7 +371,7 @@ export default function DashboardHome() {
     setExporting(true);
     try {
       const [exp, tsk, shp, rem] = await Promise.all([
-        supabase.from('finance_expenses').select('date, concept, category, amount'),
+        supabase.from('finance_expenses').select('*'),
         supabase.from('tasks').select('title, priority, due_date, completed'),
         supabase.from('shopping_list').select('name, location, price, bought'),
         supabase.from('reminders').select('title, category, date, time'),
@@ -379,7 +379,8 @@ export default function DashboardHome() {
 
       let csv = '=== GASTOS ===\nFecha,Concepto,Categoria,Monto\n';
       exp.data?.forEach(e => {
-        csv += `"${e.date}","${e.concept || ''}","${e.category || ''}",${e.amount}\n`;
+        const itemDate = (e as any).date || (e.created_at ? e.created_at.split('T')[0] : '');
+        csv += `"${itemDate}","${e.concept || ''}","${e.category || ''}",${e.amount}\n`;
       });
 
       csv += '\n=== PENDIENTES ===\nTitulo,Prioridad,Fecha Limite,Completada\n';
