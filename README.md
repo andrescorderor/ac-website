@@ -1,7 +1,7 @@
 <div align="center">
   <img src="public/assets/ac-website-icon.svg" alt="Logo" width="100" />
   
-  # Andrés Cordero - Professional Portfolio & Personal Panel PWA (v6.14.0) 🔍✨
+  # Andrés Cordero - Professional Portfolio & Personal Panel PWA (v6.15.0) 🔍✨
   
   **Welcome to my personal ecosystem: a professional portfolio and a custom productivity hub.**  
   Built with UX/UI best practices, premium design, and a focus on mobile-first efficiency.
@@ -16,11 +16,15 @@
 
 ---
 
-## 🚀 Overview (Version 6.14.0)
+## 🚀 Overview (Version 6.15.0)
 
 This repository hosts a dual-purpose platform:
 1. **Professional Portfolio:** A high-end landing page showcasing my engineering background, skills, and achievements with dynamic copyright year updates and zero horizontal overflow.
-2. **Personal Panel PWA (v6.14.0):** An executive personal operating system featuring:
+2. **Personal Panel PWA (v6.15.0):** An executive personal operating system featuring:
+   * **Clean Mobile Navigation Experience (`DashboardLayout.tsx`):**
+     * **Closed by Default on Load:** The mobile sidebar navigation drawer is now closed upon loading the application (`isSidebarOpen: false`), eliminating the obstructive overlay backdrop that covered the screen initially on mobile devices.
+     * **Automatic Route-Change Dismissal:** When tapping any route or navigating between modules, the mobile drawer automatically closes (`useEffect` on `location.pathname`), keeping the viewport unobstructed.
+     * **Accessible On-Demand Controls:** The full drawer can be summoned at any time via the top header hamburger icon (`HiMenuAlt2`) or the bottom thumb-friendly navigation bar ("Más").
    * **Master Engineering Discipline & Production Standards (`AGENTS.md` v6.14.0):**
      * **Production-Grade Mindset (Rule 0):** Zero test/mock/placeholder labels exposed to final users; complete executive polish across all screens.
      * **Strict $0 USD Tier Architecture & Mandatory Payment Alert (Rule 0.1):** 100% cost-free development utilizing open-source and free tiers (Supabase Free, Netlify Free, GitHub Actions, PWA APIs). Mandatory protocol requiring explicit prior approval from Andrés before incurring any recurring or paid external services.

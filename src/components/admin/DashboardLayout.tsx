@@ -74,7 +74,7 @@ export default function DashboardLayout() {
 }
 
 function DashboardLayoutContent() {
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [notifPermission, setNotifPermission] = useState<string>(getNotificationPermissionState());
   const [isSearchOpen, setIsSearchOpen] = useState(false);
@@ -83,6 +83,10 @@ function DashboardLayoutContent() {
   const mainRef = useRef<HTMLDivElement>(null);
   const { isDarkMode, toggleDarkMode } = useTheme();
   const { toast } = useToast();
+
+  useEffect(() => {
+    setIsSidebarOpen(false);
+  }, [location.pathname]);
 
   useEffect(() => {
     checkUser();
@@ -248,7 +252,7 @@ function DashboardLayoutContent() {
 
           <div className="text-center select-none pt-1">
             <span className="font-syne text-[9px] font-bold tracking-widest text-gray-400 dark:text-gray-600 block">
-              VERSIÓN v6.14.0
+              VERSIÓN v6.15.0
             </span>
           </div>
         </div>
@@ -389,7 +393,7 @@ function DashboardLayoutContent() {
 
           <div className="text-center select-none pt-2">
             <span className="font-syne text-[9px] font-bold tracking-widest text-gray-400 dark:text-gray-600 block">
-              VERSIÓN v6.14.0
+              VERSIÓN v6.15.0
             </span>
           </div>
         </div>
