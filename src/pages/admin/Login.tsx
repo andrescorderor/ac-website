@@ -32,7 +32,13 @@ export default function Login() {
     });
 
     if (error) {
-      setError('Acceso denegado. Verifica tu usuario y contraseña.');
+      if (error.message.includes('exceed_egress_quota') || error.message.includes('restricted')) {
+        setError('⚠️ El proyecto de Supabase tiene la cuota de transferencia (egress) temporalmente restringida en el plan gratuito. Revisa tu panel en supabase.com para desbloquearlo o verificar el ciclo.');
+      } else if (error.message.includes('Invalid login credentials')) {
+        setError('Contraseña o usuario incorrectos. Verifica tus credenciales.');
+      } else {
+        setError(error.message || 'Acceso denegado. Verifica tu usuario y contraseña.');
+      }
       setLoading(false);
     } else {
       navigate('/admin/panel');
