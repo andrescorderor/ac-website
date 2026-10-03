@@ -251,5 +251,27 @@ CREATE POLICY "pinned_access" ON public.user_pinned_items FOR ALL USING (true) W
 ALTER TABLE public.push_subscriptions ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "push_access" ON public.push_subscriptions FOR ALL USING (true) WITH CHECK (true);
 
--- 18. Notificar recarga de schema cache
+-- 18. Confirmación inmediata del usuario administrador
+UPDATE auth.users 
+SET email_confirmed_at = now() 
+WHERE email = 'andresmcorderor@admin.com';
+
+-- 19. Función RPC para escaneo seguro de notificaciones
+CREATE OR REPLACE FUNCTION public.get_daily_notifications_to_send()
+RETURNS jsonb
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+DECLARE
+  v_subs jsonb;
+BEGIN
+  SELECT jsonb_agg(to_jsonb(p)) INTO v_subs FROM public.push_subscriptions p;
+  RETURN jsonb_build_object(
+    'subscriptions', COALESCE(v_subs, '[]'::jsonb),
+    'notifications', '[]'::jsonb
+  );
+END;
+$$;
+
+-- 20. Notificar recarga de schema cache
 NOTIFY pgrst, 'reload schema';
