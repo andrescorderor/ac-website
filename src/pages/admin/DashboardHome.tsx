@@ -31,6 +31,7 @@ import {
   sendBrowserNotification, 
   scanAndNotifyUpcomingEvents 
 } from '@/lib/notifications';
+import { fetchWithCache, invalidateCache } from '@/lib/cache';
 
 export default function DashboardHome() {
   const [stats, setStats] = useState({
@@ -102,7 +103,11 @@ export default function DashboardHome() {
     fetchStats();
     loadPinned();
 
-    const handlePinnedChanged = () => loadPinned();
+    const handlePinnedChanged = () => {
+      invalidateCache('dashboard');
+      loadPinned();
+      fetchStats();
+    };
     window.addEventListener('ac_pinned_changed', handlePinnedChanged);
     return () => window.removeEventListener('ac_pinned_changed', handlePinnedChanged);
   }, []);
@@ -117,30 +122,32 @@ export default function DashboardHome() {
     }
 
     try {
+      const typesPresent = new Set(rawItems.map(i => i.type));
+
       const [tasksRes, debtsRes, shoppingRes, notesRes, vaultRes, remindersRes, projectsRes, recipesRes, plantsRes, bookmarksRes] = await Promise.all([
-        supabase.from('tasks').select('id, completed'),
-        supabase.from('debts').select('id, settled'),
-        supabase.from('shopping_list').select('id, bought'),
-        supabase.from('notes').select('id'),
-        supabase.from('vault_items').select('id'),
-        supabase.from('reminders').select('id'),
-        supabase.from('creative_projects').select('id'),
-        supabase.from('recipes').select('id'),
-        supabase.from('plants').select('id'),
-        supabase.from('bookmarks').select('id'),
+        typesPresent.has('task') ? supabase.from('tasks').select('id, completed') : Promise.resolve({ data: [] }),
+        typesPresent.has('debt') ? supabase.from('debts').select('id, settled') : Promise.resolve({ data: [] }),
+        typesPresent.has('shopping') ? supabase.from('shopping_list').select('id, bought') : Promise.resolve({ data: [] }),
+        typesPresent.has('note') ? supabase.from('notes').select('id') : Promise.resolve({ data: [] }),
+        typesPresent.has('vault') ? supabase.from('vault_items').select('id') : Promise.resolve({ data: [] }),
+        typesPresent.has('reminder') ? supabase.from('reminders').select('id') : Promise.resolve({ data: [] }),
+        typesPresent.has('project') ? supabase.from('creative_projects').select('id') : Promise.resolve({ data: [] }),
+        typesPresent.has('recipe') ? supabase.from('recipes').select('id') : Promise.resolve({ data: [] }),
+        typesPresent.has('plant') ? supabase.from('plants').select('id') : Promise.resolve({ data: [] }),
+        typesPresent.has('bookmark') ? supabase.from('bookmarks').select('id') : Promise.resolve({ data: [] }),
       ]);
 
-      const activeTaskIds = new Set(tasksRes.data?.filter(t => !t.completed).map(t => t.id) || []);
-      const activeDebtIds = new Set(debtsRes.data?.filter(d => !d.settled).map(d => d.id) || []);
-      const activeShoppingIds = new Set(shoppingRes.data?.filter(s => !s.bought).map(s => s.id) || []);
+      const activeTaskIds = new Set((tasksRes.data as any[])?.filter(t => !t.completed).map(t => t.id) || []);
+      const activeDebtIds = new Set((debtsRes.data as any[])?.filter(d => !d.settled).map(d => d.id) || []);
+      const activeShoppingIds = new Set((shoppingRes.data as any[])?.filter(s => !s.bought).map(s => s.id) || []);
       
-      const existingNoteIds = new Set(notesRes.data?.map(n => n.id) || []);
-      const existingVaultIds = new Set(vaultRes.data?.map(v => v.id) || []);
-      const existingReminderIds = new Set(remindersRes.data?.map(r => r.id) || []);
-      const existingProjectIds = new Set(projectsRes.data?.map(p => p.id) || []);
-      const existingRecipeIds = new Set(recipesRes.data?.map(r => r.id) || []);
-      const existingPlantIds = new Set(plantsRes.data?.map(p => p.id) || []);
-      const existingBookmarkIds = new Set(bookmarksRes.data?.map(b => b.id) || []);
+      const existingNoteIds = new Set((notesRes.data as any[])?.map(n => n.id) || []);
+      const existingVaultIds = new Set((vaultRes.data as any[])?.map(v => v.id) || []);
+      const existingReminderIds = new Set((remindersRes.data as any[])?.map(r => r.id) || []);
+      const existingProjectIds = new Set((projectsRes.data as any[])?.map(p => p.id) || []);
+      const existingRecipeIds = new Set((recipesRes.data as any[])?.map(r => r.id) || []);
+      const existingPlantIds = new Set((plantsRes.data as any[])?.map(p => p.id) || []);
+      const existingBookmarkIds = new Set((bookmarksRes.data as any[])?.map(b => b.id) || []);
 
       const validPinned: PinnedItem[] = [];
       const invalidIds: string[] = [];
@@ -168,7 +175,6 @@ export default function DashboardHome() {
       }
 
       if (invalidIds.length > 0) {
-        // Asynchronously purge from Supabase
         await supabase.from('user_pinned_items').delete().in('id', invalidIds);
         localStorage.setItem('ac_pinned_items_v1', JSON.stringify(validPinned));
       }
@@ -183,119 +189,130 @@ export default function DashboardHome() {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
 
-    const currentMonthYear = `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}`;
+    try {
+      const cachedDashboard = await fetchWithCache('dashboard_stats_and_briefing', async () => {
+        const currentMonthYear = `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}`;
 
-    const [exp, tsk, vlt, dbt, shp, rem, bkm, nts, prj, chk, rec, plt] = await Promise.all([
-      supabase.from('finance_expenses').select('amount'),
-      supabase.from('tasks').select('*').eq('completed', false),
-      supabase.from('vault_items').select('id'),
-      supabase.from('debts').select('amount').eq('settled', false),
-      supabase.from('shopping_list').select('id, name, bought').eq('bought', false),
-      supabase.from('reminders').select('*'),
-      supabase.from('bookmarks').select('id'),
-      supabase.from('notes').select('id').not('category', 'like', 'Fitness_Routine_Data:%'),
-      supabase.from('creative_projects').select('id'),
-      supabase.from('monthly_checklist_logs').select('id').eq('month_year', currentMonthYear).eq('completed', true).eq('user_id', user.id),
-      supabase.from('recipes').select('id'),
-      supabase.from('plants').select('*'),
-    ]);
+        const [exp, tsk, vlt, dbt, shp, rem, bkm, nts, prj, chk, rec, plt] = await Promise.all([
+          supabase.from('finance_expenses').select('amount'),
+          supabase.from('tasks').select('id, title, priority, due_date').eq('completed', false),
+          supabase.from('vault_items').select('*', { count: 'exact', head: true }),
+          supabase.from('debts').select('amount').eq('settled', false),
+          supabase.from('shopping_list').select('id', { count: 'exact', head: true }).eq('bought', false),
+          supabase.from('reminders').select('id, title, category, date, time, recurring'),
+          supabase.from('bookmarks').select('*', { count: 'exact', head: true }),
+          supabase.from('notes').select('*', { count: 'exact', head: true }).not('category', 'like', 'Fitness_Routine_Data:%'),
+          supabase.from('creative_projects').select('*', { count: 'exact', head: true }),
+          supabase.from('monthly_checklist_logs').select('*', { count: 'exact', head: true }).eq('month_year', currentMonthYear).eq('completed', true).eq('user_id', user.id),
+          supabase.from('recipes').select('*', { count: 'exact', head: true }),
+          supabase.from('plants').select('id, nickname, species, emoji, watering_frequency_days, last_watered_at'),
+        ]);
 
-    setStats({
-      expenses: exp.data?.reduce((acc, curr) => acc + curr.amount, 0) || 0,
-      tasks: tsk.data?.length || 0,
-      vault: vlt.data?.length || 0,
-      debts: dbt.data?.reduce((acc, curr) => acc + curr.amount, 0) || 0,
-      shopping: shp.data?.length || 0,
-      reminders: rem.data?.length || 0,
-      bookmarks: bkm.data?.length || 0,
-      notes: nts.data?.length || 0,
-      projects: prj.data?.length || 0,
-      checklist: chk.data?.length || 0,
-      recipes: rec.data?.length || 0,
-      plants: plt?.data?.length || 0,
-    });
+        const computedStats = {
+          expenses: exp.data?.reduce((acc, curr) => acc + curr.amount, 0) || 0,
+          tasks: tsk.data?.length || 0,
+          vault: vlt.count || 0,
+          debts: dbt.data?.reduce((acc, curr) => acc + curr.amount, 0) || 0,
+          shopping: shp.count || 0,
+          reminders: rem.data?.length || 0,
+          bookmarks: bkm.count || 0,
+          notes: nts.count || 0,
+          projects: prj.count || 0,
+          checklist: chk.count || 0,
+          recipes: rec.count || 0,
+          plants: plt.data?.length || 0,
+        };
 
-    // 🌟 Zero-Cost Local Intelligence for Daily Briefing
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
 
-    // 1. Plants that need watering today or overdue
-    const plantsToWater: { id: string; nickname: string; emoji: string; daysDiff: number }[] = [];
-    if (plt?.data) {
-      for (const p of plt.data) {
-        if (!p.last_watered_at || !p.watering_frequency_days) continue;
-        const last = new Date(p.last_watered_at + 'T00:00:00');
-        const nextWater = new Date(last.getTime() + p.watering_frequency_days * 24 * 60 * 60 * 1000);
-        const daysDiff = Math.ceil((nextWater.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
-        if (daysDiff <= 0) {
-          plantsToWater.push({
-            id: p.id,
-            nickname: p.nickname || p.species,
-            emoji: p.emoji || '🪴',
-            daysDiff,
-          });
-        }
-      }
-    }
-
-    // 2. Upcoming events / reminders in the next 3 days
-    const upcomingEvents: { id: string; title: string; category: string; daysLeft: number; time?: string }[] = [];
-    if (rem?.data) {
-      for (const r of rem.data) {
-        const dateVal = r.date || r.event_date;
-        if (!dateVal) continue;
-        let target: Date;
-        if (r.recurring) {
-          const parts = dateVal.split('-');
-          const month = parseInt(parts[1], 10) - 1;
-          const day = parseInt(parts[2], 10);
-          target = new Date(today.getFullYear(), month, day);
-          if (target < today) {
-            target = new Date(today.getFullYear() + 1, month, day);
-          }
-        } else {
-          target = new Date(dateVal + 'T00:00:00');
-        }
-        const diffDays = Math.ceil((target.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
-        if (diffDays >= 0 && diffDays <= 3) {
-          upcomingEvents.push({
-            id: r.id,
-            title: r.title,
-            category: r.category,
-            daysLeft: diffDays,
-            time: r.time,
-          });
-        }
-      }
-    }
-
-    // 3. Urgent or high-priority tasks
-    const urgentTasks: { id: string; title: string; due_date?: string; priority?: string }[] = [];
-    if (tsk?.data) {
-      for (const t of tsk.data) {
-        if (t.priority === 'Alta' || t.priority === 'Urgente') {
-          urgentTasks.push({ id: t.id, title: t.title, due_date: t.due_date, priority: t.priority });
-        } else if (t.due_date) {
-          const target = new Date(t.due_date + 'T00:00:00');
-          const diffDays = Math.ceil((target.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
-          if (diffDays >= 0 && diffDays <= 2) {
-            urgentTasks.push({ id: t.id, title: t.title, due_date: t.due_date, priority: 'Próxima a vencer' });
+        // 1. Plants that need watering today or overdue
+        const plantsToWater: { id: string; nickname: string; emoji: string; daysDiff: number }[] = [];
+        if (plt?.data) {
+          for (const p of plt.data) {
+            if (!p.last_watered_at || !p.watering_frequency_days) continue;
+            const last = new Date(p.last_watered_at + 'T00:00:00');
+            const nextWater = new Date(last.getTime() + p.watering_frequency_days * 24 * 60 * 60 * 1000);
+            const daysDiff = Math.ceil((nextWater.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+            if (daysDiff <= 0) {
+              plantsToWater.push({
+                id: p.id,
+                nickname: p.nickname || p.species,
+                emoji: p.emoji || '🪴',
+                daysDiff,
+              });
+            }
           }
         }
-      }
+
+        // 2. Upcoming events / reminders in the next 3 days
+        const upcomingEvents: { id: string; title: string; category: string; daysLeft: number; time?: string }[] = [];
+        if (rem?.data) {
+          for (const r of rem.data) {
+            const dateVal = (r as any).date || (r as any).event_date;
+            if (!dateVal) continue;
+            let target: Date;
+            if (r.recurring) {
+              const parts = dateVal.split('-');
+              const month = parseInt(parts[1], 10) - 1;
+              const day = parseInt(parts[2], 10);
+              target = new Date(today.getFullYear(), month, day);
+              if (target < today) {
+                target = new Date(today.getFullYear() + 1, month, day);
+              }
+            } else {
+              target = new Date(dateVal + 'T00:00:00');
+            }
+            const diffDays = Math.ceil((target.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+            if (diffDays >= 0 && diffDays <= 3) {
+              upcomingEvents.push({
+                id: r.id,
+                title: r.title,
+                category: r.category,
+                daysLeft: diffDays,
+                time: r.time,
+              });
+            }
+          }
+        }
+
+        // 3. Urgent or high-priority tasks
+        const urgentTasks: { id: string; title: string; due_date?: string; priority?: string }[] = [];
+        if (tsk?.data) {
+          for (const t of tsk.data) {
+            if (t.priority === 'Alta' || t.priority === 'Urgente') {
+              urgentTasks.push({ id: t.id, title: t.title, due_date: t.due_date, priority: t.priority });
+            } else if (t.due_date) {
+              const target = new Date(t.due_date + 'T00:00:00');
+              const diffDays = Math.ceil((target.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+              if (diffDays >= 0 && diffDays <= 2) {
+                urgentTasks.push({ id: t.id, title: t.title, due_date: t.due_date, priority: 'Próxima a vencer' });
+              }
+            }
+          }
+        }
+
+        const hasAlerts = plantsToWater.length > 0 || upcomingEvents.length > 0 || urgentTasks.length > 0 || (shp.count || 0) > 0;
+
+        return {
+          stats: computedStats,
+          briefing: {
+            plantsToWater,
+            upcomingEvents,
+            urgentTasks: urgentTasks.slice(0, 4),
+            pendingShoppingCount: shp.count || 0,
+            hasAlerts,
+          }
+        };
+      }, 4 * 60 * 1000);
+
+      setStats(cachedDashboard.stats);
+      setBriefing(cachedDashboard.briefing);
+    } catch (err) {
+      console.warn('Error loading dashboard stats:', err);
+    } finally {
+      setLoading(false);
     }
-
-    const hasAlerts = plantsToWater.length > 0 || upcomingEvents.length > 0 || urgentTasks.length > 0 || (shp.data?.length || 0) > 0;
-
-    setBriefing({
-      plantsToWater,
-      upcomingEvents,
-      urgentTasks: urgentTasks.slice(0, 4),
-      pendingShoppingCount: shp.data?.length || 0,
-      hasAlerts,
-    });
-
-    setLoading(false);
   };
 
   const exportBackupJson = async () => {

@@ -165,6 +165,15 @@ export async function scanAndNotifyUpcomingEvents(options?: { forceSystemNotific
   try {
     const todayStr = new Date().toISOString().split('T')[0];
     const notifiedKey = `notified_events_${todayStr}`;
+    // Throttle: avoid spamming network queries on every navigation if scanned within last 30 minutes
+    const nowTime = Date.now();
+    const lastScanKey = 'ac_last_notif_scan_time';
+    const lastScan = localStorage.getItem(lastScanKey);
+    if (!options?.forceSystemNotification && lastScan && (nowTime - parseInt(lastScan, 10) < 30 * 60 * 1000)) {
+      return;
+    }
+    localStorage.setItem(lastScanKey, nowTime.toString());
+
     const notifiedSet = new Set<string>(JSON.parse(localStorage.getItem(notifiedKey) || '[]'));
 
     const { data: { user } } = await supabase.auth.getUser();
