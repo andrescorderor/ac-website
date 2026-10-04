@@ -1026,25 +1026,25 @@ export default function Finanzas() {
                       <div className="flex items-center gap-2">
                         <button
                           onClick={() => {
-                            if (cat === 'servicios') {
+                            if (cat === 'comida') {
+                              setShowMandadoModal(true);
+                            } else {
                               setNewExpense({
                                 concept: '',
                                 amount: '',
-                                category: 'servicios',
+                                category: cat,
                                 date: new Date().toISOString().split('T')[0],
-                                isBase: true,
+                                isBase: cat === 'servicios',
                                 quincenaDist: 'split',
                               });
                               setShowAddModal(true);
-                            } else {
-                              setShowMandadoModal(true);
                             }
                           }}
                           className="cursor-pointer px-2.5 py-1.5 bg-black dark:bg-white text-white dark:text-black font-syne text-[10px] font-bold uppercase tracking-wider rounded-xl hover:scale-105 active:scale-95 transition-all shadow-xs flex items-center gap-1"
-                          title={cat === 'servicios' ? 'Registrar servicio o gasto fijo recurrente' : 'Abrir Mandado para comprar en Modo Súper'}
+                          title={cat === 'servicios' ? 'Registrar servicio o base fija recurrente' : cat === 'comida' ? 'Abrir Mandado para comprar en Modo Súper' : 'Registrar gasto de insumos o del hogar (ocasional o fijo)'}
                         >
                           <HiOutlinePlus className="text-xs" />
-                          <span>{cat === 'servicios' ? '+ Base Fija' : 'Modo Súper'}</span>
+                          <span>{cat === 'servicios' ? '+ Base Fija' : cat === 'comida' ? 'Modo Súper' : '+ Gasto Insumo'}</span>
                         </button>
                         <span className="font-syne text-[11px] font-bold text-gray-700 dark:text-gray-300 bg-gray-100/80 dark:bg-gray-800/80 px-3 py-1 rounded-full border border-gray-200/50 dark:border-gray-700/50 shadow-xs">
                           Total: <span className="text-[var(--color-info)] dark:text-[var(--vibrant-sky-blue)]">{formatAmount(getCategoryTotal(cat))}</span>
