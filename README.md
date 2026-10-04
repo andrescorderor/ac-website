@@ -1,7 +1,7 @@
 <div align="center">
   <img src="public/assets/ac-website-icon.svg" alt="Logo" width="100" />
   
-  # Andrés Cordero - Professional Portfolio & Personal Panel PWA (v6.17.0) 🔍✨
+  # Andrés Cordero - Professional Portfolio & Personal Panel PWA (v6.18.0) 🔍✨
   
   **Welcome to my personal ecosystem: a professional portfolio and a custom productivity hub.**  
   Built with UX/UI best practices, premium design, and a focus on mobile-first efficiency.
@@ -16,15 +16,15 @@
 
 ---
 
-## 🚀 Overview (Version 6.17.0)
+## 🚀 Overview (Version 6.18.0)
 
 This repository hosts a dual-purpose platform:
 1. **Professional Portfolio:** A high-end landing page showcasing my engineering background, skills, and achievements with dynamic copyright year updates and zero horizontal overflow.
-2. **Personal Panel PWA (v6.17.0):** An executive personal operating system featuring:
+2. **Personal Panel PWA (v6.18.0):** An executive personal operating system featuring:
    * **Full Database Migration & 100% Data Restoration (`epsrgbfnidejfuysjnli`):**
      * **100% Data Parity Restored:** Migrated and verified 100% of historical records across all 15 tables: Plants (15), Recipes (39), Notes (56), Bookmarks (2), Vault Items (10), Tasks (24), Debts (4), Reminders (5), Shopping List (136), Monthly Salary ($26,000), Historical Expenses (51), Creative Projects (12), Monthly Checklist Items (7), Monthly Checklist Logs (13), and Pinned Items (2).
      * **Automated Direct Superuser DDL Provisioning:** Executed complete PostgreSQL schema setup directly on the new instance with Row-Level Security (RLS) policies, foreign keys, and indexes.
-     * **Executive User Account Recovery:** Activated and confirmed user `andresmcorderor` (`andresmcorderor@admin.com`) with password `G2S0G0A1`, remapping all foreign keys cleanly to the new target user UUID (`9ed37c1e-9663-4e58-8365-252c5af11660`).
+     * **Executive User Account Recovery:** Activated and confirmed user `andresmcorderor` (`andresmcorderor@admin.com`), remapping all foreign keys cleanly to the new target user UUID (`9ed37c1e-9663-4e58-8365-252c5af11660`).
      * **Permanent Egress & Log Flood Safeguards:** Enforced in-memory caching with 4-minute TTL, pure zero-payload count queries (`{ count: 'exact', head: true }`), 30-minute throttled notification scanning, and scoped pinned-item queries to prevent quota saturation.
    * **Permanent Base Fija Recurrente & Schema Resilience in Finanzas (`Finanzas.tsx`, `MandadoModal.tsx`, `CommandPalette.tsx`):**
      * **Zero-Downtime Schema Resilience:** Fully resolved the `column finance_expenses.date does not exist` database error. Queries in `Finanzas.tsx` and `CommandPalette.tsx` are ordered by `created_at` with safe property access, and inserts feature defensive multi-tier fallback (tries with `date` column, instantly falls back without `date` if the column is absent). Added companion migration `scratch/add_date_column_finance_expenses.sql` for optional database alignment.

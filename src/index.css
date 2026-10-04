@@ -59,6 +59,20 @@ body {
   color: var(--white);
 }
 
+/* ═══ Universal Interactive Cursor (REGLA 0.2 AGENTS.md) ═══ */
+button,
+a,
+input[type="button"],
+input[type="submit"],
+input[type="reset"],
+input[type="checkbox"],
+input[type="radio"],
+[role="button"],
+.cursor-pointer {
+  cursor: pointer !important;
+  touch-action: manipulation;
+}
+
 /* ═══ Gradient Animation ═══ */
 @keyframes gradient-random {
   0%   { background-position: 0% 50%; }

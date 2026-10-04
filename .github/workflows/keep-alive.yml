@@ -12,4 +12,4 @@ jobs:
     steps:
       - name: Ping Supabase API
         run: |
-          curl -I "https://hpijsgxcjynqtrclkbnq.supabase.co/rest/v1/"
+          curl -I -H "apikey: sb_publishable_DvB_j8sZX3Vtkw4QFPlWSg_hSF1qnIK" "https://epsrgbfnidejfuysjnli.supabase.co/rest/v1/"
