@@ -102,10 +102,10 @@ export const parseExpenseInfo = (exp: Expense): ParsedExpenseInfo => {
 };
 
 const CATEGORIES_MAP: Record<string, string> = {
-  Todas: 'Todas las categorías',
-  servicios: 'Servicios & Base Fija',
-  comida: 'Supermercado & Mandado',
-  insumos: 'Insumos & Casa',
+  Todas: 'Todas',
+  servicios: 'Servicios & Fijos',
+  comida: 'Mandado',
+  insumos: 'Insumos',
 };
 
 const MONTH_NAMES = [
@@ -794,12 +794,12 @@ export default function Finanzas() {
 
       {/* ═══ VISTA PRINCIPAL: SWITCH ENTRE CATEGORÍAS & HISTORIAL CRONOLÓGICO ═══ */}
       <div className="space-y-6">
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
+        <div className="flex flex-col xl:flex-row items-stretch xl:items-center justify-between gap-3 sm:gap-4">
           {/* Selector de Vista: Columnas vs Historial Cronológico */}
-          <div className="flex items-center gap-1.5 p-1 bg-gray-100 dark:bg-gray-800/80 rounded-2xl border border-gray-200/50 dark:border-gray-700/50 shrink-0">
+          <div className="flex items-center gap-1.5 p-1 bg-gray-100 dark:bg-gray-800/80 rounded-2xl border border-gray-200/50 dark:border-gray-700/50 shrink-0 self-start sm:self-auto overflow-x-auto max-w-full">
             <button
               onClick={() => setViewMode('categories')}
-              className={`cursor-pointer px-4 py-2 rounded-xl text-xs font-syne font-bold uppercase tracking-wider transition-all ${
+              className={`cursor-pointer px-3.5 sm:px-4 py-2 rounded-xl text-xs font-syne font-bold uppercase tracking-wider transition-all whitespace-nowrap ${
                 viewMode === 'categories'
                   ? 'bg-white dark:bg-gray-900 text-gray-900 dark:text-white shadow-xs'
                   : 'text-gray-500 hover:text-gray-900 dark:hover:text-white'
@@ -809,26 +809,26 @@ export default function Finanzas() {
             </button>
             <button
               onClick={() => setViewMode('history')}
-              className={`cursor-pointer px-4 py-2 rounded-xl text-xs font-syne font-bold uppercase tracking-wider transition-all flex items-center gap-1.5 ${
+              className={`cursor-pointer px-3.5 sm:px-4 py-2 rounded-xl text-xs font-syne font-bold uppercase tracking-wider transition-all flex items-center gap-1.5 whitespace-nowrap ${
                 viewMode === 'history'
                   ? 'bg-white dark:bg-gray-900 text-gray-900 dark:text-white shadow-xs'
                   : 'text-gray-500 hover:text-gray-900 dark:hover:text-white'
               }`}
             >
-              <HiOutlineClock className="text-sm" />
-              <span>📜 Historial y Base Fija ({activePeriodExpenses.length})</span>
+              <HiOutlineClock className="text-sm shrink-0" />
+              <span>📜 Historial y Base ({activePeriodExpenses.length})</span>
             </button>
           </div>
 
           {/* Filtros de Categoría y Buscador */}
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+          <div className="flex flex-wrap lg:flex-nowrap items-center gap-2.5 flex-1 min-w-0 justify-start xl:justify-end">
             {viewMode === 'categories' && (
-              <div className="flex items-center gap-1 overflow-x-auto pb-1 sm:pb-0 scrollbar-none">
+              <div className="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0 scrollbar-none max-w-full">
                 {Object.entries(CATEGORIES_MAP).map(([catKey, label]) => (
                   <button
                     key={catKey}
                     onClick={() => setFilterCategory(catKey)}
-                    className={`cursor-pointer px-3.5 py-2 rounded-xl text-[10px] font-syne font-bold uppercase tracking-wider transition-all whitespace-nowrap ${
+                    className={`cursor-pointer px-3 py-2 rounded-xl text-[10px] font-syne font-bold uppercase tracking-wider transition-all whitespace-nowrap shrink-0 ${
                       filterCategory === catKey
                         ? 'bg-black dark:bg-white text-white dark:text-black shadow-xs'
                         : 'bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-300 border border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700'
@@ -840,15 +840,15 @@ export default function Finanzas() {
               </div>
             )}
 
-            <div className="relative flex-1 sm:w-64">
+            <div className="relative w-full sm:w-60 lg:w-64 shrink-0">
               <input
                 type="text"
-                placeholder="Buscar en gastos del período..."
+                placeholder="Buscar gastos..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-2.5 bg-white dark:bg-gray-800 border border-gray-200/80 dark:border-gray-700 rounded-xl outline-none font-inter text-xs shadow-2xs text-gray-900 dark:text-gray-100 placeholder-gray-400 focus:border-emerald-500"
+                className="w-full pl-9 pr-3 py-2 bg-white dark:bg-gray-800 border border-gray-200/80 dark:border-gray-700 rounded-xl outline-none font-inter text-xs shadow-2xs text-gray-900 dark:text-gray-100 placeholder-gray-400 focus:border-emerald-500 min-h-[40px]"
               />
-              <HiOutlineSearch className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 text-sm" />
+              <HiOutlineSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm pointer-events-none" />
             </div>
           </div>
         </div>
