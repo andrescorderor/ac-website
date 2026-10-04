@@ -457,10 +457,6 @@ export default function Finanzas() {
     return q2VariableExpenses.reduce((acc, e) => acc + e.amount, 0);
   }, [q2VariableExpenses]);
 
-  // Totales Combinados (Base Fija + Mandado/Variables)
-  const totalQ1 = baseQ1Total + varQ1Total;
-  const totalQ2 = baseQ2Total + varQ2Total;
-  const totalMonth = baseMonthTotal + varMonthTotal;
 
   // Totales del período activo seleccionado
   const activeBaseTotal = selectedPeriod === 'month' ? baseMonthTotal : selectedPeriod === 'q1' ? baseQ1Total : baseQ2Total;
@@ -554,23 +550,23 @@ export default function Finanzas() {
   return (
     <div className="space-y-8 sm:space-y-10 pb-28 sm:pb-20 max-w-7xl mx-auto">
       {/* ═══ Header ═══ */}
-      <header className="flex flex-col lg:flex-row lg:items-end justify-between gap-6">
+      <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="font-dm-sans text-3xl md:text-4xl font-bold tracking-tight text-[var(--black)] dark:text-white">
+          <h1 className="font-dm-sans text-2xl sm:text-3xl font-bold tracking-tight text-gray-900 dark:text-white">
             Control de <span className="text-gradient">Finanzas</span>
           </h1>
-          <p className="font-inter mt-2 text-[var(--dark-gray)] dark:text-gray-400 font-light text-sm">
-            Base fija recurrente de servicios mensual y gastos acumulativos de mandado por quincena.
+          <p className="font-inter mt-1 text-gray-500 dark:text-gray-400 text-xs">
+            Presupuesto, base fija de servicios y mandado quincenal.
           </p>
         </div>
 
-        <div className="flex flex-wrap items-center gap-3">
+        <div className="flex flex-wrap items-center gap-2.5">
           <button
             onClick={() => setShowMandadoModal(true)}
-            className="cursor-pointer flex items-center gap-2 px-5 py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-2xl font-syne text-xs font-bold uppercase tracking-wider transition-all shadow-md shrink-0 min-h-[44px]"
+            className="cursor-pointer flex items-center gap-1.5 px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-syne text-xs font-bold uppercase tracking-wider transition-all shadow-xs min-h-[44px]"
             title="Abrir lista de Mandado Semanal y Modo Súper"
           >
-            <span>🥗 Mandado Semanal & Modo Súper</span>
+            <span>🥗 Mandado</span>
           </button>
 
           <button
@@ -585,37 +581,30 @@ export default function Finanzas() {
               });
               setShowAddModal(true);
             }}
-            className="cursor-pointer flex items-center gap-2 px-5 py-3 bg-black dark:bg-white text-white dark:text-black rounded-2xl font-syne text-xs font-bold uppercase tracking-wider hover:scale-105 active:scale-95 transition-all shadow-md shrink-0 min-h-[44px]"
+            className="cursor-pointer flex items-center gap-1.5 px-4 py-2.5 bg-black dark:bg-white text-white dark:text-black rounded-xl font-syne text-xs font-bold uppercase tracking-wider hover:opacity-90 active:scale-95 transition-all shadow-xs min-h-[44px]"
           >
-            <HiOutlinePlus className="text-lg" />
-            <span>Nuevo Gasto / Base Fija</span>
+            <HiOutlinePlus className="text-base" />
+            <span>+ Gasto</span>
           </button>
 
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
+          <button
             onClick={() => setIsPrivacyMode(!isPrivacyMode)}
-            className="cursor-pointer flex items-center gap-2 px-4 py-3 bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-xs text-xs font-syne font-bold uppercase tracking-wider text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 transition-all min-h-[44px]"
+            className="cursor-pointer flex items-center gap-1.5 px-3 py-2.5 bg-white dark:bg-gray-800 rounded-xl border border-gray-200/60 dark:border-gray-700/60 shadow-xs text-xs font-syne font-bold uppercase tracking-wider text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 transition-all min-h-[44px]"
+            title={isPrivacyMode ? "Mostrar montos" : "Ocultar montos"}
           >
             {isPrivacyMode ? (
-              <>
-                <HiOutlineEyeOff className="text-lg text-gray-400" />
-                <span>Mostrar</span>
-              </>
+              <HiOutlineEyeOff className="text-base text-gray-400" />
             ) : (
-              <>
-                <HiOutlineEye className="text-lg text-emerald-500" />
-                <span>Ocultar</span>
-              </>
+              <HiOutlineEye className="text-base text-emerald-500" />
             )}
-          </motion.button>
+          </button>
 
-          <div className="flex items-center gap-3 bg-white/80 dark:bg-gray-800/80 glass dark:dark-glass px-4 py-2 rounded-2xl shadow-xs border border-gray-200/50 dark:border-gray-700/50 min-h-[44px]">
+          <div className="flex items-center gap-2 bg-white/80 dark:bg-gray-800/80 glass dark:dark-glass px-3.5 py-2 rounded-xl shadow-xs border border-gray-200/50 dark:border-gray-700/50 min-h-[44px]">
             <div className="space-y-0.5">
               <span className="font-syne text-[9px] font-bold uppercase tracking-widest text-gray-400 block leading-tight">
-                Salario Mensual
+                Salario
               </span>
-              <span className="font-inter text-[10px] text-gray-400 dark:text-gray-500 block leading-tight">
+              <span className="font-inter text-[9px] text-gray-400 dark:text-gray-500 block leading-tight">
                 (Q: {formatAmount(salary / 2)})
               </span>
             </div>
@@ -627,7 +616,7 @@ export default function Finanzas() {
                 value={salary}
                 onChange={(e) => setSalary(parseFloat(e.target.value) || 0)}
                 onBlur={handleUpdateSalary}
-                className="w-24 bg-transparent border-b border-gray-300 dark:border-gray-600 focus:border-black dark:focus:border-white font-dm-sans font-bold text-sm text-gray-900 dark:text-white outline-none text-right transition-colors pl-1"
+                className="w-20 bg-transparent border-b border-gray-300 dark:border-gray-600 focus:border-black dark:focus:border-white font-dm-sans font-bold text-xs text-gray-900 dark:text-white outline-none text-right transition-colors pl-1"
               />
             </div>
             {savingSalary && <span className="text-[9px] font-syne text-gray-400 animate-pulse">...</span>}
@@ -716,234 +705,91 @@ export default function Finanzas() {
         </div>
       </div>
 
-      {/* ═══ TARJETAS COMPARATIVAS DE QUINCENAS (RESUMEN QUINCENAL CON BASE + MANDADO) ═══ */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {/* Q1 Card */}
-        <div 
-          onClick={() => setSelectedPeriod('q1')}
-          className={`cursor-pointer p-5 rounded-3xl border transition-all duration-300 shadow-xs hover:shadow-md ${
-            selectedPeriod === 'q1'
-              ? 'bg-emerald-50/70 dark:bg-emerald-950/40 border-emerald-500 ring-2 ring-emerald-500/20'
-              : 'bg-white/80 dark:bg-gray-900/80 glass dark:dark-glass border-gray-200/50 dark:border-gray-800'
-          }`}
-        >
-          <div className="flex items-center justify-between gap-2 mb-2">
-            <span className="font-syne text-[10px] font-bold uppercase tracking-widest text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5">
-              <span className="size-2 rounded-full bg-emerald-500" />
-              1ra Quincena (Días 1 al 15)
+      {/* ═══ TARJETAS DE CONTROL FINANCIERO (KPIs LIMPIOS Y EJECUTIVOS) ═══ */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        {/* 1. Presupuesto / Salario del período */}
+        <div className="p-5 rounded-3xl bg-white/80 dark:bg-gray-900/80 glass dark:dark-glass border border-gray-200/50 dark:border-gray-800 shadow-xs space-y-1">
+          <div className="flex items-center justify-between">
+            <span className="font-syne text-[10px] font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">
+              {selectedPeriod === 'month' ? 'Presupuesto Mes' : 'Presupuesto Quincena'}
             </span>
-            <span className={`text-[10px] font-syne font-bold uppercase tracking-wider px-2 py-0.5 rounded-full ${
-              (salary / 2) - totalQ1 >= 0
-                ? 'bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300'
-                : 'bg-red-100 dark:bg-red-950/60 text-red-700 dark:text-red-300'
-            }`}>
-              {(salary / 2) - totalQ1 >= 0 ? 'Ahorro' : 'Déficit'}
+            <span className="text-[10px] font-syne font-bold uppercase tracking-wider text-gray-400">
+              {selectedPeriod === 'month' ? '100%' : '50%'}
             </span>
           </div>
-
-          <div className="flex items-baseline justify-between">
-            <div>
-              <p className="text-[10px] font-syne font-bold uppercase tracking-wider text-gray-400">Total Comprometido</p>
-              <p className="font-dm-sans text-2xl font-bold text-gray-900 dark:text-white">
-                {formatAmount(totalQ1)}
-              </p>
-            </div>
-            <div className="text-right">
-              <p className="text-[10px] font-syne font-bold uppercase tracking-wider text-gray-400">Restante Quincena</p>
-              <p className={`font-dm-sans text-lg font-bold ${
-                (salary / 2) - totalQ1 >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'
-              }`}>
-                {formatAmount((salary / 2) - totalQ1)}
-              </p>
-            </div>
-          </div>
-
-          <div className="mt-3 pt-2.5 border-t border-gray-100 dark:border-gray-800 flex items-center justify-between text-[11px] font-inter text-gray-500 dark:text-gray-400">
-            <span className="flex items-center gap-1">
-              <span className="font-syne font-bold text-gray-700 dark:text-gray-300">Base Fija:</span> {formatAmount(baseQ1Total)}
-            </span>
-            <span className="flex items-center gap-1">
-              <span className="font-syne font-bold text-emerald-600 dark:text-emerald-400">Mandado:</span> {formatAmount(varQ1Total)}
-            </span>
-          </div>
+          <p className="font-dm-sans text-2xl font-bold text-gray-900 dark:text-white">
+            {formatAmount(periodSalary)}
+          </p>
+          <p className="font-inter text-[11px] text-gray-400">
+            {selectedPeriod === 'month' ? 'Ingreso mensual base' : 'Asignación quincenal'}
+          </p>
         </div>
 
-        {/* Q2 Card */}
-        <div 
-          onClick={() => setSelectedPeriod('q2')}
-          className={`cursor-pointer p-5 rounded-3xl border transition-all duration-300 shadow-xs hover:shadow-md ${
-            selectedPeriod === 'q2'
-              ? 'bg-sky-50/70 dark:bg-sky-950/40 border-sky-500 ring-2 ring-sky-500/20'
-              : 'bg-white/80 dark:bg-gray-900/80 glass dark:dark-glass border-gray-200/50 dark:border-gray-800'
-          }`}
-        >
-          <div className="flex items-center justify-between gap-2 mb-2">
-            <span className="font-syne text-[10px] font-bold uppercase tracking-widest text-sky-600 dark:text-sky-400 flex items-center gap-1.5">
-              <span className="size-2 rounded-full bg-sky-500" />
-              2da Quincena (Días 16 al Fin)
+        {/* 2. Base Fija Recurrente */}
+        <div className="p-5 rounded-3xl bg-white/80 dark:bg-gray-900/80 glass dark:dark-glass border border-gray-200/50 dark:border-gray-800 shadow-xs space-y-1">
+          <div className="flex items-center justify-between">
+            <span className="font-syne text-[10px] font-bold uppercase tracking-widest text-purple-600 dark:text-purple-400">
+              Base Fija Recurrente
             </span>
-            <span className={`text-[10px] font-syne font-bold uppercase tracking-wider px-2 py-0.5 rounded-full ${
-              (salary / 2) - totalQ2 >= 0
-                ? 'bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300'
-                : 'bg-red-100 dark:bg-red-950/60 text-red-700 dark:text-red-300'
-            }`}>
-              {(salary / 2) - totalQ2 >= 0 ? 'Ahorro' : 'Déficit'}
+            <span className="text-[10px] font-syne font-bold px-2 py-0.5 rounded-full bg-purple-100 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300">
+              {baseExpensesList.length} fijos
             </span>
           </div>
-
-          <div className="flex items-baseline justify-between">
-            <div>
-              <p className="text-[10px] font-syne font-bold uppercase tracking-wider text-gray-400">Total Comprometido</p>
-              <p className="font-dm-sans text-2xl font-bold text-gray-900 dark:text-white">
-                {formatAmount(totalQ2)}
-              </p>
-            </div>
-            <div className="text-right">
-              <p className="text-[10px] font-syne font-bold uppercase tracking-wider text-gray-400">Restante Quincena</p>
-              <p className={`font-dm-sans text-lg font-bold ${
-                (salary / 2) - totalQ2 >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'
-              }`}>
-                {formatAmount((salary / 2) - totalQ2)}
-              </p>
-            </div>
-          </div>
-
-          <div className="mt-3 pt-2.5 border-t border-gray-100 dark:border-gray-800 flex items-center justify-between text-[11px] font-inter text-gray-500 dark:text-gray-400">
-            <span className="flex items-center gap-1">
-              <span className="font-syne font-bold text-gray-700 dark:text-gray-300">Base Fija:</span> {formatAmount(baseQ2Total)}
-            </span>
-            <span className="flex items-center gap-1">
-              <span className="font-syne font-bold text-sky-600 dark:text-sky-400">Mandado:</span> {formatAmount(varQ2Total)}
-            </span>
-          </div>
+          <p className="font-dm-sans text-2xl font-bold text-purple-600 dark:text-purple-400">
+            {formatAmount(activeBaseTotal)}
+          </p>
+          <p className="font-inter text-[11px] text-gray-400">
+            Servicios, renta y suscripciones
+          </p>
         </div>
 
-        {/* Mes Completo Summary Card */}
-        <div 
-          onClick={() => setSelectedPeriod('month')}
-          className={`cursor-pointer p-5 rounded-3xl border transition-all duration-300 shadow-xs hover:shadow-md ${
-            selectedPeriod === 'month'
-              ? 'bg-purple-50/70 dark:bg-purple-950/40 border-purple-500 ring-2 ring-purple-500/20'
-              : 'bg-white/80 dark:bg-gray-900/80 glass dark:dark-glass border-gray-200/50 dark:border-gray-800'
-          }`}
-        >
-          <div className="flex items-center justify-between gap-2 mb-2">
-            <span className="font-syne text-[10px] font-bold uppercase tracking-widest text-purple-600 dark:text-purple-400 flex items-center gap-1.5">
-              <span className="size-2 rounded-full bg-purple-500" />
-              Total Mes Completo
+        {/* 3. Mandado & Insumos */}
+        <div className="p-5 rounded-3xl bg-white/80 dark:bg-gray-900/80 glass dark:dark-glass border border-gray-200/50 dark:border-gray-800 shadow-xs space-y-1">
+          <div className="flex items-center justify-between">
+            <span className="font-syne text-[10px] font-bold uppercase tracking-widest text-emerald-600 dark:text-emerald-400">
+              Mandado & Compras
+            </span>
+            <span className="text-[10px] font-syne font-bold px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300">
+              {activePeriodVariableExpenses.length} compras
+            </span>
+          </div>
+          <p className="font-dm-sans text-2xl font-bold text-emerald-600 dark:text-emerald-400">
+            {formatAmount(activeVariableTotal)}
+          </p>
+          <p className="font-inter text-[11px] text-gray-400">
+            Compras reales del período
+          </p>
+        </div>
+
+        {/* 4. Total y Restante / Balance */}
+        <div className={`p-5 rounded-3xl border shadow-xs space-y-1 ${
+          periodRemaining >= 0
+            ? 'bg-emerald-50/50 dark:bg-emerald-950/20 border-emerald-500/30 ring-1 ring-emerald-500/20'
+            : 'bg-red-50/50 dark:bg-red-950/20 border-red-500/30 ring-1 ring-red-500/20'
+        }`}>
+          <div className="flex items-center justify-between">
+            <span className={`font-syne text-[10px] font-bold uppercase tracking-widest ${
+              periodRemaining >= 0 ? 'text-emerald-700 dark:text-emerald-300' : 'text-red-700 dark:text-red-300'
+            }`}>
+              Balance Disponible
             </span>
             <span className={`text-[10px] font-syne font-bold uppercase tracking-wider px-2 py-0.5 rounded-full ${
-              salary - totalMonth >= 0
-                ? 'bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300'
-                : 'bg-red-100 dark:bg-red-950/60 text-red-700 dark:text-red-300'
+              periodRemaining >= 0
+                ? 'bg-emerald-100 dark:bg-emerald-900/60 text-emerald-700 dark:text-emerald-300'
+                : 'bg-red-100 dark:bg-red-900/60 text-red-700 dark:text-red-300'
             }`}>
-              {salary - totalMonth >= 0 ? 'Ahorro Mes' : 'Déficit Mes'}
+              {periodRemaining >= 0 ? 'Ahorro' : 'Déficit'}
             </span>
           </div>
-
-          <div className="flex items-baseline justify-between">
-            <div>
-              <p className="text-[10px] font-syne font-bold uppercase tracking-wider text-gray-400">Total Gastado</p>
-              <p className="font-dm-sans text-2xl font-bold text-gray-900 dark:text-white">
-                {formatAmount(totalMonth)}
-              </p>
-            </div>
-            <div className="text-right">
-              <p className="text-[10px] font-syne font-bold uppercase tracking-wider text-gray-400">Restante Salario</p>
-              <p className={`font-dm-sans text-lg font-bold ${
-                salary - totalMonth >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'
-              }`}>
-                {formatAmount(salary - totalMonth)}
-              </p>
-            </div>
-          </div>
-
-          <div className="mt-3 pt-2.5 border-t border-gray-100 dark:border-gray-800 flex items-center justify-between text-[11px] font-inter text-gray-500 dark:text-gray-400">
-            <span className="flex items-center gap-1">
-              <span className="font-syne font-bold text-gray-700 dark:text-gray-300">Base Fija:</span> {formatAmount(baseMonthTotal)}
-            </span>
-            <span className="flex items-center gap-1">
-              <span className="font-syne font-bold text-purple-600 dark:text-purple-400">Mandado:</span> {formatAmount(varMonthTotal)}
-            </span>
-          </div>
+          <p className={`font-dm-sans text-2xl font-bold ${
+            periodRemaining >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'
+          }`}>
+            {formatAmount(periodRemaining)}
+          </p>
+          <p className="font-inter text-[11px] text-gray-500 dark:text-gray-400">
+            Total gastado: <span className="font-semibold">{formatAmount(periodTotalSpent)}</span>
+          </p>
         </div>
-      </div>
-
-      {/* ═══ TARJETAS DE MÉTRICAS DEL PERÍODO SELECCIONADO ═══ */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 md:gap-6">
-        {[
-          { 
-            label: selectedPeriod === 'month' ? 'Presupuesto Mes' : 'Presupuesto Quincena', 
-            value: periodSalary, 
-            color: 'text-gray-900 dark:text-white', 
-            bg: 'bg-white dark:bg-gray-900' 
-          },
-          { 
-            label: 'Base Fija (Recurrente)', 
-            value: activeBaseTotal, 
-            color: 'text-purple-600 dark:text-purple-400', 
-            bg: 'bg-white dark:bg-gray-900',
-            badge: `${baseExpensesList.length} fijos`
-          },
-          { 
-            label: 'Mandado & Compras', 
-            value: activeVariableTotal, 
-            color: 'text-emerald-600 dark:text-emerald-400', 
-            bg: 'bg-white dark:bg-gray-900',
-            badge: `${activePeriodVariableExpenses.length} items`
-          },
-          { 
-            label: 'Servicios', 
-            value: getCategoryTotal('servicios'), 
-            color: 'text-[var(--color-info)]', 
-            bg: 'bg-white dark:bg-gray-900' 
-          },
-          { 
-            label: 'Total Período', 
-            value: periodTotalSpent, 
-            color: 'text-[var(--color-danger)]', 
-            bg: 'bg-red-50/50 dark:bg-red-950/20', 
-            border: 'border-red-200/50 dark:border-red-900/50' 
-          },
-          { 
-            label: 'Restante Período', 
-            value: periodRemaining, 
-            color: periodRemaining >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400', 
-            bg: periodRemaining >= 0 ? 'bg-emerald-50/50 dark:bg-emerald-950/20' : 'bg-red-50/50 dark:bg-red-950/20',
-            border: periodRemaining >= 0 ? 'border-emerald-200/50 dark:border-emerald-900/50' : 'border-red-200/50 dark:border-red-900/50',
-            badge: periodRemaining >= 0 ? 'Ahorro' : 'Déficit'
-          },
-        ].map((item, i) => (
-          <motion.div
-            initial={{ opacity: 0, y: 15 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: i * 0.04, duration: 0.3 }}
-            key={item.label}
-            className={`p-4 md:p-5 rounded-2xl md:rounded-3xl border ${
-              item.border || 'border-gray-100/50 dark:border-gray-800/50'
-            } ${item.bg} shadow-2xs hover:shadow-xs transition-shadow relative overflow-hidden`}
-          >
-            <div className="flex justify-between items-center mb-1">
-              <p className="font-syne text-[9px] md:text-[10px] font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">
-                {item.label}
-              </p>
-              {item.badge && (
-                <span className={`px-2 py-0.5 rounded-full text-[8px] font-syne font-bold uppercase tracking-wider ${
-                  item.badge === 'Ahorro'
-                    ? 'bg-emerald-100 dark:bg-emerald-900/60 text-emerald-700 dark:text-emerald-300' 
-                    : item.badge === 'Déficit'
-                    ? 'bg-red-100 dark:bg-red-900/60 text-red-700 dark:text-red-300'
-                    : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300'
-                }`}>
-                  {item.badge}
-                </span>
-              )}
-            </div>
-            <h3 className={`font-dm-sans text-xl md:text-2xl font-bold ${item.color}`}>
-              {formatAmount(item.value)}
-            </h3>
-          </motion.div>
-        ))}
       </div>
 
       {/* ═══ VISTA PRINCIPAL: SWITCH ENTRE CATEGORÍAS & HISTORIAL CRONOLÓGICO ═══ */}
