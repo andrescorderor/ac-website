@@ -637,38 +637,47 @@ export default function Finanzas() {
 
       {/* ═══ BARRA DE CONTROL DE PERÍODO (MES & QUINCENA) ═══ */}
       <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4 bg-white/70 dark:bg-gray-900/70 glass dark:dark-glass p-3 sm:p-4 rounded-3xl border border-gray-200/60 dark:border-gray-800 shadow-xs">
-        {/* Selector de Mes */}
-        <div className="flex items-center gap-2">
-          <div className="flex items-center bg-gray-100 dark:bg-gray-800/80 rounded-2xl p-1 border border-gray-200/50 dark:border-gray-700/50">
-            <button
-              onClick={handlePrevMonth}
-              className="cursor-pointer p-2 rounded-xl text-gray-600 dark:text-gray-300 hover:bg-white dark:hover:bg-gray-700 hover:shadow-xs transition-all"
-              title="Mes anterior"
-            >
-              <HiChevronLeft className="text-base" />
-            </button>
-            <span className="font-syne font-bold text-xs sm:text-sm uppercase tracking-wider px-3 min-w-[130px] sm:min-w-[150px] text-center text-gray-900 dark:text-white flex items-center justify-center gap-1.5">
-              <HiOutlineCalendar className="text-emerald-500 shrink-0" />
-              <span>{MONTH_NAMES[selectedMonth]} {selectedYear}</span>
-            </span>
-            <button
-              onClick={handleNextMonth}
-              className="cursor-pointer p-2 rounded-xl text-gray-600 dark:text-gray-300 hover:bg-white dark:hover:bg-gray-700 hover:shadow-xs transition-all"
-              title="Mes siguiente"
-            >
-              <HiChevronRight className="text-base" />
-            </button>
-          </div>
+          {/* Selector de Mes */}
+          <div className="flex items-center gap-2">
+            <div className="flex items-center bg-gray-100 dark:bg-gray-800/80 rounded-2xl p-1 border border-gray-200/50 dark:border-gray-700/50">
+              <button
+                onClick={handlePrevMonth}
+                className="cursor-pointer p-2 rounded-xl text-gray-600 dark:text-gray-300 hover:bg-white dark:hover:bg-gray-700 hover:shadow-xs transition-all"
+                title="Mes anterior"
+              >
+                <HiChevronLeft className="text-base" />
+              </button>
+              <span className="font-syne font-bold text-xs sm:text-sm uppercase tracking-wider px-3 min-w-[130px] sm:min-w-[150px] text-center text-gray-900 dark:text-white flex items-center justify-center gap-1.5">
+                <HiOutlineCalendar className="text-emerald-500 shrink-0" />
+                <span>{MONTH_NAMES[selectedMonth]} {selectedYear}</span>
+              </span>
+              <button
+                onClick={handleNextMonth}
+                className="cursor-pointer p-2 rounded-xl text-gray-600 dark:text-gray-300 hover:bg-white dark:hover:bg-gray-700 hover:shadow-xs transition-all"
+                title="Mes siguiente"
+              >
+                <HiChevronRight className="text-base" />
+              </button>
+            </div>
 
-          {!isCurrentMonth && (
-            <button
-              onClick={handleResetToCurrentMonth}
-              className="cursor-pointer px-3 py-2 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-100 rounded-xl font-syne text-[10px] font-bold uppercase tracking-wider transition-all"
-            >
-              Mes Actual
-            </button>
-          )}
-        </div>
+            {isCurrentMonth ? (
+              <span
+                className="px-2.5 py-1.5 bg-emerald-100/80 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 rounded-xl font-syne text-[10px] font-bold uppercase tracking-wider border border-emerald-500/20 flex items-center gap-1 shrink-0"
+                title="Estás viendo el mes en curso"
+              >
+                <span className="size-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                <span>Mes Actual</span>
+              </span>
+            ) : (
+              <button
+                onClick={handleResetToCurrentMonth}
+                className="cursor-pointer px-3 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-syne text-[10px] font-bold uppercase tracking-wider transition-all shadow-xs flex items-center gap-1 shrink-0"
+                title="Volver a la fecha actual"
+              >
+                <span>↩ Ir al Mes Actual</span>
+              </button>
+            )}
+          </div>
 
         {/* Pestañas de Quincena vs Mes */}
         <div className="flex items-center gap-1 bg-gray-100 dark:bg-gray-800/80 p-1.5 rounded-2xl border border-gray-200/50 dark:border-gray-700/50 overflow-x-auto scrollbar-none">
