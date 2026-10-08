@@ -42,6 +42,8 @@ export default function MandadoModal({ isOpen, onClose }: MandadoModalProps) {
   const [buyingItem, setBuyingItem] = useState<ShoppingItem | null>(null);
   const [spentAmount, setSpentAmount] = useState<string>('');
   const [spentQuantity, setSpentQuantity] = useState<string>('');
+  const [stockItem, setStockItem] = useState<ShoppingItem | null>(null);
+  const [stockValue, setStockValue] = useState<string>('');
   const [isFocusMode, setIsFocusMode] = useState(false);
   const [wakeLock, setWakeLock] = useState<any>(null);
 
@@ -294,7 +296,7 @@ export default function MandadoModal({ isOpen, onClose }: MandadoModalProps) {
   const handleInitiateBuy = (item: ShoppingItem) => {
     setBuyingItem(item);
     setSpentAmount(item.price !== null && item.price !== undefined ? String(item.price) : '');
-    setSpentQuantity(getItemQuantity(item) || '');
+    setSpentQuantity('');
   };
 
   const handleConfirmPurchase = async (e: React.FormEvent) => {
@@ -305,7 +307,16 @@ export default function MandadoModal({ isOpen, onClose }: MandadoModalProps) {
     const nowIso = new Date().toISOString();
     const todayDate = nowIso.split('T')[0];
 
-    const cantText = spentQuantity.trim() ? ` | Cant: ${spentQuantity.trim()}` : '';
+    const boughtQty = spentQuantity.trim();
+    const prevStock = (getItemQuantity(buyingItem) || '').trim();
+    const newStock = !boughtQty
+      ? prevStock
+      : !prevStock || prevStock === '0'
+        ? boughtQty
+        : /^\d+(\.\d+)?$/.test(prevStock) && /^\d+(\.\d+)?$/.test(boughtQty)
+          ? String(parseFloat(prevStock) + parseFloat(boughtQty))
+          : `${prevStock} + ${boughtQty}`;
+    const cantText = newStock ? ` | Cant: ${newStock}` : '';
     const cleanStore = getCleanStoreLocation(buyingItem.location);
     const catText = getItemCategory(buyingItem) === 'comida' ? '🍔 Comida' : '🛒 Insumos';
     const freqText = getItemType(buyingItem) === 'semanal' ? '🥗 Semanal' : '📦 Hasta Agotar';
@@ -321,7 +332,7 @@ export default function MandadoModal({ isOpen, onClose }: MandadoModalProps) {
       const payload: any = {
         bought: true,
         price: parsedPrice,
-        quantity: spentQuantity.trim() || null,
+        quantity: newStock || null,
         location: updatedLocation,
         updated_at: nowIso,
         purchase_history: updatedHistory,
@@ -347,7 +358,7 @@ export default function MandadoModal({ isOpen, onClose }: MandadoModalProps) {
         ...i,
         bought: true,
         price: parsedPrice,
-        quantity: spentQuantity.trim() || null,
+        quantity: newStock || null,
         location: updatedLocation,
         updated_at: nowIso,
         purchase_history: updatedHistory,
@@ -399,22 +410,37 @@ export default function MandadoModal({ isOpen, onClose }: MandadoModalProps) {
       return;
     }
 
-    // Unmarking (returning to pending)
+    // Unmarking (returning to pending): ask how much is left at home
+    setStockItem(item);
+    setStockValue(getItemQuantity(item) || '');
+  };
+
+  const handleConfirmStock = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!stockItem) return;
+    const id = stockItem.id;
+    const stock = stockValue.trim();
     const nowIso = new Date().toISOString();
+    const cleanStore = getCleanStoreLocation(stockItem.location);
+    const catText = getItemCategory(stockItem) === 'comida' ? '🍔 Comida' : '🛒 Insumos';
+    const freqText = getItemType(stockItem) === 'semanal' ? '🥗 Semanal' : '📦 Hasta Agotar';
+    const cantText = stock ? ` | Cant: ${stock}` : '';
+    const newLocation = cleanStore
+      ? `${catText} | ${freqText}${cantText} — ${cleanStore}`
+      : `${catText} | ${freqText}${cantText}`;
     try {
-      let { error } = await supabase
-        .from('shopping_list')
-        .update({ bought: false, updated_at: nowIso })
-        .eq('id', id);
-
-      if (error && error.message?.includes('updated_at')) {
-        await supabase.from('shopping_list').update({ bought: false }).eq('id', id);
-      } else if (error) {
-        throw error;
+      const payload: any = { bought: false, quantity: stock || null, location: newLocation, updated_at: nowIso };
+      let { error } = await supabase.from('shopping_list').update(payload).eq('id', id);
+      if (error && (error.message?.includes('quantity') || error.message?.includes('updated_at'))) {
+        delete payload.quantity;
+        delete payload.updated_at;
+        const res = await supabase.from('shopping_list').update(payload).eq('id', id);
+        error = res.error;
       }
-
-      setItems(items.map((i) => (i.id === id ? { ...i, bought: false, updated_at: nowIso } : i)));
-      toast.info('Producto devuelto a pendientes ⏳');
+      if (error) throw error;
+      setItems(items.map((i) => (i.id === id ? { ...i, bought: false, quantity: stock || null, location: newLocation, updated_at: nowIso } as any : i)));
+      toast.info(stock ? `Pendiente · te quedan ${stock} ⏳` : 'Producto devuelto a pendientes ⏳');
+      setStockItem(null);
     } catch (err: any) {
       toast.error('Error al actualizar estado: ' + err.message);
     }
@@ -794,7 +820,7 @@ export default function MandadoModal({ isOpen, onClose }: MandadoModalProps) {
                     {editingId && (
                       <div className="space-y-1">
                         <label className="font-syne text-[9px] font-bold uppercase tracking-widest text-gray-400">
-                          Cantidad / Porción
+                          Tengo actualmente
                         </label>
                         <input
                           type="text"
@@ -933,7 +959,7 @@ export default function MandadoModal({ isOpen, onClose }: MandadoModalProps) {
                       <div className="flex items-center gap-2 mt-0.5 text-xs text-gray-500 dark:text-gray-400 truncate">
                         {getItemQuantity(item) && (
                           <span className="font-bold text-blue-600 dark:text-blue-400">
-                            Cant: {getItemQuantity(item)}
+                            Tengo: {getItemQuantity(item)}
                           </span>
                         )}
                         {getCleanStoreLocation(item.location) && (
@@ -989,7 +1015,7 @@ export default function MandadoModal({ isOpen, onClose }: MandadoModalProps) {
 
                         {getItemQuantity(item) && (
                           <span className="px-2 py-0.5 rounded-full text-[9px] font-syne font-bold uppercase tracking-wider bg-blue-100 dark:bg-blue-950/60 text-blue-600 dark:text-blue-300 shrink-0">
-                            Cant: {getItemQuantity(item)}
+                            Tengo: {getItemQuantity(item)}
                           </span>
                         )}
 
@@ -1334,7 +1360,7 @@ export default function MandadoModal({ isOpen, onClose }: MandadoModalProps) {
                   {/* Input 2: ¿Qué cantidad compraste? */}
                   <div className="space-y-1.5">
                     <label className="font-syne text-[10px] font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">
-                      ¿Qué cantidad compraste?
+                      ¿Cuánto compraste?{getItemQuantity(buyingItem) ? ` (tienes ${getItemQuantity(buyingItem)})` : ''}
                     </label>
                     <input
                       type="text"
@@ -1377,6 +1403,57 @@ export default function MandadoModal({ isOpen, onClose }: MandadoModalProps) {
                   </div>
                 </form>
               </motion.div>
+            </div>
+          )}
+        </AnimatePresence>
+
+        {/* ═══ MODAL: STOCK ACTUAL AL DESMARCAR ═══ */}
+        <AnimatePresence>
+          {stockItem && (
+            <div
+              className="fixed inset-0 z-[100001] flex items-center justify-center p-4 sm:p-6 bg-black/60 backdrop-blur-md"
+              onClick={(e) => { if (e.target === e.currentTarget) setStockItem(null); }}
+            >
+              <motion.form
+                onSubmit={handleConfirmStock}
+                onClick={(e) => e.stopPropagation()}
+                initial={{ opacity: 0, scale: 0.94, y: 20 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.94, y: 20 }}
+                className="bg-white dark:bg-gray-900 rounded-[2rem] max-h-[90vh] max-w-md w-full border border-gray-100 dark:border-gray-800 shadow-2xl flex flex-col overflow-hidden"
+              >
+                <div className="shrink-0 flex items-center justify-between p-5 sm:p-6 border-b border-gray-100 dark:border-gray-800">
+                  <div className="min-w-0">
+                    <span className="font-syne text-[10px] font-bold uppercase tracking-widest text-amber-600 dark:text-amber-400 block">Volver a pendientes</span>
+                    <h3 className="font-dm-sans text-xl font-bold text-gray-900 dark:text-white truncate">{stockItem.name}</h3>
+                  </div>
+                  <button type="button" onClick={() => setStockItem(null)} className="cursor-pointer size-10 flex items-center justify-center rounded-xl text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 shrink-0">
+                    <HiX className="text-xl" />
+                  </button>
+                </div>
+                <div className="flex-1 min-h-0 overflow-y-auto p-5 sm:p-6 space-y-3">
+                  <label className="font-syne text-[10px] font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400 block">¿Cuánto tienes actualmente?</label>
+                  <input
+                    type="text"
+                    autoFocus
+                    placeholder="Ej. 1, 2 litros, medio paquete..."
+                    value={stockValue}
+                    onChange={(e) => setStockValue(e.target.value)}
+                    className="w-full px-4 py-3 min-h-[48px] bg-gray-50 dark:bg-gray-800/80 border border-gray-200 dark:border-gray-700 rounded-2xl outline-none font-inter text-sm text-gray-900 dark:text-white placeholder-gray-400 focus:border-emerald-500"
+                  />
+                  <div className="flex flex-wrap gap-2">
+                    {['0', '1', '2', '3', 'Poco'].map((chip) => (
+                      <button key={chip} type="button" onClick={() => setStockValue(chip)} className="cursor-pointer min-h-[40px] px-3.5 bg-gray-100 dark:bg-gray-800 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 text-gray-600 dark:text-gray-300 rounded-xl font-syne text-xs font-bold border border-gray-200/50 dark:border-gray-700/50">
+                        {chip}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <div className="shrink-0 flex gap-3 p-5 sm:p-6 border-t border-gray-100 dark:border-gray-800">
+                  <button type="button" onClick={() => setStockItem(null)} className="cursor-pointer min-h-[48px] px-5 text-xs font-syne font-bold uppercase tracking-wider text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-2xl">Cancelar</button>
+                  <button type="submit" className="cursor-pointer flex-1 min-h-[48px] bg-emerald-600 hover:bg-emerald-700 text-white font-syne text-xs font-bold uppercase tracking-wider rounded-2xl">Guardar</button>
+                </div>
+              </motion.form>
             </div>
           )}
         </AnimatePresence>
