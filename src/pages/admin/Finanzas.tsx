@@ -12,7 +12,8 @@ import {
   HiChevronLeft,
   HiChevronRight,
   HiOutlineClock,
-  HiOutlineRefresh
+  HiOutlineRefresh,
+  HiOutlineSwitchHorizontal
 } from 'react-icons/hi';
 import { useToast } from '@/components/common/ToastContext';
 import CustomSelect from '@/components/common/CustomSelect';
@@ -285,6 +286,25 @@ export default function Finanzas() {
       toast.error('Error al registrar gasto: ' + err.message);
     } finally {
       setSubmittingCat(null);
+    }
+  };
+
+  const handleCycleExpenseCategory = async (exp: Expense) => {
+    const nextCategory: 'comida' | 'insumos' | 'servicios' = 
+      exp.category === 'servicios' ? 'comida' : exp.category === 'comida' ? 'insumos' : 'servicios';
+
+    try {
+      const { error } = await supabase
+        .from('finance_expenses')
+        .update({ category: nextCategory })
+        .eq('id', exp.id);
+
+      if (error) throw error;
+      setExpenses(prev => prev.map(e => e.id === exp.id ? { ...e, category: nextCategory } : e));
+      const catLabel = nextCategory === 'comida' ? 'Mandado & Comida 🍔' : nextCategory === 'insumos' ? 'Insumos & Casa 🛒' : 'Servicios & Base Fija ⚡';
+      toast.success(`Movido a: ${catLabel}`);
+    } catch (err: any) {
+      toast.error('Error al cambiar categoría: ' + err.message);
     }
   };
 
@@ -969,6 +989,14 @@ export default function Finanzas() {
 
                                 <div className="flex items-center gap-1.5 shrink-0">
                                   <button
+                                    onClick={() => handleCycleExpenseCategory(exp)}
+                                    className="cursor-pointer p-1.5 text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-950/40 rounded-xl transition-all opacity-100 lg:opacity-0 lg:group-hover:opacity-100 text-xs"
+                                    title="Mover a otra categoría (Servicios / Mandado / Insumos)"
+                                  >
+                                    <HiOutlineSwitchHorizontal className="text-sm" />
+                                  </button>
+
+                                  <button
                                     onClick={() => handleToggleRecurrence(exp)}
                                     className="cursor-pointer p-1.5 text-gray-400 hover:text-purple-600 dark:hover:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-950/40 rounded-xl transition-all opacity-100 lg:opacity-0 lg:group-hover:opacity-100 text-xs"
                                     title={info.isBase ? "Cambiar a gasto ocasional de este mes" : "Convertir en Base Fija mensual recurrente"}
@@ -1164,6 +1192,14 @@ export default function Finanzas() {
                               </span>
                             )}
                           </div>
+
+                          <button
+                            onClick={() => handleCycleExpenseCategory(exp)}
+                            className="cursor-pointer p-2 text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-950/40 rounded-xl transition-all"
+                            title="Mover a otra categoría (Servicios / Mandado / Insumos)"
+                          >
+                            <HiOutlineSwitchHorizontal className="text-base" />
+                          </button>
 
                           <button
                             onClick={() => handleToggleRecurrence(exp)}

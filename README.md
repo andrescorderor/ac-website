@@ -1,7 +1,7 @@
 <div align="center">
   <img src="public/assets/ac-website-icon.svg" alt="Logo" width="100" />
   
-  # Andrés Cordero - Professional Portfolio & Personal Panel PWA (v6.19.0) 🔍✨
+  # Andrés Cordero - Professional Portfolio & Personal Panel PWA (v6.20.0) 🔍✨
   
   **Welcome to my personal ecosystem: a professional portfolio and a custom productivity hub.**  
   Built with UX/UI best practices, premium design, and a focus on mobile-first efficiency.
@@ -16,11 +16,12 @@
 
 ---
 
-## 🚀 Overview (Version 6.19.0)
+## 🚀 Overview (Version 6.20.0)
 
 This repository hosts a dual-purpose platform:
 1. **Professional Portfolio:** A high-end landing page showcasing my engineering background, skills, and achievements with dynamic copyright year updates and zero horizontal overflow.
-2. **Personal Panel PWA (v6.19.0):** An executive personal operating system featuring:
+2. **Personal Panel PWA (v6.20.0):** An executive personal operating system featuring:
+   * **Sincronización Bidireccional de Categorías y Mover Gastos (v6.20.0):** al editar un producto en el Mandado y cambiar su categoría (ej. de Insumos a Comida), se actualizan en cascada sus compras previas en Finanzas (`finance_expenses`). Además, cada tarjeta de gasto en Finanzas ahora cuenta con un botón de 1-tap (`HiOutlineSwitchHorizontal`) para reasignar su categoría al instante.
    * **Stock en Mandado (v6.19.0):** al desmarcar un producto se pregunta cuánto tienes actualmente (`Tengo: X`); la cantidad a comprar se decide en el súper y se suma al stock.
    * **Full Database Migration & 100% Data Restoration (`epsrgbfnidejfuysjnli`):**
      * **100% Data Parity Restored:** Migrated and verified 100% of historical records across all 15 tables: Plants (15), Recipes (39), Notes (56), Bookmarks (2), Vault Items (10), Tasks (24), Debts (4), Reminders (5), Shopping List (136), Monthly Salary ($26,000), Historical Expenses (51), Creative Projects (12), Monthly Checklist Items (7), Monthly Checklist Logs (13), and Pinned Items (2).

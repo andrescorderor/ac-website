@@ -254,6 +254,19 @@ export default function MandadoModal({ isOpen, onClose }: MandadoModalProps) {
 
         if (error) throw error;
 
+        // Si se cambió de categoría, sincronizar automáticamente los gastos históricos en finance_expenses
+        if (existingItem && getItemCategory(existingItem) !== inputCategory) {
+          try {
+            await supabase
+              .from('finance_expenses')
+              .update({ category: inputCategory })
+              .ilike('concept', `Mandado — ${existingItem.name}%`);
+            window.dispatchEvent(new Event('ac_finance_changed'));
+          } catch (syncErr) {
+            console.error('Error syncing finance expense category:', syncErr);
+          }
+        }
+
         setItems(items.map((i) => (i.id === editingId ? { ...i, ...payload, type: inputType, category: inputCategory, quantity: inputQuantity.trim() || null, bought: existingItem ? existingItem.bought : i.bought } : i)));
         setInputName('');
         setInputQuantity('');
