@@ -34,6 +34,7 @@ import {
   HiOutlineCheckCircle,
   HiOutlineBookOpen,
   HiOutlineSparkles,
+  HiOutlineDatabase,
   HiOutlineDotsHorizontal
 } from 'react-icons/hi';
 import { FaDumbbell } from 'react-icons/fa';
@@ -52,6 +53,7 @@ const menuItems = [
   { icon: HiOutlineCheckCircle, label: 'Checklist', path: '/admin/panel/checklist' },
   { icon: HiOutlineBookOpen, label: 'Recetas', path: '/admin/panel/recetas' },
   { icon: HiOutlineSparkles, label: 'Plantas', path: '/admin/panel/plantas' },
+  { icon: HiOutlineDatabase, label: 'Respaldo', path: '/admin/panel/respaldo' },
 ];
 
 // Bottom nav shows only the most-used 5 modules for thumb-friendly mobile nav
@@ -109,6 +111,7 @@ function DashboardLayoutContent() {
       '/admin/panel/checklist': 'Checklist Mensual • Panel Privado',
       '/admin/panel/recetas': 'Recetario Fitness • Panel Privado',
       '/admin/panel/plantas': 'Mis Plantas • Panel Privado',
+      '/admin/panel/respaldo': 'Respaldo & Recuperación • Panel Privado',
     };
     const title = routeTitles[location.pathname] || 'Panel Privado';
     document.title = `${title} | Andrés Cordero`;
@@ -252,7 +255,7 @@ function DashboardLayoutContent() {
 
           <div className="text-center select-none pt-1">
             <span className="font-syne text-[9px] font-bold tracking-widest text-gray-400 dark:text-gray-600 block">
-              VERSIÓN v6.20.0
+              VERSIÓN v6.21.0
             </span>
           </div>
         </div>
@@ -393,7 +396,7 @@ function DashboardLayoutContent() {
 
           <div className="text-center select-none pt-2">
             <span className="font-syne text-[9px] font-bold tracking-widest text-gray-400 dark:text-gray-600 block">
-              VERSIÓN v6.20.0
+              VERSIÓN v6.21.0
             </span>
           </div>
         </div>

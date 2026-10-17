@@ -20,6 +20,7 @@ import {
   HiOutlineCheckCircle,
   HiOutlineBookOpen,
   HiOutlineSparkles,
+  HiOutlineDatabase,
   HiX,
 } from 'react-icons/hi';
 import { FaDumbbell } from 'react-icons/fa';
@@ -324,7 +325,7 @@ export default function DashboardHome() {
         return;
       }
 
-      const [exp, sal, tsk, dbt, vlt, shp, rem, nts, bkm, prj, chkItems, chkLogs, rec, plt] = await Promise.all([
+      const [exp, sal, tsk, dbt, vlt, shp, rem, nts, bkm, prj, chkItems, chkLogs, rec, plt, pins] = await Promise.all([
         supabase.from('finance_expenses').select('*'),
         supabase.from('finance_salary').select('*'),
         supabase.from('tasks').select('*'),
@@ -339,10 +340,11 @@ export default function DashboardHome() {
         supabase.from('monthly_checklist_logs').select('*'),
         supabase.from('recipes').select('*'),
         supabase.from('plants').select('*'),
+        supabase.from('user_pinned_items').select('*'),
       ]);
 
       const backupObj = {
-        version: '5.3.0',
+        version: '6.21.0',
         exported_at: new Date().toISOString(),
         user_email: user.email,
         tables: {
@@ -360,6 +362,7 @@ export default function DashboardHome() {
           monthly_checklist_logs: chkLogs.data || [],
           recipes: rec.data || [],
           plants: plt.data || [],
+          user_pinned_items: pins.data || [],
         }
       };
 
@@ -1045,7 +1048,7 @@ export default function DashboardHome() {
                         </span>
                       </div>
                       <p className="font-inter text-xs text-gray-500 dark:text-gray-400 mt-0.5">
-                        Respaldo íntegro de las 14 tablas del sistema.
+                        Respaldo íntegro de las 15 tablas del sistema.
                       </p>
                     </div>
                   </button>
@@ -1074,6 +1077,30 @@ export default function DashboardHome() {
                       </p>
                     </div>
                   </button>
+
+                  {/* Option 3: Link to dedicated Respaldo page */}
+                  <Link
+                    to="/admin/panel/respaldo"
+                    onClick={() => setShowExportModal(false)}
+                    className="w-full flex items-center gap-3.5 p-4 rounded-2xl border border-indigo-100 dark:border-indigo-900/40 bg-indigo-50/50 dark:bg-indigo-950/30 hover:bg-indigo-100/60 dark:hover:bg-indigo-900/40 transition-all text-left group"
+                  >
+                    <div className="size-11 rounded-xl bg-indigo-100 dark:bg-indigo-900/60 text-indigo-600 dark:text-indigo-400 flex items-center justify-center text-xl shrink-0 font-dm-sans font-bold border border-indigo-200 dark:border-indigo-800/60">
+                      <HiOutlineDatabase className="text-xl" />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="font-dm-sans font-bold text-sm text-gray-900 dark:text-white">
+                          Módulo Completo & Restauración
+                        </span>
+                        <span className="text-[9px] font-syne font-bold uppercase tracking-wider text-indigo-600 dark:text-indigo-400 bg-indigo-100/80 dark:bg-indigo-900/60 px-2 py-0.5 rounded-md border border-indigo-200 dark:border-indigo-800 shrink-0">
+                          Avanzado
+                        </span>
+                      </div>
+                      <p className="font-inter text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                        Métricas en vivo de las 15 tablas y restaurador de base de datos.
+                      </p>
+                    </div>
+                  </Link>
                 </div>
 
                 {/* Footer */}

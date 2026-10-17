@@ -1,7 +1,7 @@
 <div align="center">
   <img src="public/assets/ac-website-icon.svg" alt="Logo" width="100" />
   
-  # Andrés Cordero - Professional Portfolio & Personal Panel PWA (v6.20.0) 🔍✨
+  # Andrés Cordero - Professional Portfolio & Personal Panel PWA (v6.21.0) 🔍✨
   
   **Welcome to my personal ecosystem: a professional portfolio and a custom productivity hub.**  
   Built with UX/UI best practices, premium design, and a focus on mobile-first efficiency.
@@ -16,11 +16,17 @@
 
 ---
 
-## 🚀 Overview (Version 6.20.0)
+## 🚀 Overview (Version 6.21.0)
 
 This repository hosts a dual-purpose platform:
 1. **Professional Portfolio:** A high-end landing page showcasing my engineering background, skills, and achievements with dynamic copyright year updates and zero horizontal overflow.
-2. **Personal Panel PWA (v6.20.0):** An executive personal operating system featuring:
+2. **Personal Panel PWA (v6.21.0):** An executive personal operating system featuring:
+   * **Módulo Dedicado de Respaldo & Recuperación de Base de Datos (`/admin/panel/respaldo` - v6.21.0):**
+     * **Cobertura Total de 15 Tablas:** Exporta e importa íntegramente `finance_salary`, `finance_expenses`, `tasks`, `debts`, `vault_items`, `shopping_list`, `reminders`, `notes`, `bookmarks`, `creative_projects`, `monthly_checklist_items`, `monthly_checklist_logs`, `recipes`, `plants` y `user_pinned_items`.
+     * **Recuperación ante Desastres (Disaster Recovery):** Motor de restauración con lectura de archivo JSON, reasignación automática de `user_id` del usuario autenticado para cumplir con RLS, inserción en lotes con `upsert` y reporte de progreso tabla por tabla en tiempo real.
+     * **Métricas en Vivo de BD:** Tablero con conteo de registros en producción por cada una de las 15 tablas.
+     * **Reporte Multitabla CSV:** Generación tabular con codificación UTF-8 para análisis directo en Excel / Google Sheets.
+     * **Saneamiento de CI/CD:** Flujo de GitHub Actions (`database-backup.yml`) actualizado al host activo de Supabase, reemplazando commits directos al repositorio por artifacts seguros con 90 días de retención.
    * **Sincronización Bidireccional de Categorías y Mover Gastos (v6.20.0):** al editar un producto en el Mandado y cambiar su categoría (ej. de Insumos a Comida), se actualizan en cascada sus compras previas en Finanzas (`finance_expenses`). Además, cada tarjeta de gasto en Finanzas ahora cuenta con un botón de 1-tap (`HiOutlineSwitchHorizontal`) para reasignar su categoría al instante.
    * **Stock en Mandado (v6.19.0):** al desmarcar un producto se pregunta cuánto tienes actualmente (`Tengo: X`); la cantidad a comprar se decide en el súper y se suma al stock.
    * **Full Database Migration & 100% Data Restoration (`epsrgbfnidejfuysjnli`):**

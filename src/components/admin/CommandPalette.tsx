@@ -24,11 +24,12 @@ import {
   HiOutlinePaperAirplane,
   HiOutlineTrash,
   HiOutlineExternalLink,
+  HiOutlineDatabase,
 } from 'react-icons/hi';
 import { FaDumbbell } from 'react-icons/fa';
 import { useToast } from '@/components/common/ToastContext';
 
-type ResultType = 'note' | 'task' | 'debt' | 'vault' | 'shopping' | 'reminder' | 'project' | 'checklist' | 'recipe' | 'finance' | 'plant' | 'bookmark' | 'workout';
+type ResultType = 'note' | 'task' | 'debt' | 'vault' | 'shopping' | 'reminder' | 'project' | 'checklist' | 'recipe' | 'finance' | 'plant' | 'bookmark' | 'workout' | 'backup';
 
 type SearchResult = {
   id: string;
@@ -66,6 +67,7 @@ const TYPE_META: Record<ResultType, { label: string; icon: React.ElementType; co
   plant:     { label: 'Planta',        icon: HiOutlineSparkles,      color: 'bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300' },
   bookmark:  { label: 'Enlace',        icon: HiOutlineExternalLink,  color: 'bg-indigo-100 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300' },
   workout:   { label: 'Rutina Gym',    icon: FaDumbbell,             color: 'bg-rose-100 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300' },
+  backup:    { label: 'Sistema',       icon: HiOutlineDatabase,      color: 'bg-sky-100 dark:bg-sky-950/60 text-sky-700 dark:text-sky-300' },
 };
 
 /** Component to highlight search matches */
@@ -446,6 +448,22 @@ export default function CommandPalette({ isOpen, onClose }: CommandPaletteProps)
         }
       });
 
+      // Quick navigation to Backup & Recovery module
+      const backupTerms = ['respaldo', 'backup', 'recuperacion', 'restaurar', 'copia de seguridad', 'exportar', 'importar', 'base de datos', 'database'];
+      if (!termNorm || backupTerms.some(t => t.includes(termNorm) || termNorm.includes(t))) {
+        push({
+          id: 'system_backup_module',
+          type: 'backup',
+          title: 'Respaldo & Recuperación de Base de Datos',
+          subtitle: 'Centro de exportación total (15 tablas), descarga JSON/CSV y restauración',
+          path: '/admin/panel/respaldo',
+          icon: TYPE_META.backup.icon,
+          categoryLabel: TYPE_META.backup.label,
+          badgeColor: TYPE_META.backup.color,
+          rawTitle: 'Respaldo & Recuperación',
+        });
+      }
+
       setResults(items);
       setActiveIndex(-1);
     } catch (err) {
@@ -569,6 +587,9 @@ ${nts.data?.filter(n => n.category?.startsWith('Fitness_Routine_Data:')).map(w =
 
 🔗 ENLACES / MARCADORES:
 ${bkm.data?.map(b => `- ${b.title} [Categoría: ${b.category || 'General'}]: ${b.url}`).join('\n') || 'Ninguno'}
+
+💾 MÓDULO DE RESPALDO Y RECUPERACIÓN:
+- El panel cuenta con un módulo dedicado en /admin/panel/respaldo que cubre las 15 tablas completas de la base de datos (con exportación JSON/CSV y motor de restauración / importación).
 `.trim();
 
       const userPromptBody = `DATOS ACTUALES DEL PANEL:\n${formattedContext}\n\nPREGUNTA DE ANDRÉS: "${promptText}"`;

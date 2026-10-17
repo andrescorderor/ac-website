@@ -29,6 +29,7 @@ const ChecklistMensual = lazy(() => import('@pages/admin/ChecklistMensual'));
 const Recetas = lazy(() => import('@pages/admin/Recetas'));
 const Plantas = lazy(() => import('@pages/admin/Plantas'));
 const Entrenamiento = lazy(() => import('@pages/admin/Entrenamiento'));
+const Respaldo = lazy(() => import('@pages/admin/Respaldo'));
 
 const PageLoader = () => (
   <div className="p-4 sm:p-8 space-y-6 max-w-7xl mx-auto animate-pulse">
@@ -172,6 +173,14 @@ const router = createBrowserRouter([
         element: (
           <Suspense fallback={<PageLoader />}>
             <Entrenamiento />
+          </Suspense>
+        ),
+      },
+      {
+        path: 'respaldo',
+        element: (
+          <Suspense fallback={<PageLoader />}>
+            <Respaldo />
           </Suspense>
         ),
       },

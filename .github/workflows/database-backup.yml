@@ -10,7 +10,7 @@ jobs:
   backup:
     runs-on: ubuntu-latest
     permissions:
-      contents: write
+      contents: read
 
     steps:
       - name: Checkout repository
@@ -28,13 +28,34 @@ jobs:
         run: |
           node -e '
           const fs = require("fs");
-          const url = process.env.SUPABASE_URL || "https://hpijsgxcjynqtrclkbnq.supabase.co";
+          const url = process.env.SUPABASE_URL || "https://epsrgbfnidejfuysjnli.supabase.co";
           const key = process.env.SUPABASE_ANON_KEY || "${{ secrets.VITE_SUPABASE_ANON_KEY }}";
 
           async function backup() {
             const dateStr = new Date().toISOString().split("T")[0];
-            const tables = ["finance_expenses", "finance_salary", "tasks", "debts", "vault_items", "shopping_list", "reminders", "notes", "bookmarks", "creative_projects", "monthly_checklist_items", "monthly_checklist_logs", "recipes", "plants"];
-            const backupData = { exported_at: new Date().toISOString(), tables: {} };
+            const tables = [
+              "finance_expenses", 
+              "finance_salary", 
+              "tasks", 
+              "debts", 
+              "vault_items", 
+              "shopping_list", 
+              "reminders", 
+              "notes", 
+              "bookmarks", 
+              "creative_projects", 
+              "monthly_checklist_items", 
+              "monthly_checklist_logs", 
+              "recipes", 
+              "plants",
+              "user_pinned_items"
+            ];
+            const backupData = { 
+              app: "Andrés Cordero • Personal OS",
+              version: "6.21.0",
+              exported_at: new Date().toISOString(), 
+              tables: {} 
+            };
 
             for (const table of tables) {
               try {
@@ -65,10 +86,3 @@ jobs:
           name: database-backup-${{ github.run_id }}
           path: backups/*.json
           retention-days: 90
-
-      - name: Commit Backup to Git Repository
-        run: |
-          git config --local user.email "action@github.com"
-          git config --local user.name "GitHub Action Bot"
-          git add backups/
-          git diff --quiet && git diff --staged --quiet || (git commit -m "chore(backup): automated database snapshot [skip ci]" && git push)

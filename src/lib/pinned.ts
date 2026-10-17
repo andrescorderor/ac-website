@@ -2,7 +2,7 @@ import { supabase } from './supabase';
 
 export type PinnedItem = {
   id: string;
-  type: 'note' | 'task' | 'debt' | 'vault' | 'shopping' | 'reminder' | 'project' | 'checklist' | 'recipe' | 'finance' | 'plant' | 'bookmark' | 'workout';
+  type: 'note' | 'task' | 'debt' | 'vault' | 'shopping' | 'reminder' | 'project' | 'checklist' | 'recipe' | 'finance' | 'plant' | 'bookmark' | 'workout' | 'backup';
   title: string;
   subtitle?: string;
   path: string;

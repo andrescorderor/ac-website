@@ -30,3 +30,7 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Database backups (local & workflow generated)
+backups/
+*.backup.json
