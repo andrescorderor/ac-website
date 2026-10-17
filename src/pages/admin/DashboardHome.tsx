@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { createPortal } from 'react-dom';
 import { supabase } from '@/lib/supabase';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getPinnedItems, removePinnedItem, PinnedItem, syncPinnedItemsWithSupabase } from '@/lib/pinned';
@@ -14,13 +13,11 @@ import {
   HiOutlineArrowSmRight,
   HiOutlineEye,
   HiOutlineEyeOff,
-  HiOutlineDownload,
   HiOutlineBell,
   HiOutlineColorSwatch,
   HiOutlineCheckCircle,
   HiOutlineBookOpen,
   HiOutlineSparkles,
-  HiOutlineDatabase,
   HiX,
 } from 'react-icons/hi';
 import { FaDumbbell } from 'react-icons/fa';
@@ -71,10 +68,8 @@ export default function DashboardHome() {
   const [pinnedFilter, setPinnedFilter] = useState<string>('all');
   const [isPinnedCollapsed, setIsPinnedCollapsed] = useState<boolean>(true);
   const [loading, setLoading] = useState(true);
-  const [exporting, setExporting] = useState(false);
   const [isPrivacyMode, setIsPrivacyMode] = useState(true);
   const [showMandadoModal, setShowMandadoModal] = useState(false);
-  const [showExportModal, setShowExportModal] = useState(false);
   const { toast } = useToast();
 
   const translateType = (type: string) => {
@@ -316,128 +311,6 @@ export default function DashboardHome() {
     }
   };
 
-  const exportBackupJson = async () => {
-    setExporting(true);
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        toast.error('Sesión no válida');
-        return;
-      }
-
-      const [exp, sal, tsk, dbt, vlt, shp, rem, nts, bkm, prj, chkItems, chkLogs, rec, plt, pins] = await Promise.all([
-        supabase.from('finance_expenses').select('*'),
-        supabase.from('finance_salary').select('*'),
-        supabase.from('tasks').select('*'),
-        supabase.from('debts').select('*'),
-        supabase.from('vault_items').select('*'),
-        supabase.from('shopping_list').select('*'),
-        supabase.from('reminders').select('*'),
-        supabase.from('notes').select('*'),
-        supabase.from('bookmarks').select('*'),
-        supabase.from('creative_projects').select('*'),
-        supabase.from('monthly_checklist_items').select('*'),
-        supabase.from('monthly_checklist_logs').select('*'),
-        supabase.from('recipes').select('*'),
-        supabase.from('plants').select('*'),
-        supabase.from('user_pinned_items').select('*'),
-      ]);
-
-      const backupObj = {
-        version: '6.21.0',
-        exported_at: new Date().toISOString(),
-        user_email: user.email,
-        tables: {
-          finance_expenses: exp.data || [],
-          finance_salary: sal.data || [],
-          tasks: tsk.data || [],
-          debts: dbt.data || [],
-          vault_items: vlt.data || [],
-          shopping_list: shp.data || [],
-          reminders: rem.data || [],
-          notes: nts.data || [],
-          bookmarks: bkm.data || [],
-          creative_projects: prj.data || [],
-          monthly_checklist_items: chkItems.data || [],
-          monthly_checklist_logs: chkLogs.data || [],
-          recipes: rec.data || [],
-          plants: plt.data || [],
-          user_pinned_items: pins.data || [],
-        }
-      };
-
-      const jsonStr = JSON.stringify(backupObj, null, 2);
-      const blob = new Blob([jsonStr], { type: 'application/json' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      const dateStr = new Date().toISOString().split('T')[0];
-      a.href = url;
-      a.download = `respaldo_panel_andres_${dateStr}.json`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-
-      toast.success('Copia de seguridad JSON descargada correctamente');
-      setShowExportModal(false);
-    } catch (err: any) {
-      toast.error('Error al exportar respaldo: ' + err.message);
-    } finally {
-      setExporting(false);
-    }
-  };
-
-  const exportBackupCsv = async () => {
-    setExporting(true);
-    try {
-      const [exp, tsk, shp, rem] = await Promise.all([
-        supabase.from('finance_expenses').select('*'),
-        supabase.from('tasks').select('title, priority, due_date, completed'),
-        supabase.from('shopping_list').select('name, location, price, bought'),
-        supabase.from('reminders').select('title, category, date, time'),
-      ]);
-
-      let csv = '=== GASTOS ===\nFecha,Concepto,Categoria,Monto\n';
-      exp.data?.forEach(e => {
-        const itemDate = (e as any).date || (e.created_at ? e.created_at.split('T')[0] : '');
-        csv += `"${itemDate}","${e.concept || ''}","${e.category || ''}",${e.amount}\n`;
-      });
-
-      csv += '\n=== PENDIENTES ===\nTitulo,Prioridad,Fecha Limite,Completada\n';
-      tsk.data?.forEach(t => {
-        csv += `"${t.title}","${t.priority || ''}","${t.due_date || ''}",${t.completed ? 'SI' : 'NO'}\n`;
-      });
-
-      csv += '\n=== LISTA DE COMPRAS Y MANDADO ===\nProducto,Tienda/Pasillo,Precio,Comprado\n';
-      shp.data?.forEach(s => {
-        csv += `"${s.name}","${s.location || ''}",${s.price || 0},${s.bought ? 'SI' : 'NO'}\n`;
-      });
-
-      csv += '\n=== RECORDATORIOS Y FECHAS ===\nTitulo,Categoria,Fecha,Hora\n';
-      rem.data?.forEach(r => {
-        csv += `"${r.title}","${r.category || ''}","${r.date || ''}","${r.time || ''}"\n`;
-      });
-
-      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      const dateStr = new Date().toISOString().split('T')[0];
-      a.href = url;
-      a.download = `reporte_general_${dateStr}.csv`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-
-      toast.success('Reporte CSV descargado con éxito');
-      setShowExportModal(false);
-    } catch (err: any) {
-      toast.error('Error al generar CSV: ' + err.message);
-    } finally {
-      setExporting(false);
-    }
-  };
-
   const handleTestNotification = async () => {
     const granted = await requestNotificationPermission();
     if (granted) {
@@ -634,21 +507,6 @@ export default function DashboardHome() {
           >
             <HiOutlineBell className="text-base text-amber-500" />
             <span className="hidden sm:block">Notificaciones</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setShowExportModal(true)}
-            disabled={exporting}
-            className="flex items-center gap-2 px-3 py-2.5 bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm text-xs font-syne font-bold uppercase tracking-wider text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 active:scale-95 transition-all disabled:opacity-50 shrink-0"
-            title="Exportar copia de seguridad o reporte (JSON, CSV, PDF)"
-          >
-            {exporting ? (
-              <div className="size-4 border-2 border-gray-400 border-t-black dark:border-t-white rounded-full animate-spin" />
-            ) : (
-              <HiOutlineDownload className="text-base text-blue-500" />
-            )}
-            <span className="hidden sm:block">Respaldo</span>
           </button>
 
           <button
@@ -988,137 +846,6 @@ export default function DashboardHome() {
         isOpen={showMandadoModal} 
         onClose={() => setShowMandadoModal(false)} 
       />
-
-      {/* Export & Backup Modal (Rendered in Portal) */}
-      {typeof document !== 'undefined' && createPortal(
-        <AnimatePresence>
-          {showExportModal && (
-            <div
-              className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm cursor-pointer"
-              onClick={(e) => {
-                if (e.target === e.currentTarget) setShowExportModal(false);
-              }}
-            >
-              <motion.div
-                initial={{ opacity: 0, scale: 0.95, y: 10 }}
-                animate={{ opacity: 1, scale: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.95, y: 10 }}
-                onClick={(e) => e.stopPropagation()}
-                className="bg-white dark:bg-gray-900 rounded-3xl p-6 sm:p-7 max-w-md w-full border border-gray-100 dark:border-gray-800 shadow-2xl space-y-5 cursor-default my-auto"
-              >
-                {/* Header */}
-                <div className="flex items-center justify-between pb-3 border-b border-gray-100 dark:border-gray-800">
-                  <div>
-                    <h3 className="font-dm-sans text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
-                      <span>📦</span>
-                      <span>Exportar Datos</span>
-                    </h3>
-                    <p className="font-inter text-xs text-gray-400 mt-0.5">
-                      Descarga una copia de seguridad o reporte
-                    </p>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => setShowExportModal(false)}
-                    className="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-all"
-                  >
-                    <HiX className="text-xl" />
-                  </button>
-                </div>
-
-                {/* Options List */}
-                <div className="space-y-3">
-                  {/* Option 1: JSON */}
-                  <button
-                    type="button"
-                    onClick={exportBackupJson}
-                    disabled={exporting}
-                    className="w-full flex items-center gap-3.5 p-4 rounded-2xl border border-gray-100 dark:border-gray-800 bg-gray-50/70 dark:bg-gray-800/50 hover:bg-gray-100/90 dark:hover:bg-gray-800 transition-all text-left group"
-                  >
-                    <div className="size-11 rounded-xl bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 flex items-center justify-center text-xl shrink-0 font-dm-sans font-bold border border-blue-100 dark:border-blue-900/40">
-                      <HiOutlineDownload className="text-xl" />
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center justify-between gap-2">
-                        <span className="font-dm-sans font-bold text-sm text-gray-900 dark:text-white">
-                          Copia Total (JSON)
-                        </span>
-                        <span className="text-[9px] font-syne font-bold uppercase tracking-wider text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/60 px-2 py-0.5 rounded-md border border-blue-200/50 dark:border-blue-800/40 shrink-0">
-                          Completo
-                        </span>
-                      </div>
-                      <p className="font-inter text-xs text-gray-500 dark:text-gray-400 mt-0.5">
-                        Respaldo íntegro de las 15 tablas del sistema.
-                      </p>
-                    </div>
-                  </button>
-
-                  {/* Option 2: CSV */}
-                  <button
-                    type="button"
-                    onClick={exportBackupCsv}
-                    disabled={exporting}
-                    className="w-full flex items-center gap-3.5 p-4 rounded-2xl border border-gray-100 dark:border-gray-800 bg-gray-50/70 dark:bg-gray-800/50 hover:bg-gray-100/90 dark:hover:bg-gray-800 transition-all text-left group"
-                  >
-                    <div className="size-11 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-xl shrink-0 font-dm-sans font-bold border border-emerald-100 dark:border-emerald-900/40">
-                      <HiOutlineDownload className="text-xl" />
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center justify-between gap-2">
-                        <span className="font-dm-sans font-bold text-sm text-gray-900 dark:text-white">
-                          Reporte Excel (CSV)
-                        </span>
-                        <span className="text-[9px] font-syne font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/60 px-2 py-0.5 rounded-md border border-emerald-200/50 dark:border-emerald-800/40 shrink-0">
-                          Tablas
-                        </span>
-                      </div>
-                      <p className="font-inter text-xs text-gray-500 dark:text-gray-400 mt-0.5">
-                        Gastos, tareas, mandado y recordatorios.
-                      </p>
-                    </div>
-                  </button>
-
-                  {/* Option 3: Link to dedicated Respaldo page */}
-                  <Link
-                    to="/admin/panel/respaldo"
-                    onClick={() => setShowExportModal(false)}
-                    className="w-full flex items-center gap-3.5 p-4 rounded-2xl border border-indigo-100 dark:border-indigo-900/40 bg-indigo-50/50 dark:bg-indigo-950/30 hover:bg-indigo-100/60 dark:hover:bg-indigo-900/40 transition-all text-left group"
-                  >
-                    <div className="size-11 rounded-xl bg-indigo-100 dark:bg-indigo-900/60 text-indigo-600 dark:text-indigo-400 flex items-center justify-center text-xl shrink-0 font-dm-sans font-bold border border-indigo-200 dark:border-indigo-800/60">
-                      <HiOutlineDatabase className="text-xl" />
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center justify-between gap-2">
-                        <span className="font-dm-sans font-bold text-sm text-gray-900 dark:text-white">
-                          Módulo Completo & Restauración
-                        </span>
-                        <span className="text-[9px] font-syne font-bold uppercase tracking-wider text-indigo-600 dark:text-indigo-400 bg-indigo-100/80 dark:bg-indigo-900/60 px-2 py-0.5 rounded-md border border-indigo-200 dark:border-indigo-800 shrink-0">
-                          Avanzado
-                        </span>
-                      </div>
-                      <p className="font-inter text-xs text-gray-500 dark:text-gray-400 mt-0.5">
-                        Métricas en vivo de las 15 tablas y restaurador de base de datos.
-                      </p>
-                    </div>
-                  </Link>
-                </div>
-
-                {/* Footer */}
-                <div className="flex justify-end pt-2 border-t border-gray-100 dark:border-gray-800">
-                  <button
-                    type="button"
-                    onClick={() => setShowExportModal(false)}
-                    className="px-5 py-2 text-xs font-syne font-bold uppercase tracking-wider text-gray-500 hover:text-gray-800 dark:hover:text-gray-200 rounded-xl transition-all"
-                  >
-                    Cerrar
-                  </button>
-                </div>
-              </motion.div>
-            </div>
-          )}
-        </AnimatePresence>,
-        document.body
-      )}
     </div>
   );
 }
