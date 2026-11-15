@@ -1,7 +1,7 @@
 <div align="center">
   <img src="public/assets/ac-website-icon.svg" alt="Logo" width="100" />
   
-  # Andrés Cordero - Professional Portfolio & Personal Panel PWA (v6.21.0) 🔍✨
+  # Andrés Cordero - Professional Portfolio & Personal Panel PWA (v6.22.0) 🔍✨
   
   **Welcome to my personal ecosystem: a professional portfolio and a custom productivity hub.**  
   Built with UX/UI best practices, premium design, and a focus on mobile-first efficiency.
@@ -16,11 +16,14 @@
 
 ---
 
-## 🚀 Overview (Version 6.21.0)
+## 🚀 Overview (Version 6.22.0)
 
 This repository hosts a dual-purpose platform:
 1. **Professional Portfolio:** A high-end landing page showcasing my engineering background, skills, and achievements with dynamic copyright year updates and zero horizontal overflow.
-2. **Personal Panel PWA (v6.21.0):** An executive personal operating system featuring:
+2. **Personal Panel PWA (v6.22.0):** An executive personal operating system featuring:
+   * **Mandado Inteligente: Conservación de Último Precio, Unidad y Botón Agotado en Pendientes (v6.22.0):**
+     * **Persistencia del Último Precio y Unidad:** La unidad y precio guardados para cada producto reflejan siempre el último dato registrado, ya sea al confirmar una compra en el súper o al crear/editar el producto. Se elimina el concepto de "precio estimado" a favor del precio real más reciente, y la cantidad ingresada sobreescribe limpiamente sin concatenaciones confusas.
+     * **Botón ⚠️ Agotado para Productos Pendientes:** El botón de acción rápida para marcar productos agotados ahora está disponible en todos los elementos desmarcados (pendientes de comprar), permitiendo establecer stock 0 y confirmar que están listos para la próxima compra en el mandado.
    * **Módulo Dedicado de Respaldo & Recuperación de Base de Datos (`/admin/panel/respaldo` - v6.21.0):**
      * **Cobertura Total de 15 Tablas:** Exporta e importa íntegramente `finance_salary`, `finance_expenses`, `tasks`, `debts`, `vault_items`, `shopping_list`, `reminders`, `notes`, `bookmarks`, `creative_projects`, `monthly_checklist_items`, `monthly_checklist_logs`, `recipes`, `plants` y `user_pinned_items`.
      * **Recuperación ante Desastres (Disaster Recovery):** Motor de restauración con lectura de archivo JSON, reasignación automática de `user_id` del usuario autenticado para cumplir con RLS, inserción en lotes con `upsert` y reporte de progreso tabla por tabla en tiempo real.

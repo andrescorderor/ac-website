@@ -309,7 +309,7 @@ export default function MandadoModal({ isOpen, onClose }: MandadoModalProps) {
   const handleInitiateBuy = (item: ShoppingItem) => {
     setBuyingItem(item);
     setSpentAmount(item.price !== null && item.price !== undefined ? String(item.price) : '');
-    setSpentQuantity('');
+    setSpentQuantity(getItemQuantity(item) || '');
   };
 
   const handleConfirmPurchase = async (e: React.FormEvent) => {
@@ -322,13 +322,8 @@ export default function MandadoModal({ isOpen, onClose }: MandadoModalProps) {
 
     const boughtQty = spentQuantity.trim();
     const prevStock = (getItemQuantity(buyingItem) || '').trim();
-    const newStock = !boughtQty
-      ? prevStock
-      : !prevStock || prevStock === '0'
-        ? boughtQty
-        : /^\d+(\.\d+)?$/.test(prevStock) && /^\d+(\.\d+)?$/.test(boughtQty)
-          ? String(parseFloat(prevStock) + parseFloat(boughtQty))
-          : `${prevStock} + ${boughtQty}`;
+    // Guardar la última unidad/cantidad ingresada (o conservar la previa si no se especificó nueva)
+    const newStock = boughtQty || prevStock || '';
     const cantText = newStock ? ` | Cant: ${newStock}` : '';
     const cleanStore = getCleanStoreLocation(buyingItem.location);
     const catText = getItemCategory(buyingItem) === 'comida' ? '🍔 Comida' : '🛒 Insumos';
@@ -460,12 +455,31 @@ export default function MandadoModal({ isOpen, onClose }: MandadoModalProps) {
   };
 
   const handleMarkAsAgotado = async (id: string) => {
+    const item = items.find((i) => i.id === id);
+    if (!item) return;
+
+    const nowIso = new Date().toISOString();
+    const cleanStore = getCleanStoreLocation(item.location);
+    const catText = getItemCategory(item) === 'comida' ? '🍔 Comida' : '🛒 Insumos';
+    const freqText = getItemType(item) === 'semanal' ? '🥗 Semanal' : '📦 Hasta Agotar';
+    const cantText = ' | Cant: 0 (Agotado)';
+    const newLocation = cleanStore
+      ? `${catText} | ${freqText}${cantText} — ${cleanStore}`
+      : `${catText} | ${freqText}${cantText}`;
+
     try {
-      const { error } = await supabase.from('shopping_list').update({ bought: false }).eq('id', id);
+      const payload: any = { bought: false, quantity: '0 (Agotado)', location: newLocation, updated_at: nowIso };
+      let { error } = await supabase.from('shopping_list').update(payload).eq('id', id);
+      if (error && (error.message?.includes('quantity') || error.message?.includes('updated_at'))) {
+        delete payload.quantity;
+        delete payload.updated_at;
+        const res = await supabase.from('shopping_list').update(payload).eq('id', id);
+        error = res.error;
+      }
       if (error) throw error;
 
-      setItems(items.map((i) => (i.id === id ? { ...i, bought: false } : i)));
-      toast.info('⚠️ Producto marcado como Agotado. Listo para comprar nuevamente.');
+      setItems(items.map((i) => (i.id === id ? { ...i, bought: false, quantity: '0 (Agotado)', location: newLocation, updated_at: nowIso } as any : i)));
+      toast.info('⚠️ Producto marcado como Agotado (Cant: 0). Listo para comprar en el mandado.');
     } catch (err: any) {
       toast.error('Error al marcar como agotado: ' + err.message);
     }
@@ -815,8 +829,8 @@ export default function MandadoModal({ isOpen, onClose }: MandadoModalProps) {
                     )}
                   </div>
 
-                  <div className={`grid gap-2.5 ${editingId ? 'grid-cols-1 sm:grid-cols-2 md:grid-cols-4' : 'grid-cols-1 sm:grid-cols-3'}`}>
-                    <div className={`${editingId ? 'sm:col-span-2' : 'sm:col-span-2'} space-y-1`}>
+                  <div className={`grid gap-2.5 ${editingId ? 'grid-cols-1 sm:grid-cols-2 md:grid-cols-4' : 'grid-cols-1 sm:grid-cols-2 md:grid-cols-4'}`}>
+                    <div className="sm:col-span-2 space-y-1">
                       <label className="font-syne text-[9px] font-bold uppercase tracking-widest text-gray-400">
                         Nombre del Producto *
                       </label>
@@ -830,20 +844,18 @@ export default function MandadoModal({ isOpen, onClose }: MandadoModalProps) {
                       />
                     </div>
 
-                    {editingId && (
-                      <div className="space-y-1">
-                        <label className="font-syne text-[9px] font-bold uppercase tracking-widest text-gray-400">
-                          Tengo actualmente
-                        </label>
-                        <input
-                          type="text"
-                          placeholder="Ej. 1 Litro, 500g, 2 paq"
-                          value={inputQuantity}
-                          onChange={(e) => setInputQuantity(e.target.value)}
-                          className="w-full px-3 py-1.5 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl outline-none text-xs font-inter text-gray-900 dark:text-white placeholder-gray-400 focus:border-emerald-500"
-                        />
-                      </div>
-                    )}
+                    <div className="space-y-1">
+                      <label className="font-syne text-[9px] font-bold uppercase tracking-widest text-gray-400">
+                        {editingId ? 'Tengo actualmente' : 'Cantidad / Unidad'}
+                      </label>
+                      <input
+                        type="text"
+                        placeholder="Ej. 1 Litro, 500g, 2 paq"
+                        value={inputQuantity}
+                        onChange={(e) => setInputQuantity(e.target.value)}
+                        className="w-full px-3 py-1.5 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl outline-none text-xs font-inter text-gray-900 dark:text-white placeholder-gray-400 focus:border-emerald-500"
+                      />
+                    </div>
 
                     <div className="space-y-1">
                       <label className="font-syne text-[9px] font-bold uppercase tracking-widest text-gray-400">
@@ -891,7 +903,7 @@ export default function MandadoModal({ isOpen, onClose }: MandadoModalProps) {
                     <div className="space-y-1">
                       <div className="flex items-center justify-between">
                         <label className="font-syne text-[9px] font-bold uppercase tracking-widest text-gray-400">
-                          Precio Estimado ($)
+                          Último Precio ($)
                         </label>
                         {inputPrice && (
                           <span className="font-syne text-[9px] font-bold text-emerald-600 dark:text-emerald-400">
@@ -1059,12 +1071,12 @@ export default function MandadoModal({ isOpen, onClose }: MandadoModalProps) {
                   </div>
 
                   <div className="flex items-center gap-1.5 shrink-0 justify-end flex-wrap sm:flex-nowrap">
-                    {getItemType(item) === 'ocasional' && item.bought && (
+                    {!item.bought && (
                       <button
                         type="button"
                         onClick={() => handleMarkAsAgotado(item.id)}
-                        className="px-2.5 py-1 bg-amber-500/10 hover:bg-amber-500/20 text-amber-600 dark:text-amber-400 rounded-lg font-syne text-[10px] font-bold uppercase tracking-wider transition-all flex items-center gap-1 shrink-0"
-                        title="Marcar producto como consumido/agotado para volverlo a comprar"
+                        className="px-2.5 py-1 bg-amber-500/10 hover:bg-amber-500/20 text-amber-600 dark:text-amber-400 rounded-lg font-syne text-[10px] font-bold uppercase tracking-wider transition-all flex items-center gap-1 shrink-0 cursor-pointer"
+                        title="Marcar producto como consumido/agotado para comprar en el mandado"
                       >
                         <span>⚠️ Agotado</span>
                       </button>
@@ -1346,7 +1358,7 @@ export default function MandadoModal({ isOpen, onClose }: MandadoModalProps) {
                       <span>¿Cuánto estás gastando? ($) *</span>
                       {buyingItem.price !== null && (
                         <span className="text-gray-400 dark:text-gray-500 normal-case font-inter text-[10px]">
-                          Estimado: ${buyingItem.price}
+                          Último precio: ${buyingItem.price}
                         </span>
                       )}
                     </label>
