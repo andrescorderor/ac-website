@@ -41,6 +41,15 @@ function markdownToHtml(md: string): string {
       .replace(/>/g, '&gt;');
     // **bold** -> <strong>bold</strong>
     escaped = escaped.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+    // [label](url) or raw https://url -> clickable <a>
+    escaped = escaped.replace(
+      /\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)|(https?:\/\/[^\s<]+)/g,
+      (_match, mdLabel, mdUrl, rawUrl) => {
+        const href = mdUrl || rawUrl;
+        const label = mdLabel || rawUrl;
+        return `<a href="${href}" target="_blank" rel="noreferrer" title="${href}">${label}</a>`;
+      }
+    );
     return escaped;
   };
 
@@ -121,6 +130,18 @@ function htmlToMarkdown(html: string): string {
       if (tag === 'h1' || tag === 'h2' || tag === 'h3' || tag === 'h4') {
         const text = childText.trim();
         return text ? `\n### ${text}\n` : '';
+      }
+
+      if (tag === 'a') {
+        const href = (el.getAttribute('href') || '').trim();
+        const text = childText.trim();
+        if (href && /^https?:\/\//i.test(href)) {
+          if (!text || text === href) {
+            return href;
+          }
+          return `[${text}](${href})`;
+        }
+        return childText;
       }
 
       if (tag === 'strong' || tag === 'b') {
@@ -252,6 +273,36 @@ export default function RichTextEditor({
     });
   };
 
+  const handlePaste = useCallback(
+    (e: React.ClipboardEvent<HTMLDivElement>) => {
+      const html = e.clipboardData.getData('text/html');
+      const plain = e.clipboardData.getData('text/plain');
+
+      // Caso 1: pegado desde navegador (Edge/Chrome) con etiqueta <a>
+      if (html && /<a\s+[^>]*href=["']https?:\/\//i.test(html)) {
+        e.preventDefault();
+        const mdFromHtml = htmlToMarkdown(html);
+        const cleanHtml = markdownToHtml(mdFromHtml)
+          .replace(/^<p>|<\/p>$/g, '')
+          .replace(/<\/p><p>/g, '<br>');
+        document.execCommand('insertHTML', false, cleanHtml);
+        handleInput();
+        return;
+      }
+
+      // Caso 2: texto plano con URL o enlace Markdown [título](url)
+      if (plain && (/https?:\/\/[^\s]+/i.test(plain) || /\[[^\]]+\]\(https?:\/\/[^\s)]+\)/i.test(plain))) {
+        e.preventDefault();
+        const cleanHtml = markdownToHtml(plain)
+          .replace(/^<p>|<\/p>$/g, '')
+          .replace(/<\/p><p>/g, '<br>');
+        document.execCommand('insertHTML', false, cleanHtml);
+        handleInput();
+      }
+    },
+    [handleInput]
+  );
+
   /**
    * Smart key listener for Markdown shortcuts right inside the same field
    */
@@ -373,12 +424,14 @@ export default function RichTextEditor({
           contentEditable
           suppressContentEditableWarning
           onInput={handleInput}
+          onPaste={handlePaste}
           onKeyDown={handleKeyDown}
           style={{ minHeight }}
           className="w-full px-5 py-4 bg-gray-50/70 dark:bg-gray-800/80 border border-gray-200/80 dark:border-gray-700/80 rounded-2xl outline-none focus:border-[var(--vibrant-sky-blue)] dark:focus:border-[var(--vibrant-sky-blue)] font-inter text-sm leading-relaxed text-gray-900 dark:text-gray-100 overflow-y-auto resize-y transition-colors shadow-2xs
           [&_h3]:font-dm-sans [&_h3]:font-bold [&_h3]:text-base [&_h3]:text-[var(--vibrant-sky-blue)] dark:[&_h3]:text-sky-400 [&_h3]:mt-2 [&_h3]:mb-1
           [&_strong]:font-bold [&_strong]:text-gray-900 dark:[&_strong]:text-white
           [&_b]:font-bold [&_b]:text-gray-900 dark:[&_b]:text-white
+          [&_a]:text-blue-600 dark:[&_a]:text-blue-400 [&_a]:underline [&_a]:underline-offset-2 [&_a]:font-medium [&_a]:cursor-pointer [&_a]:break-all
           [&_ul]:list-disc [&_ul]:list-outside [&_ul]:pl-5 [&_ul]:space-y-1 [&_ul]:my-1.5
           [&_ol]:list-decimal [&_ol]:list-outside [&_ol]:pl-5 [&_ol]:space-y-1 [&_ol]:my-1.5
           [&_li]:leading-relaxed [&_li]:text-gray-800 dark:[&_li]:text-gray-200

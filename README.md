@@ -1,7 +1,7 @@
 <div align="center">
   <img src="public/assets/ac-website-icon.svg" alt="Logo" width="100" />
   
-  # Andrés Cordero - Professional Portfolio & Personal Panel PWA (v6.23.0) 🔍✨
+  # Andrés Cordero - Professional Portfolio & Personal Panel PWA (v6.24.0) 🔍✨
   
   **Welcome to my personal ecosystem: a professional portfolio and a custom productivity hub.**  
   Built with UX/UI best practices, premium design, and a focus on mobile-first efficiency.
@@ -16,11 +16,14 @@
 
 ---
 
-## 🚀 Overview (Version 6.23.0)
+## 🚀 Overview (Version 6.24.0)
 
 This repository hosts a dual-purpose platform:
 1. **Professional Portfolio:** A high-end landing page showcasing my engineering background, skills, and achievements with dynamic copyright year updates and zero horizontal overflow.
-2. **Personal Panel PWA (v6.23.0):** An executive personal operating system featuring:
+2. **Personal Panel PWA (v6.24.0):** An executive personal operating system featuring:
+   * **Hipervínculos Reales al Pegar en Descripciones (`RichTextEditor.tsx`, `AutoFormattedText.tsx` - v6.24.0):**
+     * **Preservación de Enlaces Copiados del Navegador:** Al pegar links desde Edge/Chrome (`<a href="...">Título</a>`), el editor conserva la URL en formato Markdown `[Título](url)` en lugar de descartar el `href`.
+     * **Visualización en Vivo y Renderizado en Tarjetas:** Los enlaces (`[Título](url)` y URLs directas `https://...`) se muestran subrayados en azul dentro del editor y como hipervínculos clicables con icono externo en todas las vistas de detalle/tarjetas.
    * **Blindaje Definitivo contra Egress y Bucle Infinito de Pines (v6.23.0):**
      * **Eliminación de Bucle `ac_pinned_changed` (`pinned.ts`, `DashboardHome.tsx`, `DashboardLayout.tsx`):** Se incorporó sincronización silenciosa (`syncPinnedItemsWithSupabase({ silent: true })`) con comparación de estado previo en `localStorage` para evitar disparar eventos en cascada, cortando de raíz las recargas continuas hacia PostgREST y Auth.
      * **Lectura de Sesión Local:** `fetchStats` y `upsertToSupabase` leen `supabase.auth.getSession()` en lugar de golpear la API de Auth en cada render.

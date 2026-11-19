@@ -8,21 +8,41 @@ interface AutoFormattedTextProps {
   expandable?: boolean;
 }
 
-// Inline formatting helper for **bold**, `code`, and URLs
+// Inline formatting helper for [label](url), raw URLs, **bold**, and `code`
 function formatInlineText(text: string): ReactNode[] {
-  const urlRegex = /(https?:\/\/[^\s]+)/g;
-  const parts = text.split(urlRegex);
+  const linkTokenRegex = /(\[[^\]]+\]\(https?:\/\/[^\s)]+\)|https?:\/\/[^\s]+)/g;
+  const parts = text.split(linkTokenRegex);
 
   return parts.map((part, i) => {
-    if (urlRegex.test(part)) {
+    const mdLinkMatch = part.match(/^\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)$/);
+    if (mdLinkMatch) {
+      const [, label, href] = mdLinkMatch;
+      return (
+        <a
+          key={`mdurl-${i}`}
+          href={href}
+          target="_blank"
+          rel="noreferrer"
+          title={href}
+          onClick={(e) => e.stopPropagation()}
+          className="text-blue-600 dark:text-blue-400 font-medium underline underline-offset-2 hover:text-blue-700 dark:hover:text-blue-300 [overflow-wrap:anywhere] inline-flex items-center gap-1 my-0.5 cursor-pointer"
+        >
+          <span>{label}</span>
+          <HiOutlineExternalLink className="text-xs shrink-0" />
+        </a>
+      );
+    }
+
+    if (/^https?:\/\/[^\s]+$/.test(part)) {
       return (
         <a
           key={`url-${i}`}
           href={part}
           target="_blank"
           rel="noreferrer"
+          title={part}
           onClick={(e) => e.stopPropagation()}
-          className="text-blue-600 dark:text-blue-400 font-medium underline underline-offset-2 hover:text-blue-700 dark:hover:text-blue-300 break-all inline-flex items-center gap-1 my-0.5"
+          className="text-blue-600 dark:text-blue-400 font-medium underline underline-offset-2 hover:text-blue-700 dark:hover:text-blue-300 break-all inline-flex items-center gap-1 my-0.5 cursor-pointer"
         >
           <span className="truncate max-w-[200px] sm:max-w-xs">{part}</span>
           <HiOutlineExternalLink className="text-xs shrink-0" />
