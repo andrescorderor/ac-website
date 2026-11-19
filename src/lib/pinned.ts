@@ -48,14 +48,22 @@ export function togglePinItem(item: Omit<PinnedItem, 'pinnedAt'>): boolean {
     upsertToSupabase(newItem);
   }
 
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedItems));
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedItems));
+  } catch {
+    // Ignore storage quota / private mode errors
+  }
   window.dispatchEvent(new CustomEvent('ac_pinned_changed'));
   return isPinned;
 }
 
 export function removePinnedItem(id: string) {
   const items = getPinnedItems().filter((i) => i.id !== id);
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
+  } catch {
+    // Ignore storage quota / private mode errors
+  }
   window.dispatchEvent(new CustomEvent('ac_pinned_changed'));
   deleteFromSupabase(id);
 }
@@ -66,7 +74,8 @@ export function removePinnedItem(id: string) {
 
 async function upsertToSupabase(item: PinnedItem) {
   try {
-    const { data: { user } } = await supabase.auth.getUser();
+    const { data: { session } } = await supabase.auth.getSession();
+    const user = session?.user;
     if (!user) return;
 
     await supabase.from('user_pinned_items').upsert({
@@ -95,7 +104,7 @@ async function deleteFromSupabase(id: string) {
  * Synchronizes local pinned items with Supabase user_pinned_items table,
  * and purges completed or deleted entities from the pinned list.
  */
-export async function syncPinnedItemsWithSupabase() {
+export async function syncPinnedItemsWithSupabase(options?: { silent?: boolean }) {
   try {
     const { data, error } = await supabase
       .from('user_pinned_items')
@@ -116,8 +125,19 @@ export async function syncPinnedItemsWithSupabase() {
         pinnedAt: row.pinned_at || new Date().toISOString(),
       }));
 
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(syncedItems));
-      window.dispatchEvent(new CustomEvent('ac_pinned_changed'));
+      let prevRaw: string | null = null;
+      const nextRaw = JSON.stringify(syncedItems);
+      try {
+        prevRaw = localStorage.getItem(STORAGE_KEY);
+        localStorage.setItem(STORAGE_KEY, nextRaw);
+      } catch {
+        // Ignore storage quota / private mode errors
+      }
+
+      // Emitir evento solo cuando no sea silencioso y los datos realmente cambiaron
+      if (!options?.silent && prevRaw !== nextRaw) {
+        window.dispatchEvent(new CustomEvent('ac_pinned_changed'));
+      }
     }
   } catch {
     // Keep local cache on network offline

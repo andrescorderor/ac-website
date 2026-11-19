@@ -1,7 +1,7 @@
 <div align="center">
   <img src="public/assets/ac-website-icon.svg" alt="Logo" width="100" />
   
-  # Andrés Cordero - Professional Portfolio & Personal Panel PWA (v6.22.0) 🔍✨
+  # Andrés Cordero - Professional Portfolio & Personal Panel PWA (v6.23.0) 🔍✨
   
   **Welcome to my personal ecosystem: a professional portfolio and a custom productivity hub.**  
   Built with UX/UI best practices, premium design, and a focus on mobile-first efficiency.
@@ -16,11 +16,15 @@
 
 ---
 
-## 🚀 Overview (Version 6.22.0)
+## 🚀 Overview (Version 6.23.0)
 
 This repository hosts a dual-purpose platform:
 1. **Professional Portfolio:** A high-end landing page showcasing my engineering background, skills, and achievements with dynamic copyright year updates and zero horizontal overflow.
-2. **Personal Panel PWA (v6.22.0):** An executive personal operating system featuring:
+2. **Personal Panel PWA (v6.23.0):** An executive personal operating system featuring:
+   * **Blindaje Definitivo contra Egress y Bucle Infinito de Pines (v6.23.0):**
+     * **Eliminación de Bucle `ac_pinned_changed` (`pinned.ts`, `DashboardHome.tsx`, `DashboardLayout.tsx`):** Se incorporó sincronización silenciosa (`syncPinnedItemsWithSupabase({ silent: true })`) con comparación de estado previo en `localStorage` para evitar disparar eventos en cascada, cortando de raíz las recargas continuas hacia PostgREST y Auth.
+     * **Lectura de Sesión Local:** `fetchStats` y `upsertToSupabase` leen `supabase.auth.getSession()` en lugar de golpear la API de Auth en cada render.
+     * **Higiene en Workflows de GitHub Actions:** Actualización de fallback en `send-push-notifications.mjs` hacia la instancia activa `epsrgbfnidejfuysjnli` y saneamiento del endpoint de `keep-alive.yml` para evitar errores `401` en logs.
    * **Mandado Inteligente: Conservación de Último Precio, Unidad y Botón Agotado en Pendientes (v6.22.0):**
      * **Persistencia del Último Precio y Unidad:** La unidad y precio guardados para cada producto reflejan siempre el último dato registrado, ya sea al confirmar una compra en el súper o al crear/editar el producto. Se elimina el concepto de "precio estimado" a favor del precio real más reciente, y la cantidad ingresada sobreescribe limpiamente sin concatenaciones confusas.
      * **Botón ⚠️ Agotado para Productos Pendientes:** El botón de acción rápida para marcar productos agotados ahora está disponible en todos los elementos desmarcados (pendientes de comprar), permitiendo establecer stock 0 y confirmar que están listos para la próxima compra en el mandado.

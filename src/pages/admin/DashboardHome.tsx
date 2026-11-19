@@ -29,7 +29,7 @@ import {
   sendBrowserNotification, 
   scanAndNotifyUpcomingEvents 
 } from '@/lib/notifications';
-import { fetchWithCache, invalidateCache } from '@/lib/cache';
+import { fetchWithCache } from '@/lib/cache';
 
 export default function DashboardHome() {
   const [stats, setStats] = useState({
@@ -100,17 +100,15 @@ export default function DashboardHome() {
     loadPinned();
 
     const handlePinnedChanged = () => {
-      invalidateCache('dashboard');
-      loadPinned();
-      fetchStats();
+      setPinnedItems(getPinnedItems());
     };
     window.addEventListener('ac_pinned_changed', handlePinnedChanged);
     return () => window.removeEventListener('ac_pinned_changed', handlePinnedChanged);
   }, []);
 
   const loadPinned = async () => {
-    // 1. Sync first from Supabase to ensure fresh multi-device state
-    await syncPinnedItemsWithSupabase();
+    // 1. Sync first from Supabase silently to avoid re-triggering ac_pinned_changed loops
+    await syncPinnedItemsWithSupabase({ silent: true });
     const rawItems = getPinnedItems();
     if (rawItems.length === 0) {
       setPinnedItems([]);
@@ -172,7 +170,11 @@ export default function DashboardHome() {
 
       if (invalidIds.length > 0) {
         await supabase.from('user_pinned_items').delete().in('id', invalidIds);
-        localStorage.setItem('ac_pinned_items_v1', JSON.stringify(validPinned));
+        try {
+          localStorage.setItem('ac_pinned_items_v1', JSON.stringify(validPinned));
+        } catch {
+          // Ignore storage quota / private mode errors
+        }
       }
 
       setPinnedItems(validPinned);
@@ -182,7 +184,8 @@ export default function DashboardHome() {
   };
 
   const fetchStats = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
+    const { data: { session } } = await supabase.auth.getSession();
+    const user = session?.user;
     if (!user) return;
 
     try {
@@ -329,7 +332,6 @@ export default function DashboardHome() {
     e.stopPropagation();
     removePinnedItem(id);
     setPinnedItems((prev) => prev.filter((i) => i.id !== id));
-    window.dispatchEvent(new Event('ac_pinned_changed'));
     toast.success('📌 Elemento desfijado del inicio');
   };
 
