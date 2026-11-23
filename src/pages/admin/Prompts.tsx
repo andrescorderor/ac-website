@@ -8,17 +8,15 @@ import {
   HiOutlinePencil,
   HiOutlineTrash,
   HiOutlineCheck,
-  HiOutlineSparkles,
   HiX,
 } from 'react-icons/hi';
 import { useToast } from '@/components/common/ToastContext';
-import CustomSelect from '@/components/common/CustomSelect';
 import { loadSystemData, saveSystemData } from '@/lib/systemStore';
 
 export interface PromptTemplate {
   id: string;
   title: string;
-  category: string;
+  category?: string;
   body: string;
   updatedAt: string;
 }
@@ -27,20 +25,19 @@ const DEFAULT_PROMPTS: PromptTemplate[] = [
   {
     id: 'prompt-seguimiento-comercial',
     title: 'Seguimiento de Propuesta Comercial',
-    category: 'Clientes & Negocio',
+    category: 'General',
     body: 'Hola {{cliente}}, ¿cómo estás?\n\nTe escribo para dar seguimiento a la propuesta de {{proyecto}} por un total de ${{monto}} que te compartí el {{fecha}}.\n\nSi tienes alguna duda técnica o quieres ajustar el alcance, con gusto lo revisamos en una llamada breve.\n\nSaludos,\nAndrés Cordero',
     updatedAt: new Date().toISOString(),
   },
   {
     id: 'prompt-especificacion-tecnica',
     title: 'Prompt Arquitectura & Código',
-    category: 'IA & Ingeniería',
+    category: 'General',
     body: 'Actúa como Tech Lead Senior especialista en {{stack}}.\n\nContexto del proyecto: {{proyecto}}\nObjetivo principal: {{objetivo}}\nRestricciones clave: {{restricciones}}\n\nPropón primero la arquitectura, modelo de datos y casos borde antes de generar la implementación.',
     updatedAt: new Date().toISOString(),
   },
 ];
 
-const CATEGORIES = ['Clientes & Negocio', 'IA & Ingeniería', 'Mensajes & WhatsApp', 'Operación'];
 const normalize = (s: string | null | undefined) =>
   (s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
 
@@ -58,7 +55,6 @@ export default function Prompts() {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [varValues, setVarValues] = useState<Record<string, string>>({});
   const [searchTerm, setSearchTerm] = useState('');
-  const [categoryFilter, setCategoryFilter] = useState('Todas');
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -66,7 +62,6 @@ export default function Prompts() {
   const [editingPrompt, setEditingPrompt] = useState<PromptTemplate | null>(null);
   const [formState, setFormState] = useState({
     title: '',
-    category: 'Clientes & Negocio',
     body: '',
   });
 
@@ -92,15 +87,13 @@ export default function Prompts() {
   const filteredPrompts = useMemo(() => {
     const norm = normalize(searchTerm.trim());
     return prompts.filter((p) => {
-      const catOk = categoryFilter === 'Todas' || p.category === categoryFilter;
-      const searchOk =
+      return (
         !norm ||
         normalize(p.title).includes(norm) ||
-        normalize(p.category).includes(norm) ||
-        normalize(p.body).includes(norm);
-      return catOk && searchOk;
+        normalize(p.body).includes(norm)
+      );
     });
-  }, [prompts, searchTerm, categoryFilter]);
+  }, [prompts, searchTerm]);
 
   const activePrompt = useMemo(
     () => prompts.find((p) => p.id === selectedId) || filteredPrompts[0] || null,
@@ -135,13 +128,13 @@ export default function Prompts() {
 
   const openCreateModal = () => {
     setEditingPrompt(null);
-    setFormState({ title: '', category: 'Clientes & Negocio', body: '' });
+    setFormState({ title: '', body: '' });
     setShowModal(true);
   };
 
   const openEditModal = (p: PromptTemplate) => {
     setEditingPrompt(p);
-    setFormState({ title: p.title, category: p.category, body: p.body });
+    setFormState({ title: p.title, body: p.body });
     setShowModal(true);
   };
 
@@ -159,7 +152,7 @@ export default function Prompts() {
           ? {
               ...p,
               title: formState.title.trim(),
-              category: formState.category,
+              category: editingPrompt.category || 'General',
               body: formState.body,
               updatedAt: nowIso,
             }
@@ -171,7 +164,7 @@ export default function Prompts() {
       const created: PromptTemplate = {
         id: `prompt_${Date.now()}`,
         title: formState.title.trim(),
-        category: formState.category,
+        category: 'General',
         body: formState.body,
         updatedAt: nowIso,
       };
@@ -231,35 +224,16 @@ export default function Prompts() {
         </button>
       </header>
 
-      {/* Search + Categories */}
-      <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center justify-between">
-        <div className="relative flex-1 max-w-md">
-          <input
-            type="text"
-            placeholder="Buscar plantilla, categoría o variable..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-10 pr-4 min-h-[44px] py-2 bg-white dark:bg-[#111827] border border-gray-200/80 dark:border-white/10 rounded-2xl outline-none focus:border-[var(--vibrant-sky-blue)] font-inter text-sm text-gray-900 dark:text-white placeholder-gray-400 shadow-xs"
-          />
-          <HiOutlineSearch className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 size-5 pointer-events-none" />
-        </div>
-
-        <div className="flex flex-wrap items-center gap-1.5">
-          {['Todas', ...CATEGORIES].map((cat) => (
-            <button
-              key={cat}
-              type="button"
-              onClick={() => setCategoryFilter(cat)}
-              className={`px-3.5 min-h-[40px] py-1.5 rounded-2xl text-xs font-syne font-bold uppercase tracking-wider border transition-all cursor-pointer ${
-                categoryFilter === cat
-                  ? 'bg-black dark:bg-white text-white dark:text-black border-transparent shadow-sm'
-                  : 'bg-white dark:bg-[#111827] text-gray-600 dark:text-gray-300 border-gray-200/80 dark:border-white/10 hover:bg-gray-50 dark:hover:bg-gray-800'
-              }`}
-            >
-              {cat}
-            </button>
-          ))}
-        </div>
+      {/* Search */}
+      <div className="relative max-w-md w-full">
+        <input
+          type="text"
+          placeholder="Buscar plantilla o variable..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="w-full pl-10 pr-4 min-h-[44px] py-2 bg-white dark:bg-[#111827] border border-gray-200/80 dark:border-white/10 rounded-2xl outline-none focus:border-[var(--vibrant-sky-blue)] font-inter text-sm text-gray-900 dark:text-white placeholder-gray-400 shadow-xs"
+        />
+        <HiOutlineSearch className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 size-5 pointer-events-none" />
       </div>
 
       {/* Main Split */}
@@ -267,17 +241,14 @@ export default function Prompts() {
         {/* Templates List */}
         <div className="space-y-3">
           {filteredPrompts.length === 0 ? (
-            <div className="bg-white dark:bg-gray-900 rounded-3xl p-8 text-center space-y-2">
+            <div className="bg-white dark:bg-[#111827] border border-gray-200/80 dark:border-white/[0.09] rounded-3xl p-8 text-center space-y-2 shadow-xs">
               <p className="font-dm-sans font-bold text-gray-700 dark:text-gray-200">Sin coincidencias</p>
               <button
                 type="button"
-                onClick={() => {
-                  setSearchTerm('');
-                  setCategoryFilter('Todas');
-                }}
+                onClick={() => setSearchTerm('')}
                 className="text-xs font-syne font-bold uppercase text-[var(--vibrant-sky-blue)] cursor-pointer"
               >
-                Restablecer filtros
+                Limpiar búsqueda
               </button>
             </div>
           ) : (
@@ -293,15 +264,12 @@ export default function Prompts() {
                   }}
                   className={`p-4 rounded-3xl border transition-all cursor-pointer space-y-2 ${
                     isSelected
-                      ? 'bg-white dark:bg-gray-900 border-[var(--vibrant-sky-blue)] shadow-md'
-                      : 'bg-white/75 dark:bg-gray-900/75 border-gray-100 dark:border-gray-800 hover:bg-white dark:hover:bg-gray-900'
+                      ? 'bg-white dark:bg-[#111827] border-[var(--vibrant-sky-blue)] shadow-md ring-1 ring-[var(--vibrant-sky-blue)]/20'
+                      : 'bg-white dark:bg-[#111827] border-gray-200/80 dark:border-white/[0.09] hover:border-gray-300 dark:hover:border-white/20 shadow-xs'
                   }`}
                 >
                   <div className="flex items-start justify-between gap-2">
-                    <div className="min-w-0">
-                      <span className="inline-block px-2 py-0.5 rounded-md text-[9px] font-syne font-bold uppercase tracking-wider bg-sky-500/10 text-sky-600 dark:text-sky-300 mb-1">
-                        {p.category}
-                      </span>
+                    <div className="min-w-0 pt-0.5">
                       <h3 className="font-dm-sans font-bold text-base text-gray-900 dark:text-white truncate">
                         {p.title}
                       </h3>
@@ -310,7 +278,7 @@ export default function Prompts() {
                       <button
                         type="button"
                         onClick={() => openEditModal(p)}
-                        className="p-2 text-gray-400 hover:text-[var(--vibrant-sky-blue)] rounded-xl cursor-pointer"
+                        className="min-w-[36px] min-h-[36px] p-2 text-gray-400 hover:text-[var(--vibrant-sky-blue)] rounded-xl cursor-pointer flex items-center justify-center"
                         title="Editar plantilla"
                       >
                         <HiOutlinePencil />
@@ -318,7 +286,7 @@ export default function Prompts() {
                       <button
                         type="button"
                         onClick={() => handleDeletePrompt(p)}
-                        className="p-2 text-red-500 hover:bg-red-500/10 rounded-xl cursor-pointer"
+                        className="min-w-[36px] min-h-[36px] p-2 text-red-500 hover:bg-red-500/10 rounded-xl cursor-pointer flex items-center justify-center"
                         title="Eliminar plantilla"
                       >
                         <HiOutlineTrash />
@@ -349,13 +317,10 @@ export default function Prompts() {
         {/* Interactive Variable Filler & Preview */}
         <div className="lg:col-span-2">
           {activePrompt ? (
-            <div className="bg-white/90 dark:bg-gray-900/90 glass dark:dark-glass rounded-[2rem] p-5 sm:p-7 border border-gray-100 dark:border-gray-800 shadow-sm space-y-6">
+            <div className="bg-white/95 dark:bg-[#111827]/95 glass dark:dark-glass rounded-[2rem] p-5 sm:p-7 border border-gray-200/80 dark:border-white/[0.09] shadow-sm space-y-6">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-gray-100 dark:border-gray-800 pb-4">
-                <div>
-                  <span className="font-syne text-[10px] font-bold uppercase tracking-widest text-[var(--vibrant-sky-blue)] flex items-center gap-1.5">
-                    <HiOutlineSparkles /> {activePrompt.category}
-                  </span>
-                  <h2 className="font-dm-sans text-2xl font-bold text-gray-900 dark:text-white">
+                <div className="min-w-0">
+                  <h2 className="font-dm-sans text-xl sm:text-2xl font-bold text-gray-900 dark:text-white break-words">
                     {activePrompt.title}
                   </h2>
                 </div>
@@ -461,30 +426,18 @@ export default function Prompts() {
 
                 <form onSubmit={handleSavePrompt} className="flex flex-col flex-1 min-h-0">
                   <div className="p-6 sm:p-7 overflow-y-auto flex-1 min-h-0 space-y-4">
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                      <div>
-                        <label className="block font-syne text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-1.5">
-                          Título *
-                        </label>
-                        <input
-                          type="text"
-                          required
-                          placeholder="Ej. Cotización Web"
-                          value={formState.title}
-                          onChange={(e) => setFormState({ ...formState, title: e.target.value })}
-                          className="w-full px-4 min-h-[44px] py-2.5 bg-gray-50/70 dark:bg-gray-800/80 border border-gray-200 dark:border-gray-700 rounded-xl outline-none focus:border-[var(--vibrant-sky-blue)] font-inter text-sm text-gray-900 dark:text-white"
-                        />
-                      </div>
-                      <div>
-                        <label className="block font-syne text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-1.5">
-                          Categoría
-                        </label>
-                        <CustomSelect
-                          value={formState.category}
-                          onChange={(val) => setFormState({ ...formState, category: val })}
-                          options={CATEGORIES.map((c) => ({ value: c, label: c }))}
-                        />
-                      </div>
+                    <div>
+                      <label className="block font-syne text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-1.5">
+                        Título *
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        placeholder="Ej. Cotización Web"
+                        value={formState.title}
+                        onChange={(e) => setFormState({ ...formState, title: e.target.value })}
+                        className="w-full px-4 min-h-[44px] py-2.5 bg-gray-50/70 dark:bg-gray-800/80 border border-gray-200 dark:border-gray-700 rounded-xl outline-none focus:border-[var(--vibrant-sky-blue)] font-inter text-sm text-gray-900 dark:text-white"
+                      />
                     </div>
 
                     <div>
