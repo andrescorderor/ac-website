@@ -1,7 +1,7 @@
 <div align="center">
   <img src="public/assets/ac-website-icon.svg" alt="Logo" width="100" />
   
-  # Andrés Cordero - Professional Portfolio & Personal Panel PWA (v6.25.0) 🔍✨
+  # Andrés Cordero - Professional Portfolio & Personal Panel PWA (v6.26.0) 🔍✨
   
   **Welcome to my personal ecosystem: a professional portfolio and a custom productivity hub.**  
   Built with UX/UI best practices, premium design, and a focus on mobile-first efficiency.
@@ -16,11 +16,15 @@
 
 ---
 
-## 🚀 Overview (Version 6.25.0)
+## 🚀 Overview (Version 6.26.0)
 
 This repository hosts a dual-purpose platform:
 1. **Professional Portfolio:** A high-end landing page showcasing my engineering background, skills, and achievements with dynamic copyright year updates and zero horizontal overflow.
-2. **Personal Panel PWA (v6.25.0):** An executive personal operating system featuring:
+2. **Personal Panel PWA (v6.26.0):** An executive personal operating system featuring:
+   * **Refinamiento UX Multi-Ámbito y Ergonomía General (`Pendientes.tsx`, `DashboardLayout.tsx` - v6.26.0):**
+     * **Tablero Horizontal Alineado para 5+ Ámbitos:** Columnas con ancho ergonómico, `snap-x` en móvil y scroll interno independiente por columna (`max-h-[65vh]`), manteniendo todas las cabeceras alineadas y con paleta determinística de 6 colores distintos.
+     * **Tarjetas Escaneables de Baja Fricción:** Pill único interactivo para ciclar el status en 1 clic (`Pendiente → En Progreso → En Espera → Completada`) y alertas visuales automáticas para fechas vencidas o de hoy.
+     * **Ergonomía Global Mejorada:** Contenedor ampliado hasta `max-w-[1600px]` en pantallas grandes y controles táctiles `min-h-[44px]` en la barra superior de escritorio.
    * **Tablero de Pendientes por Ámbitos y Áreas (`Pendientes.tsx`, `taskMeta.ts`, `CommandPalette.tsx` - v6.25.0):**
      * **Columnas por Ámbito / Área:** Agrupación dinámica en columnas (Personal, Trabajo, Social, Emprendimiento o cualquier ámbito personalizado creado al vuelo) con toggle entre vista en **Columnas** y **Lista**, más creación rápida directa en cada columna.
      * **Prioridades y Ordenamiento Automático:** Niveles `Urgente`, `Alta`, `Media` y `Baja` con rotación rápida en 1 clic y ordenamiento automático por prioridad y fecha límite dentro de cada columna.

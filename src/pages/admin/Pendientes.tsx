@@ -81,21 +81,34 @@ function sortTasksByPriority(list: TaskItem[]): TaskItem[] {
   });
 }
 
-function getAreaAccent(area: string): { dot: string; headerBg: string; border: string } {
+const AREA_PALETTE = [
+  { dot: 'bg-indigo-500', headerBg: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-300', border: 'border-indigo-500/20' },
+  { dot: 'bg-emerald-500', headerBg: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-300', border: 'border-emerald-500/20' },
+  { dot: 'bg-sky-500', headerBg: 'bg-sky-500/10 text-sky-600 dark:text-sky-300', border: 'border-sky-500/20' },
+  { dot: 'bg-pink-500', headerBg: 'bg-pink-500/10 text-pink-600 dark:text-pink-300', border: 'border-pink-500/20' },
+  { dot: 'bg-amber-500', headerBg: 'bg-amber-500/10 text-amber-600 dark:text-amber-300', border: 'border-amber-500/20' },
+  { dot: 'bg-violet-500', headerBg: 'bg-violet-500/10 text-violet-600 dark:text-violet-300', border: 'border-violet-500/20' },
+];
+
+function getAreaAccent(area: string) {
   const norm = normalize(area);
-  if (norm.includes('trabaj') || norm.includes('empres')) {
-    return { dot: 'bg-indigo-500', headerBg: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-300', border: 'border-indigo-500/20' };
+  let hash = 0;
+  for (let i = 0; i < norm.length; i++) {
+    hash = (hash * 31 + norm.charCodeAt(i)) >>> 0;
   }
-  if (norm.includes('emprend')) {
-    return { dot: 'bg-emerald-500', headerBg: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-300', border: 'border-emerald-500/20' };
+  return AREA_PALETTE[hash % AREA_PALETTE.length];
+}
+
+function getDueBadgeStyle(dueDate: string, completed: boolean) {
+  if (completed) return { label: dueDate, cls: 'text-gray-400 dark:text-gray-500' };
+  const todayStr = new Date().toISOString().split('T')[0];
+  if (dueDate < todayStr) {
+    return { label: `Vencida · ${dueDate}`, cls: 'text-rose-600 dark:text-rose-400 bg-rose-500/10 px-2 py-0.5 rounded-md' };
   }
-  if (norm.includes('social') || norm.includes('amig')) {
-    return { dot: 'bg-pink-500', headerBg: 'bg-pink-500/10 text-pink-600 dark:text-pink-300', border: 'border-pink-500/20' };
+  if (dueDate === todayStr) {
+    return { label: `Hoy · ${dueDate}`, cls: 'text-amber-600 dark:text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded-md' };
   }
-  if (norm.includes('personal') || norm.includes('hogar')) {
-    return { dot: 'bg-sky-500', headerBg: 'bg-sky-500/10 text-sky-600 dark:text-sky-300', border: 'border-sky-500/20' };
-  }
-  return { dot: 'bg-violet-500', headerBg: 'bg-violet-500/10 text-violet-600 dark:text-violet-300', border: 'border-violet-500/20' };
+  return { label: dueDate, cls: 'text-gray-400 dark:text-gray-500' };
 }
 
 export default function Pendientes() {
@@ -581,34 +594,32 @@ export default function Pendientes() {
           </div>
         </div>
 
-        {/* Footer: Quick Status Pills + Due Date */}
-        <div className="pt-2 border-t border-gray-100 dark:border-gray-800/80 flex flex-wrap items-center justify-between gap-2">
-          <div className="flex items-center gap-1 flex-wrap">
-            {STATUS_OPTIONS.map((opt) => {
-              const isSelected = task.status === opt.value;
-              return (
-                <button
-                  key={opt.value}
-                  type="button"
-                  onClick={() => handleChangeStatus(task, opt.value)}
-                  className={`px-2 py-1 rounded-lg text-[10px] font-syne font-bold uppercase tracking-wider border transition-all cursor-pointer ${
-                    isSelected
-                      ? opt.badge
-                      : 'border-transparent text-gray-400 dark:text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800'
-                  }`}
-                >
-                  {opt.shortLabel}
-                </button>
-              );
-            })}
-          </div>
+        {/* Footer: 1-Tap Cycle Status Pill + Due Date */}
+        <div className="pt-2 border-t border-gray-100 dark:border-gray-800/80 flex items-center justify-between gap-2">
+          {(() => {
+            const currentOpt = STATUS_OPTIONS.find((s) => s.value === task.status) || STATUS_OPTIONS[0];
+            const nextOpt = STATUS_OPTIONS[(STATUS_OPTIONS.findIndex((s) => s.value === task.status) + 1) % STATUS_OPTIONS.length];
+            return (
+              <button
+                type="button"
+                onClick={() => handleChangeStatus(task, nextOpt.value)}
+                title={`Clic para cambiar a: ${nextOpt.label}`}
+                className={`px-2.5 py-1 rounded-lg text-[10px] font-syne font-bold uppercase tracking-wider border transition-all cursor-pointer hover:scale-105 active:scale-95 ${currentOpt.badge}`}
+              >
+                {currentOpt.label} ↻
+              </button>
+            );
+          })()}
 
-          {task.due_date && (
-            <span className="inline-flex items-center gap-1 font-syne text-[10px] font-bold uppercase tracking-wider text-gray-400 dark:text-gray-500 shrink-0">
-              <HiOutlineCalendar className="text-xs" />
-              {task.due_date}
-            </span>
-          )}
+          {task.due_date && (() => {
+            const due = getDueBadgeStyle(task.due_date, task.completed);
+            return (
+              <span className={`inline-flex items-center gap-1 font-syne text-[10px] font-bold uppercase tracking-wider shrink-0 ${due.cls}`}>
+                <HiOutlineCalendar className="text-xs" />
+                {due.label}
+              </span>
+            );
+          })()}
         </div>
       </motion.div>
     );
@@ -734,7 +745,7 @@ export default function Pendientes() {
             <button
               type="button"
               onClick={() => setAreaFilter('all')}
-              className={`px-3.5 py-1.5 rounded-xl text-[11px] font-syne font-bold uppercase tracking-wider transition-all whitespace-nowrap cursor-pointer ${
+              className={`px-3.5 min-h-[38px] py-1.5 rounded-xl text-[11px] font-syne font-bold uppercase tracking-wider transition-all whitespace-nowrap cursor-pointer ${
                 areaFilter === 'all'
                   ? 'bg-[var(--vibrant-sky-blue)] text-white shadow-sm'
                   : 'bg-gray-100 dark:bg-gray-800/80 text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200'
@@ -744,17 +755,19 @@ export default function Pendientes() {
             </button>
             {existingAreas.map((area) => {
               const count = tasks.filter((t) => t.area === area && !t.completed).length;
+              const accent = getAreaAccent(area);
               return (
                 <button
                   key={area}
                   type="button"
                   onClick={() => setAreaFilter(areaFilter === area ? 'all' : area)}
-                  className={`px-3.5 py-1.5 rounded-xl text-[11px] font-syne font-bold uppercase tracking-wider transition-all whitespace-nowrap cursor-pointer flex items-center gap-1.5 ${
+                  className={`px-3.5 min-h-[38px] py-1.5 rounded-xl text-[11px] font-syne font-bold uppercase tracking-wider transition-all whitespace-nowrap cursor-pointer flex items-center gap-2 ${
                     areaFilter === area
                       ? 'bg-[var(--vibrant-sky-blue)] text-white shadow-sm'
                       : 'bg-gray-100 dark:bg-gray-800/80 text-gray-600 dark:text-gray-300 hover:bg-gray-200/70 dark:hover:bg-gray-700'
                   }`}
                 >
+                  <span className={`size-2 rounded-full shrink-0 ${areaFilter === area ? 'bg-white' : accent.dot}`} />
                   <span>{area}</span>
                   <span className="opacity-70 text-[10px]">({count})</span>
                 </button>
@@ -782,14 +795,20 @@ export default function Pendientes() {
                 setPriorityFilter('all');
                 setStatusFilter('active');
               }}
-              className="px-5 py-2.5 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-xl font-syne text-xs font-bold uppercase tracking-wider transition-all cursor-pointer"
+              className="px-5 min-h-[44px] py-2.5 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-xl font-syne text-xs font-bold uppercase tracking-wider transition-all cursor-pointer"
             >
               Restablecer filtros
             </button>
           )}
         </div>
       ) : viewMode === 'columns' ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5 items-start">
+        <div
+          className={
+            columns.length === 1
+              ? 'max-w-2xl'
+              : 'flex gap-4 overflow-x-auto pb-4 snap-x snap-mandatory items-start'
+          }
+        >
           {columns.map(([areaName, areaTasks]) => {
             const accent = getAreaAccent(areaName);
             const activeCount = areaTasks.filter((t) => !t.completed).length;
@@ -797,13 +816,17 @@ export default function Pendientes() {
             return (
               <section
                 key={areaName}
-                className={`bg-gray-50/80 dark:bg-gray-900/40 rounded-[2rem] p-4 sm:p-5 border ${accent.border} space-y-4`}
+                className={`${
+                  columns.length === 1
+                    ? 'w-full'
+                    : 'w-[86vw] sm:w-[320px] xl:w-[310px] 2xl:w-[320px] shrink-0 snap-start'
+                } bg-gray-50/80 dark:bg-gray-900/40 rounded-[2rem] p-4 border ${accent.border} flex flex-col gap-3`}
               >
                 {/* Column Header */}
-                <div className="flex items-center justify-between gap-2 pb-2 border-b border-gray-200/70 dark:border-gray-800">
-                  <div className="flex items-center gap-2.5 min-w-0">
+                <div className="flex items-center justify-between gap-2 pb-2 border-b border-gray-200/70 dark:border-gray-800 shrink-0">
+                  <div className="flex items-center gap-2 min-w-0">
                     <span className={`size-2.5 rounded-full shrink-0 ${accent.dot}`} />
-                    <h3 className="font-dm-sans font-bold text-lg text-gray-900 dark:text-white truncate">
+                    <h3 className="font-dm-sans font-bold text-base sm:text-lg text-gray-900 dark:text-white truncate">
                       {areaName}
                     </h3>
                     <span className={`px-2 py-0.5 rounded-full text-[10px] font-syne font-bold shrink-0 ${accent.headerBg}`}>
@@ -814,15 +837,15 @@ export default function Pendientes() {
                   <button
                     type="button"
                     onClick={() => openCreateModal(areaName)}
-                    className="p-2 rounded-xl bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:text-[var(--vibrant-sky-blue)] shadow-2xs border border-gray-200/60 dark:border-gray-700/60 transition-all cursor-pointer shrink-0"
+                    className="min-w-[36px] min-h-[36px] p-2 rounded-xl bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:text-[var(--vibrant-sky-blue)] shadow-2xs border border-gray-200/60 dark:border-gray-700/60 transition-all cursor-pointer shrink-0 flex items-center justify-center"
                     title={`Agregar tarea en ${areaName}`}
                   >
                     <HiOutlinePlus className="text-base" />
                   </button>
                 </div>
 
-                {/* Column Cards */}
-                <div className="space-y-3">
+                {/* Column Cards (Scrollable per column for 5+ areas alignment) */}
+                <div className="space-y-3 max-h-[65vh] overflow-y-auto pr-0.5">
                   <AnimatePresence>
                     {areaTasks.map((task) => renderTaskCard(task, true))}
                   </AnimatePresence>

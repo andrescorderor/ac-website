@@ -255,7 +255,7 @@ function DashboardLayoutContent() {
 
           <div className="text-center select-none pt-1">
             <span className="font-syne text-[9px] font-bold tracking-widest text-gray-400 dark:text-gray-600 block">
-              VERSIÓN v6.25.0
+              VERSIÓN v6.26.0
             </span>
           </div>
         </div>
@@ -396,7 +396,7 @@ function DashboardLayoutContent() {
 
           <div className="text-center select-none pt-2">
             <span className="font-syne text-[9px] font-bold tracking-widest text-gray-400 dark:text-gray-600 block">
-              VERSIÓN v6.25.0
+              VERSIÓN v6.26.0
             </span>
           </div>
         </div>
@@ -405,13 +405,13 @@ function DashboardLayoutContent() {
       {/* ═══ Main Content ═══ */}
       <main ref={mainRef} className="flex-1 overflow-y-auto">
         {/* Desktop Top Bar */}
-        <header className="hidden lg:flex h-16 items-center justify-between px-12 bg-white/90 dark:bg-[#111827]/90 backdrop-blur-xl border-b border-gray-100 dark:border-gray-800/80 sticky top-0 z-30 transition-all duration-300 gap-6 shadow-xs">
+        <header className="hidden lg:flex h-16 items-center justify-between px-6 xl:px-10 bg-white/90 dark:bg-[#111827]/90 backdrop-blur-xl border-b border-gray-100 dark:border-gray-800/80 sticky top-0 z-30 transition-all duration-300 gap-6 shadow-xs">
           <div className="flex items-center gap-4 flex-1">
 
             {/* Desktop Command Palette Search Bar */}
             <button
               onClick={() => setIsSearchOpen(true)}
-              className="flex items-center gap-3 px-4 py-2 bg-gray-100/80 dark:bg-gray-800/80 hover:bg-gray-200/60 dark:hover:bg-gray-700/60 border border-gray-200/60 dark:border-gray-700/60 rounded-xl text-sm font-inter text-gray-400 dark:text-gray-400 max-w-sm w-full transition-all group"
+              className="flex items-center gap-3 px-4 min-h-[44px] py-2 bg-gray-100/80 dark:bg-gray-800/80 hover:bg-gray-200/60 dark:hover:bg-gray-700/60 border border-gray-200/60 dark:border-gray-700/60 rounded-xl text-sm font-inter text-gray-400 dark:text-gray-400 max-w-sm w-full transition-all group cursor-pointer"
             >
               <HiOutlineSearch className="text-base text-gray-400 group-hover:text-gray-600 dark:group-hover:text-gray-200" />
               <span className="truncate">Buscar en todo el panel...</span>
@@ -421,10 +421,10 @@ function DashboardLayoutContent() {
             </button>
           </div>
 
-          <div className="flex items-center gap-4 shrink-0">
+          <div className="flex items-center gap-3 shrink-0">
             <button
               onClick={handleToggleNotifications}
-              className="flex items-center gap-2 px-4 py-2 bg-gray-100 dark:bg-gray-800 rounded-xl border border-gray-200/60 dark:border-gray-700/60 text-xs font-syne font-bold uppercase tracking-wider text-gray-700 dark:text-gray-200 hover:scale-105 active:scale-95 transition-all"
+              className="flex items-center gap-2 px-4 min-h-[44px] py-2 bg-gray-100 dark:bg-gray-800 rounded-xl border border-gray-200/60 dark:border-gray-700/60 text-xs font-syne font-bold uppercase tracking-wider text-gray-700 dark:text-gray-200 hover:scale-105 active:scale-95 transition-all cursor-pointer"
               title="Notificaciones PWA"
             >
               {notifPermission === 'granted' ? (
@@ -442,7 +442,7 @@ function DashboardLayoutContent() {
 
             <button
               onClick={toggleDarkMode}
-              className="flex items-center gap-2 px-4 py-2 bg-gray-100 dark:bg-gray-800 rounded-xl border border-gray-200/60 dark:border-gray-700/60 text-xs font-syne font-bold uppercase tracking-wider text-gray-700 dark:text-amber-400 hover:scale-105 active:scale-95 transition-all"
+              className="flex items-center gap-2 px-4 min-h-[44px] py-2 bg-gray-100 dark:bg-gray-800 rounded-xl border border-gray-200/60 dark:border-gray-700/60 text-xs font-syne font-bold uppercase tracking-wider text-gray-700 dark:text-amber-400 hover:scale-105 active:scale-95 transition-all cursor-pointer"
               title={isDarkMode ? 'Cambiar a Modo Claro' : 'Cambiar a Modo Oscuro'}
             >
               {isDarkMode ? (
@@ -468,7 +468,7 @@ function DashboardLayoutContent() {
           </div>
         </header>
 
-        <div className="p-5 md:p-8 lg:p-12 pt-20 pb-bottom-nav lg:pt-8 lg:pb-8 max-w-7xl mx-auto min-h-screen">
+        <div className="p-4 sm:p-6 md:p-8 lg:p-10 pt-20 pb-bottom-nav lg:pt-8 lg:pb-8 max-w-[1600px] mx-auto min-h-screen">
           <motion.div
             key={location.pathname}
             initial={{ opacity: 0, y: 10 }}
