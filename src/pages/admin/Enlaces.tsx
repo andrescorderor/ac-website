@@ -6,9 +6,9 @@ import {
   HiOutlinePlus, 
   HiOutlineTrash, 
   HiOutlineExternalLink,
+  HiOutlineSearch,
   HiX
 } from 'react-icons/hi';
-import CustomSelect from '@/components/common/CustomSelect';
 import { useToast } from '@/components/common/ToastContext';
 import { moveToTrash } from '@/lib/trash';
 
@@ -16,10 +16,11 @@ type Bookmark = {
   id: string;
   title: string;
   url: string;
-  category: string;
+  category?: string;
 };
 
-const defaultCategories = ['General', 'Trabajo', 'Banco', 'Gobierno', 'Herramientas', 'Otro'];
+const normalize = (s: string | null | undefined) =>
+  (s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
 
 function getDomain(url: string): string {
   try {
@@ -34,18 +35,17 @@ export default function Enlaces() {
   const [bookmarks, setBookmarks] = useState<Bookmark[]>([]);
   const [loading, setLoading] = useState(true);
   const [showAddForm, setShowAddForm] = useState(false);
-  const [filterCat, setFilterCat] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
-  const [newBookmark, setNewBookmark] = useState({ title: '', url: '', category: 'General' });
+  const [newBookmark, setNewBookmark] = useState({ title: '', url: '' });
 
   useEffect(() => { fetchBookmarks(); }, []);
 
   const fetchBookmarks = async () => {
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from('bookmarks')
       .select('*')
-      .order('category', { ascending: true })
       .order('created_at', { ascending: false });
+    if (error) toast.error('Error al cargar enlaces: ' + error.message);
     if (data) setBookmarks(data);
     setLoading(false);
   };
@@ -53,26 +53,30 @@ export default function Enlaces() {
   const handleAdd = async (e: React.FormEvent) => {
     e.preventDefault();
     const { data: { user } } = await supabase.auth.getUser();
-    if (!user || !newBookmark.title || !newBookmark.url) return;
+    if (!user || !newBookmark.title.trim() || !newBookmark.url.trim()) return;
 
     // Auto-prepend https:// if missing
-    let url = newBookmark.url;
+    let url = newBookmark.url.trim();
     if (!url.startsWith('http://') && !url.startsWith('https://')) {
       url = 'https://' + url;
     }
 
     const { error } = await supabase.from('bookmarks').insert([{
       user_id: user.id,
-      title: newBookmark.title,
+      title: newBookmark.title.trim(),
       url,
-      category: newBookmark.category,
+      category: 'General',
     }]);
 
-    if (!error) {
-      setNewBookmark({ title: '', url: '', category: 'General' });
-      setShowAddForm(false);
-      fetchBookmarks();
+    if (error) {
+      toast.error('Error al guardar enlace: ' + error.message);
+      return;
     }
+
+    setNewBookmark({ title: '', url: '' });
+    setShowAddForm(false);
+    fetchBookmarks();
+    toast.success('Enlace guardado ✨');
   };
 
   const deleteBookmark = async (id: string) => {
@@ -113,97 +117,60 @@ export default function Enlaces() {
     }
   };
 
-  const filtered = bookmarks.filter(b => {
-    const matchesCat = filterCat === 'all' || b.category === filterCat;
-    const matchesSearch = b.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         b.url.toLowerCase().includes(searchTerm.toLowerCase());
-    return matchesCat && matchesSearch;
+  const normSearch = normalize(searchTerm.trim());
+  const filtered = bookmarks.filter((b) => {
+    if (!normSearch) return true;
+    return normalize(b.title).includes(normSearch) || normalize(b.url).includes(normSearch);
   });
 
-  // Group by category
-  const grouped = filtered.reduce((acc, b) => {
-    if (!acc[b.category]) acc[b.category] = [];
-    acc[b.category].push(b);
-    return acc;
-  }, {} as Record<string, Bookmark[]>);
-
-  // Get unique categories from data
-  const usedCategories = [...new Set(bookmarks.map(b => b.category))];
-
   if (loading) return (
-    <div className="space-y-10 pb-20">
+    <div className="space-y-6 pb-16">
       <div className="flex justify-between items-end">
-        <div className="space-y-3">
-          <div className="skeleton h-10 w-48" />
-          <div className="skeleton h-4 w-72" />
+        <div className="space-y-2.5">
+          <div className="skeleton h-9 w-48" />
+          <div className="skeleton h-4 w-72 hidden sm:block" />
         </div>
-        <div className="skeleton h-12 w-36 rounded-2xl" />
+        <div className="skeleton h-11 w-36 rounded-2xl" />
       </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {[1, 2, 3, 4, 5, 6].map(i => <div key={i} className="skeleton h-20 rounded-2xl" />)}
       </div>
     </div>
   );
 
   return (
-    <div className="space-y-12 pb-28 sm:pb-20">
-      <header className="flex flex-col sm:flex-row sm:items-end justify-between gap-6">
+    <div className="space-y-5 sm:space-y-8 pb-8">
+      <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-3.5">
         <div className="flex-1">
-          <h1 className="font-dm-sans text-3xl md:text-4xl font-bold tracking-tight text-[var(--black)] dark:text-white">
+          <h1 className="font-dm-sans text-2xl sm:text-3xl font-bold tracking-tight text-[var(--black)] dark:text-white">
             Enlaces <span className="text-gradient">Rápidos</span>
           </h1>
-          <p className="font-inter mt-2 text-[var(--dark-gray)] dark:text-gray-400 font-light text-sm">
+          <p className="hidden sm:block font-inter mt-1 text-[var(--dark-gray)] dark:text-gray-400 font-light text-xs">
             Tus portales y herramientas favoritas a un clic de distancia.
           </p>
         </div>
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4">
-          <div className="relative flex-1 sm:w-64">
+        <div className="flex flex-wrap items-center gap-2">
+          <div className="relative flex-1 min-w-[180px] sm:w-60">
             <input
               type="text"
               placeholder="Buscar enlace..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-12 pr-6 py-3.5 bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl outline-none focus:ring-2 ring-gray-100 dark:ring-gray-700 font-inter text-sm shadow-sm transition-all text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500"
+              className="w-full pl-10 pr-4 min-h-[44px] py-2 bg-white dark:bg-[#111827] border border-gray-200/80 dark:border-white/10 rounded-2xl outline-none focus:border-[var(--vibrant-sky-blue)] font-inter text-sm shadow-xs transition-all text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500"
             />
-            <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">
-              <svg xmlns="http://www.w3.org/2000/svg" className="size-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-              </svg>
-            </div>
+            <HiOutlineSearch className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 text-lg pointer-events-none" />
           </div>
           <motion.button
-            whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
+            type="button"
+            whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }}
             onClick={() => setShowAddForm(!showAddForm)}
-            className="px-6 py-3.5 bg-black dark:bg-white text-white dark:text-black font-syne text-xs font-bold uppercase tracking-wider rounded-2xl shadow-lg flex items-center gap-2 shrink-0"
+            className="px-4 sm:px-5 min-h-[44px] py-2 bg-black dark:bg-white text-white dark:text-black font-syne text-xs font-bold uppercase tracking-wider rounded-2xl shadow-sm flex items-center gap-2 shrink-0 cursor-pointer"
           >
             <HiOutlinePlus className="text-lg" />
-            Nuevo Enlace
+            <span>Nuevo Enlace</span>
           </motion.button>
         </div>
       </header>
-
-      {/* Category Filters */}
-      <div className="flex flex-wrap gap-2">
-        <button
-          onClick={() => setFilterCat('all')}
-          className={`px-5 py-2.5 rounded-2xl font-syne text-[10px] font-bold uppercase tracking-widest transition-all ${
-            filterCat === 'all' ? 'bg-black dark:bg-white text-white dark:text-black shadow-lg' : 'bg-white dark:bg-gray-800 text-gray-400 dark:text-gray-500 border border-gray-100 dark:border-gray-700 hover:text-black dark:hover:text-white'
-          }`}
-        >
-          Todos
-        </button>
-        {usedCategories.map(cat => (
-          <button
-            key={cat}
-            onClick={() => setFilterCat(cat)}
-            className={`px-5 py-2.5 rounded-2xl font-syne text-[10px] font-bold uppercase tracking-widest transition-all ${
-              filterCat === cat ? 'bg-black dark:bg-white text-white dark:text-black shadow-lg' : 'bg-white dark:bg-gray-800 text-gray-400 dark:text-gray-500 border border-gray-100 dark:border-gray-700 hover:text-black dark:hover:text-white'
-            }`}
-          >
-            {cat}
-          </button>
-        ))}
-      </div>
 
       {/* Add Bookmark Modal */}
       {createPortal(
@@ -226,12 +193,12 @@ export default function Enlaces() {
                 <div className="flex items-center justify-between p-6 sm:p-8 pb-4 sm:pb-4 border-b border-gray-100 dark:border-gray-800 shrink-0">
                   <div>
                     <h2 className="font-dm-sans text-2xl font-bold text-gray-900 dark:text-white">Agregar Nuevo Marcador</h2>
-                    <p className="font-inter text-xs text-gray-400">Guarda un enlace rápido para acceder desde tu dashboard.</p>
+                    <p className="font-inter text-xs text-gray-400">Guarda un enlace rápido para acceder al instante.</p>
                   </div>
                   <button
                     type="button"
                     onClick={() => setShowAddForm(false)}
-                    className="p-2 rounded-xl text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 transition-all"
+                    className="min-w-[40px] min-h-[40px] p-2 rounded-xl text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 transition-all cursor-pointer flex items-center justify-center"
                   >
                     <HiX className="text-xl" />
                   </button>
@@ -242,34 +209,25 @@ export default function Enlaces() {
                   <div className="p-6 sm:p-8 overflow-y-auto flex-1 space-y-4">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="space-y-2">
-                        <label className="font-syne text-[10px] font-bold uppercase tracking-widest text-gray-400">Título *</label>
+                        <label className="font-syne text-[10px] font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">Título *</label>
                         <input
                           value={newBookmark.title}
                           onChange={(e) => setNewBookmark({...newBookmark, title: e.target.value})}
-                          placeholder="Mi Enlace"
-                          className="w-full px-5 py-3.5 rounded-xl bg-gray-50/50 dark:bg-gray-800/80 border border-gray-100 dark:border-gray-700 outline-none font-inter text-sm text-gray-900 dark:text-gray-100 placeholder-gray-400"
+                          placeholder="Nombre del enlace"
+                          className="w-full px-4 min-h-[44px] py-3 rounded-xl bg-gray-50/70 dark:bg-gray-800/80 border border-gray-200/80 dark:border-white/10 outline-none focus:border-[var(--vibrant-sky-blue)] font-inter text-sm text-gray-900 dark:text-gray-100 placeholder-gray-400"
                           required
                         />
                       </div>
                       <div className="space-y-2">
-                        <label className="font-syne text-[10px] font-bold uppercase tracking-widest text-gray-400">URL *</label>
+                        <label className="font-syne text-[10px] font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">URL *</label>
                         <input
                           value={newBookmark.url}
                           onChange={(e) => setNewBookmark({...newBookmark, url: e.target.value})}
-                          placeholder="ejemplo.com"
-                          className="w-full px-5 py-3.5 rounded-xl bg-gray-50/50 dark:bg-gray-800/80 border border-gray-100 dark:border-gray-700 outline-none font-inter text-sm text-gray-900 dark:text-gray-100 placeholder-gray-400"
+                          placeholder="https://sitio.com"
+                          className="w-full px-4 min-h-[44px] py-3 rounded-xl bg-gray-50/70 dark:bg-gray-800/80 border border-gray-200/80 dark:border-white/10 outline-none focus:border-[var(--vibrant-sky-blue)] font-inter text-sm text-gray-900 dark:text-gray-100 placeholder-gray-400"
                           required
                         />
                       </div>
-                    </div>
-
-                    <div className="space-y-2">
-                      <label className="font-syne text-[10px] font-bold uppercase tracking-widest text-gray-400">Categoría</label>
-                      <CustomSelect
-                        value={newBookmark.category}
-                        onChange={(val) => setNewBookmark({ ...newBookmark, category: val })}
-                        options={defaultCategories.map(cat => ({ value: cat, label: cat }))}
-                      />
                     </div>
                   </div>
 
@@ -278,13 +236,13 @@ export default function Enlaces() {
                     <button
                       type="button"
                       onClick={() => setShowAddForm(false)}
-                      className="px-6 py-3 font-syne text-xs font-bold uppercase tracking-wider text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl transition-all"
+                      className="px-6 min-h-[44px] py-2.5 font-syne text-xs font-bold uppercase tracking-wider text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl transition-all cursor-pointer"
                     >
                       Cancelar
                     </button>
                     <button
                       type="submit"
-                      className="px-8 py-3 bg-black dark:bg-white text-white dark:text-black font-syne text-xs font-bold uppercase tracking-wider rounded-xl shadow-lg hover:scale-105 active:scale-95 transition-all"
+                      className="px-8 min-h-[44px] py-2.5 bg-black dark:bg-white text-white dark:text-black font-syne text-xs font-bold uppercase tracking-wider rounded-xl shadow-md hover:opacity-90 active:scale-95 transition-all cursor-pointer"
                     >
                       Guardar Marcador
                     </button>
@@ -297,50 +255,56 @@ export default function Enlaces() {
         document.body
       )}
 
-      {Object.keys(grouped).length === 0 ? (
-        <div className="text-center py-20 text-gray-400 dark:text-gray-500 font-inter font-light italic">
-          No hay enlaces guardados.
+      {filtered.length === 0 ? (
+        <div className="bg-white dark:bg-[#111827] border border-gray-200/80 dark:border-white/[0.09] rounded-3xl text-center py-14 space-y-3">
+          <p className="font-dm-sans text-base font-bold text-gray-700 dark:text-gray-200">
+            {bookmarks.length === 0 ? 'No hay enlaces guardados.' : `Sin coincidencias para "${searchTerm}"`}
+          </p>
+          {searchTerm && (
+            <button
+              type="button"
+              onClick={() => setSearchTerm('')}
+              className="px-4 min-h-[40px] py-2 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-200 rounded-xl font-syne text-xs font-bold uppercase tracking-wider cursor-pointer"
+            >
+              Limpiar búsqueda
+            </button>
+          )}
         </div>
       ) : (
-        Object.entries(grouped).map(([category, links]) => (
-          <section key={category} className="space-y-6">
-            <h2 className="font-syne text-xs font-bold uppercase tracking-widest text-gray-400">
-              {category} ({links.length})
-            </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {links.map(link => (
-                <motion.a
-                  key={link.id}
-                  layout
-                  href={link.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="group bg-white dark:bg-gray-900 p-6 rounded-[2rem] border-none shadow-sm hover:shadow-xl hover:border-gray-200 dark:hover:border-gray-700 hover:-translate-y-1 transition-all duration-500 flex items-center gap-5 cursor-pointer"
-                >
-                  <div className="size-14 shrink-0 rounded-2xl bg-gray-50 dark:bg-gray-800 flex items-center justify-center overflow-hidden group-hover:bg-black dark:group-hover:bg-white group-hover:text-white dark:group-hover:text-black transition-all duration-500">
-                    <img 
-                      src={`https://www.google.com/s2/favicons?domain=${getDomain(link.url)}&sz=32`}
-                      alt=""
-                      className="size-7 group-hover:hidden"
-                      onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
-                    />
-                    <HiOutlineExternalLink className="text-2xl hidden group-hover:block" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <h3 className="font-dm-sans font-bold text-lg text-black dark:text-white truncate">{link.title}</h3>
-                    <p className="font-inter text-xs text-gray-400 truncate">{getDomain(link.url)}</p>
-                  </div>
-                  <button
-                    onClick={(e) => { e.preventDefault(); e.stopPropagation(); deleteBookmark(link.id); }}
-                    className="p-2 text-red-500 dark:text-red-400 bg-red-500/10 dark:bg-red-500/20 hover:bg-red-500/20 dark:hover:bg-red-500/35 border border-red-500/20 dark:border-red-500/30 rounded-xl transition-all opacity-0 group-hover:opacity-100 shrink-0"
-                  >
-                    <HiOutlineTrash />
-                  </button>
-                </motion.a>
-              ))}
-            </div>
-          </section>
-        ))
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5 sm:gap-4">
+          {filtered.map(link => (
+            <motion.a
+              key={link.id}
+              layout
+              href={link.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="group bg-white dark:bg-[#111827] p-4 sm:p-5 rounded-3xl border border-gray-200/80 dark:border-white/[0.09] shadow-xs hover:shadow-lg hover:border-gray-300 dark:hover:border-white/25 hover:-translate-y-0.5 transition-all duration-300 flex items-center gap-4 cursor-pointer"
+            >
+              <div className="size-12 sm:size-14 shrink-0 rounded-2xl bg-gray-100 dark:bg-gray-800 flex items-center justify-center overflow-hidden group-hover:bg-black dark:group-hover:bg-white group-hover:text-white dark:group-hover:text-black transition-all duration-300">
+                <img 
+                  src={`https://www.google.com/s2/favicons?domain=${getDomain(link.url)}&sz=32`}
+                  alt=""
+                  className="size-6 sm:size-7 group-hover:hidden"
+                  onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                />
+                <HiOutlineExternalLink className="text-xl sm:text-2xl hidden group-hover:block" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <h3 className="font-dm-sans font-bold text-base sm:text-lg text-black dark:text-white truncate">{link.title}</h3>
+                <p className="font-inter text-xs text-gray-500 dark:text-gray-400 truncate">{getDomain(link.url)}</p>
+              </div>
+              <button
+                type="button"
+                onClick={(e) => { e.preventDefault(); e.stopPropagation(); deleteBookmark(link.id); }}
+                className="min-w-[38px] min-h-[38px] p-2 text-red-500 dark:text-red-400 bg-red-500/10 dark:bg-red-500/20 hover:bg-red-500/20 dark:hover:bg-red-500/35 border border-red-500/20 dark:border-red-500/30 rounded-xl transition-all opacity-100 md:opacity-0 md:group-hover:opacity-100 shrink-0 cursor-pointer flex items-center justify-center"
+                title="Eliminar enlace"
+              >
+                <HiOutlineTrash />
+              </button>
+            </motion.a>
+          ))}
+        </div>
       )}
     </div>
   );
