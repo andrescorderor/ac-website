@@ -15,13 +15,12 @@ import {
   HiOutlineSearch,
 } from 'react-icons/hi';
 import { useToast } from '@/components/common/ToastContext';
-import CustomSelect from '@/components/common/CustomSelect';
 import { togglePinItem, isItemPinned } from '@/lib/pinned';
 
 type ChecklistItem = {
   id: string;
   title: string;
-  category: string;
+  category?: string;
   emoji: string;
   sort_order: number;
   active: boolean;
@@ -35,17 +34,10 @@ type ChecklistLog = {
   completed_at: string | null;
 };
 
-const CATEGORIES = ['General', 'Pagos', 'Hogar', 'Trabajo', 'Salud', 'Rutinas'];
-const CATEGORIES_WITH_ALL = ['Todas', ...CATEGORIES];
-const CATEGORY_COLORS: Record<string, string> = {
-  General:  'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300',
-  Pagos:    'bg-red-100 dark:bg-red-950/60 text-red-600 dark:text-red-300',
-  Hogar:    'bg-emerald-100 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-300',
-  Trabajo:  'bg-blue-100 dark:bg-blue-950/60 text-blue-600 dark:text-blue-300',
-  Salud:    'bg-pink-100 dark:bg-pink-950/60 text-pink-600 dark:text-pink-300',
-  Rutinas:  'bg-purple-100 dark:bg-purple-950/60 text-purple-600 dark:text-purple-300',
-};
 const EMOJIS = ['✅', '💳', '🏠', '🧹', '💊', '📞', '🌐', '⚡', '💧', '🍱', '🏋️', '📚', '🎯', '💰', '🔧'];
+
+const normalize = (s: string | null | undefined) =>
+  (s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
 
 const toMonthYear = (date: Date) => `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
 const formatMonthLabel = (my: string) => {
@@ -54,7 +46,7 @@ const formatMonthLabel = (my: string) => {
   return d.toLocaleDateString('es-MX', { month: 'long', year: 'numeric' });
 };
 
-const EMPTY_FORM = { title: '', category: 'General', emoji: '✅' };
+const EMPTY_FORM = { title: '', emoji: '✅' };
 
 import { useSearchParams } from 'react-router-dom';
 
@@ -66,7 +58,6 @@ export default function ChecklistMensual() {
   const [viewingMonth, setViewingMonth] = useState(toMonthYear(new Date()));
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingItem, setEditingItem] = useState<ChecklistItem | null>(null);
-  const [filterCategory, setFilterCategory] = useState('Todas');
   const [form, setForm] = useState(EMPTY_FORM);
   const [searchTerm, setSearchTerm] = useState(searchParams.get('search') || '');
 
@@ -141,15 +132,15 @@ export default function ChecklistMensual() {
       if (editingItem) {
         const { error } = await supabase
           .from('monthly_checklist_items')
-          .update({ title: form.title, category: form.category, emoji: form.emoji })
+          .update({ title: form.title.trim(), emoji: form.emoji })
           .eq('id', editingItem.id);
         if (error) throw error;
-        setItems(items.map(i => i.id === editingItem.id ? { ...i, ...form } : i));
+        setItems(items.map(i => i.id === editingItem.id ? { ...i, title: form.title.trim(), emoji: form.emoji } : i));
         toast.success('Ítem actualizado');
       } else {
         const { data, error } = await supabase
           .from('monthly_checklist_items')
-          .insert([{ user_id: user.id, title: form.title, category: form.category, emoji: form.emoji, sort_order: items.length }])
+          .insert([{ user_id: user.id, title: form.title.trim(), category: 'General', emoji: form.emoji, sort_order: items.length }])
           .select();
         if (error) throw error;
         if (data) setItems([...items, data[0]]);
@@ -187,7 +178,7 @@ export default function ChecklistMensual() {
 
   const openEdit = (item: ChecklistItem) => {
     setEditingItem(item);
-    setForm({ title: item.title, category: item.category, emoji: item.emoji });
+    setForm({ title: item.title, emoji: item.emoji });
     setShowAddForm(true);
   };
 
@@ -201,15 +192,8 @@ export default function ChecklistMensual() {
   const totalCount = items.length;
   const progressPct = totalCount > 0 ? (completedCount / totalCount) * 100 : 0;
 
-  const grouped = (filterCategory === 'Todas' ? CATEGORIES : [filterCategory])
-    .map(cat => ({
-      cat,
-      catItems: items.filter(i => 
-        i.category === cat &&
-        (!searchTerm || i.title.toLowerCase().includes(searchTerm.toLowerCase()))
-      )
-    }))
-    .filter(g => g.catItems.length > 0);
+  const normSearch = normalize(searchTerm.trim());
+  const filteredItems = items.filter((i) => !normSearch || normalize(i.title).includes(normSearch));
 
   if (loading) return (
     <div className="space-y-10 pb-20">
@@ -263,26 +247,8 @@ export default function ChecklistMensual() {
         </div>
       </header>
 
-      {/* Category Pills */}
-      <div className="flex flex-wrap items-center gap-2">
-        {CATEGORIES_WITH_ALL.map((cat) => (
-          <button
-            key={cat}
-            type="button"
-            onClick={() => setFilterCategory(cat)}
-            className={`px-4 min-h-[40px] py-2 rounded-2xl text-xs font-syne font-bold uppercase tracking-wider border transition-all cursor-pointer ${
-              filterCategory === cat
-                ? 'bg-black dark:bg-white text-white dark:text-black border-transparent shadow-sm'
-                : 'bg-white dark:bg-[#111827] text-gray-600 dark:text-gray-300 border-gray-200/80 dark:border-white/10 hover:bg-gray-50 dark:hover:bg-gray-800'
-            }`}
-          >
-            {cat}
-          </button>
-        ))}
-      </div>
-
       {/* Month Navigation */}
-      <div className="bg-white/80 dark:bg-gray-900/80 glass dark:dark-glass rounded-[2rem] p-6 space-y-5">
+      <div className="bg-white dark:bg-[#111827] border border-gray-200/80 dark:border-white/[0.09] rounded-3xl p-4 sm:p-6 space-y-4 shadow-xs">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <button onClick={() => navigateMonth(-1)} className="p-2.5 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-xl text-gray-700 dark:text-gray-300 transition-all interactive-hover">
@@ -384,23 +350,13 @@ export default function ChecklistMensual() {
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <label className="font-syne text-[10px] font-bold uppercase tracking-widest text-gray-500">Título *</label>
-                        <input
-                          required value={form.title} onChange={e => setForm({ ...form, title: e.target.value })}
-                          placeholder="Ej. Pagar renta, Netflix, Gym..."
-                          className="w-full px-4 py-3 bg-white dark:bg-gray-800 border border-transparent focus:border-[var(--vibrant-sky-blue)] rounded-xl outline-none font-inter text-sm text-gray-900 dark:text-gray-100 placeholder-gray-400 transition-all shadow-sm"
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <label className="font-syne text-[10px] font-bold uppercase tracking-widest text-gray-500">Categoría</label>
-                        <CustomSelect
-                          value={form.category}
-                          onChange={(val) => setForm({ ...form, category: val })}
-                          options={CATEGORIES.map(c => ({ value: c, label: c }))}
-                        />
-                      </div>
+                    <div className="space-y-2">
+                      <label className="font-syne text-[10px] font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">Título *</label>
+                      <input
+                        required value={form.title} onChange={e => setForm({ ...form, title: e.target.value })}
+                        placeholder="Ej. Pagar renta, Netflix, Gym..."
+                        className="w-full px-4 min-h-[44px] py-3 bg-gray-50/70 dark:bg-gray-800/80 border border-gray-200/80 dark:border-white/10 focus:border-[var(--vibrant-sky-blue)] rounded-xl outline-none font-inter text-sm text-gray-900 dark:text-gray-100 placeholder-gray-400 transition-all shadow-xs"
+                      />
                     </div>
                   </div>
 
@@ -420,112 +376,117 @@ export default function ChecklistMensual() {
         document.body
       )}
 
-      {/* Checklist Groups */}
+      {/* Flat Checklist Items (No Categories) */}
       {items.length === 0 ? (
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center py-20 space-y-3">
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center py-16 space-y-3 bg-white dark:bg-[#111827] rounded-3xl border border-gray-200/80 dark:border-white/[0.09]">
           <div className="text-5xl">📋</div>
           <p className="font-dm-sans text-lg font-bold text-gray-700 dark:text-gray-300">Tu checklist está vacío</p>
           <p className="font-inter text-sm text-gray-400">Añade los pagos y pendientes que repites cada mes.</p>
         </motion.div>
+      ) : filteredItems.length === 0 ? (
+        <div className="text-center py-12 space-y-3 bg-white dark:bg-[#111827] rounded-3xl border border-gray-200/80 dark:border-white/[0.09]">
+          <p className="font-dm-sans text-base font-bold text-gray-700 dark:text-gray-200">Sin coincidencias para "{searchTerm}"</p>
+          <button
+            type="button"
+            onClick={() => setSearchTerm('')}
+            className="px-4 min-h-[40px] py-2 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-200 rounded-xl font-syne text-xs font-bold uppercase tracking-wider cursor-pointer"
+          >
+            Limpiar búsqueda
+          </button>
+        </div>
       ) : (
-        <div className="space-y-8">
-          {grouped.map(({ cat, catItems }) => (
-            <div key={cat} className="space-y-3">
-              <div className="flex items-center gap-3">
-                <span className={`px-3 py-1 rounded-full text-[10px] font-syne font-bold uppercase tracking-wider ${CATEGORY_COLORS[cat] || CATEGORY_COLORS['General']}`}>
-                  {cat}
-                </span>
-                <div className="h-px flex-1 bg-gray-100 dark:bg-gray-800" />
-                <span className="font-syne text-[10px] font-bold text-gray-400 uppercase tracking-wider">
-                  {catItems.filter(i => isCompleted(i.id)).length}/{catItems.length}
-                </span>
-              </div>
+        <div className="space-y-2.5">
+          <AnimatePresence>
+            {filteredItems.map(item => {
+              const done = isCompleted(item.id);
+              const log = getLog(item.id);
+              return (
+                <motion.div
+                  key={item.id}
+                  layout
+                  initial={{ opacity: 0, x: -10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: 10 }}
+                  onClick={(e) => {
+                    if ((e.target as HTMLElement).closest('.action-btn')) return;
+                    toggleComplete(item);
+                  }}
+                  className={`group flex items-center gap-3.5 sm:gap-4 p-4 rounded-2xl border transition-all duration-300 cursor-pointer ${
+                    done
+                      ? 'bg-emerald-50/60 dark:bg-emerald-950/25 border-emerald-300/60 dark:border-emerald-800/40'
+                      : 'bg-white dark:bg-[#111827] border-gray-200/80 dark:border-white/[0.09] hover:border-gray-300 dark:hover:border-white/25 shadow-xs'
+                  }`}
+                >
+                  <button
+                    type="button"
+                    className={`size-8 rounded-full border-2 flex items-center justify-center shrink-0 transition-all cursor-pointer ${
+                      done
+                        ? 'bg-emerald-500 border-emerald-500'
+                        : 'border-gray-300 dark:border-gray-600 hover:border-[var(--vibrant-sky-blue)]'
+                    }`}
+                  >
+                    {done && <HiOutlineCheck className="text-white text-sm" />}
+                  </button>
 
-              <div className="space-y-2">
-                <AnimatePresence>
-                  {catItems.map(item => {
-                    const done = isCompleted(item.id);
-                    const log = getLog(item.id);
-                    return (
-                      <motion.div
-                        key={item.id}
-                        layout
-                        initial={{ opacity: 0, x: -10 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        exit={{ opacity: 0, x: 10 }}
-                        onClick={(e) => {
-                          // Ignore if action buttons were clicked
-                          if ((e.target as HTMLElement).closest('.action-btn')) return;
-                          toggleComplete(item);
+                  <span className="text-xl shrink-0">{item.emoji}</span>
+
+                  <div className="flex-1 min-w-0">
+                    <p className={`font-inter text-sm font-medium ${done ? 'line-through text-gray-400 dark:text-gray-500' : 'text-gray-900 dark:text-gray-100'}`}>
+                      {item.title}
+                    </p>
+                    {done && log?.completed_at && (
+                      <p className="font-inter text-[11px] text-emerald-600 dark:text-emerald-400">
+                        Completado el {new Date(log.completed_at).toLocaleDateString('es-MX', { day: 'numeric', month: 'short' })}
+                      </p>
+                    )}
+                  </div>
+
+                  {!isReadOnly && (
+                    <div className="action-btn flex items-center gap-1 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-all shrink-0">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const isNowPinned = togglePinItem({
+                            id: item.id,
+                            type: 'checklist',
+                            title: item.title,
+                            subtitle: 'Checklist mensual',
+                            path: '/admin/panel/checklist',
+                          });
+                          toast.info(isNowPinned ? 'Ítem fijado 📌' : 'Ítem desfijado');
+                          setItems([...items]);
                         }}
-                        className={`group flex items-center gap-4 p-4 rounded-2xl border transition-all duration-300 cursor-pointer ${
-                          done
-                            ? 'bg-emerald-50/50 dark:bg-emerald-950/20 border-emerald-200/50 dark:border-emerald-900/30'
-                            : 'bg-white dark:bg-gray-900/80 border-gray-100/50 dark:border-gray-800/50 hover:border-gray-200 dark:hover:border-gray-700'
+                        className={`min-w-[36px] min-h-[36px] p-1.5 rounded-xl transition-all cursor-pointer flex items-center justify-center ${
+                          isItemPinned(item.id)
+                            ? 'text-amber-500 bg-amber-50 dark:bg-amber-950/40'
+                            : 'text-gray-400 hover:text-amber-500 hover:bg-amber-50 dark:hover:bg-amber-950/30'
                         }`}
+                        title={isItemPinned(item.id) ? 'Desfijar del inicio' : 'Fijar en la página principal'}
                       >
-                        <button
-                          type="button"
-                          className={`size-8 rounded-full border-2 flex items-center justify-center shrink-0 transition-all ${
-                            done
-                              ? 'bg-emerald-500 border-emerald-500'
-                              : 'border-gray-300 dark:border-gray-600 hover:border-[var(--vibrant-sky-blue)]'
-                          }`}
-                        >
-                          {done && <HiOutlineCheck className="text-white text-sm" />}
-                        </button>
-
-                        <span className="text-xl shrink-0">{item.emoji}</span>
-
-                        <div className="flex-1 min-w-0">
-                          <p className={`font-inter text-sm font-medium ${done ? 'line-through text-gray-400' : 'text-gray-800 dark:text-gray-100'}`}>
-                            {item.title}
-                          </p>
-                          {done && log?.completed_at && (
-                            <p className="font-inter text-[10px] text-emerald-500 dark:text-emerald-400">
-                              Completado el {new Date(log.completed_at).toLocaleDateString('es-MX', { day: 'numeric', month: 'short' })}
-                            </p>
-                          )}
-                        </div>
-
-                        {!isReadOnly && (
-                          <div className="action-btn flex items-center gap-1 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-all shrink-0">
-                            <button
-                              onClick={() => {
-                                const isNowPinned = togglePinItem({
-                                  id: item.id,
-                                  type: 'checklist',
-                                  title: item.title,
-                                  subtitle: item.category,
-                                  path: '/admin/panel/checklist',
-                                });
-                                toast.info(isNowPinned ? 'Ítem fijado 📌' : 'Ítem desfijado');
-                                setItems([...items]);
-                              }}
-                              className={`p-1.5 rounded-xl transition-all ${
-                                isItemPinned(item.id)
-                                  ? 'text-amber-500 bg-amber-50 dark:bg-amber-950/40'
-                                  : 'text-gray-400 hover:text-amber-500 hover:bg-amber-50 dark:hover:bg-amber-950/30'
-                              }`}
-                              title={isItemPinned(item.id) ? 'Desfijar del inicio' : 'Fijar en la página principal'}
-                            >
-                              📌
-                            </button>
-                            <button onClick={() => openEdit(item)} className="p-1.5 text-gray-400 hover:text-black dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl transition-all">
-                              <HiOutlinePencil className="text-sm" />
-                            </button>
-                            <button onClick={() => deleteItem(item.id)} className="p-2 text-red-500 dark:text-red-400 bg-red-500/10 dark:bg-red-500/20 hover:bg-red-500/20 dark:hover:bg-red-500/35 border border-red-500/20 dark:border-red-500/30 rounded-xl transition-all shrink-0">
-                              <HiOutlineTrash className="text-sm" />
-                            </button>
-                          </div>
-                        )}
-                      </motion.div>
-                    );
-                  })}
-                </AnimatePresence>
-              </div>
-            </div>
-          ))}
+                        📌
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => openEdit(item)}
+                        className="min-w-[36px] min-h-[36px] p-1.5 text-gray-400 hover:text-black dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl transition-all cursor-pointer flex items-center justify-center"
+                        title="Editar ítem"
+                      >
+                        <HiOutlinePencil className="text-sm" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => deleteItem(item.id)}
+                        className="min-w-[36px] min-h-[36px] p-2 text-red-500 dark:text-red-400 bg-red-500/10 dark:bg-red-500/20 hover:bg-red-500/20 dark:hover:bg-red-500/35 border border-red-500/20 dark:border-red-500/30 rounded-xl transition-all shrink-0 cursor-pointer flex items-center justify-center"
+                        title="Eliminar ítem"
+                      >
+                        <HiOutlineTrash className="text-sm" />
+                      </button>
+                    </div>
+                  )}
+                </motion.div>
+              );
+            })}
+          </AnimatePresence>
         </div>
       )}
 
