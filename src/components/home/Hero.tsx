@@ -11,8 +11,7 @@ import HeroCircles from './HeroCircles';
 import { loadPortfolioCms, PortfolioCmsData } from '@/lib/portfolioCms';
 
 const EASE = [0.16, 1, 0.3, 1] as const;
-const HEADLINE_SIZE =
-  'font-dm-sans text-[clamp(2.75rem,11.5vw,9.5rem)] font-bold leading-[0.92] tracking-tighter break-words';
+const HEADLINE_SIZE = 'font-dm-sans hero-headline font-bold leading-[0.92] tracking-tighter';
 
 export default function Hero() {
   const { t } = useTranslation();
@@ -91,7 +90,7 @@ export default function Hero() {
 
       <div className="container mx-auto px-6 md:px-16 lg:px-36 w-full">
         <div className="flex flex-col lg:flex-row items-start lg:items-center gap-12 lg:gap-24">
-          <div className="flex-1 z-10 min-w-0">
+          <div className="flex-1 z-10 min-w-0 hero-text-col">
             <motion.span
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
