@@ -21,11 +21,11 @@ export default function Home() {
   }, [navigate]);
 
   return (
-    <div className="relative overflow-y-hidden bg-[var(--white)] selection:bg-[var(--vibrant-sky-blue)] selection:text-white">
-      {/* Mesh Background */}
-      <div className="fixed inset-0 -z-20 pointer-events-none opacity-20">
-        <div className="absolute top-[20%] right-[10%] w-[600px] h-[600px] rounded-full bg-[var(--vibrant-sky-blue-light)] blur-[150px] animate-pulse" />
-        <div className="absolute bottom-[20%] left-[10%] w-[500px] h-[500px] rounded-full bg-[var(--magenta-pink-light)] blur-[150px] animate-pulse" style={{ animationDelay: '3s' }} />
+    <div className="relative overflow-x-clip bg-[var(--white)] selection:bg-[var(--vibrant-sky-blue)] selection:text-white">
+      {/* Mesh Background (deriva lenta con transform, sin pulsos constantes) */}
+      <div className="fixed inset-0 -z-20 pointer-events-none opacity-20" aria-hidden="true">
+        <div className="absolute top-[20%] right-[10%] w-[600px] h-[600px] rounded-full bg-[var(--vibrant-sky-blue-light)] blur-[150px] animate-drift-a" />
+        <div className="absolute bottom-[20%] left-[10%] w-[500px] h-[500px] rounded-full bg-[var(--magenta-pink-light)] blur-[150px] animate-drift-b" />
       </div>
 
       {/* Noise Texture Overlay */}

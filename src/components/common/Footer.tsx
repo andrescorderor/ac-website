@@ -9,9 +9,9 @@ export default function Footer() {
   const { t } = useTranslation();
   const currentYear = new Date().getFullYear();
   return (
-    <footer className="bg-[var(--white)] pt-32 pb-10">
+    <footer className="bg-[var(--white)] pt-20 md:pt-32 pb-10">
       <div className="container mx-auto px-6 md:px-16 lg:px-36">
-        <div className="flex flex-col lg:flex-row justify-between items-start gap-20">
+        <div className="flex flex-col lg:flex-row justify-between items-start gap-12 lg:gap-20">
           <div className="max-w-2xl">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -38,7 +38,7 @@ export default function Footer() {
                   href={social.href}
                   target="_blank"
                   rel="noreferrer"
-                  className="flex items-center gap-3 px-6 py-3 rounded-2xl border border-[var(--light-gray)] hover:border-[var(--black)] hover:bg-[var(--soft-light-gray)] transition-all duration-300 font-syne text-xs font-bold uppercase tracking-widest text-[var(--dark-gray)] hover:text-[var(--black)]"
+                  className="flex items-center gap-3 px-5 sm:px-6 min-h-[44px] py-3 rounded-2xl border border-[var(--light-gray)] hover:border-[var(--black)] hover:bg-[var(--soft-light-gray)] transition-all duration-300 font-syne text-xs font-bold uppercase tracking-widest text-[var(--dark-gray)] hover:text-[var(--black)]"
                 >
                   <social.icon className="text-lg" />
                   {social.label}
@@ -52,7 +52,7 @@ export default function Footer() {
           </div>
         </div>
 
-        <div className="mt-32 pt-10 border-t border-[var(--light-gray)] flex flex-col md:flex-row justify-between items-center gap-6">
+        <div className="mt-16 md:mt-32 pt-10 border-t border-[var(--light-gray)] flex flex-col md:flex-row justify-between items-center gap-6">
           <p className="font-dm-sans text-sm text-[var(--gray)]">
             © {currentYear} Andrés Cordero • {t('footer.rights')}
           </p>

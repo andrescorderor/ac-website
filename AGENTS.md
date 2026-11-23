@@ -167,3 +167,14 @@ Este documento define las directrices maestras, arquitectura, estándares de dis
   ```
 - **Higiene en Barras de Búsqueda:** El icono de búsqueda debe ser un vector SVG de lupa alineado a la izquierda con padding izquierdo adecuado (`pl-10` a `pl-12`), sin textos "BUSCAR" encimados sobre los placeholders.
 - **Badges de Conteo y Estados Vacíos:** Todo listado debe mostrar conteo reactivo de elementos y un estado vacío estético y claro cuando no existan coincidencias, con opción para restablecer filtros o registrar nuevos elementos.
+
+
+---
+
+### 11. 🎞️ Motion, Tema Público y Accesibilidad (Design System 2.0 — v8.0.0)
+- **Solo `transform` y `opacity`:** Anima únicamente propiedades compuestas por GPU. Prohibido actualizar estado de React por frame (`requestAnimationFrame` + `setState`); usar CSS (`@keyframes`) o variables CSS (`--mx`, `--my`) para efectos continuos.
+- **`prefers-reduced-motion` obligatorio:** Todo efecto continuo debe tener alternativa estática. La app envuelve Framer Motion en `<MotionConfig reducedMotion="user">` y `src/index.css` neutraliza animaciones CSS; cualquier animación nueva debe respetarlo.
+- **Ritmos de panel vs. público:** Panel privado = micro-interacciones de 150–220 ms (spring de baja amplitud, `layoutId` solo en grupos pequeños y estables). Portafolio público = coreografías de entrada y efectos de mayor impacto, sin ocultar contenido ni depender solo del hover.
+- **Sin contenido solo-hover:** Todo contenido o acción revelada con `group-hover` debe estar visible también en pantallas táctiles (`[@media(hover:none)]:`) y con foco de teclado (`group-focus-within:`).
+- **Tema del portafolio público:** Se controla con la clase `public-site` + `public-light` / `public-dark` en `Layout.tsx` (persistido en `localStorage.public_theme`, con respaldo de `prefers-color-scheme`). Los componentes públicos deben usar variables (`var(--white)`, `var(--black)`, etc.) y no colores fijos (`bg-white`); sobre fondos siempre oscuros (overlays de imagen) usar colores literales.
+- **Controles semánticos y táctiles:** Los disparadores deben ser `button`/`a` (o `role="button"` + `tabIndex` + teclado), con área mínima de 44 px y `aria-label` cuando solo tengan icono. `CustomSelect` y `CustomDatePicker` soportan teclado (flechas, Enter, Escape) y opciones/celdas de 44 px.

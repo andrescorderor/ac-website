@@ -1,7 +1,7 @@
 <div align="center">
   <img src="public/assets/ac-website-icon.svg" alt="Logo" width="100" />
   
-  # Andrés Cordero - Professional Portfolio & Personal Panel PWA (v7.5.1) 🔍✨
+  # Andrés Cordero - Professional Portfolio & Personal Panel PWA (v8.0.0) 🔍✨
   
   **Welcome to my personal ecosystem: a professional portfolio and a custom productivity hub.**  
   Built with UX/UI best practices, premium design, and a focus on mobile-first efficiency.
@@ -16,11 +16,15 @@
 
 ---
 
-## 🚀 Overview (Version 7.5.1)
+## 🚀 Overview (Version 8.0.0)
 
 This repository hosts a dual-purpose platform:
 1. **Professional Portfolio:** A high-end landing page showcasing my engineering background, skills, and achievements with dynamic copyright year updates and zero horizontal overflow.
-2. **Personal Panel PWA (v7.5.1):** An executive personal operating system featuring:
+2. **Personal Panel PWA (v8.0.0):** An executive personal operating system featuring:
+   * **Design System 2.0 & Motion Premium (v8.0.0):**
+     * **Portafolio público:** selector **Claro / Oscuro** (preferencia guardada y sincronizada con el sistema), Hero con rotación de frases sin saltos de layout, spotlight reactivo por CSS variables, barra de progreso de scroll, fondos con deriva lenta GPU-friendly y cinta de tecnologías 100% CSS (cero re-renders por frame, pausa al hover/foco).
+     * **Accesibilidad y táctil:** `prefers-reduced-motion` global (CSS + `MotionConfig`), controles semánticos en `Header`, contenido de tarjetas de proyectos visible en pantallas táctiles, controles y paginación visibles en móvil (Proyectos y Certificaciones) y timeline con indicador móvil.
+     * **Panel privado:** indicador de navegación animado con `layoutId` (spring), transición de vista de 180 ms, `CustomSelect` con teclado completo (flechas, Enter, Escape) y opciones de 44 px, `CustomDatePicker` con celdas táctiles de 44 px, cierre con Escape y posicionamiento seguro en móvil.
    * **Corrección de Eliminación Permanente en Prompts (`Prompts.tsx` - v7.5.1):**
      * Elimina la restauración automática de plantillas por defecto cuando el usuario vacía o borra todas sus plantillas e invalida el caché de búsqueda global al guardar cambios.
    * **Radar de Agenda: Vencidos sin Atender & Próximos 5 Días (`Calendario.tsx`, `DashboardHome.tsx` - v7.5.0):**

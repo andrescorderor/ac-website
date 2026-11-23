@@ -32,8 +32,18 @@ interface CalendarEvent {
 }
 
 const MONTH_NAMES = [
-  'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
-  'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre',
+  'Enero',
+  'Febrero',
+  'Marzo',
+  'Abril',
+  'Mayo',
+  'Junio',
+  'Julio',
+  'Agosto',
+  'Septiembre',
+  'Octubre',
+  'Noviembre',
+  'Diciembre',
 ];
 const WEEKDAYS = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
 const SHORT_DAYS = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
@@ -46,7 +56,8 @@ const SOURCE_META: Record<
   task: {
     label: 'Tareas',
     dot: 'bg-amber-500',
-    badge: 'bg-amber-500/15 text-amber-600 dark:text-amber-300 border-amber-500/30',
+    badge:
+      'bg-amber-500/15 text-amber-600 dark:text-amber-300 border-amber-500/30',
     icon: '📌',
   },
   reminder: {
@@ -58,7 +69,8 @@ const SOURCE_META: Record<
   plant: {
     label: 'Plantas',
     dot: 'bg-emerald-500',
-    badge: 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-300 border-emerald-500/30',
+    badge:
+      'bg-emerald-500/15 text-emerald-600 dark:text-emerald-300 border-emerald-500/30',
     icon: '🪴',
   },
   finance: {
@@ -70,17 +82,25 @@ const SOURCE_META: Record<
 };
 
 function toDateStr(year: number, monthIndex: number, day: number): string {
-  return `${year}-${String(monthIndex + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+  return `${year}-${String(monthIndex + 1).padStart(2, '0')}-${String(
+    day,
+  ).padStart(2, '0')}`;
 }
 
-function formatRelativeDay(dateStr: string, todayDate: Date): { label: string; daysDiff: number } {
+function formatRelativeDay(
+  dateStr: string,
+  todayDate: Date,
+): { label: string; daysDiff: number } {
   const d = new Date(`${dateStr}T00:00:00`);
   const daysDiff = Math.round((d.getTime() - todayDate.getTime()) / DAY_MS);
   if (daysDiff === -1) return { label: 'Ayer', daysDiff };
   if (daysDiff < -1) return { label: `Hace ${Math.abs(daysDiff)}d`, daysDiff };
   if (daysDiff === 0) return { label: 'Hoy', daysDiff };
   if (daysDiff === 1) return { label: 'Mañana', daysDiff };
-  return { label: `En ${daysDiff}d · ${SHORT_DAYS[d.getDay()]} ${d.getDate()}`, daysDiff };
+  return {
+    label: `En ${daysDiff}d · ${SHORT_DAYS[d.getDay()]} ${d.getDate()}`,
+    daysDiff,
+  };
 }
 
 function getNextWaterDate(plant: any): Date | null {
@@ -97,7 +117,11 @@ interface CalendarEventRowProps {
   dayLabel?: string;
   dayTone?: 'overdue' | 'today' | 'tomorrow' | 'soon';
   onCompleteTask: (id: string, title: string) => void;
-  onWaterPlant: (id: string, nickname: string, prevWatered: string | null) => void;
+  onWaterPlant: (
+    id: string,
+    nickname: string,
+    prevWatered: string | null,
+  ) => void;
 }
 
 function CalendarEventRow({
@@ -122,7 +146,10 @@ function CalendarEventRow({
 
   return (
     <div className="flex items-center justify-between gap-2.5 p-3 rounded-2xl bg-gray-50/90 dark:bg-gray-800/70 hover:bg-gray-100/90 dark:hover:bg-gray-800 border border-gray-200/70 dark:border-white/10 transition-all">
-      <Link to={ev.path} className="min-w-0 flex-1 space-y-1 cursor-pointer group">
+      <Link
+        to={ev.path}
+        className="min-w-0 flex-1 space-y-1 cursor-pointer group"
+      >
         <div className="flex flex-wrap items-center gap-1.5">
           <span
             className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-syne font-bold uppercase tracking-wider border ${sMeta.badge}`}
@@ -144,7 +171,9 @@ function CalendarEventRow({
         >
           {ev.title}
         </h4>
-        <p className="font-inter text-xs text-gray-500 dark:text-gray-400 truncate">{ev.meta}</p>
+        <p className="font-inter text-xs text-gray-500 dark:text-gray-400 truncate">
+          {ev.meta}
+        </p>
       </Link>
 
       <div className="flex items-center gap-1.5 shrink-0">
@@ -167,7 +196,7 @@ function CalendarEventRow({
               onWaterPlant(
                 ev.rawId!,
                 ev.title.replace(/^Regar:\s*/i, ''),
-                ev.previousWateredAt ?? null
+                ev.previousWateredAt ?? null,
               )
             }
             className="px-2.5 min-h-[38px] py-1.5 rounded-xl bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30 font-syne text-[10px] font-bold uppercase tracking-wider flex items-center gap-1 transition-all cursor-pointer"
@@ -192,11 +221,17 @@ function CalendarEventRow({
 
 export default function Calendario() {
   const now = new Date();
-  const initialTodayStr = toDateStr(now.getFullYear(), now.getMonth(), now.getDate());
+  const initialTodayStr = toDateStr(
+    now.getFullYear(),
+    now.getMonth(),
+    now.getDate(),
+  );
   const [year, setYear] = useState(now.getFullYear());
   const [month, setMonth] = useState(now.getMonth()); // 0-indexed
   const [selectedDate, setSelectedDate] = useState<string>(initialTodayStr);
-  const [activeSources, setActiveSources] = useState<Record<EventSource, boolean>>({
+  const [activeSources, setActiveSources] = useState<
+    Record<EventSource, boolean>
+  >({
     task: true,
     reminder: true,
     plant: true,
@@ -234,7 +269,9 @@ export default function Calendario() {
             supabase.from('reminders').select('*'),
             supabase
               .from('plants')
-              .select('id, nickname, species, emoji, watering_frequency_days, last_watered_at'),
+              .select(
+                'id, nickname, species, emoji, watering_frequency_days, last_watered_at',
+              ),
             supabase
               .from('finance_expenses')
               .select('id, concept, amount, category, date, created_at')
@@ -248,11 +285,13 @@ export default function Calendario() {
             expenses: exp.data || [],
           };
         },
-        3 * 60 * 1000
+        3 * 60 * 1000,
       );
       setRawData(data);
     } catch (err: any) {
-      toast.error('Error al cargar agenda: ' + (err?.message || 'revisa tu conexión'));
+      toast.error(
+        'Error al cargar agenda: ' + (err?.message || 'revisa tu conexión'),
+      );
     } finally {
       setLoading(false);
     }
@@ -263,15 +302,24 @@ export default function Calendario() {
     d.setHours(0, 0, 0, 0);
     return d;
   }, []);
-  const todayStr = toDateStr(todayDate.getFullYear(), todayDate.getMonth(), todayDate.getDate());
+  const todayStr = toDateStr(
+    todayDate.getFullYear(),
+    todayDate.getMonth(),
+    todayDate.getDate(),
+  );
 
   const handleCompleteTask = async (taskId: string, title: string) => {
     setRawData((prev) => ({
       ...prev,
-      tasks: prev.tasks.map((t) => (String(t.id) === taskId ? { ...t, completed: true } : t)),
+      tasks: prev.tasks.map((t) =>
+        String(t.id) === taskId ? { ...t, completed: true } : t,
+      ),
     }));
     try {
-      const { error } = await supabase.from('tasks').update({ completed: true }).eq('id', taskId);
+      const { error } = await supabase
+        .from('tasks')
+        .update({ completed: true })
+        .eq('id', taskId);
       if (error) throw error;
       invalidateCache('calendario_360_data');
       invalidateCache('dashboard');
@@ -286,7 +334,7 @@ export default function Calendario() {
           setRawData((prev) => ({
             ...prev,
             tasks: prev.tasks.map((t) =>
-              String(t.id) === taskId ? { ...t, completed: false } : t
+              String(t.id) === taskId ? { ...t, completed: false } : t,
             ),
           }));
           invalidateCache('calendario_360_data');
@@ -299,7 +347,9 @@ export default function Calendario() {
     } catch (err: any) {
       setRawData((prev) => ({
         ...prev,
-        tasks: prev.tasks.map((t) => (String(t.id) === taskId ? { ...t, completed: false } : t)),
+        tasks: prev.tasks.map((t) =>
+          String(t.id) === taskId ? { ...t, completed: false } : t,
+        ),
       }));
       toast.error('Error al completar tarea: ' + err.message);
     }
@@ -308,12 +358,12 @@ export default function Calendario() {
   const handleWaterPlant = async (
     plantId: string,
     nickname: string,
-    prevLastWatered: string | null
+    prevLastWatered: string | null,
   ) => {
     setRawData((prev) => ({
       ...prev,
       plants: prev.plants.map((p) =>
-        String(p.id) === plantId ? { ...p, last_watered_at: todayStr } : p
+        String(p.id) === plantId ? { ...p, last_watered_at: todayStr } : p,
       ),
     }));
     try {
@@ -335,7 +385,9 @@ export default function Calendario() {
           setRawData((prev) => ({
             ...prev,
             plants: prev.plants.map((p) =>
-              String(p.id) === plantId ? { ...p, last_watered_at: prevLastWatered } : p
+              String(p.id) === plantId
+                ? { ...p, last_watered_at: prevLastWatered }
+                : p,
             ),
           }));
           invalidateCache('calendario_360_data');
@@ -349,7 +401,9 @@ export default function Calendario() {
       setRawData((prev) => ({
         ...prev,
         plants: prev.plants.map((p) =>
-          String(p.id) === plantId ? { ...p, last_watered_at: prevLastWatered } : p
+          String(p.id) === plantId
+            ? { ...p, last_watered_at: prevLastWatered }
+            : p,
         ),
       }));
       toast.error('Error al registrar riego: ' + err.message);
@@ -412,7 +466,7 @@ export default function Calendario() {
           const mNum = parseInt(parts[1], 10) - 1;
           const dNum = parseInt(parts[2], 10);
           const match = windowDates.find(
-            (wd) => wd.date.getMonth() === mNum && wd.date.getDate() === dNum
+            (wd) => wd.date.getMonth() === mNum && wd.date.getDate() === dNum,
           );
           if (match) {
             matchedDs = match.ds;
@@ -430,7 +484,9 @@ export default function Calendario() {
             date: matchedDs,
             source: 'reminder',
             title: r.title,
-            meta: `${r.category || 'Evento'}${r.time ? ` · ${r.time} hrs` : ''}${r.recurring ? ' · Anual' : ''}`,
+            meta: `${r.category || 'Evento'}${
+              r.time ? ` · ${r.time} hrs` : ''
+            }${r.recurring ? ' · Anual' : ''}`,
             path: '/admin/panel/recordatorios',
             daysDiff: matchedDiff,
           });
@@ -446,9 +502,11 @@ export default function Calendario() {
         const nextDs = toDateStr(
           nextWater.getFullYear(),
           nextWater.getMonth(),
-          nextWater.getDate()
+          nextWater.getDate(),
         );
-        const diffDays = Math.round((nextWater.getTime() - todayDate.getTime()) / DAY_MS);
+        const diffDays = Math.round(
+          (nextWater.getTime() - todayDate.getTime()) / DAY_MS,
+        );
         const freq = Number(p.watering_frequency_days);
         const nickname = p.nickname || p.species;
 
@@ -486,7 +544,9 @@ export default function Calendario() {
         const info = parseExpenseInfo(exp);
         if (info.isBase) {
           const targetDay = info.recurrenceDist === 'q2' ? 16 : 1;
-          const match = windowDates.find((wd) => wd.date.getDate() === targetDay);
+          const match = windowDates.find(
+            (wd) => wd.date.getDate() === targetDay,
+          );
           if (match) {
             upcoming.push({
               id: `radar-fin-base-${exp.id}-${match.ds}`,
@@ -551,7 +611,9 @@ export default function Calendario() {
           date: t.due_date,
           source: 'task',
           title: t.title,
-          meta: `${meta.area} · ${meta.priority}${t.completed ? ' · ✓ Completada' : ''}`,
+          meta: `${meta.area} · ${meta.priority}${
+            t.completed ? ' · ✓ Completada' : ''
+          }`,
           path: '/admin/panel/pendientes',
           done: t.completed,
         });
@@ -581,7 +643,9 @@ export default function Calendario() {
             date: dateInMonth,
             source: 'reminder',
             title: r.title,
-            meta: `${r.category || 'Evento'}${r.time ? ` · ${r.time} hrs` : ''}${r.recurring ? ' · Anual' : ''}`,
+            meta: `${r.category || 'Evento'}${
+              r.time ? ` · ${r.time} hrs` : ''
+            }${r.recurring ? ' · Anual' : ''}`,
             path: '/admin/panel/recordatorios',
           });
         }
@@ -599,10 +663,17 @@ export default function Calendario() {
         let statusTag = '';
         if (nextWater <= todayDate) {
           targetDs = todayStr;
-          const overdueDays = Math.round((todayDate.getTime() - nextWater.getTime()) / DAY_MS);
-          statusTag = overdueDays > 0 ? ` · Atrasada ${overdueDays}d` : ' · Toca hoy';
+          const overdueDays = Math.round(
+            (todayDate.getTime() - nextWater.getTime()) / DAY_MS,
+          );
+          statusTag =
+            overdueDays > 0 ? ` · Atrasada ${overdueDays}d` : ' · Toca hoy';
         } else {
-          targetDs = toDateStr(nextWater.getFullYear(), nextWater.getMonth(), nextWater.getDate());
+          targetDs = toDateStr(
+            nextWater.getFullYear(),
+            nextWater.getMonth(),
+            nextWater.getDate(),
+          );
         }
 
         if (targetDs.startsWith(monthPrefix)) {
@@ -652,7 +723,16 @@ export default function Calendario() {
     }
 
     return map;
-  }, [rawData, activeSources, year, month, monthPrefix, daysInMonth, todayDate, todayStr]);
+  }, [
+    rawData,
+    activeSources,
+    year,
+    month,
+    monthPrefix,
+    daysInMonth,
+    todayDate,
+    todayStr,
+  ]);
 
   // Celdas del calendario (empezando en Lunes)
   const calendarCells = useMemo(() => {
@@ -689,7 +769,10 @@ export default function Calendario() {
     setSelectedDate(ds);
     if (typeof window !== 'undefined' && window.innerWidth < 1280) {
       setTimeout(() => {
-        agendaRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        agendaRef.current?.scrollIntoView({
+          behavior: 'smooth',
+          block: 'nearest',
+        });
       }, 60);
     }
   };
@@ -712,7 +795,8 @@ export default function Calendario() {
             Calendario <span className="text-gradient">360°</span>
           </h1>
           <p className="hidden sm:block font-inter mt-1 text-[var(--dark-gray)] dark:text-gray-400 font-light text-xs">
-            Todas tus tareas, fechas importantes, riegos de plantas y pagos en una sola vista.
+            Todas tus tareas, fechas importantes, riegos de plantas y pagos en
+            una sola vista.
           </p>
         </div>
 
@@ -744,7 +828,11 @@ export default function Calendario() {
             type="button"
             onClick={() => {
               const cur = new Date();
-              const curDs = toDateStr(cur.getFullYear(), cur.getMonth(), cur.getDate());
+              const curDs = toDateStr(
+                cur.getFullYear(),
+                cur.getMonth(),
+                cur.getDate(),
+              );
               setYear(cur.getFullYear());
               setMonth(cur.getMonth());
               handleSelectDay(curDs);
@@ -774,7 +862,9 @@ export default function Calendario() {
             <button
               key={src}
               type="button"
-              onClick={() => setActiveSources((prev) => ({ ...prev, [src]: !prev[src] }))}
+              onClick={() =>
+                setActiveSources((prev) => ({ ...prev, [src]: !prev[src] }))
+              }
               className={`px-3 min-h-[38px] py-1.5 rounded-2xl text-xs font-syne font-bold uppercase tracking-wider border transition-all cursor-pointer flex items-center gap-1.5 ${
                 active
                   ? meta.badge
@@ -868,7 +958,8 @@ export default function Calendario() {
                 Ventana despejada
               </p>
               <p className="font-inter text-xs text-gray-500 dark:text-gray-400">
-                Sin tareas, recordatorios, riegos ni pagos programados en los próximos 5 días.
+                Sin tareas, recordatorios, riegos ni pagos programados en los
+                próximos 5 días.
               </p>
             </div>
           ) : (
@@ -876,7 +967,11 @@ export default function Calendario() {
               {next5DaysItems.map((ev) => {
                 const rel = formatRelativeDay(ev.date, todayDate);
                 const tone =
-                  rel.daysDiff === 0 ? 'today' : rel.daysDiff === 1 ? 'tomorrow' : 'soon';
+                  rel.daysDiff === 0
+                    ? 'today'
+                    : rel.daysDiff === 1
+                    ? 'tomorrow'
+                    : 'soon';
                 return (
                   <CalendarEventRow
                     key={ev.id}
@@ -956,7 +1051,9 @@ export default function Calendario() {
                         {dayEvents.slice(0, 4).map((ev) => (
                           <span
                             key={ev.id}
-                            className={`size-1.5 rounded-full ${SOURCE_META[ev.source].dot}`}
+                            className={`size-1.5 rounded-full ${
+                              SOURCE_META[ev.source].dot
+                            }`}
                           />
                         ))}
                       </div>
@@ -967,9 +1064,15 @@ export default function Calendario() {
                             className="flex items-center gap-1 text-[10px] font-inter text-gray-600 dark:text-gray-300 truncate"
                           >
                             <span
-                              className={`size-1.5 rounded-full shrink-0 ${SOURCE_META[ev.source].dot}`}
+                              className={`size-1.5 rounded-full shrink-0 ${
+                                SOURCE_META[ev.source].dot
+                              }`}
                             />
-                            <span className={`truncate ${ev.done ? 'line-through opacity-50' : ''}`}>
+                            <span
+                              className={`truncate ${
+                                ev.done ? 'line-through opacity-50' : ''
+                              }`}
+                            >
                               {ev.title}
                             </span>
                           </div>
@@ -1003,7 +1106,8 @@ export default function Calendario() {
                   {selectedDate === todayStr ? 'Hoy' : selectedDate}
                 </h2>
                 <p className="font-inter text-xs text-gray-500 dark:text-gray-400">
-                  {selectedEvents.length} {selectedEvents.length === 1 ? 'evento' : 'eventos'} en tu
+                  {selectedEvents.length}{' '}
+                  {selectedEvents.length === 1 ? 'evento' : 'eventos'} en tu
                   agenda
                 </p>
               </div>
@@ -1016,7 +1120,8 @@ export default function Calendario() {
                 Día despejado
               </p>
               <p className="font-inter text-xs text-gray-400">
-                No hay tareas, recordatorios, riegos ni gastos registrados en esta fecha.
+                No hay tareas, recordatorios, riegos ni gastos registrados en
+                esta fecha.
               </p>
             </div>
           ) : (

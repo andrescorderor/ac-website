@@ -14,7 +14,7 @@ import { loadPortfolioCms, CmsCertification } from '@/lib/portfolioCms';
 
 export default function CertificationsSection() {
   const { t } = useTranslation();
-  const [, setCurrentSlide] = useState(0);
+  const [currentSlide, setCurrentSlide] = useState(0);
   const [cmsCerts, setCmsCerts] = useState<CmsCertification[] | null>(null);
 
   useEffect(() => {
@@ -92,11 +92,34 @@ export default function CertificationsSection() {
           </div>
         ))}
       </div>
+      {/* Controles visibles en móvil (con indicador de posición) */}
+      <div className="md:hidden mt-8 flex items-center justify-center gap-4">
+        <DynamicButton
+          style="BLACK"
+          type="icon-only"
+          name="Anterior"
+          onClick={handlePrevClick}
+          icon={GrLinkPrevious}
+        />
+        <span
+          aria-live="polite"
+          className="font-syne text-xs font-bold tracking-widest text-[var(--dark-gray)]"
+        >
+          {Math.min(currentSlide + 1, displayedCertifications.length)} / {displayedCertifications.length}
+        </span>
+        <DynamicButton
+          style="BLACK"
+          type="icon-only"
+          name="Siguiente"
+          onClick={handleNextClick}
+          icon={GrLinkNext}
+        />
+      </div>
       <div className="absolute left-8 top-1/2 transform -translate-y-1/2 hidden md:block">
         <DynamicButton
           style="BLACK"
           type="icon-only"
-          name="NextButton"
+          name="Anterior"
           onClick={handlePrevClick}
           icon={GrLinkPrevious}
         />
@@ -105,7 +128,7 @@ export default function CertificationsSection() {
         <DynamicButton
           style="BLACK"
           type="icon-only"
-          name="NextButton"
+          name="Siguiente"
           onClick={handleNextClick}
           icon={GrLinkNext}
         />

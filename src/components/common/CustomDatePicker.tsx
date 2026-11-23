@@ -62,14 +62,16 @@ export default function CustomDatePicker({
   const updateCoords = () => {
     if (containerRef.current) {
       const rect = containerRef.current.getBoundingClientRect();
-      const pickerHeight = 360; // Estimated height of calendar popup
+      const pickerHeight = 470; // Estimated height of calendar popup (celdas táctiles de 44px)
       const spaceBelow = window.innerHeight - rect.bottom;
       const placeAbove = spaceBelow < pickerHeight && rect.top > pickerHeight;
+      const popupWidth = Math.max(rect.width, Math.min(336, window.innerWidth - 16));
+      const clampedLeft = Math.max(8, Math.min(rect.left, window.innerWidth - popupWidth - 8));
 
       setCoords({
         top: placeAbove ? rect.top - 6 : rect.bottom + 6,
-        left: rect.left,
-        width: Math.max(rect.width, 290), // At least 290px for comfortable calendar grid
+        left: clampedLeft,
+        width: popupWidth,
         placeAbove,
       });
     }
@@ -99,6 +101,19 @@ export default function CustomDatePicker({
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
+
+  // Cierre con Escape (accesibilidad)
+  useEffect(() => {
+    if (!isOpen) return undefined;
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        event.stopPropagation();
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener('keydown', handleEscape, true);
+    return () => document.removeEventListener('keydown', handleEscape, true);
+  }, [isOpen]);
 
   const formatDisplay = (val: string) => {
     if (!val) return '';
@@ -171,13 +186,26 @@ export default function CustomDatePicker({
   return (
     <div className={`relative ${className}`} ref={containerRef}>
       <div
+        role="button"
+        tabIndex={disabled ? -1 : 0}
+        aria-haspopup="dialog"
+        aria-expanded={isOpen}
+        aria-disabled={disabled || undefined}
+        onKeyDown={(e) => {
+          if (disabled || e.target !== e.currentTarget) return;
+          if (e.key === 'Enter' || e.key === ' ' || e.key === 'ArrowDown') {
+            e.preventDefault();
+            updateCoords();
+            setIsOpen(true);
+          }
+        }}
         onClick={() => {
           if (!disabled) {
             updateCoords();
             setIsOpen(!isOpen);
           }
         }}
-        className={`flex items-center justify-between w-full px-5 py-3.5 bg-gray-50/80 dark:bg-gray-800/80 border border-gray-100 dark:border-gray-700/80 rounded-xl cursor-pointer hover:border-gray-300 dark:hover:border-gray-500 transition-all font-inter text-sm text-gray-900 dark:text-gray-100 shadow-xs select-none ${
+        className={`flex items-center justify-between w-full px-5 min-h-[48px] py-3 bg-gray-50/80 dark:bg-gray-800/80 border border-gray-100 dark:border-gray-700/80 rounded-xl cursor-pointer hover:border-gray-300 dark:hover:border-gray-500 transition-all font-inter text-sm text-gray-900 dark:text-gray-100 shadow-xs select-none ${
           disabled ? 'opacity-50 cursor-not-allowed' : ''
         }`}
       >
@@ -193,8 +221,9 @@ export default function CustomDatePicker({
             <button
               type="button"
               onClick={clearDate}
-              className="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 rounded-md transition-colors"
+              className="min-w-[36px] min-h-[36px] flex items-center justify-center p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 rounded-md transition-colors"
               title="Borrar fecha"
+              aria-label="Borrar fecha"
             >
               <HiX className="text-xs" />
             </button>
@@ -207,6 +236,8 @@ export default function CustomDatePicker({
           {isOpen && (
             <motion.div
               ref={dropdownRef}
+              role="dialog"
+              aria-label="Seleccionar fecha"
               initial={{ opacity: 0, y: coords.placeAbove ? 8 : -8, scale: 0.96 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: coords.placeAbove ? 8 : -8, scale: 0.96 }}
@@ -226,7 +257,7 @@ export default function CustomDatePicker({
                 <button
                   type="button"
                   onClick={prevMonth}
-                  className="p-1.5 rounded-lg text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                  className="min-w-[44px] min-h-[44px] flex items-center justify-center p-1.5 rounded-lg text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
                 >
                   <HiChevronLeft className="text-base" />
                 </button>
@@ -236,7 +267,7 @@ export default function CustomDatePicker({
                 <button
                   type="button"
                   onClick={nextMonth}
-                  className="p-1.5 rounded-lg text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                  className="min-w-[44px] min-h-[44px] flex items-center justify-center p-1.5 rounded-lg text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
                 >
                   <HiChevronRight className="text-base" />
                 </button>
@@ -255,7 +286,7 @@ export default function CustomDatePicker({
               <div className="grid grid-cols-7 gap-1">
                 {/* Empty slots for month offset */}
                 {Array.from({ length: firstDayOfWeek }).map((_, i) => (
-                  <div key={`empty-${i}`} className="h-8" />
+                  <div key={`empty-${i}`} className="h-11" />
                 ))}
 
                 {/* Actual day numbers */}
@@ -269,7 +300,7 @@ export default function CustomDatePicker({
                       key={`day-${dayNum}`}
                       type="button"
                       onClick={() => handleSelectDay(dayNum)}
-                      className={`h-8 rounded-xl text-xs font-medium transition-all flex items-center justify-center relative ${
+                      className={`h-11 rounded-xl text-sm font-medium transition-all flex items-center justify-center relative ${
                         selected
                           ? 'bg-black dark:bg-white text-white dark:text-black font-bold shadow-md'
                           : currentToday
@@ -291,14 +322,14 @@ export default function CustomDatePicker({
                 <button
                   type="button"
                   onClick={setToday}
-                  className="text-sky-500 hover:text-sky-600 dark:hover:text-sky-400 transition-colors"
+                  className="min-h-[44px] px-2 text-sky-500 hover:text-sky-600 dark:hover:text-sky-400 transition-colors"
                 >
                   Hoy
                 </button>
                 <button
                   type="button"
                   onClick={() => setIsOpen(false)}
-                  className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+                  className="min-h-[44px] px-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
                 >
                   Cerrar
                 </button>

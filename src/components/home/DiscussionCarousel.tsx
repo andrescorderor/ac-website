@@ -26,9 +26,19 @@ export default function DiscussionCarousel() {
   return (
     <section className="relative w-full overflow-hidden py-16">
       <div
+        role="button"
+        tabIndex={0}
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
+        onFocus={() => setIsHovered(true)}
+        onBlur={() => setIsHovered(false)}
         onClick={handleClick}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            handleClick();
+          }
+        }}
         className="w-full discussion-carousel font-syne cursor-pointer border-y-2 bg-[var(--white)] py-4 text-center font-bold text-[var(--black)]"
       >
         <h3 className="w-full text-[7vw] hover:text-[var(--vibrant-sky-blue)] transition-colors duration-300">

@@ -75,13 +75,15 @@ export default function ExperienceSection() {
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
             transition={{ delay: index * 0.1 }}
-            className="flex flex-col md:flex-row gap-8 md:gap-20 group relative"
+            className="flex flex-col md:flex-row gap-4 md:gap-20 group relative pl-7 md:pl-0"
           >
             {/* Year with indicator */}
             <div className="md:w-40 flex-shrink-0 relative">
               <span className="font-syne text-xl font-bold text-[var(--vibrant-sky-blue)] block md:text-right md:pr-12">
                 {exp.year}
               </span>
+              {/* Punto de línea de tiempo (móvil) */}
+              <div className="md:hidden absolute -left-[33px] top-2 size-2.5 rounded-full bg-[var(--vibrant-sky-blue)] border-4 border-[var(--deep-navy-blue-light)] z-10" />
               {/* Timeline Dot */}
               <div className="hidden md:block absolute right-[-5px] top-2 size-2.5 rounded-full bg-[var(--vibrant-sky-blue)] border-4 border-[var(--white)] shadow-sm group-hover:scale-150 transition-transform duration-300 z-10" />
             </div>

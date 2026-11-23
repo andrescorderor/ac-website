@@ -6,6 +6,7 @@ import Cursor from '@components/common/Cursor';
 import Layout from '@components/common/Layout';
 import Home from '@pages/Home';
 import { createRoot } from 'react-dom/client';
+import { MotionConfig } from 'framer-motion';
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 import { registerSW } from 'virtual:pwa-register';
 
@@ -239,7 +240,9 @@ const router = createBrowserRouter([
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <Cursor />
-    <RouterProvider router={router} />
+    <MotionConfig reducedMotion="user">
+      <Cursor />
+      <RouterProvider router={router} />
+    </MotionConfig>
   </StrictMode>,
 );

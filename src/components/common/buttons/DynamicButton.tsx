@@ -4,6 +4,8 @@ type DynamicButtonProps = {
   type: 'icon-only' | 'full-static' | 'full-dynamic' | 'text-only';
   style: 'WHITE' | 'BLACK';
   onClick?: () => void;
+  ariaLabel?: string;
+  title?: string;
 };
 
 export function DynamicButton({
@@ -12,23 +14,25 @@ export function DynamicButton({
   type,
   style,
   onClick = () => null,
+  ariaLabel,
+  title,
 }: DynamicButtonProps) {
   const whiteBaseClasses =
-    'font-dm-sans group relative hover:bg-[var(--soft-light-gray)] flex items-center justify-center rounded-full text-sm border hover:border-[var(--black)] border-[var(--soft-light-gray)] bg-[var(--white)] p-2 text-[var(--black)] transition-all duration-500 ease-in-out';
+    'font-dm-sans group relative hover:bg-[var(--soft-light-gray)] flex items-center justify-center min-h-[44px] rounded-full text-sm border hover:border-[var(--black)] border-[var(--soft-light-gray)] bg-[var(--white)] p-2 text-[var(--black)] transition-all duration-500 ease-in-out cursor-pointer';
 
   const blackBaseClasses =
-    'font-dm-sans group relative hover:bg-[var(--black)] flex items-center justify-center rounded-full text-sm border hover:border-[var(--black)] border-[var(--soft-light-gray)] bg-[var(--dark-gray)] p-2 text-[var(--white)] transition-all duration-500 ease-in-out';
+    'font-dm-sans group relative hover:bg-[var(--black)] flex items-center justify-center min-h-[44px] rounded-full text-sm border hover:border-[var(--black)] border-[var(--soft-light-gray)] bg-[var(--dark-gray)] p-2 text-[var(--white)] transition-all duration-500 ease-in-out cursor-pointer';
 
   const baseClasses = style === 'WHITE' ? whiteBaseClasses : blackBaseClasses;
 
   const getButtonClasses = () => {
     switch (type) {
       case 'icon-only':
-        return 'p-2';
+        return 'p-2 min-w-[44px]';
       case 'full-static':
         return 'px-4';
       case 'full-dynamic':
-        return 'hover:px-4';
+        return 'hover:px-4 min-w-[44px]';
       case 'text-only':
         return 'p-2';
       default:
@@ -66,10 +70,15 @@ export function DynamicButton({
     return null;
   };
 
+  const computedAriaLabel =
+    ariaLabel ?? (type === 'icon-only' || type === 'full-dynamic' ? name : undefined);
+
   return (
     <button
       type="button"
       onClick={onClick}
+      aria-label={computedAriaLabel}
+      title={title}
       className={`${baseClasses} ${getButtonClasses()}`}
     >
       {renderIcon()}

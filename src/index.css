@@ -213,3 +213,120 @@ textarea {
   max-height: 80vh;
 }
 
+
+/* ═══════════════════════════════════════════════════════════════
+   Design System 2.0 (v8.0.0) — Motion, tema público y utilidades
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ═══ Public Site Theme Scope (selector Claro / Oscuro) ═══ */
+.public-site {
+  background-color: var(--white);
+  color: var(--black);
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.public-site.public-dark {
+  color-scheme: dark;
+  --black: #f3f6fa;
+  --white: #0b0f14;
+  --deep-navy-blue: #1e3a8a;
+  --deep-navy-blue-light: #121922;
+  --vibrant-sky-blue: #6ea0ff;
+  --vibrant-sky-blue-light: #14233d;
+  --magenta-pink: #38bdf8;
+  --magenta-pink-light: #0c2433;
+  --soft-light-gray: #18222d;
+  --light-gray: #283542;
+  --gray: #7b8a9a;
+  --dark-gray: #a8b4c2;
+}
+
+.public-site.public-light .glass {
+  background: rgba(255, 255, 255, 0.78);
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.05);
+}
+.public-site.public-dark .glass {
+  background: rgba(11, 15, 20, 0.78);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 4px 28px rgba(0, 0, 0, 0.4);
+}
+.public-site.public-light .text-gradient {
+  background: linear-gradient(135deg, #0f172a 0%, #2563eb 50%, #0ea5e9 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.public-site.public-dark .text-gradient {
+  background: linear-gradient(135deg, #93c5fd 0%, #38bdf8 50%, #a78bfa 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ═══ Marquee CSS-only (sin re-render de React) ═══ */
+@keyframes marquee-x {
+  from { transform: translate3d(0, 0, 0); }
+  to   { transform: translate3d(-50%, 0, 0); }
+}
+.marquee-track {
+  display: flex;
+  width: max-content;
+  animation: marquee-x 80s linear infinite;
+  will-change: transform;
+}
+.marquee:hover .marquee-track,
+.marquee:focus-within .marquee-track {
+  animation-play-state: paused;
+}
+
+/* ═══ Fondos con deriva lenta (solo transform) ═══ */
+@keyframes drift-a {
+  0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+  50%      { transform: translate3d(6vw, -3vw, 0) scale(1.1); }
+}
+@keyframes drift-b {
+  0%, 100% { transform: translate3d(0, 0, 0) scale(1.1); }
+  50%      { transform: translate3d(-6vw, 3vw, 0) scale(1); }
+}
+.animate-drift-a { animation: drift-a 28s ease-in-out infinite; will-change: transform; }
+.animate-drift-b { animation: drift-b 34s ease-in-out infinite; will-change: transform; }
+
+/* ═══ Spotlight reactivo (CSS variables, sin setState) ═══ */
+.spotlight-surface {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.4s ease;
+  background: radial-gradient(520px circle at var(--mx, 50%) var(--my, 40%), rgba(37, 99, 235, 0.14), transparent 62%);
+  background: radial-gradient(520px circle at var(--mx, 50%) var(--my, 40%), color-mix(in srgb, var(--vibrant-sky-blue) 16%, transparent), transparent 62%);
+}
+.spotlight-active .spotlight-surface { opacity: 1; }
+
+/* ═══ Revelado suave reutilizable ═══ */
+@keyframes reveal-up {
+  from { opacity: 0; transform: translate3d(0, 14px, 0); }
+  to   { opacity: 1; transform: translate3d(0, 0, 0); }
+}
+.reveal-up { animation: reveal-up 0.45s cubic-bezier(0.22, 1, 0.36, 1) both; }
+
+/* ═══ Movimiento reducido (accesibilidad global) ═══ */
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  .marquee-track {
+    animation: none !important;
+    width: auto;
+    flex-wrap: wrap;
+    justify-content: center;
+    row-gap: 2rem;
+  }
+  .marquee-dup { display: none !important; }
+  .animate-drift-a, .animate-drift-b, .animate-float { animation: none !important; }
+}

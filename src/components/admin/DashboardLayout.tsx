@@ -258,14 +258,22 @@ function DashboardLayoutContent() {
                   <Link
                     key={item.path}
                     to={item.path}
-                    className={`flex items-center gap-3.5 px-4 py-2.5 rounded-2xl transition-all duration-300 interactive-hover ${
+                    aria-current={isActive ? 'page' : undefined}
+                    className={`relative flex items-center gap-3.5 px-4 min-h-[44px] py-2.5 rounded-2xl transition-colors duration-200 ${
                       isActive
-                        ? 'bg-black dark:bg-white text-white dark:text-black shadow-lg shadow-black/10 dark:shadow-white/10'
+                        ? 'text-white dark:text-black'
                         : 'text-gray-500 dark:text-gray-400 hover:bg-gray-100/80 dark:hover:bg-gray-800/60 hover:text-black dark:hover:text-white'
                     }`}
                   >
-                    <item.icon className="text-xl shrink-0" />
-                    <span className="font-syne text-[11px] font-bold uppercase tracking-widest whitespace-nowrap">
+                    {isActive && (
+                      <motion.span
+                        layoutId="sidebar-active-pill"
+                        transition={{ type: 'spring', stiffness: 520, damping: 40 }}
+                        className="absolute inset-0 rounded-2xl bg-black dark:bg-white shadow-lg shadow-black/10 dark:shadow-white/10"
+                      />
+                    )}
+                    <item.icon className="relative z-10 text-xl shrink-0" />
+                    <span className="relative z-10 font-syne text-[11px] font-bold uppercase tracking-widest whitespace-nowrap">
                       {item.label}
                     </span>
                   </Link>
@@ -312,7 +320,7 @@ function DashboardLayoutContent() {
 
           <div className="text-center select-none pt-1">
             <span className="font-syne text-[10px] font-bold tracking-widest text-gray-400 dark:text-gray-500 block">
-              VERSIÓN v7.5.1
+              VERSIÓN v8.0.0
             </span>
           </div>
         </div>
@@ -462,7 +470,7 @@ function DashboardLayoutContent() {
 
           <div className="text-center select-none pt-2">
             <span className="font-syne text-[10px] font-bold tracking-widest text-gray-400 dark:text-gray-500 block">
-              VERSIÓN v7.5.1
+              VERSIÓN v8.0.0
             </span>
           </div>
         </div>
@@ -528,9 +536,9 @@ function DashboardLayoutContent() {
         <div className="px-3.5 sm:px-6 md:p-8 lg:p-10 pt-[76px] pb-bottom-nav lg:pt-8 lg:pb-8 max-w-[1600px] mx-auto min-h-full">
           <motion.div
             key={location.pathname}
-            initial={{ opacity: 0, y: 10 }}
+            initial={{ opacity: 0, y: 6 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.25, ease: 'easeOut' }}
+            transition={{ duration: 0.18, ease: [0.22, 1, 0.36, 1] }}
           >
             <Outlet />
           </motion.div>

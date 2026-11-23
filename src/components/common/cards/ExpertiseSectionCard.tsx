@@ -94,7 +94,7 @@ export default function ExpertiseSectionCard({
     <div
       onMouseEnter={() => setIsExpanded(true)}
       onMouseLeave={() => setIsExpanded(false)}
-      className="group relative flex overflow-hidden rounded-3xl bg-white border border-[var(--light-gray)] hover:border-[var(--black)] transition-all duration-700 ease-[0.16,1,0.3,1] shadow-sm hover:shadow-2xl"
+      className="group relative flex overflow-hidden rounded-3xl bg-[var(--white)] border border-[var(--light-gray)] hover:border-[var(--black)] transition-all duration-700 ease-[0.16,1,0.3,1] shadow-sm hover:shadow-2xl"
       style={{
         height: isExpanded ? contentHeight : baseHeight,
       }}
@@ -122,6 +122,14 @@ export default function ExpertiseSectionCard({
         <div
           title="Open expertise detail modal"
           role="button"
+          tabIndex={0}
+          aria-label="Open expertise detail modal"
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              handleClick();
+            }
+          }}
           className="absolute right-6 top-6 cursor-pointer flex size-14 items-center justify-center rounded-full bg-[var(--black)] text-[var(--white)] overflow-hidden group/btn"
           onClick={handleClick}
         >
