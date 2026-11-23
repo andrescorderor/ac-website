@@ -4,6 +4,7 @@ import { supabase } from '@/lib/supabase';
 import { fetchWithCache } from '@/lib/cache';
 import { motion, AnimatePresence } from 'framer-motion';
 import { togglePinItem, isItemPinned } from '@/lib/pinned';
+import { parseTaskMeta } from '@/lib/taskMeta';
 import {
   HiOutlineSearch,
   HiOutlineX,
@@ -292,7 +293,7 @@ export default function CommandPalette({ isOpen, onClose }: CommandPaletteProps)
         const [nts, rem, tsk, dbt, vlt, shp, prj, chk, rec, fin, plt, bkmRes] = await Promise.all([
           supabase.from('notes').select('id, title, category, content, created_at').order('created_at', { ascending: false }).limit(200),
           supabase.from('reminders').select('*').order('created_at', { ascending: false }).limit(200),
-          supabase.from('tasks').select('id, title, description, completed, due_date, created_at').order('created_at', { ascending: false }).limit(200),
+          supabase.from('tasks').select('id, title, description, priority, completed, due_date, created_at').order('created_at', { ascending: false }).limit(200),
           supabase.from('debts').select('*').order('created_at', { ascending: false }).limit(200),
           supabase.from('vault_items').select('*').order('created_at', { ascending: false }).limit(200),
           supabase.from('shopping_list').select('id, name, location, price, bought, created_at').order('created_at', { ascending: false }).limit(200),
@@ -331,9 +332,25 @@ export default function CommandPalette({ isOpen, onClose }: CommandPaletteProps)
       });
 
       tsk.data?.forEach(t => {
-        const match = !termNorm || normalize(t.title).includes(termNorm) || normalize(t.description).includes(termNorm);
+        const meta = parseTaskMeta(t);
+        const match =
+          !termNorm ||
+          normalize(t.title).includes(termNorm) ||
+          normalize(meta.cleanDescription).includes(termNorm) ||
+          normalize(meta.area).includes(termNorm) ||
+          normalize(meta.priority).includes(termNorm);
         if (match) {
-          push({ id: t.id, type: 'task', title: t.title, subtitle: t.completed ? '✓ Completada' : t.due_date ? `Vence: ${t.due_date}` : 'Pendiente', path: '/admin/panel/pendientes', icon: TYPE_META.task.icon, categoryLabel: TYPE_META.task.label, badgeColor: TYPE_META.task.color, rawTitle: t.title });
+          push({
+            id: t.id,
+            type: 'task',
+            title: t.title,
+            subtitle: `${meta.area} · ${meta.priority} · ${t.completed ? '✓ Completada' : t.due_date ? `Vence: ${t.due_date}` : 'Pendiente'}`,
+            path: '/admin/panel/pendientes',
+            icon: TYPE_META.task.icon,
+            categoryLabel: TYPE_META.task.label,
+            badgeColor: TYPE_META.task.color,
+            rawTitle: t.title,
+          });
         }
       });
 
@@ -508,7 +525,7 @@ export default function CommandPalette({ isOpen, onClose }: CommandPaletteProps)
       const aiContextData = await fetchWithCache('ai_db_snapshot_v2', async () => {
         const [exp, tsk, dbt, vlt, shp, rem, nts, prj, chk, rec, plt, bkm, sal] = await Promise.all([
           supabase.from('finance_expenses').select('amount, category, concept, created_at').order('created_at', { ascending: false }).limit(25),
-          supabase.from('tasks').select('title, completed, due_date').order('created_at', { ascending: false }).limit(25),
+          supabase.from('tasks').select('title, description, priority, completed, due_date').order('created_at', { ascending: false }).limit(25),
           supabase.from('debts').select('*').order('created_at', { ascending: false }).limit(40),
           supabase.from('vault_items').select('*').limit(25),
           supabase.from('shopping_list').select('name, location, bought, quantity').limit(25),
@@ -543,7 +560,10 @@ export default function CommandPalette({ isOpen, onClose }: CommandPaletteProps)
 - Salario Quincenal: $${salaryAmount / 2}
 
 📌 TAREAS:
-${tsk.data?.map(t => `- [${t.completed ? 'Completada' : 'Pendiente'}] ${t.title}${t.due_date ? ` (Vence: ${t.due_date})` : ''}`).join('\n') || 'Ninguna'}
+${tsk.data?.map(t => {
+  const m = parseTaskMeta(t);
+  return `- [${t.completed ? 'Completada' : m.status}] (${m.area} · Prioridad: ${m.priority}) ${t.title}${t.due_date ? ` (Vence: ${t.due_date})` : ''}${m.cleanDescription ? ` — Notas: ${m.cleanDescription.slice(0, 80)}` : ''}`;
+}).join('\n') || 'Ninguna'}
 
 💰 CUENTAS QUE ME DEBEN (POR COBRAR):
 - Total pendiente a mi favor: $${pendingReceivablesTotal}

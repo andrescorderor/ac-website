@@ -1,7 +1,7 @@
 <div align="center">
   <img src="public/assets/ac-website-icon.svg" alt="Logo" width="100" />
   
-  # Andrés Cordero - Professional Portfolio & Personal Panel PWA (v6.24.0) 🔍✨
+  # Andrés Cordero - Professional Portfolio & Personal Panel PWA (v6.25.0) 🔍✨
   
   **Welcome to my personal ecosystem: a professional portfolio and a custom productivity hub.**  
   Built with UX/UI best practices, premium design, and a focus on mobile-first efficiency.
@@ -16,11 +16,15 @@
 
 ---
 
-## 🚀 Overview (Version 6.24.0)
+## 🚀 Overview (Version 6.25.0)
 
 This repository hosts a dual-purpose platform:
 1. **Professional Portfolio:** A high-end landing page showcasing my engineering background, skills, and achievements with dynamic copyright year updates and zero horizontal overflow.
-2. **Personal Panel PWA (v6.24.0):** An executive personal operating system featuring:
+2. **Personal Panel PWA (v6.25.0):** An executive personal operating system featuring:
+   * **Tablero de Pendientes por Ámbitos y Áreas (`Pendientes.tsx`, `taskMeta.ts`, `CommandPalette.tsx` - v6.25.0):**
+     * **Columnas por Ámbito / Área:** Agrupación dinámica en columnas (Personal, Trabajo, Social, Emprendimiento o cualquier ámbito personalizado creado al vuelo) con toggle entre vista en **Columnas** y **Lista**, más creación rápida directa en cada columna.
+     * **Prioridades y Ordenamiento Automático:** Niveles `Urgente`, `Alta`, `Media` y `Baja` con rotación rápida en 1 clic y ordenamiento automático por prioridad y fecha límite dentro de cada columna.
+     * **Estados de Seguimiento y Notas:** Cambio de status en 1 tap (`Pendiente`, `En Progreso`, `En Espera`, `Completada`), edición completa con notas enriquecidas (`RichTextEditor`) y persistencia resiliente en Supabase (columnas nativas con fallback transparente en `description`).
    * **Hipervínculos Reales al Pegar en Descripciones (`RichTextEditor.tsx`, `AutoFormattedText.tsx` - v6.24.0):**
      * **Preservación de Enlaces Copiados del Navegador:** Al pegar links desde Edge/Chrome (`<a href="...">Título</a>`), el editor conserva la URL en formato Markdown `[Título](url)` en lugar de descartar el `href`.
      * **Visualización en Vivo y Renderizado en Tarjetas:** Los enlaces (`[Título](url)` y URLs directas `https://...`) se muestran subrayados en azul dentro del editor y como hipervínculos clicables con icono externo en todas las vistas de detalle/tarjetas.
