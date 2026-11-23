@@ -35,32 +35,32 @@ export default defineConfig({
         ],
         shortcuts: [
           {
-            name: 'Mandado Quincenal',
-            short_name: 'Mandado',
-            description: 'Abrir lista de compras y mandado',
-            url: '/admin/compras',
-            icons: [{ src: 'assets/ac-website-icon.svg', sizes: '192x192' }]
+            name: 'Nueva Tarea',
+            short_name: 'Tarea',
+            description: 'Crear una nueva tarea pendiente',
+            url: '/admin/panel/pendientes?new=1',
+            icons: [{ src: 'assets/ac-website-icon-192.png', sizes: '192x192', type: 'image/png' }]
           },
           {
-            name: 'Mis Pendientes',
-            short_name: 'Tareas',
-            description: 'Ver tareas pendientes del día',
-            url: '/admin/pendientes',
-            icons: [{ src: 'assets/ac-website-icon.svg', sizes: '192x192' }]
+            name: 'Modo Súper',
+            short_name: 'Súper',
+            description: 'Abrir listado semanal de mandado',
+            url: '/admin/panel/compras?mandado=true',
+            icons: [{ src: 'assets/ac-website-icon-192.png', sizes: '192x192', type: 'image/png' }]
           },
           {
-            name: 'Riego de Plantas',
-            short_name: 'Plantas',
-            description: 'Revisar plantas y registrar riego',
-            url: '/admin/plantas',
-            icons: [{ src: 'assets/ac-website-icon.svg', sizes: '192x192' }]
+            name: 'Registrar Gasto',
+            short_name: 'Gasto',
+            description: 'Agregar gasto rápido en Finanzas',
+            url: '/admin/panel/finanzas?new=1',
+            icons: [{ src: 'assets/ac-website-icon-192.png', sizes: '192x192', type: 'image/png' }]
           },
           {
-            name: 'Notas Rápidas',
-            short_name: 'Notas',
-            description: 'Crear o consultar notas importantes',
-            url: '/admin/notas',
-            icons: [{ src: 'assets/ac-website-icon.svg', sizes: '192x192' }]
+            name: 'Calendario 360°',
+            short_name: 'Calendario',
+            description: 'Ver agenda unificada de todo el panel',
+            url: '/admin/panel/calendario',
+            icons: [{ src: 'assets/ac-website-icon-192.png', sizes: '192x192', type: 'image/png' }]
           }
         ],
       },

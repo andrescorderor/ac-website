@@ -15,6 +15,7 @@ import {
 } from 'react-icons/hi';
 import { useToast } from '@/components/common/ToastContext';
 import { togglePinItem, isItemPinned } from '@/lib/pinned';
+import { moveToTrash } from '@/lib/trash';
 
 type Note = {
   id: string;
@@ -148,6 +149,7 @@ const TATTOO_IDEAS_LIST = [
         .from('notes')
         .select('*')
         .not('category', 'like', 'Fitness_Routine_Data:%')
+        .not('category', 'like', 'System_Store:%')
         .order('created_at', { ascending: false });
 
       if (error) {
@@ -238,8 +240,15 @@ const TATTOO_IDEAS_LIST = [
       const { error } = await supabase.from('notes').delete().eq('id', id);
       if (error) throw error;
       setNotes((prev) => prev.filter((n) => n.id !== id));
+      moveToTrash({
+        table: 'notes',
+        entityLabel: 'Nota',
+        title: noteToDelete.title,
+        subtitle: noteToDelete.category || 'General',
+        payload: { ...noteToDelete },
+      });
       
-      toast.undoable('Nota eliminada', async () => {
+      toast.undoable('Nota movida a Papelera', async () => {
         try {
           const { data: { user } } = await supabase.auth.getUser();
           if (!user) return;

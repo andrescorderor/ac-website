@@ -13,6 +13,7 @@ import {
 } from 'react-icons/hi';
 import { useToast } from '@/components/common/ToastContext';
 import { togglePinItem, isItemPinned } from '@/lib/pinned';
+import { moveToTrash } from '@/lib/trash';
 import { useSearchParams } from 'react-router-dom';
 import AutoFormattedText from '@/components/common/AutoFormattedText';
 import RichTextEditor from '@/components/common/RichTextEditor';
@@ -190,8 +191,15 @@ export default function Plantas() {
       const { error } = await supabase.from('plants').delete().eq('id', id);
       if (error) throw error;
       setPlants((prev) => prev.filter((p) => p.id !== id));
+      moveToTrash({
+        table: 'plants',
+        entityLabel: 'Planta',
+        title: plantToDelete.nickname || plantToDelete.species,
+        subtitle: plantToDelete.location || '',
+        payload: { ...plantToDelete },
+      });
       
-      toast.undoable('Planta eliminada', async () => {
+      toast.undoable('Planta movida a Papelera', async () => {
         try {
           const { data: { user } } = await supabase.auth.getUser();
           if (!user) return;

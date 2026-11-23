@@ -11,6 +11,7 @@ import {
   HiOutlineViewBoards,
   HiOutlineViewList,
   HiOutlineCalendar,
+  HiOutlineTag,
   HiX,
 } from 'react-icons/hi';
 import { MdOutlineCircle } from 'react-icons/md';
@@ -21,6 +22,8 @@ import AutoFormattedText from '@/components/common/AutoFormattedText';
 import CustomDatePicker from '@/components/common/CustomDatePicker';
 import CustomSelect from '@/components/common/CustomSelect';
 import RichTextEditor from '@/components/common/RichTextEditor';
+import { loadSystemData, saveSystemData } from '@/lib/systemStore';
+import { moveToTrash } from '@/lib/trash';
 import {
   TaskPriority,
   TaskStatus,
@@ -29,6 +32,7 @@ import {
   PRIORITY_STYLES,
   STATUS_OPTIONS,
   SUGGESTED_AREAS,
+  SUGGESTED_TAGS,
   parseTaskMeta,
   serializeDescriptionWithMeta,
 } from '@/lib/taskMeta';
@@ -40,6 +44,7 @@ type TaskRow = {
   priority: string | null;
   area?: string | null;
   status?: string | null;
+  tags?: string[] | null;
   due_date: string | null;
   completed: boolean;
   created_at?: string;
@@ -49,6 +54,7 @@ type TaskItem = TaskRow & {
   area: string;
   status: TaskStatus;
   priority: TaskPriority;
+  tags: string[];
   cleanDescription: string;
 };
 
@@ -65,6 +71,7 @@ function hydrateTask(row: TaskRow): TaskItem {
     area: meta.area,
     status: meta.status,
     priority: meta.priority,
+    tags: meta.tags,
     cleanDescription: meta.cleanDescription,
   };
 }
@@ -112,49 +119,51 @@ function getDueBadgeStyle(dueDate: string, completed: boolean) {
 }
 
 const AREAS_STORAGE_KEY = 'ac_task_areas_v1';
+const TAGS_STORAGE_KEY = 'ac_task_tags_v1';
 
-function loadStoredAreas(): string[] {
+function loadLocalStringArray(key: string): string[] {
   try {
-    const raw = localStorage.getItem(AREAS_STORAGE_KEY);
+    const raw = localStorage.getItem(key);
     if (!raw) return [];
     const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) ? parsed.filter((a) => typeof a === 'string' && a.trim()) : [];
+    return Array.isArray(parsed) ? parsed.filter((x) => typeof x === 'string' && x.trim()) : [];
   } catch {
     return [];
   }
 }
 
-function saveStoredAreas(areas: string[]) {
-  try {
-    localStorage.setItem(AREAS_STORAGE_KEY, JSON.stringify(areas));
-  } catch {
-    // Ignore storage quota / private mode errors
-  }
-}
-
 export default function Pendientes() {
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [tasks, setTasks] = useState<TaskItem[]>([]);
-  const [customAreas, setCustomAreas] = useState<string[]>(() => loadStoredAreas());
+  const [customAreas, setCustomAreas] = useState<string[]>(() => loadLocalStringArray(AREAS_STORAGE_KEY));
+  const [customTags, setCustomTags] = useState<string[]>(() => loadLocalStringArray(TAGS_STORAGE_KEY));
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+
   const [showFormModal, setShowFormModal] = useState(false);
   const [showAreaModal, setShowAreaModal] = useState(false);
   const [newAreaName, setNewAreaName] = useState('');
+  const [renamingArea, setRenamingArea] = useState<string | null>(null);
+  const [renameAreaValue, setRenameAreaValue] = useState('');
+  const [renamingSubmitting, setRenamingSubmitting] = useState(false);
+
   const [editingTask, setEditingTask] = useState<TaskItem | null>(null);
 
   const [viewMode, setViewMode] = useState<ViewMode>('columns');
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('active');
   const [priorityFilter, setPriorityFilter] = useState<'all' | TaskPriority>('all');
   const [areaFilter, setAreaFilter] = useState<string>('all');
+  const [tagFilter, setTagFilter] = useState<string>('all');
   const [searchTerm, setSearchTerm] = useState(searchParams.get('search') || '');
 
+  const [tagInput, setTagInput] = useState('');
   const [formState, setFormState] = useState({
     title: '',
     description: '',
     area: 'Personal',
     priority: 'Media' as TaskPriority,
     status: 'pending' as TaskStatus,
+    tags: [] as string[],
     due_date: '',
   });
 
@@ -166,27 +175,57 @@ export default function Pendientes() {
       setSearchTerm(queryParam);
       if (queryParam) setStatusFilter('all');
     }
+    if (searchParams.get('new') === '1') {
+      openCreateModal();
+      const nextParams = new URLSearchParams(searchParams);
+      nextParams.delete('new');
+      setSearchParams(nextParams, { replace: true });
+    }
   }, [searchParams]);
 
   useEffect(() => {
-    fetchTasks();
+    fetchTasksAndConfig();
   }, []);
 
-  const fetchTasks = async () => {
-    const { data, error } = await supabase
-      .from('tasks')
-      .select('*')
-      .order('created_at', { ascending: false });
+  const fetchTasksAndConfig = async () => {
+    const [tasksRes, storedAreas, storedTags] = await Promise.all([
+      supabase.from('tasks').select('*').order('created_at', { ascending: false }),
+      loadSystemData<string[]>('task_areas', []),
+      loadSystemData<string[]>('task_tags', []),
+    ]);
 
-    if (error) {
-      toast.error('Error al cargar tareas: ' + error.message);
-    } else if (data) {
-      setTasks(data.map(hydrateTask));
+    if (tasksRes.error) {
+      toast.error('Error al cargar tareas: ' + tasksRes.error.message);
+    } else if (tasksRes.data) {
+      setTasks(tasksRes.data.map(hydrateTask));
     }
+
+    if (Array.isArray(storedAreas) && storedAreas.length > 0) {
+      setCustomAreas((prev) => {
+        const map = new Map<string, string>();
+        [...storedAreas, ...prev].forEach((a) => {
+          const clean = a.trim();
+          if (clean && !map.has(normalize(clean))) map.set(normalize(clean), clean);
+        });
+        return Array.from(map.values());
+      });
+    }
+
+    if (Array.isArray(storedTags) && storedTags.length > 0) {
+      setCustomTags((prev) => {
+        const map = new Map<string, string>();
+        [...storedTags, ...prev].forEach((t) => {
+          const clean = t.trim();
+          if (clean && !map.has(normalize(clean))) map.set(normalize(clean), clean);
+        });
+        return Array.from(map.values());
+      });
+    }
+
     setLoading(false);
   };
 
-  // Ámbitos únicos detectados (áreas creadas + áreas presentes en tareas)
+  // Áreas únicas detectadas (áreas creadas + áreas presentes en tareas)
   const existingAreas = useMemo(() => {
     const map = new Map<string, string>();
     [...customAreas, ...tasks.map((t) => t.area || 'Personal')].forEach((a) => {
@@ -207,13 +246,66 @@ export default function Pendientes() {
     return Array.from(map.values());
   }, [existingAreas]);
 
+  // Etiquetas únicas usadas + guardadas + sugeridas
+  const existingTags = useMemo(() => {
+    const map = new Map<string, string>();
+    [...customTags, ...tasks.flatMap((t) => t.tags || [])].forEach((tag) => {
+      const clean = tag.trim();
+      if (clean && !map.has(normalize(clean))) map.set(normalize(clean), clean);
+    });
+    return Array.from(map.values());
+  }, [customTags, tasks]);
+
+  const selectableTags = useMemo(() => {
+    const map = new Map<string, string>();
+    [...existingTags, ...SUGGESTED_TAGS].forEach((tag) => {
+      const clean = tag.trim();
+      if (clean && !map.has(normalize(clean))) map.set(normalize(clean), clean);
+    });
+    return Array.from(map.values());
+  }, [existingTags]);
+
+  const syncAreasStore = (next: string[]) => {
+    try {
+      localStorage.setItem(AREAS_STORAGE_KEY, JSON.stringify(next));
+    } catch {}
+    saveSystemData('task_areas', next);
+  };
+
+  const syncTagsStore = (next: string[]) => {
+    try {
+      localStorage.setItem(TAGS_STORAGE_KEY, JSON.stringify(next));
+    } catch {}
+    saveSystemData('task_tags', next);
+  };
+
   const registerArea = (areaName: string) => {
     const clean = areaName.trim();
     if (!clean) return;
     setCustomAreas((prev) => {
       if (prev.some((a) => normalize(a) === normalize(clean))) return prev;
       const next = [...prev, clean];
-      saveStoredAreas(next);
+      syncAreasStore(next);
+      return next;
+    });
+  };
+
+  const registerTags = (tagsToSave: string[]) => {
+    if (tagsToSave.length === 0) return;
+    setCustomTags((prev) => {
+      const map = new Map<string, string>();
+      prev.forEach((t) => map.set(normalize(t), t));
+      let changed = false;
+      tagsToSave.forEach((t) => {
+        const clean = t.trim();
+        if (clean && !map.has(normalize(clean))) {
+          map.set(normalize(clean), clean);
+          changed = true;
+        }
+      });
+      if (!changed) return prev;
+      const next = Array.from(map.values());
+      syncTagsStore(next);
       return next;
     });
   };
@@ -244,7 +336,7 @@ export default function Pendientes() {
     if (hasTasks) return;
     setCustomAreas((prev) => {
       const next = prev.filter((a) => normalize(a) !== normalize(areaName));
-      saveStoredAreas(next);
+      syncAreasStore(next);
       return next;
     });
     if (areaFilter === areaName) setAreaFilter('all');
@@ -253,12 +345,14 @@ export default function Pendientes() {
 
   const openCreateModal = (presetArea?: string) => {
     setEditingTask(null);
+    setTagInput('');
     setFormState({
       title: '',
       description: '',
       area: presetArea || (areaFilter !== 'all' ? areaFilter : 'Personal'),
       priority: 'Media',
       status: 'pending',
+      tags: tagFilter !== 'all' ? [tagFilter] : [],
       due_date: '',
     });
     setShowFormModal(true);
@@ -266,19 +360,44 @@ export default function Pendientes() {
 
   const openEditModal = (task: TaskItem) => {
     setEditingTask(task);
+    setTagInput('');
     setFormState({
       title: task.title,
       description: task.cleanDescription,
       area: task.area,
       priority: task.priority,
       status: task.status,
+      tags: task.tags || [],
       due_date: task.due_date || '',
     });
     setShowFormModal(true);
   };
 
+  const handleAddTagToForm = (rawTag?: string) => {
+    const clean = (rawTag ?? tagInput).replace(/[|\[\],#]/g, '').trim();
+    if (!clean) return;
+    setFormState((prev) => {
+      if (prev.tags.some((t) => normalize(t) === normalize(clean))) return prev;
+      return { ...prev, tags: [...prev.tags, clean] };
+    });
+    registerTags([clean]);
+    if (rawTag === undefined) setTagInput('');
+  };
+
+  const handleToggleFormTag = (tag: string) => {
+    const exists = formState.tags.some((t) => normalize(t) === normalize(tag));
+    if (exists) {
+      setFormState((prev) => ({
+        ...prev,
+        tags: prev.tags.filter((t) => normalize(t) !== normalize(tag)),
+      }));
+    } else {
+      handleAddTagToForm(tag);
+    }
+  };
+
   /**
-   * Persists a task insert/update with automatic schema fallback if native area/status columns are missing.
+   * Persists a task insert/update with automatic schema fallback if native area/status/tags columns are missing.
    */
   const persistTaskPayload = async (
     mode: 'insert' | 'update',
@@ -290,6 +409,7 @@ export default function Pendientes() {
       area: string;
       priority: TaskPriority;
       status: TaskStatus;
+      tags: string[];
       due_date: string | null;
       completed: boolean;
     }
@@ -300,6 +420,7 @@ export default function Pendientes() {
       priority: values.priority,
       area: values.area,
       status: values.status,
+      tags: values.tags,
       due_date: values.due_date,
       completed: values.completed,
     };
@@ -309,11 +430,21 @@ export default function Pendientes() {
       const { data, error } = await supabase.from('tasks').insert([fullPayload]).select().single();
       if (!error && data) return data;
 
-      if (error && (error.message?.includes('area') || error.message?.includes('status'))) {
+      if (
+        error &&
+        (error.message?.includes('area') ||
+          error.message?.includes('status') ||
+          error.message?.includes('tags'))
+      ) {
         const fallbackPayload = {
           user_id: userId,
           title: values.title,
-          description: serializeDescriptionWithMeta(values.cleanDescription, values.area, values.status),
+          description: serializeDescriptionWithMeta(
+            values.cleanDescription,
+            values.area,
+            values.status,
+            values.tags
+          ),
           priority: values.priority,
           due_date: values.due_date,
           completed: values.completed,
@@ -328,10 +459,20 @@ export default function Pendientes() {
     const { data, error } = await supabase.from('tasks').update(fullPayload).eq('id', id!).select().single();
     if (!error && data) return data;
 
-    if (error && (error.message?.includes('area') || error.message?.includes('status'))) {
+    if (
+      error &&
+      (error.message?.includes('area') ||
+        error.message?.includes('status') ||
+        error.message?.includes('tags'))
+    ) {
       const fallbackPayload = {
         title: values.title,
-        description: serializeDescriptionWithMeta(values.cleanDescription, values.area, values.status),
+        description: serializeDescriptionWithMeta(
+          values.cleanDescription,
+          values.area,
+          values.status,
+          values.tags
+        ),
         priority: values.priority,
         due_date: values.due_date,
         completed: values.completed,
@@ -341,6 +482,67 @@ export default function Pendientes() {
       return res.data;
     }
     throw error;
+  };
+
+  const handleRenameAreaSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!renamingArea) return;
+    const oldName = renamingArea;
+    const newName = renameAreaValue.trim();
+
+    if (!newName) {
+      toast.error('Escribe el nuevo nombre del área');
+      return;
+    }
+    if (normalize(oldName) === normalize(newName) && oldName === newName) {
+      setRenamingArea(null);
+      return;
+    }
+
+    setRenamingSubmitting(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const user = session?.user;
+      if (!user) return;
+
+      const affected = tasks.filter((t) => normalize(t.area) === normalize(oldName));
+      await Promise.all(
+        affected.map((task) =>
+          persistTaskPayload('update', task.id, user.id, {
+            title: task.title,
+            cleanDescription: task.cleanDescription,
+            area: newName,
+            priority: task.priority,
+            status: task.status,
+            tags: task.tags,
+            due_date: task.due_date,
+            completed: task.completed,
+          })
+        )
+      );
+
+      setTasks((prev) =>
+        prev.map((t) => (normalize(t.area) === normalize(oldName) ? { ...t, area: newName } : t))
+      );
+
+      setCustomAreas((prev) => {
+        const replaced = prev.map((a) => (normalize(a) === normalize(oldName) ? newName : a));
+        const map = new Map<string, string>();
+        replaced.forEach((a) => map.set(normalize(a), a));
+        if (!map.has(normalize(newName))) map.set(normalize(newName), newName);
+        const next = Array.from(map.values());
+        syncAreasStore(next);
+        return next;
+      });
+
+      if (areaFilter === oldName) setAreaFilter(newName);
+      setRenamingArea(null);
+      toast.success(`Área renombrada a "${newName}" ✨`);
+    } catch (err: any) {
+      toast.error('Error al renombrar área: ' + err.message);
+    } finally {
+      setRenamingSubmitting(false);
+    }
   };
 
   const handleSaveTask = async (e: React.FormEvent) => {
@@ -369,6 +571,7 @@ export default function Pendientes() {
           area: cleanArea,
           priority: formState.priority,
           status: formState.status,
+          tags: formState.tags,
           due_date: formState.due_date || null,
           completed: isCompleted,
         }
@@ -378,6 +581,7 @@ export default function Pendientes() {
         ...savedRow,
         area: savedRow.area ?? cleanArea,
         status: savedRow.status ?? formState.status,
+        tags: savedRow.tags ?? formState.tags,
       });
 
       if (editingTask) {
@@ -389,6 +593,7 @@ export default function Pendientes() {
       }
 
       registerArea(cleanArea);
+      registerTags(formState.tags);
       setShowFormModal(false);
       setEditingTask(null);
     } catch (err: any) {
@@ -402,7 +607,6 @@ export default function Pendientes() {
     const nextCompleted = nextStatus === 'completed';
     const prevTasks = tasks;
 
-    // Actualización optimista
     setTasks((prev) =>
       prev.map((t) =>
         t.id === task.id ? { ...t, status: nextStatus, completed: nextCompleted } : t
@@ -420,6 +624,7 @@ export default function Pendientes() {
         area: task.area,
         priority: task.priority,
         status: nextStatus,
+        tags: task.tags,
         due_date: task.due_date,
         completed: nextCompleted,
       });
@@ -469,7 +674,23 @@ export default function Pendientes() {
 
       setTasks((prev) => prev.filter((t) => t.id !== id));
 
-      toast.undoable('Tarea eliminada', async () => {
+      // Archivar en Papelera de Reciclaje (30 días)
+      moveToTrash({
+        table: 'tasks',
+        entityLabel: 'Tarea',
+        title: taskToDelete.title,
+        subtitle: `${taskToDelete.area} · ${taskToDelete.priority}`,
+        payload: {
+          id: taskToDelete.id,
+          title: taskToDelete.title,
+          description: taskToDelete.description,
+          priority: taskToDelete.priority,
+          due_date: taskToDelete.due_date,
+          completed: taskToDelete.completed,
+        },
+      });
+
+      toast.undoable('Tarea movida a Papelera', async () => {
         try {
           const { data: { session } } = await supabase.auth.getSession();
           const user = session?.user;
@@ -481,10 +702,11 @@ export default function Pendientes() {
             area: taskToDelete.area,
             priority: taskToDelete.priority,
             status: taskToDelete.status,
+            tags: taskToDelete.tags,
             due_date: taskToDelete.due_date,
             completed: taskToDelete.completed,
           });
-          fetchTasks();
+          fetchTasksAndConfig();
           toast.success('Tarea restaurada ↩️');
         } catch (err: any) {
           toast.error('Error al restaurar tarea: ' + err.message);
@@ -510,29 +732,32 @@ export default function Pendientes() {
 
       const matchesPriority = priorityFilter === 'all' || t.priority === priorityFilter;
       const matchesArea = areaFilter === 'all' || t.area === areaFilter;
+      const matchesTag =
+        tagFilter === 'all' || t.tags.some((tg) => normalize(tg) === normalize(tagFilter));
 
       const matchesSearch =
         !termNorm ||
         normalize(t.title).includes(termNorm) ||
         normalize(t.cleanDescription).includes(termNorm) ||
         normalize(t.area).includes(termNorm) ||
-        normalize(t.priority).includes(termNorm);
+        normalize(t.priority).includes(termNorm) ||
+        t.tags.some((tg) => normalize(tg).includes(termNorm));
 
-      return matchesStatus && matchesPriority && matchesArea && matchesSearch;
+      return matchesStatus && matchesPriority && matchesArea && matchesTag && matchesSearch;
     });
 
     return sortTasksByPriority(list);
-  }, [tasks, statusFilter, priorityFilter, areaFilter, searchTerm]);
+  }, [tasks, statusFilter, priorityFilter, areaFilter, tagFilter, searchTerm]);
 
-  // Agrupación en columnas por ámbito (incluye columnas vacías creadas por el usuario)
+  // Agrupación en columnas por área (incluye columnas vacías creadas por el usuario)
   const columns = useMemo(() => {
     const map = new Map<string, TaskItem[]>();
 
-    // Sembrar columnas visibles cuando no hay búsqueda o si coincide el nombre del área
     const termNorm = normalize(searchTerm.trim());
     existingAreas.forEach((area) => {
       if (areaFilter !== 'all' && area !== areaFilter) return;
       if (termNorm && !normalize(area).includes(termNorm)) return;
+      if (tagFilter !== 'all') return; // si filtramos por etiqueta, mostramos solo áreas que tengan coincidencias
       map.set(area, []);
     });
 
@@ -542,14 +767,13 @@ export default function Pendientes() {
       map.set(task.area, list);
     });
 
-    // Ordenar columnas poniendo primero las que tienen tareas urgentes/altas, manteniendo vacías al final
     return Array.from(map.entries()).sort((a, b) => {
       const aTop = a[1][0] ? PRIORITY_ORDER[a[1][0].priority] : 99;
       const bTop = b[1][0] ? PRIORITY_ORDER[b[1][0].priority] : 99;
       if (aTop !== bTop) return aTop - bTop;
       return b[1].length - a[1].length;
     });
-  }, [existingAreas, filteredTasks, areaFilter, searchTerm]);
+  }, [existingAreas, filteredTasks, areaFilter, tagFilter, searchTerm]);
 
   if (loading) {
     return (
@@ -570,7 +794,7 @@ export default function Pendientes() {
     );
   }
 
-  const renderTaskCard = (task: TaskItem, compact = false) => {
+  const renderTaskCard = (task: TaskItem) => {
     const pStyle = PRIORITY_STYLES[task.priority];
 
     return (
@@ -580,7 +804,7 @@ export default function Pendientes() {
         initial={{ opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.96 }}
-        className={`group ${compact ? 'p-4' : 'p-5 sm:p-6'} bg-white/90 dark:bg-gray-900/90 glass dark:dark-glass rounded-2xl sm:rounded-3xl border border-gray-100/80 dark:border-gray-800/80 shadow-sm hover:shadow-lg transition-all duration-200 space-y-3 ${
+        className={`group p-4 sm:p-5 bg-white/90 dark:bg-gray-900/90 glass dark:dark-glass rounded-2xl sm:rounded-3xl border border-gray-100/80 dark:border-gray-800/80 shadow-sm hover:shadow-lg transition-all duration-200 space-y-3 ${
           task.completed ? 'opacity-60' : ''
         }`}
       >
@@ -646,7 +870,7 @@ export default function Pendientes() {
           </div>
         </div>
 
-        {/* Title & Complete Check */}
+        {/* Title, Tags & Description */}
         <div className="flex items-start gap-2.5">
           <button
             type="button"
@@ -671,6 +895,26 @@ export default function Pendientes() {
               {task.title}
             </h4>
 
+            {task.tags && task.tags.length > 0 && (
+              <div className="flex flex-wrap gap-1">
+                {task.tags.map((tg) => (
+                  <button
+                    key={tg}
+                    type="button"
+                    onClick={() => setTagFilter(normalize(tagFilter) === normalize(tg) ? 'all' : tg)}
+                    className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-syne font-bold transition-all cursor-pointer ${
+                      normalize(tagFilter) === normalize(tg)
+                        ? 'bg-[var(--vibrant-sky-blue)] text-white'
+                        : 'bg-sky-500/10 text-sky-700 dark:text-sky-300 hover:bg-sky-500/20'
+                    }`}
+                    title={`Filtrar por etiqueta #${tg}`}
+                  >
+                    #{tg}
+                  </button>
+                ))}
+              </div>
+            )}
+
             {task.cleanDescription && (
               <AutoFormattedText
                 text={task.cleanDescription}
@@ -685,7 +929,10 @@ export default function Pendientes() {
         <div className="pt-2 border-t border-gray-100 dark:border-gray-800/80 flex items-center justify-between gap-2">
           {(() => {
             const currentOpt = STATUS_OPTIONS.find((s) => s.value === task.status) || STATUS_OPTIONS[0];
-            const nextOpt = STATUS_OPTIONS[(STATUS_OPTIONS.findIndex((s) => s.value === task.status) + 1) % STATUS_OPTIONS.length];
+            const nextOpt =
+              STATUS_OPTIONS[
+                (STATUS_OPTIONS.findIndex((s) => s.value === task.status) + 1) % STATUS_OPTIONS.length
+              ];
             return (
               <button
                 type="button"
@@ -698,15 +945,18 @@ export default function Pendientes() {
             );
           })()}
 
-          {task.due_date && (() => {
-            const due = getDueBadgeStyle(task.due_date, task.completed);
-            return (
-              <span className={`inline-flex items-center gap-1 font-syne text-[10px] font-bold uppercase tracking-wider shrink-0 ${due.cls}`}>
-                <HiOutlineCalendar className="text-xs" />
-                {due.label}
-              </span>
-            );
-          })()}
+          {task.due_date &&
+            (() => {
+              const due = getDueBadgeStyle(task.due_date, task.completed);
+              return (
+                <span
+                  className={`inline-flex items-center gap-1 font-syne text-[10px] font-bold uppercase tracking-wider shrink-0 ${due.cls}`}
+                >
+                  <HiOutlineCalendar className="text-xs" />
+                  {due.label}
+                </span>
+              );
+            })()}
         </div>
       </motion.div>
     );
@@ -721,7 +971,7 @@ export default function Pendientes() {
             Tablero de <span className="text-gradient">Pendientes</span>
           </h1>
           <p className="font-inter mt-1.5 text-[var(--dark-gray)] dark:text-gray-400 font-light text-sm">
-            Monitorea tus ámbitos en columnas ordenadas por prioridad, estado y notas.
+            Monitorea tus áreas en columnas ordenadas por prioridad, estado, etiquetas y notas.
           </p>
         </div>
 
@@ -729,7 +979,7 @@ export default function Pendientes() {
           <div className="relative flex-1 sm:w-64">
             <input
               type="text"
-              placeholder="Buscar tarea, ámbito o nota..."
+              placeholder="Buscar tarea, área, etiqueta..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full pl-11 pr-4 min-h-[44px] py-2.5 bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl outline-none focus:ring-2 ring-gray-100 dark:ring-gray-700 font-inter text-sm shadow-sm transition-all text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500"
@@ -749,7 +999,7 @@ export default function Pendientes() {
                   ? 'bg-black dark:bg-white text-white dark:text-black shadow-sm'
                   : 'text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200'
               }`}
-              title="Vista en columnas por ámbito"
+              title="Vista en columnas por área"
             >
               <HiOutlineViewBoards className="text-base" />
               <span>Columnas</span>
@@ -838,7 +1088,7 @@ export default function Pendientes() {
           </div>
         </div>
 
-        {/* Ámbitos Pills */}
+        {/* Áreas Pills */}
         {existingAreas.length > 0 && (
           <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
             <button
@@ -850,7 +1100,7 @@ export default function Pendientes() {
                   : 'bg-gray-100 dark:bg-gray-800/80 text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200'
               }`}
             >
-              Todos los Ámbitos ({existingAreas.length})
+              Todas las Áreas ({existingAreas.length})
             </button>
             {existingAreas.map((area) => {
               const count = tasks.filter((t) => t.area === area && !t.completed).length;
@@ -872,6 +1122,40 @@ export default function Pendientes() {
                 </button>
               );
             })}
+          </div>
+        )}
+
+        {/* Etiquetas Pills */}
+        {existingTags.length > 0 && (
+          <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none">
+            <span className="inline-flex items-center gap-1 text-[10px] font-syne font-bold uppercase tracking-wider text-gray-400 pr-1 shrink-0">
+              <HiOutlineTag className="text-xs" /> Etiquetas:
+            </span>
+            <button
+              type="button"
+              onClick={() => setTagFilter('all')}
+              className={`px-2.5 py-1 rounded-lg text-[10px] font-syne font-bold uppercase tracking-wider transition-all whitespace-nowrap cursor-pointer ${
+                tagFilter === 'all'
+                  ? 'bg-gray-900 dark:bg-white text-white dark:text-black'
+                  : 'bg-gray-100/80 dark:bg-gray-800/60 text-gray-500 dark:text-gray-400'
+              }`}
+            >
+              Todas
+            </button>
+            {existingTags.map((tg) => (
+              <button
+                key={tg}
+                type="button"
+                onClick={() => setTagFilter(normalize(tagFilter) === normalize(tg) ? 'all' : tg)}
+                className={`px-2.5 py-1 rounded-lg text-[10px] font-syne font-bold transition-all whitespace-nowrap cursor-pointer ${
+                  normalize(tagFilter) === normalize(tg)
+                    ? 'bg-[var(--vibrant-sky-blue)] text-white shadow-sm'
+                    : 'bg-sky-500/10 text-sky-700 dark:text-sky-300 hover:bg-sky-500/20'
+                }`}
+              >
+                #{tg}
+              </button>
+            ))}
           </div>
         )}
       </div>
@@ -897,12 +1181,13 @@ export default function Pendientes() {
               >
                 + Crear Área
               </button>
-              {(searchTerm || areaFilter !== 'all' || priorityFilter !== 'all' || statusFilter !== 'active') && (
+              {(searchTerm || areaFilter !== 'all' || tagFilter !== 'all' || priorityFilter !== 'all' || statusFilter !== 'active') && (
                 <button
                   type="button"
                   onClick={() => {
                     setSearchTerm('');
                     setAreaFilter('all');
+                    setTagFilter('all');
                     setPriorityFilter('all');
                     setStatusFilter('active');
                   }}
@@ -948,16 +1233,29 @@ export default function Pendientes() {
                     </div>
 
                     <div className="flex items-center gap-1 shrink-0">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setRenamingArea(areaName);
+                          setRenameAreaValue(areaName);
+                        }}
+                        className="min-w-[34px] min-h-[34px] p-1.5 rounded-xl text-gray-400 hover:text-[var(--vibrant-sky-blue)] hover:bg-sky-500/10 transition-all cursor-pointer flex items-center justify-center"
+                        title={`Renombrar área ${areaName}`}
+                      >
+                        <HiOutlinePencil className="text-sm" />
+                      </button>
+
                       {!hasAnyTaskInArea && (
                         <button
                           type="button"
                           onClick={() => handleRemoveEmptyArea(areaName)}
-                          className="min-w-[36px] min-h-[36px] p-2 rounded-xl text-gray-400 hover:text-rose-500 hover:bg-rose-500/10 transition-all cursor-pointer flex items-center justify-center"
+                          className="min-w-[34px] min-h-[34px] p-1.5 rounded-xl text-gray-400 hover:text-rose-500 hover:bg-rose-500/10 transition-all cursor-pointer flex items-center justify-center"
                           title={`Quitar área vacía ${areaName}`}
                         >
                           <HiX className="text-sm" />
                         </button>
                       )}
+
                       <button
                         type="button"
                         onClick={() => openCreateModal(areaName)}
@@ -984,7 +1282,7 @@ export default function Pendientes() {
                       </button>
                     ) : (
                       <AnimatePresence>
-                        {areaTasks.map((task) => renderTaskCard(task, true))}
+                        {areaTasks.map((task) => renderTaskCard(task))}
                       </AnimatePresence>
                     )}
                   </div>
@@ -993,7 +1291,7 @@ export default function Pendientes() {
             })}
 
             {/* Ghost Add Column Card */}
-            {areaFilter === 'all' && !searchTerm && (
+            {areaFilter === 'all' && tagFilter === 'all' && !searchTerm && (
               <button
                 type="button"
                 onClick={() => {
@@ -1018,14 +1316,15 @@ export default function Pendientes() {
             No hay tareas con estos filtros
           </p>
           <p className="font-inter text-sm text-gray-400 dark:text-gray-500">
-            Crea una nueva tarea o restablece los filtros para ver otros ámbitos.
+            Crea una nueva tarea o restablece los filtros para ver otras áreas.
           </p>
-          {(searchTerm || areaFilter !== 'all' || priorityFilter !== 'all' || statusFilter !== 'active') && (
+          {(searchTerm || areaFilter !== 'all' || tagFilter !== 'all' || priorityFilter !== 'all' || statusFilter !== 'active') && (
             <button
               type="button"
               onClick={() => {
                 setSearchTerm('');
                 setAreaFilter('all');
+                setTagFilter('all');
                 setPriorityFilter('all');
                 setStatusFilter('active');
               }}
@@ -1038,7 +1337,7 @@ export default function Pendientes() {
       ) : (
         <div className="space-y-4">
           <AnimatePresence>
-            {filteredTasks.map((task) => renderTaskCard(task, false))}
+            {filteredTasks.map((task) => renderTaskCard(task))}
           </AnimatePresence>
         </div>
       )}
@@ -1067,7 +1366,7 @@ export default function Pendientes() {
                       {editingTask ? 'Editar Tarea' : 'Agregar Nueva Tarea'}
                     </h2>
                     <p className="font-inter text-xs text-gray-400">
-                      Organiza por ámbito, prioridad, estado y notas de seguimiento.
+                      Organiza por área, prioridad, estado, etiquetas y notas de seguimiento.
                     </p>
                   </div>
                   <button
@@ -1097,13 +1396,13 @@ export default function Pendientes() {
                       />
                     </div>
 
-                    {/* Ámbito / Área */}
+                    {/* Área */}
                     <div className="space-y-2">
                       <label
                         className="block font-syne text-[10px] font-bold uppercase tracking-widest text-[var(--gray)] dark:text-gray-400"
-                        title="Escribe un ámbito nuevo o elige uno existente para agrupar en columnas"
+                        title="Escribe un área nueva o elige una existente para agrupar en columnas"
                       >
-                        Ámbito / Área *
+                        Área *
                       </label>
                       <input
                         type="text"
@@ -1128,6 +1427,76 @@ export default function Pendientes() {
                             {areaOption}
                           </button>
                         ))}
+                      </div>
+                    </div>
+
+                    {/* Etiquetas Customizadas */}
+                    <div className="space-y-2">
+                      <label
+                        className="block font-syne text-[10px] font-bold uppercase tracking-widest text-[var(--gray)] dark:text-gray-400"
+                        title="Escribe una etiqueta personalizada o selecciona una existente"
+                      >
+                        Etiquetas (Opcional)
+                      </label>
+                      <div className="flex gap-2">
+                        <input
+                          type="text"
+                          placeholder="Nueva etiqueta (ej. ClienteVIP, Diseño, Llamada)..."
+                          value={tagInput}
+                          onChange={(e) => setTagInput(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                              e.preventDefault();
+                              handleAddTagToForm();
+                            }
+                          }}
+                          className="flex-1 px-4 min-h-[44px] py-2.5 bg-gray-50/70 dark:bg-gray-800/80 border border-gray-200/80 dark:border-gray-700 rounded-xl outline-none focus:border-[var(--vibrant-sky-blue)] font-inter text-sm text-gray-900 dark:text-gray-100 placeholder-gray-400"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => handleAddTagToForm()}
+                          className="px-4 min-h-[44px] bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-xl font-syne text-xs font-bold uppercase tracking-wider transition-all cursor-pointer shrink-0"
+                        >
+                          + Añadir
+                        </button>
+                      </div>
+
+                      {/* Etiquetas seleccionadas */}
+                      {formState.tags.length > 0 && (
+                        <div className="flex flex-wrap gap-1.5 pt-1">
+                          {formState.tags.map((tag) => (
+                            <span
+                              key={tag}
+                              className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-[var(--vibrant-sky-blue)] text-white font-syne text-[10px] font-bold"
+                            >
+                              <span>#{tag}</span>
+                              <button
+                                type="button"
+                                onClick={() => handleToggleFormTag(tag)}
+                                className="hover:opacity-75 cursor-pointer"
+                                title="Quitar etiqueta"
+                              >
+                                <HiX className="text-xs" />
+                              </button>
+                            </span>
+                          ))}
+                        </div>
+                      )}
+
+                      {/* Etiquetas disponibles existentes/sugeridas */}
+                      <div className="flex flex-wrap gap-1.5 pt-0.5">
+                        {selectableTags
+                          .filter((t) => !formState.tags.some((selected) => normalize(selected) === normalize(t)))
+                          .map((tagOption) => (
+                            <button
+                              key={tagOption}
+                              type="button"
+                              onClick={() => handleToggleFormTag(tagOption)}
+                              className="px-2.5 py-1 rounded-xl font-syne text-[10px] font-bold bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 border border-gray-200/60 dark:border-gray-700/60 hover:bg-sky-500/10 hover:text-sky-600 dark:hover:text-sky-300 transition-all cursor-pointer"
+                            >
+                              + #{tagOption}
+                            </button>
+                          ))}
                       </div>
                     </div>
 
@@ -1233,11 +1602,10 @@ export default function Pendientes() {
                 exit={{ opacity: 0, scale: 0.95, y: 16 }}
                 className="bg-white dark:bg-gray-900 rounded-[2rem] max-h-[90vh] flex flex-col max-w-md w-full border-none shadow-2xl cursor-default overflow-hidden"
               >
-                {/* 1. Sticky Header */}
                 <div className="flex items-center justify-between p-6 pb-4 border-b border-gray-100 dark:border-gray-800 shrink-0">
                   <div>
                     <h2 className="font-dm-sans text-xl font-bold text-gray-900 dark:text-white">
-                      Nueva Área / Ámbito
+                      Nueva Área
                     </h2>
                     <p className="font-inter text-xs text-gray-400">
                       Crea una columna dedicada en tu tablero de pendientes.
@@ -1252,9 +1620,7 @@ export default function Pendientes() {
                   </button>
                 </div>
 
-                {/* Form */}
                 <form onSubmit={handleCreateArea} className="flex flex-col flex-1 min-h-0">
-                  {/* 2. Scrollable Body */}
                   <div className="p-6 overflow-y-auto flex-1 min-h-0 space-y-4">
                     <div>
                       <label className="block font-syne text-[10px] font-bold uppercase tracking-widest text-[var(--gray)] dark:text-gray-400 mb-2">
@@ -1287,7 +1653,6 @@ export default function Pendientes() {
                     </div>
                   </div>
 
-                  {/* 3. Sticky Footer */}
                   <div className="flex justify-end gap-3 p-4 sm:p-5 border-t border-gray-100 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-900/50 shrink-0">
                     <button
                       type="button"
@@ -1301,6 +1666,82 @@ export default function Pendientes() {
                       className="px-6 min-h-[44px] py-2.5 bg-black dark:bg-white text-white dark:text-black font-syne text-xs font-bold uppercase tracking-wider rounded-xl hover:scale-105 active:scale-95 transition-all shadow-md cursor-pointer"
                     >
                       Crear Columna
+                    </button>
+                  </div>
+                </form>
+              </motion.div>
+            </div>
+          )}
+        </AnimatePresence>,
+        document.body
+      )}
+
+      {/* Rename Area Modal (4-Part Architecture) */}
+      {createPortal(
+        <AnimatePresence>
+          {renamingArea && (
+            <div
+              className="fixed inset-0 z-[9999] flex items-center justify-center p-4 sm:p-6 overflow-y-auto bg-black/60 backdrop-blur-md cursor-pointer"
+              onClick={(e) => {
+                if (e.target === e.currentTarget) setRenamingArea(null);
+              }}
+            >
+              <motion.div
+                onClick={(e) => e.stopPropagation()}
+                initial={{ opacity: 0, scale: 0.95, y: 16 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.95, y: 16 }}
+                className="bg-white dark:bg-gray-900 rounded-[2rem] max-h-[90vh] flex flex-col max-w-md w-full border-none shadow-2xl cursor-default overflow-hidden"
+              >
+                <div className="flex items-center justify-between p-6 pb-4 border-b border-gray-100 dark:border-gray-800 shrink-0">
+                  <div>
+                    <h2 className="font-dm-sans text-xl font-bold text-gray-900 dark:text-white">
+                      Renombrar Área
+                    </h2>
+                    <p className="font-inter text-xs text-gray-400">
+                      Actualiza "{renamingArea}" y todas sus tareas asociadas.
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setRenamingArea(null)}
+                    className="min-w-[40px] min-h-[40px] p-2 rounded-xl text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 transition-all cursor-pointer flex items-center justify-center"
+                  >
+                    <HiX className="text-xl" />
+                  </button>
+                </div>
+
+                <form onSubmit={handleRenameAreaSubmit} className="flex flex-col flex-1 min-h-0">
+                  <div className="p-6 overflow-y-auto flex-1 min-h-0 space-y-4">
+                    <div>
+                      <label className="block font-syne text-[10px] font-bold uppercase tracking-widest text-[var(--gray)] dark:text-gray-400 mb-2">
+                        Nuevo Nombre del Área *
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        autoFocus
+                        value={renameAreaValue}
+                        onChange={(e) => setRenameAreaValue(e.target.value)}
+                        className="w-full px-4 min-h-[44px] py-3 bg-gray-50/70 dark:bg-gray-800/80 border border-gray-200/80 dark:border-gray-700 rounded-xl outline-none focus:border-[var(--vibrant-sky-blue)] font-inter text-sm text-gray-900 dark:text-gray-100"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="flex justify-end gap-3 p-4 sm:p-5 border-t border-gray-100 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-900/50 shrink-0">
+                    <button
+                      type="button"
+                      onClick={() => setRenamingArea(null)}
+                      className="px-5 min-h-[44px] py-2.5 font-syne text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl transition-all cursor-pointer"
+                    >
+                      Cancelar
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={renamingSubmitting}
+                      className="px-6 min-h-[44px] py-2.5 bg-black dark:bg-white text-white dark:text-black font-syne text-xs font-bold uppercase tracking-wider rounded-xl hover:scale-105 active:scale-95 transition-all shadow-md disabled:opacity-50 cursor-pointer"
+                    >
+                      {renamingSubmitting ? 'Actualizando...' : 'Guardar Nombre'}
                     </button>
                   </div>
                 </form>

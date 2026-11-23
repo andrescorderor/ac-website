@@ -61,8 +61,9 @@ export const STATUS_OPTIONS: { value: TaskStatus; label: string; shortLabel: str
 ];
 
 export const SUGGESTED_AREAS = ['Personal', 'Trabajo', 'Social', 'Emprendimiento'];
+export const SUGGESTED_TAGS = ['Importante', 'Rápido', 'Seguimiento', 'Bloqueado', 'Llamada', 'Entregable'];
 
-const META_PREFIX_REGEX = /^\[\[([^|\]]+)\|([^\]]+)\]\]\s*/;
+const META_PREFIX_REGEX = /^\[\[([^|\]]+)\|([^|\]]+)(?:\|([^\]]*))?\]\]\s*/;
 
 export function normalizePriority(raw?: string | null): TaskPriority {
   if (!raw) return 'Media';
@@ -87,11 +88,12 @@ export interface ParsedTaskMeta {
   area: string;
   status: TaskStatus;
   priority: TaskPriority;
+  tags: string[];
   cleanDescription: string;
 }
 
 /**
- * Extracts area, status, priority and clean description from a task row,
+ * Extracts area, status, priority, custom tags and clean description from a task row,
  * supporting both native DB columns and metadata-prefixed descriptions.
  */
 export function parseTaskMeta(row: {
@@ -99,6 +101,7 @@ export function parseTaskMeta(row: {
   area?: string | null;
   status?: string | null;
   priority?: string | null;
+  tags?: string[] | null;
   completed?: boolean;
 }): ParsedTaskMeta {
   const rawDesc = row.description || '';
@@ -106,30 +109,47 @@ export function parseTaskMeta(row: {
 
   const metaArea = match ? match[1].trim() : '';
   const metaStatus = match ? match[2].trim() : '';
+  const metaTagsRaw = match && match[3] ? match[3].trim() : '';
   const cleanDescription = match ? rawDesc.replace(META_PREFIX_REGEX, '').trim() : rawDesc;
 
   const area = (row.area && row.area.trim()) || metaArea || 'Personal';
   const status = normalizeStatus(row.status || metaStatus, row.completed);
   const priority = normalizePriority(row.priority);
 
+  let tags: string[] = [];
+  if (Array.isArray(row.tags) && row.tags.length > 0) {
+    tags = row.tags.map((t) => String(t).trim()).filter(Boolean);
+  } else if (metaTagsRaw) {
+    tags = metaTagsRaw
+      .split(',')
+      .map((t) => t.trim())
+      .filter(Boolean);
+  }
+
   return {
     area,
     status,
     priority,
+    tags,
     cleanDescription,
   };
 }
 
 /**
- * Serializes area and status into description when native columns are absent in Supabase.
+ * Serializes area, status and tags into description when native columns are absent in Supabase.
  */
 export function serializeDescriptionWithMeta(
   cleanDescription: string,
   area: string,
-  status: TaskStatus
+  status: TaskStatus,
+  tags: string[] = []
 ): string {
   const clean = cleanDescription.replace(META_PREFIX_REGEX, '').trim();
   const safeArea = (area || 'Personal').replace(/[|\[\]]/g, '').trim() || 'Personal';
-  const prefix = `[[${safeArea}|${status}]]`;
+  const cleanTags = tags
+    .map((t) => t.replace(/[|\[\],]/g, '').trim())
+    .filter(Boolean);
+  const tagSegment = cleanTags.length > 0 ? `|${cleanTags.join(',')}` : '';
+  const prefix = `[[${safeArea}|${status}${tagSegment}]]`;
   return clean ? `${prefix}\n${clean}` : prefix;
 }

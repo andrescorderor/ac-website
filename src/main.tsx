@@ -30,6 +30,11 @@ const Recetas = lazy(() => import('@pages/admin/Recetas'));
 const Plantas = lazy(() => import('@pages/admin/Plantas'));
 const Entrenamiento = lazy(() => import('@pages/admin/Entrenamiento'));
 const Respaldo = lazy(() => import('@pages/admin/Respaldo'));
+const Calendario = lazy(() => import('@pages/admin/Calendario'));
+const Prompts = lazy(() => import('@pages/admin/Prompts'));
+const DivisorCuentas = lazy(() => import('@pages/admin/DivisorCuentas'));
+const PortafolioCMS = lazy(() => import('@pages/admin/PortafolioCMS'));
+const Papelera = lazy(() => import('@pages/admin/Papelera'));
 
 const PageLoader = () => (
   <div className="p-4 sm:p-8 space-y-6 max-w-7xl mx-auto animate-pulse">
@@ -181,6 +186,46 @@ const router = createBrowserRouter([
         element: (
           <Suspense fallback={<PageLoader />}>
             <Respaldo />
+          </Suspense>
+        ),
+      },
+      {
+        path: 'calendario',
+        element: (
+          <Suspense fallback={<PageLoader />}>
+            <Calendario />
+          </Suspense>
+        ),
+      },
+      {
+        path: 'prompts',
+        element: (
+          <Suspense fallback={<PageLoader />}>
+            <Prompts />
+          </Suspense>
+        ),
+      },
+      {
+        path: 'divisor',
+        element: (
+          <Suspense fallback={<PageLoader />}>
+            <DivisorCuentas />
+          </Suspense>
+        ),
+      },
+      {
+        path: 'portafolio',
+        element: (
+          <Suspense fallback={<PageLoader />}>
+            <PortafolioCMS />
+          </Suspense>
+        ),
+      },
+      {
+        path: 'papelera',
+        element: (
+          <Suspense fallback={<PageLoader />}>
+            <Papelera />
           </Suspense>
         ),
       },

@@ -12,6 +12,7 @@ import {
   scanAndNotifyUpcomingEvents 
 } from '@/lib/notifications';
 import CommandPalette from '@/components/admin/CommandPalette';
+import QuickCaptureModal from '@/components/admin/QuickCaptureModal';
 import { syncPinnedItemsWithSupabase } from '@/lib/pinned';
 import { 
   HiOutlineViewGrid, 
@@ -35,25 +36,57 @@ import {
   HiOutlineBookOpen,
   HiOutlineSparkles,
   HiOutlineDatabase,
-  HiOutlineDotsHorizontal
+  HiOutlineDotsHorizontal,
+  HiOutlinePlus,
+  HiOutlineTrash,
+  HiOutlineExternalLink,
+  HiOutlineCalculator,
+  HiOutlineTemplate,
+  HiOutlineGlobe
 } from 'react-icons/hi';
 import { FaDumbbell } from 'react-icons/fa';
 
-const menuItems = [
-  { icon: HiOutlineViewGrid, label: 'Inicio', path: '/admin/panel' },
-  { icon: HiOutlineCurrencyDollar, label: 'Finanzas', path: '/admin/panel/finanzas' },
-  { icon: HiOutlineClipboardList, label: 'Pendientes', path: '/admin/panel/pendientes' },
-  { icon: HiOutlineUserGroup, label: 'Deudas', path: '/admin/panel/deudas' },
-  { icon: HiOutlineLockClosed, label: 'Bóveda', path: '/admin/panel/vault' },
-  { icon: HiOutlineShoppingBag, label: 'Compras', path: '/admin/panel/compras' },
-  { icon: HiOutlineCalendar, label: 'Fechas', path: '/admin/panel/recordatorios' },
-  { icon: HiOutlineDocumentText, label: 'Notas', path: '/admin/panel/notas' },
-  { icon: FaDumbbell, label: 'Gym & Rutinas', path: '/admin/panel/entrenamiento' },
-  { icon: HiOutlineColorSwatch, label: 'Proyectos', path: '/admin/panel/proyectos' },
-  { icon: HiOutlineCheckCircle, label: 'Checklist', path: '/admin/panel/checklist' },
-  { icon: HiOutlineBookOpen, label: 'Recetas', path: '/admin/panel/recetas' },
-  { icon: HiOutlineSparkles, label: 'Plantas', path: '/admin/panel/plantas' },
-  { icon: HiOutlineDatabase, label: 'Respaldo', path: '/admin/panel/respaldo' },
+const menuGroups = [
+  {
+    title: 'Ejecución',
+    items: [
+      { icon: HiOutlineViewGrid, label: 'Inicio', path: '/admin/panel' },
+      { icon: HiOutlineCalendar, label: 'Calendario 360°', path: '/admin/panel/calendario' },
+      { icon: HiOutlineClipboardList, label: 'Pendientes', path: '/admin/panel/pendientes' },
+      { icon: HiOutlineColorSwatch, label: 'Proyectos', path: '/admin/panel/proyectos' },
+      { icon: HiOutlineCheckCircle, label: 'Checklist', path: '/admin/panel/checklist' },
+    ],
+  },
+  {
+    title: 'Finanzas & Hogar',
+    items: [
+      { icon: HiOutlineCurrencyDollar, label: 'Finanzas', path: '/admin/panel/finanzas' },
+      { icon: HiOutlineShoppingBag, label: 'Compras', path: '/admin/panel/compras' },
+      { icon: HiOutlineUserGroup, label: 'Deudas', path: '/admin/panel/deudas' },
+      { icon: HiOutlineCalculator, label: 'Divisor Cuentas', path: '/admin/panel/divisor' },
+      { icon: HiOutlineBookOpen, label: 'Recetas', path: '/admin/panel/recetas' },
+      { icon: HiOutlineSparkles, label: 'Plantas', path: '/admin/panel/plantas' },
+    ],
+  },
+  {
+    title: 'Conocimiento & Marca',
+    items: [
+      { icon: HiOutlineDocumentText, label: 'Notas', path: '/admin/panel/notas' },
+      { icon: HiOutlineExternalLink, label: 'Enlaces', path: '/admin/panel/enlaces' },
+      { icon: HiOutlineTemplate, label: 'Prompts', path: '/admin/panel/prompts' },
+      { icon: HiOutlineLockClosed, label: 'Bóveda', path: '/admin/panel/vault' },
+      { icon: HiOutlineCalendar, label: 'Fechas', path: '/admin/panel/recordatorios' },
+      { icon: FaDumbbell, label: 'Gym & Rutinas', path: '/admin/panel/entrenamiento' },
+      { icon: HiOutlineGlobe, label: 'Portafolio CMS', path: '/admin/panel/portafolio' },
+    ],
+  },
+  {
+    title: 'Sistema',
+    items: [
+      { icon: HiOutlineTrash, label: 'Papelera', path: '/admin/panel/papelera' },
+      { icon: HiOutlineDatabase, label: 'Respaldo', path: '/admin/panel/respaldo' },
+    ],
+  },
 ];
 
 // Bottom nav shows only the most-used 5 modules for thumb-friendly mobile nav
@@ -80,6 +113,7 @@ function DashboardLayoutContent() {
   const [loading, setLoading] = useState(true);
   const [notifPermission, setNotifPermission] = useState<string>(getNotificationPermissionState());
   const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [isQuickCaptureOpen, setIsQuickCaptureOpen] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
   const mainRef = useRef<HTMLDivElement>(null);
@@ -112,6 +146,11 @@ function DashboardLayoutContent() {
       '/admin/panel/recetas': 'Recetario Fitness • Panel Privado',
       '/admin/panel/plantas': 'Mis Plantas • Panel Privado',
       '/admin/panel/respaldo': 'Respaldo & Recuperación • Panel Privado',
+      '/admin/panel/calendario': 'Calendario 360° • Panel Privado',
+      '/admin/panel/prompts': 'Prompts & Variables • Panel Privado',
+      '/admin/panel/divisor': 'Divisor de Cuentas • Panel Privado',
+      '/admin/panel/portafolio': 'Mini-CMS Portafolio • Panel Privado',
+      '/admin/panel/papelera': 'Papelera de Reciclaje • Panel Privado',
     };
     const title = routeTitles[location.pathname] || 'Panel Privado';
     document.title = `${title} | Andrés Cordero`;
@@ -119,6 +158,11 @@ function DashboardLayoutContent() {
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === 'n') {
+        e.preventDefault();
+        setIsQuickCaptureOpen((prev) => !prev);
+        return;
+      }
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
         e.preventDefault();
         setIsSearchOpen((prev) => !prev);
@@ -176,6 +220,9 @@ function DashboardLayoutContent() {
       {/* Universal Command Palette Search Modal */}
       <CommandPalette isOpen={isSearchOpen} onClose={() => setIsSearchOpen(false)} />
 
+      {/* Universal Quick Capture Modal */}
+      <QuickCaptureModal isOpen={isQuickCaptureOpen} onClose={() => setIsQuickCaptureOpen(false)} />
+
       {/* ═══ Desktop Sidebar ═══ */}
       <aside 
         className="hidden lg:flex flex-col h-screen sticky top-0 w-72 shrink-0 bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl border-r border-gray-200/50 dark:border-gray-800/50 transition-all duration-300"
@@ -196,26 +243,33 @@ function DashboardLayoutContent() {
           </div>
         </div>
 
-        <nav className="flex-1 px-3 space-y-1.5 overflow-y-auto scrollbar-none">
-          {menuItems.map((item) => {
-            const isActive = location.pathname === item.path;
-            return (
-              <Link
-                key={item.path}
-                to={item.path}
-                className={`flex items-center gap-4 px-4 py-3.5 rounded-2xl transition-all duration-300 interactive-hover ${
-                  isActive
-                    ? 'bg-black dark:bg-white text-white dark:text-black shadow-lg shadow-black/10 dark:shadow-white/10' 
-                    : 'text-gray-500 dark:text-gray-400 hover:bg-gray-100/80 dark:hover:bg-gray-800/60 hover:text-black dark:hover:text-white'
-                }`}
-              >
-                <item.icon className="text-2xl shrink-0" />
-                <span className="font-syne text-xs font-bold uppercase tracking-widest whitespace-nowrap">
-                  {item.label}
-                </span>
-              </Link>
-            );
-          })}
+        <nav className="flex-1 px-3 space-y-4 overflow-y-auto scrollbar-none pb-4">
+          {menuGroups.map((group) => (
+            <div key={group.title} className="space-y-1">
+              <span className="px-4 font-syne text-[9px] font-bold uppercase tracking-widest text-gray-400 dark:text-gray-500 block">
+                {group.title}
+              </span>
+              {group.items.map((item) => {
+                const isActive = location.pathname === item.path;
+                return (
+                  <Link
+                    key={item.path}
+                    to={item.path}
+                    className={`flex items-center gap-3.5 px-4 py-2.5 rounded-2xl transition-all duration-300 interactive-hover ${
+                      isActive
+                        ? 'bg-black dark:bg-white text-white dark:text-black shadow-lg shadow-black/10 dark:shadow-white/10'
+                        : 'text-gray-500 dark:text-gray-400 hover:bg-gray-100/80 dark:hover:bg-gray-800/60 hover:text-black dark:hover:text-white'
+                    }`}
+                  >
+                    <item.icon className="text-xl shrink-0" />
+                    <span className="font-syne text-[11px] font-bold uppercase tracking-widest whitespace-nowrap">
+                      {item.label}
+                    </span>
+                  </Link>
+                );
+              })}
+            </div>
+          ))}
         </nav>
 
         <div className="p-3 border-t border-gray-100 dark:border-gray-800/80 shrink-0 space-y-2">
@@ -255,7 +309,7 @@ function DashboardLayoutContent() {
 
           <div className="text-center select-none pt-1">
             <span className="font-syne text-[9px] font-bold tracking-widest text-gray-400 dark:text-gray-600 block">
-              VERSIÓN v6.27.0
+              VERSIÓN v7.0.0
             </span>
           </div>
         </div>
@@ -274,6 +328,14 @@ function DashboardLayoutContent() {
           <span className="font-dm-sans font-bold text-sm sm:text-base tracking-tight text-black dark:text-white truncate">Panel Personal</span>
         </Link>
         <div className="flex items-center gap-1.5">
+          <button
+            onClick={() => setIsQuickCaptureOpen(true)}
+            className="min-w-[38px] min-h-[38px] p-2 bg-black dark:bg-white text-white dark:text-black rounded-xl transition-transform active:scale-95 flex items-center justify-center cursor-pointer"
+            title="Captura Rápida"
+          >
+            <HiOutlinePlus className="text-lg" />
+          </button>
+
           <button 
             onClick={() => setIsSearchOpen(true)}
             className="p-2 bg-gray-100/80 dark:bg-gray-800/80 rounded-xl text-gray-700 dark:text-gray-300 transition-colors active:scale-95 interactive-hover"
@@ -343,21 +405,28 @@ function DashboardLayoutContent() {
           </div>
         </div>
 
-        <nav className="flex-1 px-3 space-y-1 overflow-y-auto py-2">
-          {menuItems.map((item) => (
-            <Link
-              key={item.path}
-              to={item.path}
-              onClick={() => setIsSidebarOpen(false)}
-              className={`flex items-center gap-4 px-4 py-3 rounded-xl transition-all ${
-                location.pathname === item.path 
-                  ? 'bg-black dark:bg-white text-white dark:text-black shadow-lg' 
-                  : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 active:scale-[0.98]'
-              }`}
-            >
-              <item.icon className="text-xl shrink-0" />
-              <span className="font-syne text-[11px] font-bold uppercase tracking-widest">{item.label}</span>
-            </Link>
+        <nav className="flex-1 px-3 space-y-4 overflow-y-auto py-2">
+          {menuGroups.map((group) => (
+            <div key={group.title} className="space-y-1">
+              <span className="px-4 font-syne text-[9px] font-bold uppercase tracking-widest text-gray-400 dark:text-gray-500 block">
+                {group.title}
+              </span>
+              {group.items.map((item) => (
+                <Link
+                  key={item.path}
+                  to={item.path}
+                  onClick={() => setIsSidebarOpen(false)}
+                  className={`flex items-center gap-3.5 px-4 py-2.5 rounded-xl transition-all ${
+                    location.pathname === item.path 
+                      ? 'bg-black dark:bg-white text-white dark:text-black shadow-lg' 
+                      : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 active:scale-[0.98]'
+                  }`}
+                >
+                  <item.icon className="text-xl shrink-0" />
+                  <span className="font-syne text-[11px] font-bold uppercase tracking-widest">{item.label}</span>
+                </Link>
+              ))}
+            </div>
           ))}
         </nav>
 
@@ -396,7 +465,7 @@ function DashboardLayoutContent() {
 
           <div className="text-center select-none pt-2">
             <span className="font-syne text-[9px] font-bold tracking-widest text-gray-400 dark:text-gray-600 block">
-              VERSIÓN v6.27.0
+              VERSIÓN v7.0.0
             </span>
           </div>
         </div>
@@ -422,6 +491,15 @@ function DashboardLayoutContent() {
           </div>
 
           <div className="flex items-center gap-3 shrink-0">
+            <button
+              onClick={() => setIsQuickCaptureOpen(true)}
+              className="flex items-center gap-2 px-4 min-h-[44px] py-2 bg-black dark:bg-white text-white dark:text-black rounded-xl text-xs font-syne font-bold uppercase tracking-wider hover:scale-105 active:scale-95 transition-all cursor-pointer shadow-sm"
+              title="Captura rápida (Ctrl + Shift + N)"
+            >
+              <HiOutlinePlus className="text-base" />
+              <span>Captura</span>
+            </button>
+
             <button
               onClick={handleToggleNotifications}
               className="flex items-center gap-2 px-4 min-h-[44px] py-2 bg-gray-100 dark:bg-gray-800 rounded-xl border border-gray-200/60 dark:border-gray-700/60 text-xs font-syne font-bold uppercase tracking-wider text-gray-700 dark:text-gray-200 hover:scale-105 active:scale-95 transition-all cursor-pointer"

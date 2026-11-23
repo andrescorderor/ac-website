@@ -20,6 +20,7 @@ import { useToast } from '@/components/common/ToastContext';
 import CustomSelect from '@/components/common/CustomSelect';
 import CustomDatePicker from '@/components/common/CustomDatePicker';
 import { togglePinItem, isItemPinned } from '@/lib/pinned';
+import { moveToTrash } from '@/lib/trash';
 import { useSearchParams } from 'react-router-dom';
 import AutoFormattedText from '@/components/common/AutoFormattedText';
 import RichTextEditor from '@/components/common/RichTextEditor';
@@ -190,8 +191,15 @@ export default function Recordatorios() {
       const { error } = await supabase.from('reminders').delete().eq('id', id);
       if (error) throw error;
       setReminders((prev) => prev.filter((r) => r.id !== id));
+      moveToTrash({
+        table: 'reminders',
+        entityLabel: 'Fecha',
+        title: reminderToDelete.title,
+        subtitle: reminderToDelete.date || (reminderToDelete as any).event_date || '',
+        payload: { ...reminderToDelete },
+      });
       
-      toast.undoable('Fecha importante eliminada', async () => {
+      toast.undoable('Fecha importante movida a Papelera', async () => {
         try {
           const { data: { user } } = await supabase.auth.getUser();
           if (!user) return;

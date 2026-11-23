@@ -1,10 +1,10 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/lib/supabase';
-import { fetchWithCache } from '@/lib/cache';
+import { fetchWithCache, invalidateCache } from '@/lib/cache';
 import { motion, AnimatePresence } from 'framer-motion';
 import { togglePinItem, isItemPinned } from '@/lib/pinned';
-import { parseTaskMeta } from '@/lib/taskMeta';
+import { parseTaskMeta, serializeDescriptionWithMeta } from '@/lib/taskMeta';
 import {
   HiOutlineSearch,
   HiOutlineX,
@@ -32,6 +32,12 @@ import { useToast } from '@/components/common/ToastContext';
 
 type ResultType = 'note' | 'task' | 'debt' | 'vault' | 'shopping' | 'reminder' | 'project' | 'checklist' | 'recipe' | 'finance' | 'plant' | 'bookmark' | 'workout' | 'backup';
 
+type AiActionPayload = {
+  type: 'create_task' | 'create_expense' | 'create_mandado' | 'create_note';
+  summary: string;
+  payload: Record<string, any>;
+};
+
 type SearchResult = {
   id: string;
   type: ResultType;
@@ -47,6 +53,8 @@ type SearchResult = {
 type ChatMessage = {
   role: 'user' | 'assistant';
   content: string;
+  action?: AiActionPayload;
+  actionExecuted?: boolean;
 };
 
 interface CommandPaletteProps {
@@ -317,12 +325,28 @@ export default function CommandPalette({ isOpen, onClose }: CommandPaletteProps)
       const normalize = (s: string | null | undefined) => (s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
 
       nts.data?.forEach(n => {
-        if (n.category?.startsWith('Fitness_Routine_Data:')) return;
+        if (n.category?.startsWith('Fitness_Routine_Data:') || n.category?.startsWith('System_Store:')) return;
         const match = !termNorm || normalize(n.title).includes(termNorm) || normalize(n.content).includes(termNorm) || normalize(n.category).includes(termNorm);
         if (match) {
           push({ id: n.id, type: 'note', title: n.title, subtitle: n.category || n.content?.slice(0, 70), path: '/admin/panel/notas', icon: TYPE_META.note.icon, categoryLabel: TYPE_META.note.label, badgeColor: TYPE_META.note.color, rawTitle: n.title });
         }
       });
+
+      // Prompts con Variables (stored in notes System_Store:prompt_templates)
+      const promptStoreRow = nts.data?.find(n => n.category === 'System_Store:prompt_templates');
+      if (promptStoreRow?.content) {
+        try {
+          const parsedPrompts = JSON.parse(promptStoreRow.content);
+          if (Array.isArray(parsedPrompts)) {
+            parsedPrompts.forEach((p: any) => {
+              const match = !termNorm || normalize(p.title).includes(termNorm) || normalize(p.category).includes(termNorm) || normalize(p.body).includes(termNorm);
+              if (match) {
+                push({ id: p.id, type: 'note', title: p.title, subtitle: `Prompt · ${p.category}`, path: '/admin/panel/prompts', icon: TYPE_META.note.icon, categoryLabel: 'Prompts', badgeColor: TYPE_META.backup.color, rawTitle: p.title });
+              }
+            });
+          }
+        } catch {}
+      }
 
       rem.data?.forEach(r => {
         const match = !termNorm || normalize(r.title).includes(termNorm) || normalize(r.category).includes(termNorm);
@@ -338,13 +362,15 @@ export default function CommandPalette({ isOpen, onClose }: CommandPaletteProps)
           normalize(t.title).includes(termNorm) ||
           normalize(meta.cleanDescription).includes(termNorm) ||
           normalize(meta.area).includes(termNorm) ||
-          normalize(meta.priority).includes(termNorm);
+          normalize(meta.priority).includes(termNorm) ||
+          meta.tags.some(tg => normalize(tg).includes(termNorm));
         if (match) {
+          const tagsText = meta.tags.length > 0 ? ` · #${meta.tags.join(' #')}` : '';
           push({
             id: t.id,
             type: 'task',
             title: t.title,
-            subtitle: `${meta.area} · ${meta.priority} · ${t.completed ? '✓ Completada' : t.due_date ? `Vence: ${t.due_date}` : 'Pendiente'}`,
+            subtitle: `${meta.area} · ${meta.priority}${tagsText} · ${t.completed ? '✓ Completada' : t.due_date ? `Vence: ${t.due_date}` : 'Pendiente'}`,
             path: '/admin/panel/pendientes',
             icon: TYPE_META.task.icon,
             categoryLabel: TYPE_META.task.label,
@@ -465,21 +491,30 @@ export default function CommandPalette({ isOpen, onClose }: CommandPaletteProps)
         }
       });
 
-      // Quick navigation to Backup & Recovery module
-      const backupTerms = ['respaldo', 'backup', 'recuperacion', 'restaurar', 'copia de seguridad', 'exportar', 'importar', 'base de datos', 'database'];
-      if (!termNorm || backupTerms.some(t => t.includes(termNorm) || termNorm.includes(t))) {
-        push({
-          id: 'system_backup_module',
-          type: 'backup',
-          title: 'Respaldo & Recuperación de Base de Datos',
-          subtitle: 'Centro de exportación total (15 tablas), descarga JSON/CSV y restauración',
-          path: '/admin/panel/respaldo',
-          icon: TYPE_META.backup.icon,
-          categoryLabel: TYPE_META.backup.label,
-          badgeColor: TYPE_META.backup.color,
-          rawTitle: 'Respaldo & Recuperación',
-        });
-      }
+      // Quick navigation to new modules (Backup, Calendar 360, Divisor, CMS, Papelera)
+      const moduleShortcuts = [
+        { id: 'sys_calendario', title: 'Calendario Maestro 360°', subtitle: 'Agenda unificada de tareas, fechas, plantas y finanzas', path: '/admin/panel/calendario', keywords: ['calendario', 'agenda', '360', 'mes'] },
+        { id: 'sys_divisor', title: 'Divisor de Cuentas Grupales', subtitle: 'Cálculo por personas/grupos y envío por WhatsApp', path: '/admin/panel/divisor', keywords: ['divisor', 'cuentas', 'dividir', 'grupos', 'whatsapp'] },
+        { id: 'sys_prompts', title: 'Prompts & Variables', subtitle: 'Plantillas dinámicas {{variable}} listas para copiar', path: '/admin/panel/prompts', keywords: ['prompts', 'plantillas', 'variables'] },
+        { id: 'sys_portafolio', title: 'Mini-CMS del Portafolio', subtitle: 'Editar Hero y proyectos de la web pública', path: '/admin/panel/portafolio', keywords: ['portafolio', 'cms', 'hero', 'publico'] },
+        { id: 'sys_papelera', title: 'Papelera de Reciclaje (30 días)', subtitle: 'Recuperar elementos eliminados recientemente', path: '/admin/panel/papelera', keywords: ['papelera', 'recuperar', 'eliminados', 'basura'] },
+        { id: 'system_backup_module', title: 'Respaldo & Recuperación de Base de Datos', subtitle: 'Centro de exportación total (15 tablas), descarga JSON/CSV y restauración', path: '/admin/panel/respaldo', keywords: ['respaldo', 'backup', 'recuperacion', 'restaurar', 'exportar', 'base de datos'] },
+      ];
+      moduleShortcuts.forEach((mod) => {
+        if (!termNorm || mod.keywords.some(k => k.includes(termNorm) || termNorm.includes(k)) || normalize(mod.title).includes(termNorm)) {
+          push({
+            id: mod.id,
+            type: 'backup',
+            title: mod.title,
+            subtitle: mod.subtitle,
+            path: mod.path,
+            icon: TYPE_META.backup.icon,
+            categoryLabel: TYPE_META.backup.label,
+            badgeColor: TYPE_META.backup.color,
+            rawTitle: mod.title,
+          });
+        }
+      });
 
       setResults(items);
       setActiveIndex(-1);
@@ -562,7 +597,7 @@ export default function CommandPalette({ isOpen, onClose }: CommandPaletteProps)
 📌 TAREAS:
 ${tsk.data?.map(t => {
   const m = parseTaskMeta(t);
-  return `- [${t.completed ? 'Completada' : m.status}] (${m.area} · Prioridad: ${m.priority}) ${t.title}${t.due_date ? ` (Vence: ${t.due_date})` : ''}${m.cleanDescription ? ` — Notas: ${m.cleanDescription.slice(0, 80)}` : ''}`;
+  return `- [${t.completed ? 'Completada' : m.status}] (Área: ${m.area} · Prioridad: ${m.priority}${m.tags.length ? ` · Etiquetas: ${m.tags.join(', ')}` : ''}) ${t.title}${t.due_date ? ` (Vence: ${t.due_date})` : ''}${m.cleanDescription ? ` — Notas: ${m.cleanDescription.slice(0, 80)}` : ''}`;
 }).join('\n') || 'Ninguna'}
 
 💰 CUENTAS QUE ME DEBEN (POR COBRAR):
@@ -591,7 +626,7 @@ ${rem.data?.map(r => `- ${r.title} [${r.category}] Fecha: ${r.date || r.event_da
 ${vlt.data?.map(v => `- ${v.title} [${v.category || 'General'}]`).join('\n') || 'Ninguno'}
 
 📝 NOTAS IMPORTANTES:
-${nts.data?.map(n => `- ${n.title} [${n.category}]: ${n.content?.slice(0, 100) || ''}`).join('\n') || 'Ninguna'}
+${nts.data?.filter(n => !n.category?.startsWith('Fitness_Routine_Data:') && !n.category?.startsWith('System_Store:')).map(n => `- ${n.title} [${n.category}]: ${n.content?.slice(0, 100) || ''}`).join('\n') || 'Ninguna'}
 
 🛒 LISTA DE COMPRAS:
 ${shp.data?.map(s => `- [${s.bought ? 'Comprado' : 'Por comprar'}] ${s.name}${s.location ? ` @ ${s.location}` : ''}`).join('\n') || 'Ninguno'}
@@ -650,7 +685,14 @@ REGLAS OBLIGATORIAS:
 1. Responde DIRECTAMENTE a Andrés en español con un tono humano, atento, útil y profesional.
 2. NUNCA escribas tu proceso de pensamiento, planeación, "thinking", razonamiento ni análisis interno en inglés ni en español.
 3. NO incluyas encabezados como "User:", "Context:", "Role:", "Input Data:", "Drafting the response:", etc.
-4. Responde con un formato limpio y estructurado usando viñetas o números cuando des listas.`
+4. Responde con un formato limpio y estructurado usando viñetas o números cuando des listas.
+5. Si Andrés te pide crear, agregar o registrar una tarea, gasto, producto de mandado o nota, confirma brevemente los detalles y al FINAL de tu respuesta añade exactamente una línea con:
+:::ACTION{"type":"create_task"|"create_expense"|"create_mandado"|"create_note","summary":"Resumen corto legible","payload":{...}}:::
+Campos por tipo:
+- create_task: { "title": "...", "area": "Personal|Trabajo|Social|...", "priority": "Urgente|Alta|Media|Baja", "tags": ["..."], "due_date": "YYYY-MM-DD" o "" }
+- create_expense: { "concept": "...", "amount": 0, "category": "comida|insumos|servicios", "date": "YYYY-MM-DD" }
+- create_mandado: { "name": "...", "price": 0, "quantity": "1 pza", "location": "" }
+- create_note: { "title": "...", "category": "General", "content": "..." }`
           }]
         },
         contents: [{ parts: [{ text: userPromptBody }] }]
@@ -697,12 +739,123 @@ REGLAS OBLIGATORIAS:
         .join('\n')
         .trim();
 
-      setAiChat([...newChat, { role: 'assistant', content: cleanAnswer }]);
+      // Parse optional :::ACTION{...}::: block
+      let parsedAction: AiActionPayload | undefined;
+      const actionMatch = cleanAnswer.match(/:::ACTION(\{[\s\S]*?\}):::/);
+      if (actionMatch) {
+        try {
+          parsedAction = JSON.parse(actionMatch[1]) as AiActionPayload;
+          cleanAnswer = cleanAnswer.replace(actionMatch[0], '').trim();
+        } catch {
+          // Ignore malformed JSON action block
+        }
+      }
+
+      setAiChat([...newChat, { role: 'assistant', content: cleanAnswer, action: parsedAction }]);
     } catch (err: any) {
       toast.error('Error al consultar IA: ' + err.message);
       setAiChat([...newChat, { role: 'assistant', content: '❌ Ocurrió un error al consultar la API de Gemini: ' + err.message }]);
     } finally {
       setAiThinking(false);
+    }
+  };
+
+  const handleExecuteAiAction = async (msgIndex: number, action: AiActionPayload) => {
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const user = session?.user;
+      if (!user) throw new Error('Sesión no iniciada.');
+
+      const p = action.payload || {};
+
+      if (action.type === 'create_task') {
+        const cleanArea = String(p.area || 'Personal').trim() || 'Personal';
+        const cleanTags = Array.isArray(p.tags) ? p.tags.map((t: any) => String(t).trim()).filter(Boolean) : [];
+        const fullPayload: Record<string, any> = {
+          user_id: user.id,
+          title: String(p.title || action.summary || 'Nueva tarea').trim(),
+          description: null,
+          priority: p.priority || 'Media',
+          area: cleanArea,
+          status: 'pending',
+          tags: cleanTags,
+          due_date: p.due_date || null,
+          completed: false,
+        };
+        const { error } = await supabase.from('tasks').insert([fullPayload]);
+        if (error) {
+          const fallback = {
+            user_id: user.id,
+            title: fullPayload.title,
+            description: serializeDescriptionWithMeta('', cleanArea, 'pending', cleanTags),
+            priority: fullPayload.priority,
+            due_date: fullPayload.due_date,
+            completed: false,
+          };
+          const retry = await supabase.from('tasks').insert([fallback]);
+          if (retry.error) throw retry.error;
+        }
+      } else if (action.type === 'create_expense') {
+        const dateVal = /^\d{4}-\d{2}-\d{2}$/.test(p.date || '') ? p.date : new Date().toISOString().split('T')[0];
+        const cat = p.category === 'insumos' || p.category === 'servicios' ? p.category : 'comida';
+        const conceptVal = cat === 'servicios' ? `[Ocasional] ${p.concept || action.summary}` : (p.concept || action.summary);
+        const basePayload = {
+          user_id: user.id,
+          category: cat,
+          concept: String(conceptVal).trim(),
+          amount: Number(p.amount) || 0,
+          created_at: new Date(`${dateVal}T12:00:00Z`).toISOString(),
+        };
+        const { error } = await supabase.from('finance_expenses').insert([{ ...basePayload, date: dateVal }]);
+        if (error) {
+          const retry = await supabase.from('finance_expenses').insert([basePayload]);
+          if (retry.error) throw retry.error;
+        }
+        window.dispatchEvent(new Event('ac_finance_changed'));
+      } else if (action.type === 'create_mandado') {
+        const qtyStr = p.quantity ? ` | Cant: ${p.quantity}` : '';
+        const storeStr = p.location ? ` — ${p.location}` : '';
+        const payload: Record<string, any> = {
+          user_id: user.id,
+          name: String(p.name || action.summary).trim(),
+          price: p.price ? Number(p.price) : null,
+          quantity: p.quantity || null,
+          location: `🍔 Comida | 🥗 Semanal${qtyStr}${storeStr}`,
+          type: 'semanal',
+          category: 'comida',
+          priority: 'Media',
+          bought: false,
+        };
+        const { error } = await supabase.from('shopping_list').insert([payload]);
+        if (error) {
+          delete payload.quantity;
+          delete payload.type;
+          delete payload.category;
+          const retry = await supabase.from('shopping_list').insert([payload]);
+          if (retry.error) throw retry.error;
+        }
+      } else if (action.type === 'create_note') {
+        const { error } = await supabase.from('notes').insert([
+          {
+            user_id: user.id,
+            title: String(p.title || action.summary).trim(),
+            category: String(p.category || 'General').trim(),
+            content: String(p.content || action.summary).trim(),
+          },
+        ]);
+        if (error) throw error;
+      }
+
+      invalidateCache('dashboard');
+      invalidateCache('search_global');
+      invalidateCache('ai_db_snapshot');
+
+      setAiChat((prev) =>
+        prev.map((m, idx) => (idx === msgIndex ? { ...m, actionExecuted: true } : m))
+      );
+      toast.success(`Acción ejecutada: ${action.summary} ✅`);
+    } catch (err: any) {
+      toast.error('Error al ejecutar acción: ' + err.message);
     }
   };
 
@@ -1016,7 +1169,33 @@ REGLAS OBLIGATORIAS:
                           {msg.role === 'user' ? (
                             <span className="whitespace-pre-wrap">{msg.content}</span>
                           ) : (
-                            <MarkdownRenderer content={msg.content} />
+                            <div className="space-y-3">
+                              <MarkdownRenderer content={msg.content} />
+                              {msg.action && (
+                                <div className="p-3.5 rounded-2xl bg-white dark:bg-gray-950 border border-indigo-500/30 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                                  <div className="min-w-0">
+                                    <span className="block font-syne text-[9px] font-bold uppercase tracking-widest text-indigo-500">
+                                      Acción Sugerida
+                                    </span>
+                                    <p className="font-inter text-xs font-medium text-gray-800 dark:text-gray-200 truncate">
+                                      {msg.action.summary}
+                                    </p>
+                                  </div>
+                                  <button
+                                    type="button"
+                                    disabled={msg.actionExecuted}
+                                    onClick={() => handleExecuteAiAction(i, msg.action!)}
+                                    className={`px-4 min-h-[44px] py-2 rounded-xl font-syne text-[10px] font-bold uppercase tracking-wider shrink-0 transition-all cursor-pointer ${
+                                      msg.actionExecuted
+                                        ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-300 cursor-default'
+                                        : 'bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm active:scale-95'
+                                    }`}
+                                  >
+                                    {msg.actionExecuted ? '✓ Ejecutado' : 'Confirmar y Ejecutar'}
+                                  </button>
+                                </div>
+                              )}
+                            </div>
                           )}
                         </div>
                       </motion.div>

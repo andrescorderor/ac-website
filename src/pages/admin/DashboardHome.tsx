@@ -18,18 +18,22 @@ import {
   HiOutlineCheckCircle,
   HiOutlineBookOpen,
   HiOutlineSparkles,
+  HiOutlineCamera,
   HiX,
 } from 'react-icons/hi';
 import { FaDumbbell } from 'react-icons/fa';
 import { Link } from 'react-router-dom';
 import { useToast } from '@/components/common/ToastContext';
 import MandadoModal from '@/components/admin/MandadoModal';
+import TicketScannerModal from '@/components/admin/TicketScannerModal';
+import { parseExpenseInfo } from '@/pages/admin/Finanzas';
+import { parseTaskMeta } from '@/lib/taskMeta';
 import { 
   requestNotificationPermission, 
   sendBrowserNotification, 
   scanAndNotifyUpcomingEvents 
 } from '@/lib/notifications';
-import { fetchWithCache } from '@/lib/cache';
+import { fetchWithCache, invalidateCache } from '@/lib/cache';
 
 export default function DashboardHome() {
   const [stats, setStats] = useState({
@@ -49,14 +53,20 @@ export default function DashboardHome() {
   const [briefing, setBriefing] = useState<{
     plantsToWater: { id: string; nickname: string; emoji: string; daysDiff: number }[];
     upcomingEvents: { id: string; title: string; category: string; daysLeft: number; time?: string }[];
-    urgentTasks: { id: string; title: string; due_date?: string; priority?: string }[];
+    urgentTasks: { id: string; title: string; due_date?: string; priority?: string; area?: string }[];
     pendingShoppingCount: number;
+    quincenaAvailable: number;
+    quincenaLabel: string;
+    quincenaBudget: number;
     hasAlerts: boolean;
   }>({
     plantsToWater: [],
     upcomingEvents: [],
     urgentTasks: [],
     pendingShoppingCount: 0,
+    quincenaAvailable: 0,
+    quincenaLabel: '1ª Quincena',
+    quincenaBudget: 0,
     hasAlerts: false,
   });
   const [isBriefingDismissed, setIsBriefingDismissed] = useState(() => {
@@ -70,6 +80,7 @@ export default function DashboardHome() {
   const [loading, setLoading] = useState(true);
   const [isPrivacyMode, setIsPrivacyMode] = useState(true);
   const [showMandadoModal, setShowMandadoModal] = useState(false);
+  const [showScannerModal, setShowScannerModal] = useState(false);
   const { toast } = useToast();
 
   const translateType = (type: string) => {
@@ -192,19 +203,24 @@ export default function DashboardHome() {
       const cachedDashboard = await fetchWithCache('dashboard_stats_and_briefing', async () => {
         const currentMonthYear = `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}`;
 
-        const [exp, tsk, vlt, dbt, shp, rem, bkm, nts, prj, chk, rec, plt] = await Promise.all([
-          supabase.from('finance_expenses').select('amount'),
-          supabase.from('tasks').select('id, title, priority, due_date').eq('completed', false),
+        const [exp, tsk, vlt, dbt, shp, rem, bkm, nts, prj, chk, rec, plt, sal] = await Promise.all([
+          supabase.from('finance_expenses').select('amount, category, concept, date, created_at'),
+          supabase.from('tasks').select('id, title, description, priority, due_date').eq('completed', false),
           supabase.from('vault_items').select('*', { count: 'exact', head: true }),
           supabase.from('debts').select('amount').eq('settled', false),
           supabase.from('shopping_list').select('id', { count: 'exact', head: true }).eq('bought', false),
           supabase.from('reminders').select('id, title, category, date, time, recurring'),
           supabase.from('bookmarks').select('*', { count: 'exact', head: true }),
-          supabase.from('notes').select('*', { count: 'exact', head: true }).not('category', 'like', 'Fitness_Routine_Data:%'),
+          supabase
+            .from('notes')
+            .select('*', { count: 'exact', head: true })
+            .not('category', 'like', 'Fitness_Routine_Data:%')
+            .not('category', 'like', 'System_Store:%'),
           supabase.from('creative_projects').select('*', { count: 'exact', head: true }),
           supabase.from('monthly_checklist_logs').select('*', { count: 'exact', head: true }).eq('month_year', currentMonthYear).eq('completed', true).eq('user_id', user.id),
           supabase.from('recipes').select('*', { count: 'exact', head: true }),
           supabase.from('plants').select('id, nickname, species, emoji, watering_frequency_days, last_watered_at'),
+          supabase.from('finance_salary').select('amount').eq('user_id', user.id).limit(1),
         ]);
 
         const computedStats = {
@@ -275,22 +291,50 @@ export default function DashboardHome() {
           }
         }
 
-        // 3. Urgent or high-priority tasks
-        const urgentTasks: { id: string; title: string; due_date?: string; priority?: string }[] = [];
+        // 3. Urgent or high-priority tasks (with Area metadata)
+        const urgentTasks: { id: string; title: string; due_date?: string; priority?: string; area?: string }[] = [];
         if (tsk?.data) {
           for (const t of tsk.data) {
-            if (t.priority === 'Alta' || t.priority === 'Urgente') {
-              urgentTasks.push({ id: t.id, title: t.title, due_date: t.due_date, priority: t.priority });
+            const meta = parseTaskMeta(t);
+            if (meta.priority === 'Alta' || meta.priority === 'Urgente') {
+              urgentTasks.push({ id: t.id, title: t.title, due_date: t.due_date, priority: meta.priority, area: meta.area });
             } else if (t.due_date) {
               const target = new Date(t.due_date + 'T00:00:00');
               const diffDays = Math.ceil((target.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
               if (diffDays >= 0 && diffDays <= 2) {
-                urgentTasks.push({ id: t.id, title: t.title, due_date: t.due_date, priority: 'Próxima a vencer' });
+                urgentTasks.push({ id: t.id, title: t.title, due_date: t.due_date, priority: 'Próxima', area: meta.area });
               }
             }
           }
         }
 
+        // 4. Current Quincena Balance
+        const salaryMonthly = Number(sal?.data?.[0]?.amount || 0);
+        const quincenaBudget = salaryMonthly / 2;
+        const nowDate = new Date();
+        const isQ1 = nowDate.getDate() <= 15;
+        const curY = nowDate.getFullYear();
+        const curM = nowDate.getMonth();
+        let quincenaSpent = 0;
+
+        (exp?.data || []).forEach((e: any) => {
+          const info = parseExpenseInfo(e);
+          if (info.isBase) {
+            if (info.recurrenceDist === 'split') quincenaSpent += Number(e.amount || 0) / 2;
+            else if (info.recurrenceDist === 'q1' && isQ1) quincenaSpent += Number(e.amount || 0);
+            else if (info.recurrenceDist === 'q2' && !isQ1) quincenaSpent += Number(e.amount || 0);
+          } else {
+            const dStr = (e.date || e.created_at || '').split('T')[0];
+            if (!dStr) return;
+            const [y, m, d] = dStr.split('-').map(Number);
+            if (y === curY && m - 1 === curM) {
+              const expQ1 = (d || 1) <= 15;
+              if (expQ1 === isQ1) quincenaSpent += Number(e.amount || 0);
+            }
+          }
+        });
+
+        const quincenaAvailable = quincenaBudget - quincenaSpent;
         const hasAlerts = plantsToWater.length > 0 || upcomingEvents.length > 0 || urgentTasks.length > 0 || (shp.count || 0) > 0;
 
         return {
@@ -300,6 +344,9 @@ export default function DashboardHome() {
             upcomingEvents,
             urgentTasks: urgentTasks.slice(0, 4),
             pendingShoppingCount: shp.count || 0,
+            quincenaAvailable,
+            quincenaLabel: isQ1 ? '1ª Quincena' : '2ª Quincena',
+            quincenaBudget,
             hasAlerts,
           }
         };
@@ -324,6 +371,41 @@ export default function DashboardHome() {
       scanAndNotifyUpcomingEvents();
     } else {
       toast.info('Habilita las notificaciones en la configuración de tu navegador.');
+    }
+  };
+
+  const handleQuickCompleteTask = async (taskId: string) => {
+    try {
+      const { error } = await supabase.from('tasks').update({ completed: true }).eq('id', taskId);
+      if (error) throw error;
+      setBriefing((prev) => ({
+        ...prev,
+        urgentTasks: prev.urgentTasks.filter((t) => t.id !== taskId),
+      }));
+      setStats((prev) => ({ ...prev, tasks: Math.max(0, prev.tasks - 1) }));
+      invalidateCache('dashboard');
+      toast.success('Tarea completada desde Mi Día 🎉');
+    } catch (err: any) {
+      toast.error('Error al completar tarea: ' + err.message);
+    }
+  };
+
+  const handleQuickWaterPlant = async (plantId: string, nickname: string) => {
+    try {
+      const todayIso = new Date().toISOString().split('T')[0];
+      const { error } = await supabase
+        .from('plants')
+        .update({ last_watered_at: todayIso })
+        .eq('id', plantId);
+      if (error) throw error;
+      setBriefing((prev) => ({
+        ...prev,
+        plantsToWater: prev.plantsToWater.filter((p) => p.id !== plantId),
+      }));
+      invalidateCache('dashboard');
+      toast.success(`💧 ${nickname} marcada como regada hoy`);
+    } catch (err: any) {
+      toast.error('Error al registrar riego: ' + err.message);
     }
   };
 
@@ -530,7 +612,7 @@ export default function DashboardHome() {
         </div>
       </header>
 
-      {/* ☀️ Daily Briefing (Resumen Matutino Inteligente) */}
+      {/* ☀️ Vista Mi Día Accionable */}
       {!isBriefingDismissed && (
         <motion.section
           initial={{ opacity: 0, y: -10 }}
@@ -544,55 +626,65 @@ export default function DashboardHome() {
               </div>
               <div>
                 <h2 className="font-dm-sans text-lg sm:text-xl font-bold text-gray-900 dark:text-white">
-                  Resumen Matutino Inteligente
+                  Mi Día Accionable
                 </h2>
                 <p className="font-inter text-xs text-gray-500 dark:text-gray-400">
-                  Estado clave de tus plantas, compromisos próximos y prioridades del día.
+                  Completa prioridades, registra riegos y monitorea tu quincena al instante.
                 </p>
               </div>
             </div>
 
-            <button
-              onClick={() => {
-                const today = new Date().toISOString().split('T')[0];
-                localStorage.setItem('ac_briefing_dismissed_date', today);
-                setIsBriefingDismissed(true);
-              }}
-              className="p-1.5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl transition-all text-sm shrink-0"
-              title="Ocultar resumen por hoy"
-            >
-              <HiX />
-            </button>
+            <div className="flex items-center gap-2">
+              <Link
+                to="/admin/panel/calendario"
+                className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/80 dark:bg-gray-900/80 border border-gray-200/70 dark:border-gray-700/70 text-[10px] font-syne font-bold uppercase tracking-wider text-gray-700 dark:text-gray-200 hover:border-[var(--vibrant-sky-blue)] transition-all cursor-pointer"
+              >
+                📅 Calendario 360°
+              </Link>
+              <button
+                onClick={() => {
+                  const today = new Date().toISOString().split('T')[0];
+                  localStorage.setItem('ac_briefing_dismissed_date', today);
+                  setIsBriefingDismissed(true);
+                }}
+                className="p-1.5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl transition-all text-sm shrink-0 cursor-pointer"
+                title="Ocultar resumen por hoy"
+              >
+                <HiX />
+              </button>
+            </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-3.5">
-            {/* 1. Plantas que necesitan agua */}
-            <div className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-md rounded-2xl p-4 border border-gray-100 dark:border-gray-800 shadow-2xs space-y-2">
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-3.5">
+            {/* 1. Plantas con 1-tap regar */}
+            <div className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-md rounded-2xl p-4 border border-gray-100 dark:border-gray-800 shadow-2xs space-y-2.5">
               <div className="flex items-center justify-between">
                 <span className="font-syne text-[10px] font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5">
-                  <span>🪴</span> Riego de Plantas
+                  <span>🪴</span> Riego Hoy
                 </span>
                 <Link to="/admin/panel/plantas" className="text-[10px] font-syne font-bold text-gray-400 hover:text-emerald-500 transition-colors">
                   Ver Jardín →
                 </Link>
               </div>
               {briefing.plantsToWater.length > 0 ? (
-                <div className="space-y-1.5">
-                  <p className="font-dm-sans text-xs font-bold text-gray-900 dark:text-white">
-                    {briefing.plantsToWater.length} {briefing.plantsToWater.length === 1 ? 'planta necesita' : 'plantas necesitan'} agua hoy:
-                  </p>
-                  <div className="flex flex-wrap gap-1.5">
-                    {briefing.plantsToWater.map(p => (
-                      <span key={p.id} className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 font-inter text-xs font-medium border border-emerald-200/40 dark:border-emerald-800/40">
-                        <span>{p.emoji}</span>
-                        <span>{p.nickname}</span>
-                      </span>
-                    ))}
-                  </div>
+                <div className="flex flex-wrap gap-1.5">
+                  {briefing.plantsToWater.map((p) => (
+                    <button
+                      key={p.id}
+                      type="button"
+                      onClick={() => handleQuickWaterPlant(p.id, p.nickname)}
+                      title="Clic para marcar como regada hoy"
+                      className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 hover:bg-emerald-100 dark:hover:bg-emerald-900 text-emerald-700 dark:text-emerald-300 font-inter text-xs font-medium border border-emerald-200/50 dark:border-emerald-800/50 transition-all cursor-pointer"
+                    >
+                      <span>{p.emoji}</span>
+                      <span>{p.nickname}</span>
+                      <span className="text-[10px]">💧</span>
+                    </button>
+                  ))}
                 </div>
               ) : (
                 <p className="font-inter text-xs text-gray-500 dark:text-gray-400">
-                  ✨ Todas tus plantas están hidratadas al día.
+                  ✨ Todas tus plantas hidratadas al día.
                 </p>
               )}
             </div>
@@ -601,7 +693,7 @@ export default function DashboardHome() {
             <div className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-md rounded-2xl p-4 border border-gray-100 dark:border-gray-800 shadow-2xs space-y-2">
               <div className="flex items-center justify-between">
                 <span className="font-syne text-[10px] font-bold uppercase tracking-wider text-pink-600 dark:text-pink-400 flex items-center gap-1.5">
-                  <span>📅</span> Fechas Importantes
+                  <span>📅</span> Fechas Próximas
                 </span>
                 <Link to="/admin/panel/recordatorios" className="text-[10px] font-syne font-bold text-gray-400 hover:text-pink-500 transition-colors">
                   Ver Todo →
@@ -628,52 +720,77 @@ export default function DashboardHome() {
                 </div>
               ) : (
                 <p className="font-inter text-xs text-gray-500 dark:text-gray-400">
-                  🏖️ Sin eventos ni pagos programados en los próximos 3 días.
+                  🏖️ Sin eventos en los próximos 3 días.
                 </p>
               )}
             </div>
 
-            {/* 3. Tareas Prioritarias & Mandado */}
+            {/* 3. Tareas Prioritarias con check rápido */}
             <div className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-md rounded-2xl p-4 border border-gray-100 dark:border-gray-800 shadow-2xs space-y-2">
               <div className="flex items-center justify-between">
                 <span className="font-syne text-[10px] font-bold uppercase tracking-wider text-sky-600 dark:text-sky-400 flex items-center gap-1.5">
                   <span>🎯</span> Foco del Día
                 </span>
                 <Link to="/admin/panel/pendientes" className="text-[10px] font-syne font-bold text-gray-400 hover:text-sky-500 transition-colors">
-                  Pendientes →
+                  Tablero →
                 </Link>
               </div>
               {briefing.urgentTasks.length > 0 ? (
                 <div className="space-y-1.5">
                   {briefing.urgentTasks.map(t => (
                     <div key={t.id} className="flex items-center justify-between text-xs gap-2">
-                      <span className="font-inter font-medium text-gray-800 dark:text-gray-200 truncate">
-                        • {t.title}
-                      </span>
-                      {t.priority && (
-                        <span className="shrink-0 font-syne text-[9px] font-bold uppercase px-1.5 py-0.5 rounded bg-sky-50 dark:bg-sky-950/60 text-sky-600 dark:text-sky-300">
-                          {t.priority}
+                      <button
+                        type="button"
+                        onClick={() => handleQuickCompleteTask(t.id)}
+                        className="flex items-center gap-1.5 text-left min-w-0 group cursor-pointer"
+                        title="Marcar completada"
+                      >
+                        <span className="size-3.5 rounded-full border border-gray-400 group-hover:border-emerald-500 group-hover:bg-emerald-500/20 shrink-0" />
+                        <span className="font-inter font-medium text-gray-800 dark:text-gray-200 truncate group-hover:line-through">
+                          {t.title}
                         </span>
-                      )}
+                      </button>
+                      <span className="shrink-0 font-syne text-[9px] font-bold uppercase px-1.5 py-0.5 rounded bg-sky-50 dark:bg-sky-950/60 text-sky-600 dark:text-sky-300">
+                        {t.area || t.priority}
+                      </span>
                     </div>
                   ))}
                 </div>
               ) : (
-                <div className="font-inter text-xs text-gray-500 dark:text-gray-400">
-                  {briefing.pendingShoppingCount > 0 ? (
-                    <button
-                      type="button"
-                      onClick={() => setShowMandadoModal(true)}
-                      className="text-left hover:text-emerald-500 transition-colors flex items-center gap-1 cursor-pointer"
-                    >
-                      <span>🛒 Tienes <strong>{briefing.pendingShoppingCount}</strong> productos pendientes en tu mandado.</span>
-                      <span className="font-syne text-[10px] font-bold text-emerald-600 dark:text-emerald-400 underline shrink-0 ml-1">Abrir →</span>
-                    </button>
-                  ) : (
-                    '🎉 ¡Todo limpio! No tienes tareas urgentes pendientes.'
-                  )}
-                </div>
+                <p className="font-inter text-xs text-gray-500 dark:text-gray-400">
+                  🎉 Sin tareas urgentes pendientes.
+                </p>
               )}
+            </div>
+
+            {/* 4. Saldo Quincena Actual & Ticket Scanner */}
+            <div className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-md rounded-2xl p-4 border border-gray-100 dark:border-gray-800 shadow-2xs space-y-2.5 flex flex-col justify-between">
+              <div className="flex items-center justify-between">
+                <span className="font-syne text-[10px] font-bold uppercase tracking-wider text-indigo-600 dark:text-indigo-400 flex items-center gap-1.5">
+                  <span>💵</span> {briefing.quincenaLabel}
+                </span>
+                <Link to="/admin/panel/finanzas" className="text-[10px] font-syne font-bold text-gray-400 hover:text-indigo-500 transition-colors">
+                  Finanzas →
+                </Link>
+              </div>
+              <div>
+                <p className="font-dm-sans text-xl font-bold text-gray-900 dark:text-white">
+                  {isPrivacyMode
+                    ? '$••••••'
+                    : `$${briefing.quincenaAvailable.toLocaleString('es-MX', { maximumFractionDigits: 0 })}`}
+                </p>
+                <span className="font-inter text-[11px] text-gray-400">
+                  Disponible estimado · {briefing.pendingShoppingCount} en mandado
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowScannerModal(true)}
+                className="w-full py-1.5 px-3 rounded-xl bg-sky-500/10 hover:bg-sky-500/20 text-sky-600 dark:text-sky-300 font-syne text-[10px] font-bold uppercase tracking-wider flex items-center justify-center gap-1.5 transition-all cursor-pointer"
+              >
+                <HiOutlineCamera className="text-sm" />
+                <span>Escanear Ticket</span>
+              </button>
             </div>
           </div>
         </motion.section>
@@ -847,6 +964,16 @@ export default function DashboardHome() {
       <MandadoModal 
         isOpen={showMandadoModal} 
         onClose={() => setShowMandadoModal(false)} 
+      />
+
+      {/* Ticket Scanner Modal */}
+      <TicketScannerModal
+        isOpen={showScannerModal}
+        onClose={() => setShowScannerModal(false)}
+        onSaved={() => {
+          invalidateCache('dashboard');
+          fetchStats();
+        }}
       />
     </div>
   );

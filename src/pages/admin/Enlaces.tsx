@@ -10,6 +10,7 @@ import {
 } from 'react-icons/hi';
 import CustomSelect from '@/components/common/CustomSelect';
 import { useToast } from '@/components/common/ToastContext';
+import { moveToTrash } from '@/lib/trash';
 
 type Bookmark = {
   id: string;
@@ -82,8 +83,15 @@ export default function Enlaces() {
       const { error } = await supabase.from('bookmarks').delete().eq('id', id);
       if (error) throw error;
       setBookmarks((prev) => prev.filter((b) => b.id !== id));
+      moveToTrash({
+        table: 'bookmarks',
+        entityLabel: 'Enlace',
+        title: bookmarkToDelete.title,
+        subtitle: bookmarkToDelete.url,
+        payload: { ...bookmarkToDelete },
+      });
 
-      toast.undoable('Enlace eliminado', async () => {
+      toast.undoable('Enlace movido a Papelera', async () => {
         try {
           const { data: { user } } = await supabase.auth.getUser();
           if (!user) return;

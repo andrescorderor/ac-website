@@ -9,6 +9,7 @@ import { togglePinItem, isItemPinned } from '@/lib/pinned';
 import AutoFormattedText from '@/components/common/AutoFormattedText';
 import RichTextEditor from '@/components/common/RichTextEditor';
 import { invalidateCache } from '@/lib/cache';
+import { moveToTrash } from '@/lib/trash';
 
 type VaultItem = {
   id: string;
@@ -116,8 +117,15 @@ export default function Vault() {
 
       setItems(items.filter(item => item.id !== id));
       invalidateCache('search_global_dataset');
+      moveToTrash({
+        table: 'vault_items',
+        entityLabel: 'Bóveda',
+        title: itemToDelete.title,
+        subtitle: itemToDelete.category || 'General',
+        payload: { ...itemToDelete },
+      });
       
-      toast.undoable('Texto eliminado de la bóveda', async () => {
+      toast.undoable('Texto movido a Papelera', async () => {
         try {
           const { data: { user } } = await supabase.auth.getUser();
           if (!user) return;

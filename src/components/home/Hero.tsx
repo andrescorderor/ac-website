@@ -8,14 +8,24 @@ import { HiOutlineDownload } from 'react-icons/hi';
 import { DynamicButton } from '../common/buttons/DynamicButton';
 
 import HeroCircles from './HeroCircles';
+import { loadPortfolioCms, PortfolioCmsData } from '@/lib/portfolioCms';
 
 export default function Hero() {
   const { t } = useTranslation();
-  
-  const phrases = useMemo(
-    () => t('hero.phrases', { returnObjects: true }) as string[],
-    [t],
-  );
+  const [cmsOverride, setCmsOverride] = useState<PortfolioCmsData | null>(null);
+
+  useEffect(() => {
+    loadPortfolioCms().then(({ data }) => {
+      setCmsOverride(data);
+    });
+  }, []);
+
+  const phrases = useMemo(() => {
+    if (cmsOverride?.heroPhrases && cmsOverride.heroPhrases.length > 0) {
+      return cmsOverride.heroPhrases;
+    }
+    return t('hero.phrases', { returnObjects: true }) as string[];
+  }, [t, cmsOverride]);
 
   const [currentPhraseIndex, setCurrentPhraseIndex] = useState(0);
   const [previousPhraseIndex, setPreviousPhraseIndex] = useState<number | null>(
@@ -106,10 +116,10 @@ export default function Hero() {
               transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }}
             >
               <span className="font-syne text-[var(--vibrant-sky-blue)] font-bold tracking-[0.3em] uppercase text-xs mb-6 block">
-                {t('roles.sd')} & {t('roles.pm')}
+                {cmsOverride?.heroEyebrow?.trim() || `${t('roles.sd')} & ${t('roles.pm')}`}
               </span>
               <h1 className="font-dm-sans text-6xl sm:text-8xl lg:text-[10rem] font-bold leading-[0.85] tracking-tighter text-[var(--black)] mb-4">
-                {t('hero.make_it')}
+                {cmsOverride?.heroHeadline?.trim() || t('hero.make_it')}
               </h1>
               <div className="flex items-center">
                 <motion.h1
@@ -146,7 +156,7 @@ export default function Hero() {
                   />
                 </div>
                 <p className="font-inter text-xl lg:text-2xl font-light tracking-tight text-[var(--dark-gray)] leading-relaxed italic">
-                  "{t('hero.paragraph')}"
+                  "{cmsOverride?.heroBio?.trim() || t('hero.paragraph')}"
                 </p>
               </div>
 
@@ -162,7 +172,7 @@ export default function Hero() {
                   <DynamicButton
                     style="BLACK"
                     type="full-static"
-                    name={t('hero.cta_work')}
+                    name={cmsOverride?.heroCta?.trim() || t('hero.cta_work')}
                   />
                 </a>
                 

@@ -16,6 +16,7 @@ import {
 import { useToast } from '@/components/common/ToastContext';
 import CustomSelect from '@/components/common/CustomSelect';
 import { togglePinItem, isItemPinned } from '@/lib/pinned';
+import { moveToTrash } from '@/lib/trash';
 import { useSearchParams } from 'react-router-dom';
 import AutoFormattedText from '@/components/common/AutoFormattedText';
 import RichTextEditor from '@/components/common/RichTextEditor';
@@ -136,8 +137,15 @@ export default function Proyectos() {
       const { error } = await supabase.from('creative_projects').delete().eq('id', id);
       if (error) throw error;
       setProjects((prev) => prev.filter((p) => p.id !== id));
+      moveToTrash({
+        table: 'creative_projects',
+        entityLabel: 'Proyecto',
+        title: projectToDelete.name,
+        subtitle: projectToDelete.category || '',
+        payload: { ...projectToDelete },
+      });
       
-      toast.undoable('Proyecto eliminado', async () => {
+      toast.undoable('Proyecto movido a Papelera', async () => {
         try {
           const { data: { user } } = await supabase.auth.getUser();
           if (!user) return;

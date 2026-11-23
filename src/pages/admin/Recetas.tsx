@@ -16,6 +16,7 @@ import {
 import { useToast } from '@/components/common/ToastContext';
 import CustomSelect from '@/components/common/CustomSelect';
 import { togglePinItem, isItemPinned } from '@/lib/pinned';
+import { moveToTrash } from '@/lib/trash';
 import { useSearchParams } from 'react-router-dom';
 import AutoFormattedText from '@/components/common/AutoFormattedText';
 import RichTextEditor from '@/components/common/RichTextEditor';
@@ -167,8 +168,15 @@ export default function Recetas() {
       const { error } = await supabase.from('recipes').delete().eq('id', id);
       if (error) throw error;
       setRecipes((prev) => prev.filter((r) => r.id !== id));
+      moveToTrash({
+        table: 'recipes',
+        entityLabel: 'Receta',
+        title: recipeToDelete.name,
+        subtitle: recipeToDelete.category || '',
+        payload: { ...recipeToDelete },
+      });
       
-      toast.undoable('Receta eliminada', async () => {
+      toast.undoable('Receta movida a Papelera', async () => {
         try {
           const { data: { user } } = await supabase.auth.getUser();
           if (!user) return;

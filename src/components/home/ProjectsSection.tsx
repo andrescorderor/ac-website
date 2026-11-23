@@ -3,17 +3,43 @@
 /* eslint-disable tailwindcss/no-custom-classname */
 /* eslint-disable jsx-a11y/control-has-associated-label */
 /* eslint-disable import/no-extraneous-dependencies */
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 import ProjectsSectionCard from '@components/common/cards/ProjectsSectionCard';
 import { useKeenSlider } from 'keen-slider/react';
 import 'keen-slider/keen-slider.min.css';
 import { projectsSectionMocks } from '@mocks/ProjectsSectionMocks';
 import { useTranslation } from 'react-i18next';
+import { loadPortfolioCms, CmsProject } from '@/lib/portfolioCms';
 
 export default function ProjectsSection() {
   const { t } = useTranslation();
   const [currentSlide, setCurrentSlide] = useState(0);
+  const [cmsProjects, setCmsProjects] = useState<CmsProject[] | null>(null);
+
+  useEffect(() => {
+    loadPortfolioCms().then(({ data, source }) => {
+      if (source !== 'default' && data.projects && data.projects.length > 0) {
+        setCmsProjects(data.projects.filter((p) => p.visible !== false));
+      }
+    });
+  }, []);
+
+  const displayedProjects = cmsProjects
+    ? cmsProjects.map((p) => ({
+        id: p.id,
+        image: p.image,
+        title: p.title,
+        description: p.description,
+        tags: p.tags,
+      }))
+    : projectsSectionMocks.map((project) => ({
+        id: project.id,
+        image: project.image,
+        title: t(`projects_data.${project.id}_title`),
+        description: t(`projects_data.${project.id}_desc`),
+        tags: t(`projects_data.${project.id}_tags`, { returnObjects: true }) as string[],
+      }));
   const [sliderRef, slider] = useKeenSlider({
     loop: true,
     mode: 'free',
@@ -49,19 +75,19 @@ export default function ProjectsSection() {
         </div>
       </div>
       <div ref={sliderRef} className="keen-slider">
-        {projectsSectionMocks.map((project, index) => (
-          <div key={index} className="keen-slider__slide">
+        {displayedProjects.map((project, index) => (
+          <div key={project.id || index} className="keen-slider__slide">
             <ProjectsSectionCard
               image={project.image}
-              title={t(`projects_data.${project.id}_title`)}
-              description={t(`projects_data.${project.id}_desc`)}
-              tags={t(`projects_data.${project.id}_tags`, { returnObjects: true }) as string[]}
+              title={project.title}
+              description={project.description}
+              tags={project.tags}
             />
           </div>
         ))}
       </div>
       <div className="mt-8 flex justify-center gap-4">
-        {projectsSectionMocks.map((_, index2) => (
+        {displayedProjects.map((_, index2) => (
           <button
             title="ProjectsCarouselPages"
             key={index2}

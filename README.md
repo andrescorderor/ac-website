@@ -1,7 +1,7 @@
 <div align="center">
   <img src="public/assets/ac-website-icon.svg" alt="Logo" width="100" />
   
-  # Andrés Cordero - Professional Portfolio & Personal Panel PWA (v6.27.0) 🔍✨
+  # Andrés Cordero - Professional Portfolio & Personal Panel PWA (v7.0.0) 🔍✨
   
   **Welcome to my personal ecosystem: a professional portfolio and a custom productivity hub.**  
   Built with UX/UI best practices, premium design, and a focus on mobile-first efficiency.
@@ -16,11 +16,27 @@
 
 ---
 
-## 🚀 Overview (Version 6.27.0)
+## 🚀 Overview (Version 7.0.0)
 
 This repository hosts a dual-purpose platform:
 1. **Professional Portfolio:** A high-end landing page showcasing my engineering background, skills, and achievements with dynamic copyright year updates and zero horizontal overflow.
-2. **Personal Panel PWA (v6.27.0):** An executive personal operating system featuring:
+2. **Personal Panel PWA (v7.0.0):** An executive personal operating system featuring:
+   * **Ecosistema Completo Personal OS v7.0.0 ($0 USD & Supabase Free-Tier Safe):**
+     * **Flujo Diario y Navegación Agrupada (`DashboardHome.tsx`, `DashboardLayout.tsx`, `QuickCaptureModal.tsx`, `CommandPalette.tsx`):**
+       * **Vista "Mi Día" Accionable:** Tarjetas interactivas para completar tareas prioritarias en 1 clic, registrar riego de plantas (`💧`), monitorear eventos próximos y consultar el saldo disponible real de la quincena actual.
+       * **Captura Rápida Universal (`Ctrl + Shift + N`):** Registro inmediato desde cualquier vista de Tareas, Gastos (con acceso directo al Escáner), Notas y Mandado.
+       * **Sidebar en 4 Bloques Semánticos + Rescate de `Enlaces`:** Menú organizado en *Ejecución*, *Finanzas & Hogar*, *Conocimiento & Marca* y *Sistema*.
+       * **Asistente IA con Acciones Rápidas:** Generación de tarjetas *"Confirmar y Ejecutar"* (`:::ACTION{...}:::`) para crear tareas, gastos, mandado o notas conversacionalmente.
+     * **Evolución de `Pendientes` (`Pendientes.tsx`, `taskMeta.ts`):**
+       * Terminología unificada a **Áreas**, **Renombrar Área** con actualización en lote, **Etiquetas Customizadas y Existentes (`#etiqueta`)** con filtro propio y sincronización multi-dispositivo vía `systemStore.ts`.
+     * **Nuevos Módulos Dedicados (Lazy-Loaded):**
+       * **Calendario Maestro 360° (`/admin/panel/calendario`):** Vista mensual unificada de tareas con vencimiento, recordatorios, riegos proyectados de plantas y gastos/fijos.
+       * **Escáner de Tickets con Cámara (`/admin/panel/finanzas`, `TicketScannerModal.tsx`):** Compresión cliente en `<canvas>` + lectura estructurada con Gemini Vision Free Tier (0 bytes en Supabase Storage).
+       * **Divisor de Cuentas Grupales (`/admin/panel/divisor`):** Segmentación por personas o grupos (parejas/equipos), cálculo de liquidación mínima, **compartir desglose por WhatsApp** y envío opcional a `Deudas`.
+       * **Prompts con Variables (`/admin/panel/prompts`):** Plantillas con variables `{{var}}`, rellenado en vivo y copia en 1 clic.
+       * **Mini-CMS del Portafolio (`/admin/panel/portafolio`):** Edición de Hero y Proyectos destacados desde el panel.
+       * **Papelera de Reciclaje 30 Días (`/admin/panel/papelera`):** Recuperación segura de elementos eliminados en todos los módulos.
+     * **Accesos Directos PWA (`vite.config.ts`):** `shortcuts` corregidos en `manifest.webmanifest` apuntando a `/admin/panel/...`.
    * **Creación Directa de Áreas y Adición Contextual por Columna (`Pendientes.tsx` - v6.27.0):**
      * **Columnas Persistentes:** Permite crear nuevas áreas desde el botón **+ Nueva Área** o al final del tablero, manteniendo visibles las columnas incluso cuando aún tienen 0 tareas y permitiendo agregar tareas directamente dentro de la columna seleccionada.
    * **Refinamiento UX Multi-Ámbito y Ergonomía General (`Pendientes.tsx`, `DashboardLayout.tsx` - v6.26.0):**

@@ -19,6 +19,7 @@ import {
 } from 'react-icons/hi';
 import { useToast } from '@/components/common/ToastContext';
 import { togglePinItem, isItemPinned } from '@/lib/pinned';
+import { moveToTrash } from '@/lib/trash';
 import { useSearchParams } from 'react-router-dom';
 
 export type DebtType = 'receivable' | 'payable';
@@ -327,8 +328,15 @@ export default function Deudas() {
       if (error) throw error;
 
       setDebts((prev) => prev.filter((d) => d.id !== id));
+      moveToTrash({
+        table: 'debts',
+        entityLabel: 'Deuda',
+        title: debtToDelete.debtor_name,
+        subtitle: `$${debtToDelete.amount} · ${debtToDelete.concept || ''}`,
+        payload: { ...debtToDelete },
+      });
       
-      toast.undoable('Registro eliminado', async () => {
+      toast.undoable('Registro movido a Papelera', async () => {
         try {
           const { data: { user } } = await supabase.auth.getUser();
           if (!user) return;

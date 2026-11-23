@@ -13,12 +13,16 @@ import {
   HiChevronRight,
   HiOutlineClock,
   HiOutlineRefresh,
-  HiOutlineSwitchHorizontal
+  HiOutlineSwitchHorizontal,
+  HiOutlineCamera
 } from 'react-icons/hi';
+import { useSearchParams } from 'react-router-dom';
 import { useToast } from '@/components/common/ToastContext';
 import CustomSelect from '@/components/common/CustomSelect';
 import CustomDatePicker from '@/components/common/CustomDatePicker';
 import MandadoModal from '@/components/admin/MandadoModal';
+import TicketScannerModal from '@/components/admin/TicketScannerModal';
+import { moveToTrash } from '@/lib/trash';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export type Expense = {
@@ -127,6 +131,8 @@ export default function Finanzas() {
   const [isPrivacyMode, setIsPrivacyMode] = useState(true);
   const [showAddModal, setShowAddModal] = useState(false);
   const [showMandadoModal, setShowMandadoModal] = useState(false);
+  const [showScannerModal, setShowScannerModal] = useState(false);
+  const [searchParams, setSearchParams] = useSearchParams();
   const [filterCategory, setFilterCategory] = useState('Todas');
   const [searchTerm, setSearchTerm] = useState('');
   const [historyFilter, setHistoryFilter] = useState<HistoryFilter>('all');
@@ -157,6 +163,21 @@ export default function Finanzas() {
     window.addEventListener('ac_finance_changed', handleFinanceChanged);
     return () => window.removeEventListener('ac_finance_changed', handleFinanceChanged);
   }, []);
+
+  useEffect(() => {
+    if (searchParams.get('new') === '1') {
+      setShowAddModal(true);
+      const next = new URLSearchParams(searchParams);
+      next.delete('new');
+      setSearchParams(next, { replace: true });
+    }
+    if (searchParams.get('scan') === '1') {
+      setShowScannerModal(true);
+      const next = new URLSearchParams(searchParams);
+      next.delete('scan');
+      setSearchParams(next, { replace: true });
+    }
+  }, [searchParams]);
 
   const handleMandadoModalClose = () => {
     setShowMandadoModal(false);
@@ -374,7 +395,21 @@ export default function Finanzas() {
       if (error) throw error;
       setExpenses((prev) => prev.filter((e) => e.id !== id));
 
-      toast.undoable('Gasto eliminado', async () => {
+      moveToTrash({
+        table: 'finance_expenses',
+        entityLabel: 'Gasto',
+        title: expenseToDelete.concept,
+        subtitle: `$${expenseToDelete.amount} · ${expenseToDelete.category}`,
+        payload: {
+          id: expenseToDelete.id,
+          category: expenseToDelete.category,
+          concept: expenseToDelete.concept,
+          amount: expenseToDelete.amount,
+          ...(expenseToDelete.date ? { date: expenseToDelete.date } : {}),
+        },
+      });
+
+      toast.undoable('Gasto movido a Papelera', async () => {
         try {
           const { data: { user } } = await supabase.auth.getUser();
           if (!user) return;
@@ -587,6 +622,15 @@ export default function Finanzas() {
             title="Abrir lista de Mandado Semanal y Modo Súper"
           >
             <span>🥗 Mandado</span>
+          </button>
+
+          <button
+            onClick={() => setShowScannerModal(true)}
+            className="cursor-pointer flex items-center gap-1.5 px-4 py-2.5 bg-sky-600 hover:bg-sky-700 text-white rounded-xl font-syne text-xs font-bold uppercase tracking-wider transition-all shadow-xs min-h-[44px]"
+            title="Escanear ticket con cámara usando IA"
+          >
+            <HiOutlineCamera className="text-base" />
+            <span>Escanear Ticket</span>
           </button>
 
           <button
@@ -1416,6 +1460,13 @@ export default function Finanzas() {
       <MandadoModal
         isOpen={showMandadoModal}
         onClose={handleMandadoModalClose}
+      />
+
+      {/* Ticket Scanner Modal */}
+      <TicketScannerModal
+        isOpen={showScannerModal}
+        onClose={() => setShowScannerModal(false)}
+        onSaved={fetchData}
       />
     </div>
   );

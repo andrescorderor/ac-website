@@ -16,6 +16,7 @@ import { useToast } from '@/components/common/ToastContext';
 import CustomSelect from '@/components/common/CustomSelect';
 import MandadoModal from '@/components/admin/MandadoModal';
 import { togglePinItem, isItemPinned } from '@/lib/pinned';
+import { moveToTrash } from '@/lib/trash';
 
 type ShoppingItem = {
   id: string;
@@ -156,8 +157,15 @@ export default function Compras() {
       if (error) throw error;
 
       setItems((prev) => prev.filter((i) => i.id !== id));
+      moveToTrash({
+        table: 'shopping_list',
+        entityLabel: 'Compra',
+        title: itemToDelete.name,
+        subtitle: itemToDelete.location || 'Lista de Compras',
+        payload: { ...itemToDelete },
+      });
       
-      toast.undoable('Artículo eliminado de la lista', async () => {
+      toast.undoable('Artículo movido a Papelera', async () => {
         try {
           const { data: { user } } = await supabase.auth.getUser();
           if (!user) return;
