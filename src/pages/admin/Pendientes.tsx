@@ -12,6 +12,8 @@ import {
   HiOutlineViewList,
   HiOutlineCalendar,
   HiOutlineTag,
+  HiOutlineAdjustments,
+  HiOutlineDotsHorizontal,
   HiX,
 } from 'react-icons/hi';
 import { MdOutlineCircle } from 'react-icons/md';
@@ -89,13 +91,20 @@ function sortTasksByPriority(list: TaskItem[]): TaskItem[] {
 }
 
 const AREA_PALETTE = [
-  { dot: 'bg-indigo-500', headerBg: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-300', border: 'border-indigo-500/20' },
-  { dot: 'bg-emerald-500', headerBg: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-300', border: 'border-emerald-500/20' },
-  { dot: 'bg-sky-500', headerBg: 'bg-sky-500/10 text-sky-600 dark:text-sky-300', border: 'border-sky-500/20' },
-  { dot: 'bg-pink-500', headerBg: 'bg-pink-500/10 text-pink-600 dark:text-pink-300', border: 'border-pink-500/20' },
-  { dot: 'bg-amber-500', headerBg: 'bg-amber-500/10 text-amber-600 dark:text-amber-300', border: 'border-amber-500/20' },
-  { dot: 'bg-violet-500', headerBg: 'bg-violet-500/10 text-violet-600 dark:text-violet-300', border: 'border-violet-500/20' },
+  { dot: 'bg-indigo-500', headerBg: 'bg-indigo-500/15 text-indigo-700 dark:text-indigo-300', border: 'border-indigo-500/25' },
+  { dot: 'bg-emerald-500', headerBg: 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300', border: 'border-emerald-500/25' },
+  { dot: 'bg-sky-500', headerBg: 'bg-sky-500/15 text-sky-700 dark:text-sky-300', border: 'border-sky-500/25' },
+  { dot: 'bg-pink-500', headerBg: 'bg-pink-500/15 text-pink-700 dark:text-pink-300', border: 'border-pink-500/25' },
+  { dot: 'bg-amber-500', headerBg: 'bg-amber-500/15 text-amber-700 dark:text-amber-300', border: 'border-amber-500/25' },
+  { dot: 'bg-violet-500', headerBg: 'bg-violet-500/15 text-violet-700 dark:text-violet-300', border: 'border-violet-500/25' },
 ];
+
+const PRIORITY_BORDER: Record<TaskPriority, string> = {
+  Urgente: 'border-l-[3px] border-l-rose-500',
+  Alta: 'border-l-[3px] border-l-amber-500',
+  Media: 'border-l-[3px] border-l-sky-500',
+  Baja: 'border-l-[3px] border-l-gray-300 dark:border-l-gray-600',
+};
 
 function getAreaAccent(area: string) {
   const norm = normalize(area);
@@ -155,6 +164,8 @@ export default function Pendientes() {
   const [areaFilter, setAreaFilter] = useState<string>('all');
   const [tagFilter, setTagFilter] = useState<string>('all');
   const [searchTerm, setSearchTerm] = useState(searchParams.get('search') || '');
+  const [showFiltersPanel, setShowFiltersPanel] = useState(false);
+  const [openMenuTaskId, setOpenMenuTaskId] = useState<string | null>(null);
 
   const [tagInput, setTagInput] = useState('');
   const [formState, setFormState] = useState({
@@ -775,15 +786,20 @@ export default function Pendientes() {
     });
   }, [existingAreas, filteredTasks, areaFilter, tagFilter, searchTerm]);
 
+  const activeFilterCount =
+    (statusFilter !== 'active' ? 1 : 0) +
+    (priorityFilter !== 'all' ? 1 : 0) +
+    (tagFilter !== 'all' ? 1 : 0);
+
   if (loading) {
     return (
-      <div className="space-y-8 pb-20">
-        <div className="flex justify-between items-end">
-          <div className="space-y-3">
-            <div className="skeleton h-10 w-48" />
-            <div className="skeleton h-4 w-72" />
+      <div className="space-y-6 pb-16">
+        <div className="flex justify-between items-end gap-4">
+          <div className="space-y-2.5">
+            <div className="skeleton h-9 w-48" />
+            <div className="skeleton h-4 w-72 hidden sm:block" />
           </div>
-          <div className="skeleton h-12 w-36 rounded-2xl" />
+          <div className="skeleton h-11 w-32 rounded-2xl" />
         </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {[1, 2, 3].map((i) => (
@@ -796,6 +812,7 @@ export default function Pendientes() {
 
   const renderTaskCard = (task: TaskItem) => {
     const pStyle = PRIORITY_STYLES[task.priority];
+    const isMenuOpen = openMenuTaskId === task.id;
 
     return (
       <motion.div
@@ -804,69 +821,92 @@ export default function Pendientes() {
         initial={{ opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.96 }}
-        className={`group p-4 sm:p-5 bg-white/90 dark:bg-gray-900/90 glass dark:dark-glass rounded-2xl sm:rounded-3xl border border-gray-100/80 dark:border-gray-800/80 shadow-sm hover:shadow-lg transition-all duration-200 space-y-3 ${
-          task.completed ? 'opacity-60' : ''
-        }`}
+        className={`relative group p-4 bg-white dark:bg-[#111827] rounded-2xl border border-gray-200/80 dark:border-white/[0.09] ${PRIORITY_BORDER[task.priority]} shadow-xs hover:shadow-md transition-all duration-200 space-y-2.5 ${
+          task.completed ? 'opacity-65' : ''
+        } ${isMenuOpen ? 'z-30' : ''}`}
       >
-        {/* Top Row: Priority + Area (in list mode) + Actions */}
+        {/* Top Row: Priority + Area (in list mode) + Compact Menu */}
         <div className="flex items-center justify-between gap-2">
           <div className="flex items-center gap-1.5 flex-wrap min-w-0">
             <button
               type="button"
               onClick={() => handleCyclePriority(task)}
               title="Clic para cambiar prioridad"
-              className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-syne font-bold uppercase tracking-wider border transition-all cursor-pointer hover:scale-105 ${pStyle.badge}`}
+              className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-syne font-bold uppercase tracking-wider border transition-all cursor-pointer hover:scale-105 ${pStyle.badge}`}
             >
               <span className={`size-1.5 rounded-full ${pStyle.dot}`} />
               <span>{pStyle.label}</span>
             </button>
 
             {viewMode === 'list' && (
-              <span className="px-2.5 py-1 rounded-full text-[10px] font-syne font-bold uppercase tracking-wider bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 truncate max-w-[140px]">
+              <span className="px-2.5 py-1 rounded-full text-[11px] font-syne font-bold uppercase tracking-wider bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-200 border border-gray-200/60 dark:border-white/10 truncate max-w-[150px]">
                 {task.area}
               </span>
             )}
           </div>
 
-          <div className="flex items-center gap-1 shrink-0">
+          <div className="relative shrink-0">
             <button
               type="button"
-              onClick={() => openEditModal(task)}
-              className="p-2 text-gray-400 hover:text-[var(--vibrant-sky-blue)] hover:bg-sky-50 dark:hover:bg-sky-950/30 rounded-xl transition-all cursor-pointer"
-              title="Editar tarea y notas"
+              onClick={() => setOpenMenuTaskId(isMenuOpen ? null : task.id)}
+              className="min-w-[38px] min-h-[38px] p-2 text-gray-500 dark:text-gray-400 hover:text-black dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl transition-all cursor-pointer flex items-center justify-center"
+              title="Acciones de tarea"
+              aria-label="Acciones de tarea"
             >
-              <HiOutlinePencil className="text-base" />
+              <HiOutlineDotsHorizontal className="text-lg" />
             </button>
-            <button
-              type="button"
-              onClick={() => {
-                const isNowPinned = togglePinItem({
-                  id: task.id,
-                  type: 'task',
-                  title: task.title,
-                  subtitle: `${task.area} · ${task.priority}${task.due_date ? ` · ${task.due_date}` : ''}`,
-                  path: '/admin/panel/pendientes',
-                });
-                toast.info(isNowPinned ? 'Tarea fijada en el inicio 📌' : 'Tarea desfijada');
-                setTasks([...tasks]);
-              }}
-              className={`p-2 rounded-xl transition-all cursor-pointer ${
-                isItemPinned(task.id)
-                  ? 'text-amber-500 bg-amber-50 dark:bg-amber-950/40'
-                  : 'text-gray-400 hover:text-amber-500 hover:bg-amber-50 dark:hover:bg-amber-950/30'
-              }`}
-              title={isItemPinned(task.id) ? 'Desfijar del inicio' : 'Fijar en la página principal'}
-            >
-              {isItemPinned(task.id) ? '📌' : '📍'}
-            </button>
-            <button
-              type="button"
-              onClick={() => deleteTask(task.id)}
-              className="p-2 text-red-500 dark:text-red-400 hover:bg-red-500/15 rounded-xl transition-all cursor-pointer"
-              title="Eliminar tarea"
-            >
-              <HiOutlineTrash className="text-base" />
-            </button>
+
+            {isMenuOpen && (
+              <>
+                <div
+                  className="fixed inset-0 z-20"
+                  onClick={() => setOpenMenuTaskId(null)}
+                />
+                <div className="absolute right-0 top-full mt-1 w-44 bg-white dark:bg-[#1f2937] rounded-2xl border border-gray-200/90 dark:border-white/15 shadow-xl p-1.5 z-30 space-y-0.5">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setOpenMenuTaskId(null);
+                      openEditModal(task);
+                    }}
+                    className="w-full min-h-[40px] px-3 py-2 rounded-xl text-left text-xs font-inter font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700/70 flex items-center gap-2 cursor-pointer"
+                  >
+                    <HiOutlinePencil className="text-sm text-[var(--vibrant-sky-blue)]" />
+                    <span>Editar y notas</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setOpenMenuTaskId(null);
+                      const isNowPinned = togglePinItem({
+                        id: task.id,
+                        type: 'task',
+                        title: task.title,
+                        subtitle: `${task.area} · ${task.priority}${task.due_date ? ` · ${task.due_date}` : ''}`,
+                        path: '/admin/panel/pendientes',
+                      });
+                      toast.info(isNowPinned ? 'Tarea fijada en el inicio 📌' : 'Tarea desfijada');
+                      setTasks([...tasks]);
+                    }}
+                    className="w-full min-h-[40px] px-3 py-2 rounded-xl text-left text-xs font-inter font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700/70 flex items-center gap-2 cursor-pointer"
+                  >
+                    <span>{isItemPinned(task.id) ? '📌' : '📍'}</span>
+                    <span>{isItemPinned(task.id) ? 'Desfijar' : 'Fijar en Inicio'}</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setOpenMenuTaskId(null);
+                      deleteTask(task.id);
+                    }}
+                    className="w-full min-h-[40px] px-3 py-2 rounded-xl text-left text-xs font-inter font-medium text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/50 flex items-center gap-2 cursor-pointer"
+                  >
+                    <HiOutlineTrash className="text-sm" />
+                    <span>Eliminar</span>
+                  </button>
+                </div>
+              </>
+            )}
           </div>
         </div>
 
@@ -875,7 +915,7 @@ export default function Pendientes() {
           <button
             type="button"
             onClick={() => toggleTaskComplete(task)}
-            className="mt-0.5 text-xl transition-transform active:scale-90 shrink-0 cursor-pointer"
+            className="mt-0.5 min-w-[28px] min-h-[28px] flex items-center justify-center text-xl transition-transform active:scale-90 shrink-0 cursor-pointer"
             title={task.completed ? 'Reabrir tarea' : 'Marcar como completada'}
           >
             {task.completed ? (
@@ -896,13 +936,13 @@ export default function Pendientes() {
             </h4>
 
             {task.tags && task.tags.length > 0 && (
-              <div className="flex flex-wrap gap-1">
+              <div className="flex flex-wrap gap-1.5">
                 {task.tags.map((tg) => (
                   <button
                     key={tg}
                     type="button"
                     onClick={() => setTagFilter(normalize(tagFilter) === normalize(tg) ? 'all' : tg)}
-                    className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-syne font-bold transition-all cursor-pointer ${
+                    className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-syne font-bold transition-all cursor-pointer ${
                       normalize(tagFilter) === normalize(tg)
                         ? 'bg-[var(--vibrant-sky-blue)] text-white'
                         : 'bg-sky-500/10 text-sky-700 dark:text-sky-300 hover:bg-sky-500/20'
@@ -919,14 +959,14 @@ export default function Pendientes() {
               <AutoFormattedText
                 text={task.cleanDescription}
                 maxLength={140}
-                className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 font-light"
+                className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 font-light"
               />
             )}
           </div>
         </div>
 
         {/* Footer: 1-Tap Cycle Status Pill + Due Date */}
-        <div className="pt-2 border-t border-gray-100 dark:border-gray-800/80 flex items-center justify-between gap-2">
+        <div className="pt-2 border-t border-gray-100 dark:border-white/[0.06] flex items-center justify-between gap-2">
           {(() => {
             const currentOpt = STATUS_OPTIONS.find((s) => s.value === task.status) || STATUS_OPTIONS[0];
             const nextOpt =
@@ -938,7 +978,7 @@ export default function Pendientes() {
                 type="button"
                 onClick={() => handleChangeStatus(task, nextOpt.value)}
                 title={`Clic para cambiar a: ${nextOpt.label}`}
-                className={`px-2.5 py-1 rounded-lg text-[10px] font-syne font-bold uppercase tracking-wider border transition-all cursor-pointer hover:scale-105 active:scale-95 ${currentOpt.badge}`}
+                className={`px-2.5 min-h-[34px] py-1 rounded-lg text-[11px] font-syne font-bold uppercase tracking-wider border transition-all cursor-pointer hover:scale-105 active:scale-95 ${currentOpt.badge}`}
               >
                 {currentOpt.label} ↻
               </button>
@@ -950,7 +990,7 @@ export default function Pendientes() {
               const due = getDueBadgeStyle(task.due_date, task.completed);
               return (
                 <span
-                  className={`inline-flex items-center gap-1 font-syne text-[10px] font-bold uppercase tracking-wider shrink-0 ${due.cls}`}
+                  className={`inline-flex items-center gap-1 font-syne text-[11px] font-bold uppercase tracking-wider shrink-0 ${due.cls}`}
                 >
                   <HiOutlineCalendar className="text-xs" />
                   {due.label}
@@ -963,144 +1003,118 @@ export default function Pendientes() {
   };
 
   return (
-    <div className="space-y-8 pb-28 sm:pb-20">
-      {/* Header */}
-      <header className="flex flex-col lg:flex-row lg:items-end justify-between gap-5">
-        <div className="flex-1">
-          <h1 className="font-dm-sans text-3xl md:text-4xl font-bold tracking-tight text-[var(--black)] dark:text-white">
+    <div className="space-y-4 sm:space-y-6 pb-8">
+      {/* Compact Header */}
+      <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div>
+          <h1 className="font-dm-sans text-2xl sm:text-3xl font-bold tracking-tight text-[var(--black)] dark:text-white">
             Tablero de <span className="text-gradient">Pendientes</span>
           </h1>
-          <p className="font-inter mt-1.5 text-[var(--dark-gray)] dark:text-gray-400 font-light text-sm">
-            Monitorea tus áreas en columnas ordenadas por prioridad, estado, etiquetas y notas.
+          <p className="hidden sm:block font-inter mt-1 text-[var(--dark-gray)] dark:text-gray-400 font-light text-xs">
+            Organiza tus áreas en columnas ordenadas por prioridad, estado, etiquetas y notas.
           </p>
         </div>
 
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
-          <div className="relative flex-1 sm:w-64">
-            <input
-              type="text"
-              placeholder="Buscar tarea, área, etiqueta..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-11 pr-4 min-h-[44px] py-2.5 bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl outline-none focus:ring-2 ring-gray-100 dark:ring-gray-700 font-inter text-sm shadow-sm transition-all text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500"
-            />
-            <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none">
-              <HiOutlineSearch className="size-5" />
-            </div>
-          </div>
-
-          {/* View Mode Switcher */}
-          <div className="flex items-center bg-white dark:bg-gray-800 p-1 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm shrink-0">
-            <button
-              type="button"
-              onClick={() => setViewMode('columns')}
-              className={`flex items-center justify-center gap-1.5 px-3.5 min-h-[38px] rounded-xl text-xs font-syne font-bold uppercase tracking-wider transition-all cursor-pointer ${
-                viewMode === 'columns'
-                  ? 'bg-black dark:bg-white text-white dark:text-black shadow-sm'
-                  : 'text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200'
-              }`}
-              title="Vista en columnas por área"
-            >
-              <HiOutlineViewBoards className="text-base" />
-              <span>Columnas</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => setViewMode('list')}
-              className={`flex items-center justify-center gap-1.5 px-3.5 min-h-[38px] rounded-xl text-xs font-syne font-bold uppercase tracking-wider transition-all cursor-pointer ${
-                viewMode === 'list'
-                  ? 'bg-black dark:bg-white text-white dark:text-black shadow-sm'
-                  : 'text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200'
-              }`}
-              title="Vista en lista unificada"
-            >
-              <HiOutlineViewList className="text-base" />
-              <span>Lista</span>
-            </button>
-          </div>
-
+        <div className="flex flex-wrap items-center gap-2">
           <button
             type="button"
             onClick={() => {
               setNewAreaName('');
               setShowAreaModal(true);
             }}
-            className="px-4 min-h-[44px] py-2.5 bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-100 border border-gray-200 dark:border-gray-700 font-syne text-xs font-bold uppercase tracking-wider rounded-2xl hover:border-[var(--vibrant-sky-blue)] transition-all shadow-sm flex items-center justify-center gap-2 cursor-pointer touch-manipulation shrink-0"
+            className="px-3.5 min-h-[44px] py-2 bg-white dark:bg-[#111827] text-gray-800 dark:text-gray-100 border border-gray-200/80 dark:border-white/10 font-syne text-xs font-bold uppercase tracking-wider rounded-2xl hover:border-[var(--vibrant-sky-blue)] transition-all shadow-xs flex items-center justify-center gap-1.5 cursor-pointer"
           >
             <HiOutlinePlus className="text-base text-[var(--vibrant-sky-blue)]" />
-            <span>Nueva Área</span>
+            <span>Área</span>
           </button>
 
           <button
             type="button"
             onClick={() => openCreateModal()}
-            className="px-5 min-h-[44px] py-2.5 bg-black dark:bg-white text-white dark:text-black font-syne text-xs font-bold uppercase tracking-wider rounded-2xl hover:scale-105 active:scale-95 transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer touch-manipulation shrink-0"
+            className="flex-1 sm:flex-initial px-4 sm:px-5 min-h-[44px] py-2 bg-black dark:bg-white text-white dark:text-black font-syne text-xs font-bold uppercase tracking-wider rounded-2xl hover:opacity-90 active:scale-95 transition-all shadow-sm flex items-center justify-center gap-2 cursor-pointer"
           >
-            <HiOutlinePlus className="text-lg" />
+            <HiOutlinePlus className="text-base" />
             <span>Nueva Tarea</span>
           </button>
         </div>
       </header>
 
-      {/* Filters Row */}
+      {/* Unified Compact Toolbar: Search + Filters Button + View Switcher */}
       <div className="space-y-3">
-        {/* Status & Priority */}
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
-            {[
-              { id: 'active', label: `Activas (${tasks.filter((t) => !t.completed).length})` },
-              { id: 'pending', label: `Pendientes (${tasks.filter((t) => !t.completed && t.status === 'pending').length})` },
-              { id: 'in_progress', label: `En Progreso (${tasks.filter((t) => !t.completed && t.status === 'in_progress').length})` },
-              { id: 'waiting', label: `En Espera (${tasks.filter((t) => !t.completed && t.status === 'waiting').length})` },
-              { id: 'completed', label: `Completadas (${tasks.filter((t) => t.completed).length})` },
-              { id: 'all', label: `Todas (${tasks.length})` },
-            ].map((tab) => (
-              <button
-                key={tab.id}
-                type="button"
-                onClick={() => setStatusFilter(tab.id as StatusFilter)}
-                className={`px-4 min-h-[40px] py-2 rounded-2xl text-[11px] font-syne font-bold uppercase tracking-wider transition-all whitespace-nowrap cursor-pointer ${
-                  statusFilter === tab.id
-                    ? 'bg-black dark:bg-white text-white dark:text-black shadow-md'
-                    : 'bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-300 border border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700'
-                }`}
-              >
-                {tab.label}
-              </button>
-            ))}
+        <div className="flex flex-wrap items-center gap-2">
+          <div className="relative flex-1 min-w-[180px]">
+            <input
+              type="text"
+              placeholder="Buscar tarea, área o #etiqueta..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full pl-10 pr-3 min-h-[44px] py-2 bg-white dark:bg-[#111827] border border-gray-200/80 dark:border-white/10 rounded-2xl outline-none focus:border-[var(--vibrant-sky-blue)] font-inter text-sm shadow-xs transition-all text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500"
+            />
+            <HiOutlineSearch className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 text-lg pointer-events-none" />
           </div>
 
-          <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none">
-            {(['all', ...PRIORITY_LEVELS] as const).map((p) => (
-              <button
-                key={p}
-                type="button"
-                onClick={() => setPriorityFilter(p)}
-                className={`px-3 py-1.5 rounded-xl text-[10px] font-syne font-bold uppercase tracking-wider transition-all whitespace-nowrap cursor-pointer border ${
-                  priorityFilter === p
-                    ? 'bg-gray-900 dark:bg-white text-white dark:text-black border-transparent shadow-sm'
-                    : 'bg-white/70 dark:bg-gray-800/70 text-gray-500 dark:text-gray-400 border-gray-200/70 dark:border-gray-700/70 hover:bg-gray-100 dark:hover:bg-gray-700'
-                }`}
-              >
-                {p === 'all' ? 'Prioridad: Todas' : p}
-              </button>
-            ))}
+          <button
+            type="button"
+            onClick={() => setShowFiltersPanel(!showFiltersPanel)}
+            className={`px-3.5 min-h-[44px] py-2 rounded-2xl font-syne text-xs font-bold uppercase tracking-wider border transition-all flex items-center gap-2 cursor-pointer shrink-0 ${
+              showFiltersPanel || activeFilterCount > 0
+                ? 'bg-[var(--vibrant-sky-blue)]/10 text-[var(--vibrant-sky-blue)] border-[var(--vibrant-sky-blue)]/40'
+                : 'bg-white dark:bg-[#111827] text-gray-700 dark:text-gray-200 border-gray-200/80 dark:border-white/10 hover:bg-gray-50 dark:hover:bg-gray-800'
+            }`}
+          >
+            <HiOutlineAdjustments className="text-base" />
+            <span>Filtros</span>
+            {activeFilterCount > 0 && (
+              <span className="size-5 rounded-full bg-[var(--vibrant-sky-blue)] text-white text-[10px] flex items-center justify-center font-bold">
+                {activeFilterCount}
+              </span>
+            )}
+          </button>
+
+          {/* View Mode Switcher */}
+          <div className="flex items-center bg-white dark:bg-[#111827] p-1 rounded-2xl border border-gray-200/80 dark:border-white/10 shadow-xs shrink-0">
+            <button
+              type="button"
+              onClick={() => setViewMode('columns')}
+              className={`flex items-center justify-center gap-1.5 px-3 min-h-[36px] rounded-xl text-xs font-syne font-bold uppercase tracking-wider transition-all cursor-pointer ${
+                viewMode === 'columns'
+                  ? 'bg-black dark:bg-white text-white dark:text-black shadow-xs'
+                  : 'text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200'
+              }`}
+              title="Vista por áreas / columnas"
+            >
+              <HiOutlineViewBoards className="text-base" />
+              <span className="hidden sm:inline">Columnas</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setViewMode('list')}
+              className={`flex items-center justify-center gap-1.5 px-3 min-h-[36px] rounded-xl text-xs font-syne font-bold uppercase tracking-wider transition-all cursor-pointer ${
+                viewMode === 'list'
+                  ? 'bg-black dark:bg-white text-white dark:text-black shadow-xs'
+                  : 'text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200'
+              }`}
+              title="Vista en lista unificada"
+            >
+              <HiOutlineViewList className="text-base" />
+              <span className="hidden sm:inline">Lista</span>
+            </button>
           </div>
         </div>
 
-        {/* Áreas Pills */}
+        {/* Áreas Pills (Always completely visible via flex-wrap — no hidden horizontal scroll) */}
         {existingAreas.length > 0 && (
-          <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
+          <div className="flex flex-wrap items-center gap-1.5">
             <button
               type="button"
               onClick={() => setAreaFilter('all')}
-              className={`px-3.5 min-h-[38px] py-1.5 rounded-xl text-[11px] font-syne font-bold uppercase tracking-wider transition-all whitespace-nowrap cursor-pointer ${
+              className={`px-3 min-h-[38px] py-1.5 rounded-xl text-xs font-syne font-bold uppercase tracking-wider border transition-all cursor-pointer ${
                 areaFilter === 'all'
-                  ? 'bg-[var(--vibrant-sky-blue)] text-white shadow-sm'
-                  : 'bg-gray-100 dark:bg-gray-800/80 text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200'
+                  ? 'bg-[var(--vibrant-sky-blue)] text-white border-[var(--vibrant-sky-blue)] shadow-xs'
+                  : 'bg-white dark:bg-[#111827] text-gray-600 dark:text-gray-300 border-gray-200/80 dark:border-white/10 hover:bg-gray-50 dark:hover:bg-gray-800'
               }`}
             >
-              Todas las Áreas ({existingAreas.length})
+              Todas ({existingAreas.length})
             </button>
             {existingAreas.map((area) => {
               const count = tasks.filter((t) => t.area === area && !t.completed).length;
@@ -1110,64 +1124,177 @@ export default function Pendientes() {
                   key={area}
                   type="button"
                   onClick={() => setAreaFilter(areaFilter === area ? 'all' : area)}
-                  className={`px-3.5 min-h-[38px] py-1.5 rounded-xl text-[11px] font-syne font-bold uppercase tracking-wider transition-all whitespace-nowrap cursor-pointer flex items-center gap-2 ${
+                  className={`px-3 min-h-[38px] py-1.5 rounded-xl text-xs font-syne font-bold uppercase tracking-wider border transition-all cursor-pointer flex items-center gap-2 ${
                     areaFilter === area
-                      ? 'bg-[var(--vibrant-sky-blue)] text-white shadow-sm'
-                      : 'bg-gray-100 dark:bg-gray-800/80 text-gray-600 dark:text-gray-300 hover:bg-gray-200/70 dark:hover:bg-gray-700'
+                      ? 'bg-[var(--vibrant-sky-blue)] text-white border-[var(--vibrant-sky-blue)] shadow-xs'
+                      : 'bg-white dark:bg-[#111827] text-gray-700 dark:text-gray-200 border-gray-200/80 dark:border-white/10 hover:bg-gray-50 dark:hover:bg-gray-800'
                   }`}
                 >
                   <span className={`size-2 rounded-full shrink-0 ${areaFilter === area ? 'bg-white' : accent.dot}`} />
                   <span>{area}</span>
-                  <span className="opacity-70 text-[10px]">({count})</span>
+                  <span className="opacity-70 text-[11px]">({count})</span>
                 </button>
               );
             })}
           </div>
         )}
 
-        {/* Etiquetas Pills */}
-        {existingTags.length > 0 && (
-          <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none">
-            <span className="inline-flex items-center gap-1 text-[10px] font-syne font-bold uppercase tracking-wider text-gray-400 pr-1 shrink-0">
-              <HiOutlineTag className="text-xs" /> Etiquetas:
-            </span>
+        {/* Active Filter Summary Chips (when panel collapsed) */}
+        {!showFiltersPanel && activeFilterCount > 0 && (
+          <div className="flex flex-wrap items-center gap-1.5 text-xs">
+            {statusFilter !== 'active' && (
+              <button
+                type="button"
+                onClick={() => setStatusFilter('active')}
+                className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-gray-900 dark:bg-white text-white dark:text-black font-syne text-[11px] font-bold cursor-pointer"
+              >
+                <span>Estado: {statusFilter === 'all' ? 'Todas' : statusFilter}</span>
+                <HiX className="text-xs" />
+              </button>
+            )}
+            {priorityFilter !== 'all' && (
+              <button
+                type="button"
+                onClick={() => setPriorityFilter('all')}
+                className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30 font-syne text-[11px] font-bold cursor-pointer"
+              >
+                <span>Prioridad: {priorityFilter}</span>
+                <HiX className="text-xs" />
+              </button>
+            )}
+            {tagFilter !== 'all' && (
+              <button
+                type="button"
+                onClick={() => setTagFilter('all')}
+                className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-sky-500/15 text-sky-700 dark:text-sky-300 border border-sky-500/30 font-syne text-[11px] font-bold cursor-pointer"
+              >
+                <span>#{tagFilter}</span>
+                <HiX className="text-xs" />
+              </button>
+            )}
             <button
               type="button"
-              onClick={() => setTagFilter('all')}
-              className={`px-2.5 py-1 rounded-lg text-[10px] font-syne font-bold uppercase tracking-wider transition-all whitespace-nowrap cursor-pointer ${
-                tagFilter === 'all'
-                  ? 'bg-gray-900 dark:bg-white text-white dark:text-black'
-                  : 'bg-gray-100/80 dark:bg-gray-800/60 text-gray-500 dark:text-gray-400'
-              }`}
+              onClick={() => {
+                setStatusFilter('active');
+                setPriorityFilter('all');
+                setTagFilter('all');
+              }}
+              className="px-2.5 py-1 text-[11px] font-syne font-bold uppercase text-gray-500 hover:text-black dark:hover:text-white cursor-pointer"
             >
-              Todas
+              Limpiar
             </button>
-            {existingTags.map((tg) => (
-              <button
-                key={tg}
-                type="button"
-                onClick={() => setTagFilter(normalize(tagFilter) === normalize(tg) ? 'all' : tg)}
-                className={`px-2.5 py-1 rounded-lg text-[10px] font-syne font-bold transition-all whitespace-nowrap cursor-pointer ${
-                  normalize(tagFilter) === normalize(tg)
-                    ? 'bg-[var(--vibrant-sky-blue)] text-white shadow-sm'
-                    : 'bg-sky-500/10 text-sky-700 dark:text-sky-300 hover:bg-sky-500/20'
-                }`}
-              >
-                #{tg}
-              </button>
-            ))}
           </div>
         )}
+
+        {/* Collapsible Full Filters Drawer */}
+        <AnimatePresence>
+          {showFiltersPanel && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              className="overflow-hidden"
+            >
+              <div className="surface-panel rounded-2xl p-3.5 sm:p-4 space-y-3.5">
+                <div className="space-y-1.5">
+                  <span className="font-syne text-[10px] font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400 block">
+                    Estado
+                  </span>
+                  <div className="flex flex-wrap gap-1.5">
+                    {[
+                      { id: 'active', label: `Activas (${tasks.filter((t) => !t.completed).length})` },
+                      { id: 'pending', label: `Pendientes (${tasks.filter((t) => !t.completed && t.status === 'pending').length})` },
+                      { id: 'in_progress', label: `En Progreso (${tasks.filter((t) => !t.completed && t.status === 'in_progress').length})` },
+                      { id: 'waiting', label: `En Espera (${tasks.filter((t) => !t.completed && t.status === 'waiting').length})` },
+                      { id: 'completed', label: `Completadas (${tasks.filter((t) => t.completed).length})` },
+                      { id: 'all', label: `Todas (${tasks.length})` },
+                    ].map((tab) => (
+                      <button
+                        key={tab.id}
+                        type="button"
+                        onClick={() => setStatusFilter(tab.id as StatusFilter)}
+                        className={`px-3 min-h-[38px] py-1.5 rounded-xl text-xs font-syne font-bold uppercase tracking-wider border transition-all cursor-pointer ${
+                          statusFilter === tab.id
+                            ? 'bg-black dark:bg-white text-white dark:text-black border-transparent shadow-xs'
+                            : 'bg-white dark:bg-[#111827] text-gray-600 dark:text-gray-300 border-gray-200/80 dark:border-white/10 hover:bg-gray-50 dark:hover:bg-gray-800'
+                        }`}
+                      >
+                        {tab.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="space-y-1.5">
+                  <span className="font-syne text-[10px] font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400 block">
+                    Prioridad
+                  </span>
+                  <div className="flex flex-wrap gap-1.5">
+                    {(['all', ...PRIORITY_LEVELS] as const).map((p) => (
+                      <button
+                        key={p}
+                        type="button"
+                        onClick={() => setPriorityFilter(p)}
+                        className={`px-3 min-h-[38px] py-1.5 rounded-xl text-xs font-syne font-bold uppercase tracking-wider transition-all cursor-pointer border ${
+                          priorityFilter === p
+                            ? 'bg-gray-900 dark:bg-white text-white dark:text-black border-transparent shadow-xs'
+                            : 'bg-white dark:bg-[#111827] text-gray-600 dark:text-gray-300 border-gray-200/80 dark:border-white/10 hover:bg-gray-50 dark:hover:bg-gray-800'
+                        }`}
+                      >
+                        {p === 'all' ? 'Todas' : p}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {existingTags.length > 0 && (
+                  <div className="space-y-1.5">
+                    <span className="inline-flex items-center gap-1 font-syne text-[10px] font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">
+                      <HiOutlineTag className="text-xs" /> Etiquetas
+                    </span>
+                    <div className="flex flex-wrap gap-1.5">
+                      <button
+                        type="button"
+                        onClick={() => setTagFilter('all')}
+                        className={`px-3 min-h-[36px] py-1 rounded-xl text-xs font-syne font-bold uppercase tracking-wider border transition-all cursor-pointer ${
+                          tagFilter === 'all'
+                            ? 'bg-gray-900 dark:bg-white text-white dark:text-black border-transparent'
+                            : 'bg-white dark:bg-[#111827] text-gray-600 dark:text-gray-300 border-gray-200/80 dark:border-white/10'
+                        }`}
+                      >
+                        Todas
+                      </button>
+                      {existingTags.map((tg) => (
+                        <button
+                          key={tg}
+                          type="button"
+                          onClick={() => setTagFilter(normalize(tagFilter) === normalize(tg) ? 'all' : tg)}
+                          className={`px-3 min-h-[36px] py-1 rounded-xl text-xs font-syne font-bold border transition-all cursor-pointer ${
+                            normalize(tagFilter) === normalize(tg)
+                              ? 'bg-[var(--vibrant-sky-blue)] text-white border-[var(--vibrant-sky-blue)] shadow-xs'
+                              : 'bg-sky-500/10 text-sky-700 dark:text-sky-300 border-sky-500/20 hover:bg-sky-500/20'
+                          }`}
+                        >
+                          #{tg}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
 
-      {/* Content Area: Columns vs List */}
+      {/* Content Area: Columns (stacked cleanly on mobile, side-by-side on md+) vs List */}
       {viewMode === 'columns' ? (
         columns.length === 0 ? (
-          <div className="bg-white dark:bg-gray-900 rounded-[2rem] p-12 text-center border-none shadow-sm space-y-4">
+          <div className="bg-white dark:bg-[#111827] rounded-3xl p-8 sm:p-12 text-center border border-gray-200/80 dark:border-white/10 shadow-xs space-y-4">
             <p className="font-dm-sans text-lg font-bold text-gray-700 dark:text-gray-200">
               No hay áreas o tareas con estos filtros
             </p>
-            <p className="font-inter text-sm text-gray-400 dark:text-gray-500">
+            <p className="font-inter text-sm text-gray-500 dark:text-gray-400">
               Crea un área nueva para organizar tus pendientes en columnas o restablece los filtros.
             </p>
             <div className="flex flex-wrap items-center justify-center gap-3">
@@ -1203,7 +1330,7 @@ export default function Pendientes() {
             className={
               columns.length === 1 && areaFilter !== 'all'
                 ? 'max-w-2xl'
-                : 'flex gap-4 overflow-x-auto pb-4 snap-x snap-mandatory items-start'
+                : 'space-y-4 md:space-y-0 md:flex md:gap-4 md:overflow-x-auto md:pb-4 md:items-start'
             }
           >
             {columns.map(([areaName, areaTasks]) => {
@@ -1217,17 +1344,17 @@ export default function Pendientes() {
                   className={`${
                     columns.length === 1 && areaFilter !== 'all'
                       ? 'w-full'
-                      : 'w-[86vw] sm:w-[320px] xl:w-[310px] 2xl:w-[320px] shrink-0 snap-start'
-                  } bg-gray-50/80 dark:bg-gray-900/40 rounded-[2rem] p-4 border ${accent.border} flex flex-col gap-3`}
+                      : 'w-full md:w-[320px] xl:w-[310px] 2xl:w-[320px] shrink-0'
+                  } surface-panel rounded-3xl p-3.5 sm:p-4 flex flex-col gap-3`}
                 >
                   {/* Column Header */}
-                  <div className="flex items-center justify-between gap-2 pb-2 border-b border-gray-200/70 dark:border-gray-800 shrink-0">
+                  <div className="flex items-center justify-between gap-2 pb-2.5 border-b border-gray-200/80 dark:border-white/[0.08] shrink-0">
                     <div className="flex items-center gap-2 min-w-0">
                       <span className={`size-2.5 rounded-full shrink-0 ${accent.dot}`} />
                       <h3 className="font-dm-sans font-bold text-base sm:text-lg text-gray-900 dark:text-white truncate">
                         {areaName}
                       </h3>
-                      <span className={`px-2 py-0.5 rounded-full text-[10px] font-syne font-bold shrink-0 ${accent.headerBg}`}>
+                      <span className={`px-2 py-0.5 rounded-full text-[11px] font-syne font-bold shrink-0 ${accent.headerBg}`}>
                         {activeCount}
                       </span>
                     </div>
@@ -1239,7 +1366,7 @@ export default function Pendientes() {
                           setRenamingArea(areaName);
                           setRenameAreaValue(areaName);
                         }}
-                        className="min-w-[34px] min-h-[34px] p-1.5 rounded-xl text-gray-400 hover:text-[var(--vibrant-sky-blue)] hover:bg-sky-500/10 transition-all cursor-pointer flex items-center justify-center"
+                        className="min-w-[36px] min-h-[36px] p-1.5 rounded-xl text-gray-500 dark:text-gray-400 hover:text-[var(--vibrant-sky-blue)] hover:bg-sky-500/10 transition-all cursor-pointer flex items-center justify-center"
                         title={`Renombrar área ${areaName}`}
                       >
                         <HiOutlinePencil className="text-sm" />
@@ -1249,7 +1376,7 @@ export default function Pendientes() {
                         <button
                           type="button"
                           onClick={() => handleRemoveEmptyArea(areaName)}
-                          className="min-w-[34px] min-h-[34px] p-1.5 rounded-xl text-gray-400 hover:text-rose-500 hover:bg-rose-500/10 transition-all cursor-pointer flex items-center justify-center"
+                          className="min-w-[36px] min-h-[36px] p-1.5 rounded-xl text-gray-500 dark:text-gray-400 hover:text-rose-500 hover:bg-rose-500/10 transition-all cursor-pointer flex items-center justify-center"
                           title={`Quitar área vacía ${areaName}`}
                         >
                           <HiX className="text-sm" />
@@ -1259,7 +1386,7 @@ export default function Pendientes() {
                       <button
                         type="button"
                         onClick={() => openCreateModal(areaName)}
-                        className="min-w-[36px] min-h-[36px] p-2 rounded-xl bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:text-[var(--vibrant-sky-blue)] shadow-2xs border border-gray-200/60 dark:border-gray-700/60 transition-all cursor-pointer flex items-center justify-center"
+                        className="min-w-[40px] min-h-[40px] p-2 rounded-xl bg-white dark:bg-[#111827] text-gray-700 dark:text-gray-200 hover:text-[var(--vibrant-sky-blue)] shadow-xs border border-gray-200/80 dark:border-white/10 transition-all cursor-pointer flex items-center justify-center"
                         title={`Agregar tarea en ${areaName}`}
                       >
                         <HiOutlinePlus className="text-base" />
@@ -1267,16 +1394,16 @@ export default function Pendientes() {
                     </div>
                   </div>
 
-                  {/* Column Cards (Scrollable per column for 5+ areas alignment) */}
-                  <div className="space-y-3 max-h-[65vh] overflow-y-auto pr-0.5">
+                  {/* Column Cards: Natural flow on mobile (no trapped inner scroll), independent scroll on desktop */}
+                  <div className="space-y-3 md:max-h-[68vh] md:overflow-y-auto md:pr-0.5">
                     {areaTasks.length === 0 ? (
                       <button
                         type="button"
                         onClick={() => openCreateModal(areaName)}
-                        className="w-full py-8 px-4 rounded-2xl border border-dashed border-gray-200 dark:border-gray-800 text-center text-gray-400 dark:text-gray-500 hover:border-[var(--vibrant-sky-blue)] hover:text-[var(--vibrant-sky-blue)] transition-all cursor-pointer space-y-1.5"
+                        className="w-full py-7 px-4 rounded-2xl border border-dashed border-gray-300 dark:border-white/15 text-center text-gray-500 dark:text-gray-400 hover:border-[var(--vibrant-sky-blue)] hover:text-[var(--vibrant-sky-blue)] transition-all cursor-pointer space-y-1.5"
                       >
                         <HiOutlinePlus className="text-xl mx-auto" />
-                        <span className="block font-syne text-[10px] font-bold uppercase tracking-wider">
+                        <span className="block font-syne text-[11px] font-bold uppercase tracking-wider">
                           Agregar en {areaName}
                         </span>
                       </button>
@@ -1298,7 +1425,7 @@ export default function Pendientes() {
                   setNewAreaName('');
                   setShowAreaModal(true);
                 }}
-                className="w-[70vw] sm:w-[240px] shrink-0 snap-start min-h-[160px] rounded-[2rem] border-2 border-dashed border-gray-200/80 dark:border-gray-800 hover:border-[var(--vibrant-sky-blue)] text-gray-400 dark:text-gray-500 hover:text-[var(--vibrant-sky-blue)] transition-all flex flex-col items-center justify-center gap-2 p-6 cursor-pointer"
+                className="w-full md:w-[240px] shrink-0 min-h-[120px] md:min-h-[160px] rounded-3xl border-2 border-dashed border-gray-300/80 dark:border-white/15 hover:border-[var(--vibrant-sky-blue)] text-gray-500 dark:text-gray-400 hover:text-[var(--vibrant-sky-blue)] transition-all flex flex-col items-center justify-center gap-2 p-5 cursor-pointer"
               >
                 <div className="size-10 rounded-2xl bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
                   <HiOutlinePlus className="text-xl" />
@@ -1311,11 +1438,11 @@ export default function Pendientes() {
           </div>
         )
       ) : filteredTasks.length === 0 ? (
-        <div className="bg-white dark:bg-gray-900 rounded-[2rem] p-12 text-center border-none shadow-sm space-y-3">
+        <div className="bg-white dark:bg-[#111827] rounded-3xl p-8 sm:p-12 text-center border border-gray-200/80 dark:border-white/10 shadow-xs space-y-3">
           <p className="font-dm-sans text-lg font-bold text-gray-700 dark:text-gray-200">
             No hay tareas con estos filtros
           </p>
-          <p className="font-inter text-sm text-gray-400 dark:text-gray-500">
+          <p className="font-inter text-sm text-gray-500 dark:text-gray-400">
             Crea una nueva tarea o restablece los filtros para ver otras áreas.
           </p>
           {(searchTerm || areaFilter !== 'all' || tagFilter !== 'all' || priorityFilter !== 'all' || statusFilter !== 'active') && (
@@ -1335,7 +1462,7 @@ export default function Pendientes() {
           )}
         </div>
       ) : (
-        <div className="space-y-4">
+        <div className="space-y-3">
           <AnimatePresence>
             {filteredTasks.map((task) => renderTaskCard(task))}
           </AnimatePresence>

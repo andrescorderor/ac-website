@@ -394,24 +394,25 @@ export default function Entrenamiento() {
   });
 
   return (
-    <div className="space-y-8 pb-20">
+    <div className="space-y-5 sm:space-y-8 pb-8">
       {/* Header */}
-      <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-3.5">
         <div>
-          <h1 className="font-dm-sans text-3xl md:text-4xl font-bold tracking-tight text-gray-900 dark:text-white flex items-center gap-3">
-            <span className="p-2.5 bg-rose-500/10 dark:bg-rose-500/20 text-rose-500 rounded-2xl">
-              <FaDumbbell className="text-2xl" />
+          <h1 className="font-dm-sans text-2xl sm:text-3xl font-bold tracking-tight text-gray-900 dark:text-white flex items-center gap-3">
+            <span className="p-2 bg-rose-500/10 dark:bg-rose-500/20 text-rose-500 rounded-2xl">
+              <FaDumbbell className="text-xl sm:text-2xl" />
             </span>
             <span>Registro de Entrenamiento</span>
           </h1>
-          <p className="font-inter text-sm text-gray-500 dark:text-gray-400 mt-1">
+          <p className="hidden sm:block font-inter text-xs text-gray-500 dark:text-gray-400 mt-1">
             Gestiona tus rutinas alternadas (Día A / Día B), series, repeticiones y pesos máximos al fallo.
           </p>
         </div>
 
         <button
+          type="button"
           onClick={handleOpenAdd}
-          className="px-6 py-3.5 bg-black dark:bg-white text-white dark:text-black font-syne text-xs font-bold uppercase tracking-wider rounded-2xl shadow-lg hover:scale-105 active:scale-95 transition-all flex items-center justify-center gap-2 self-start sm:self-auto"
+          className="px-5 min-h-[44px] py-2.5 bg-black dark:bg-white text-white dark:text-black font-syne text-xs font-bold uppercase tracking-wider rounded-2xl shadow-sm hover:opacity-90 active:scale-95 transition-all flex items-center justify-center gap-2 self-start sm:self-auto cursor-pointer"
         >
           <HiOutlinePlus className="text-lg" />
           <span>Nueva Rutina</span>
@@ -419,23 +420,25 @@ export default function Entrenamiento() {
       </header>
 
       {/* Filter Tabs & Search Bar */}
-      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
-        <div className="flex items-center gap-1.5 bg-gray-100/80 dark:bg-gray-800/80 p-1.5 rounded-2xl border border-gray-200/50 dark:border-gray-700/50 overflow-x-auto">
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+        <div className="grid grid-cols-3 sm:flex items-center gap-1 bg-gray-100 dark:bg-gray-800/80 p-1 rounded-2xl border border-gray-200/60 dark:border-white/10">
           {[
-            { key: 'all', label: 'Todas las Rutinas' },
-            { key: 'Dia_A', label: '⚡ Día A (Empuje/Pierna)' },
-            { key: 'Dia_B', label: '🔥 Día B (Tracción/Isquios)' },
+            { key: 'all', short: 'Todas', label: 'Todas las Rutinas' },
+            { key: 'Dia_A', short: '⚡ Día A', label: '⚡ Día A (Empuje/Pierna)' },
+            { key: 'Dia_B', short: '🔥 Día B', label: '🔥 Día B (Tracción/Isquios)' },
           ].map(tab => (
             <button
               key={tab.key}
+              type="button"
               onClick={() => setActiveDayFilter(tab.key as any)}
-              className={`px-4 py-2 rounded-xl text-xs font-syne font-bold uppercase tracking-wider transition-all whitespace-nowrap ${
+              className={`px-2.5 sm:px-4 min-h-[38px] py-1.5 rounded-xl text-[11px] sm:text-xs font-syne font-bold uppercase tracking-wider transition-all text-center cursor-pointer ${
                 activeDayFilter === tab.key
-                  ? 'bg-white dark:bg-gray-900 text-black dark:text-white shadow-xs'
+                  ? 'bg-white dark:bg-[#111827] text-black dark:text-white shadow-xs'
                   : 'text-gray-500 dark:text-gray-400 hover:text-black dark:hover:text-white'
               }`}
             >
-              {tab.label}
+              <span className="sm:hidden">{tab.short}</span>
+              <span className="hidden sm:inline">{tab.label}</span>
             </button>
           ))}
         </div>
@@ -446,9 +449,9 @@ export default function Entrenamiento() {
             placeholder="Buscar por ejercicio o músculo..."
             value={searchTerm}
             onChange={e => setSearchTerm(e.target.value)}
-            className="w-full pl-10 pr-4 py-2.5 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl outline-none font-inter text-xs text-gray-900 dark:text-gray-100 placeholder-gray-400 focus:border-rose-500"
+            className="w-full pl-10 pr-4 min-h-[44px] py-2 bg-white dark:bg-[#111827] border border-gray-200/80 dark:border-white/10 rounded-xl outline-none font-inter text-xs text-gray-900 dark:text-gray-100 placeholder-gray-400 focus:border-rose-500"
           />
-          <HiOutlineSearch className="absolute left-3.5 top-3 text-gray-400 text-base" />
+          <HiOutlineSearch className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 text-base pointer-events-none" />
         </div>
       </div>
 

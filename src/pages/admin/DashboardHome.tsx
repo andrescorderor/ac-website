@@ -532,82 +532,85 @@ export default function DashboardHome() {
   ];
 
   if (loading) return (
-    <div className="space-y-12 pb-16">
+    <div className="space-y-6 sm:space-y-8 pb-16">
       {/* Header skeleton */}
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div className="space-y-3">
-          <div className="skeleton h-10 w-64" />
-          <div className="skeleton h-4 w-80" />
+          <div className="skeleton h-9 w-56" />
+          <div className="skeleton h-4 w-72 hidden sm:block" />
         </div>
-        <div className="flex gap-3">
-          <div className="skeleton h-11 w-36 rounded-2xl" />
-          <div className="skeleton h-11 w-36 rounded-2xl" />
-          <div className="skeleton h-11 w-36 rounded-2xl" />
+        <div className="flex flex-wrap gap-2.5">
+          <div className="skeleton h-11 w-32 rounded-2xl" />
+          <div className="skeleton h-11 w-32 rounded-2xl" />
+          <div className="skeleton h-11 w-32 rounded-2xl" />
         </div>
       </div>
       {/* Pinned section skeleton */}
-      <div className="space-y-4">
+      <div className="space-y-3">
         <div className="skeleton h-7 w-40" />
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
           {[1,2,3].map(i => <div key={i} className="skeleton h-28 rounded-3xl" />)}
         </div>
       </div>
       {/* Cards skeleton */}
-      <div className="space-y-4">
+      <div className="space-y-3">
         <div className="skeleton h-7 w-28" />
-        <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          {[1,2,3,4,5,6,7,8].map(i => <div key={i} className="skeleton h-32 rounded-[2rem]" />)}
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
+          {[1,2,3,4,5,6,7,8].map(i => <div key={i} className="skeleton h-28 rounded-3xl" />)}
         </div>
       </div>
     </div>
   );
 
   return (
-    <div className="space-y-12 pb-28 sm:pb-20">
-      <header className="flex flex-col sm:flex-row sm:items-end justify-between gap-6">
+    <div className="space-y-6 sm:space-y-9 pb-8">
+      <header className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
         <div>
-          <h1 className="font-dm-sans text-3xl md:text-4xl font-bold tracking-tight text-[var(--black)] dark:text-white">
+          <h1 className="font-dm-sans text-2xl sm:text-3xl md:text-4xl font-bold tracking-tight text-[var(--black)] dark:text-white">
             Hola, <span className="text-gradient">Andrés</span>
           </h1>
-          <p className="font-inter mt-2 text-[var(--dark-gray)] dark:text-gray-400 font-light text-sm">
-            Aquí tienes un resumen de tu actividad actual y tus elementos fijados.
+          <p className="hidden sm:block font-inter mt-1.5 text-[var(--dark-gray)] dark:text-gray-400 font-light text-sm">
+            Resumen accionable de tu día, elementos fijados y acceso rápido a tus módulos.
           </p>
         </div>
 
-        <div className="flex items-center gap-2 overflow-x-auto scrollbar-none pb-1">
+        <div className="flex flex-wrap items-center gap-2">
           <button
             type="button"
             onClick={() => setShowMandadoModal(true)}
-            className="flex items-center gap-2 px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-2xl shadow-md text-xs font-syne font-bold uppercase tracking-wider active:scale-95 transition-all shrink-0 interactive-hover"
+            className="flex items-center justify-center gap-2 px-4 min-h-[44px] py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-2xl shadow-sm text-xs font-syne font-bold uppercase tracking-wider active:scale-95 transition-all cursor-pointer"
             title="Abrir directamente tu listado de Mandado Semanal e Insumos"
           >
             <span>🥗 Mandado</span>
           </button>
 
           <button
-            onClick={handleTestNotification}
-            className="flex items-center gap-2 px-3 py-2.5 bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm text-xs font-syne font-bold uppercase tracking-wider text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 active:scale-95 transition-all shrink-0"
-            title="Activar o probar notificaciones flotantes en tu celular/PC"
-          >
-            <HiOutlineBell className="text-base text-amber-500" />
-            <span className="hidden sm:block">Notificaciones</span>
-          </button>
-
-          <button
+            type="button"
             onClick={() => setIsPrivacyMode(!isPrivacyMode)}
-            className="flex items-center gap-2 px-3 py-2.5 bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm text-xs font-syne font-bold uppercase tracking-wider text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 active:scale-95 transition-all shrink-0"
+            className="flex items-center justify-center gap-2 px-3.5 min-h-[44px] py-2 bg-white dark:bg-[#111827] rounded-2xl border border-gray-200/80 dark:border-white/10 shadow-xs text-xs font-syne font-bold uppercase tracking-wider text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800 active:scale-95 transition-all cursor-pointer"
+            title={isPrivacyMode ? 'Mostrar montos financieros' : 'Ocultar montos financieros'}
           >
             {isPrivacyMode ? (
               <>
                 <HiOutlineEyeOff className="text-base text-gray-400" />
-                <span className="hidden sm:block">Mostrar</span>
+                <span>Mostrar</span>
               </>
             ) : (
               <>
                 <HiOutlineEye className="text-base text-emerald-500" />
-                <span className="hidden sm:block">Privacidad</span>
+                <span>Privacidad</span>
               </>
             )}
+          </button>
+
+          <button
+            type="button"
+            onClick={handleTestNotification}
+            className="flex items-center justify-center gap-2 px-3.5 min-h-[44px] py-2 bg-white dark:bg-[#111827] rounded-2xl border border-gray-200/80 dark:border-white/10 shadow-xs text-xs font-syne font-bold uppercase tracking-wider text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800 active:scale-95 transition-all cursor-pointer"
+            title="Activar o probar notificaciones flotantes en tu celular o computadora"
+          >
+            <HiOutlineBell className="text-base text-amber-500" />
+            <span className="hidden sm:inline">Alertas</span>
           </button>
         </div>
       </header>
@@ -617,37 +620,40 @@ export default function DashboardHome() {
         <motion.section
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="relative overflow-hidden rounded-[2rem] bg-gradient-to-br from-amber-500/10 via-sky-500/5 to-emerald-500/10 border border-amber-500/20 dark:border-amber-400/20 p-5 sm:p-6 shadow-sm"
+          className="relative overflow-hidden rounded-3xl sm:rounded-[2rem] bg-gradient-to-br from-amber-500/[0.08] via-sky-500/[0.05] to-emerald-500/[0.08] border border-amber-500/25 dark:border-amber-400/25 p-4 sm:p-6 shadow-xs"
         >
-          <div className="flex items-start justify-between gap-4 mb-4">
-            <div className="flex items-center gap-2.5">
-              <div className="size-9 rounded-2xl bg-amber-500/20 dark:bg-amber-400/20 text-amber-600 dark:text-amber-300 flex items-center justify-center text-lg shadow-xs">
+          <div className="flex items-start justify-between gap-3 mb-3.5 sm:mb-4">
+            <div className="flex items-center gap-2.5 min-w-0">
+              <div className="size-9 rounded-2xl bg-amber-500/20 dark:bg-amber-400/20 text-amber-600 dark:text-amber-300 flex items-center justify-center text-lg shrink-0">
                 ☀️
               </div>
-              <div>
-                <h2 className="font-dm-sans text-lg sm:text-xl font-bold text-gray-900 dark:text-white">
+              <div className="min-w-0">
+                <h2 className="font-dm-sans text-base sm:text-xl font-bold text-gray-900 dark:text-white truncate">
                   Mi Día Accionable
                 </h2>
-                <p className="font-inter text-xs text-gray-500 dark:text-gray-400">
+                <p className="hidden sm:block font-inter text-xs text-gray-500 dark:text-gray-400">
                   Completa prioridades, registra riegos y monitorea tu quincena al instante.
                 </p>
               </div>
             </div>
 
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 shrink-0">
               <Link
                 to="/admin/panel/calendario"
-                className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/80 dark:bg-gray-900/80 border border-gray-200/70 dark:border-gray-700/70 text-[10px] font-syne font-bold uppercase tracking-wider text-gray-700 dark:text-gray-200 hover:border-[var(--vibrant-sky-blue)] transition-all cursor-pointer"
+                className="inline-flex items-center gap-1.5 px-3 min-h-[38px] py-1.5 rounded-xl bg-white dark:bg-[#111827] border border-gray-200/80 dark:border-white/10 text-[11px] font-syne font-bold uppercase tracking-wider text-gray-700 dark:text-gray-200 hover:border-[var(--vibrant-sky-blue)] transition-all cursor-pointer"
               >
-                📅 Calendario 360°
+                <span>📅</span>
+                <span className="hidden sm:inline">Calendario 360°</span>
+                <span className="sm:hidden">Agenda</span>
               </Link>
               <button
+                type="button"
                 onClick={() => {
                   const today = new Date().toISOString().split('T')[0];
                   localStorage.setItem('ac_briefing_dismissed_date', today);
                   setIsBriefingDismissed(true);
                 }}
-                className="p-1.5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl transition-all text-sm shrink-0 cursor-pointer"
+                className="min-w-[38px] min-h-[38px] flex items-center justify-center p-1.5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl transition-all text-sm shrink-0 cursor-pointer"
                 title="Ocultar resumen por hoy"
               >
                 <HiX />
@@ -655,14 +661,14 @@ export default function DashboardHome() {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-3.5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3">
             {/* 1. Plantas con 1-tap regar */}
-            <div className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-md rounded-2xl p-4 border border-gray-100 dark:border-gray-800 shadow-2xs space-y-2.5">
+            <div className="bg-white dark:bg-[#111827] rounded-2xl p-4 border border-emerald-500/20 dark:border-emerald-400/20 shadow-xs space-y-2.5">
               <div className="flex items-center justify-between">
-                <span className="font-syne text-[10px] font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5">
+                <span className="font-syne text-[11px] font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5">
                   <span>🪴</span> Riego Hoy
                 </span>
-                <Link to="/admin/panel/plantas" className="text-[10px] font-syne font-bold text-gray-400 hover:text-emerald-500 transition-colors">
+                <Link to="/admin/panel/plantas" className="text-[11px] font-syne font-bold text-gray-500 dark:text-gray-400 hover:text-emerald-500 transition-colors">
                   Ver Jardín →
                 </Link>
               </div>
@@ -674,11 +680,11 @@ export default function DashboardHome() {
                       type="button"
                       onClick={() => handleQuickWaterPlant(p.id, p.nickname)}
                       title="Clic para marcar como regada hoy"
-                      className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 hover:bg-emerald-100 dark:hover:bg-emerald-900 text-emerald-700 dark:text-emerald-300 font-inter text-xs font-medium border border-emerald-200/50 dark:border-emerald-800/50 transition-all cursor-pointer"
+                      className="inline-flex items-center gap-1.5 px-3 min-h-[36px] py-1.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 hover:bg-emerald-100 dark:hover:bg-emerald-900 text-emerald-700 dark:text-emerald-300 font-inter text-xs font-medium border border-emerald-200/70 dark:border-emerald-800/60 transition-all cursor-pointer"
                     >
                       <span>{p.emoji}</span>
                       <span>{p.nickname}</span>
-                      <span className="text-[10px]">💧</span>
+                      <span>💧</span>
                     </button>
                   ))}
                 </div>
@@ -690,12 +696,12 @@ export default function DashboardHome() {
             </div>
 
             {/* 2. Próximos 3 días de eventos / fechas */}
-            <div className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-md rounded-2xl p-4 border border-gray-100 dark:border-gray-800 shadow-2xs space-y-2">
+            <div className="bg-white dark:bg-[#111827] rounded-2xl p-4 border border-pink-500/20 dark:border-pink-400/20 shadow-xs space-y-2">
               <div className="flex items-center justify-between">
-                <span className="font-syne text-[10px] font-bold uppercase tracking-wider text-pink-600 dark:text-pink-400 flex items-center gap-1.5">
+                <span className="font-syne text-[11px] font-bold uppercase tracking-wider text-pink-600 dark:text-pink-400 flex items-center gap-1.5">
                   <span>📅</span> Fechas Próximas
                 </span>
-                <Link to="/admin/panel/recordatorios" className="text-[10px] font-syne font-bold text-gray-400 hover:text-pink-500 transition-colors">
+                <Link to="/admin/panel/recordatorios" className="text-[11px] font-syne font-bold text-gray-500 dark:text-gray-400 hover:text-pink-500 transition-colors">
                   Ver Todo →
                 </Link>
               </div>
@@ -706,14 +712,14 @@ export default function DashboardHome() {
                       <span className="font-inter font-medium text-gray-800 dark:text-gray-200 truncate">
                         {e.title}
                       </span>
-                      <span className={`shrink-0 font-syne text-[9px] font-bold uppercase px-2 py-0.5 rounded-md ${
+                      <span className={`shrink-0 font-syne text-[10px] font-bold uppercase px-2 py-0.5 rounded-md ${
                         e.daysLeft === 0 
                           ? 'bg-red-100 dark:bg-red-950/60 text-red-600 dark:text-red-300 animate-pulse'
                           : e.daysLeft === 1
                           ? 'bg-amber-100 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300'
-                          : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400'
+                          : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300'
                       }`}>
-                        {e.daysLeft === 0 ? '¡Hoy!' : e.daysLeft === 1 ? 'Mañana' : `En ${e.daysLeft} días`}
+                        {e.daysLeft === 0 ? '¡Hoy!' : e.daysLeft === 1 ? 'Mañana' : `En ${e.daysLeft}d`}
                       </span>
                     </div>
                   ))}
@@ -726,12 +732,12 @@ export default function DashboardHome() {
             </div>
 
             {/* 3. Tareas Prioritarias con check rápido */}
-            <div className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-md rounded-2xl p-4 border border-gray-100 dark:border-gray-800 shadow-2xs space-y-2">
+            <div className="bg-white dark:bg-[#111827] rounded-2xl p-4 border border-sky-500/20 dark:border-sky-400/20 shadow-xs space-y-2">
               <div className="flex items-center justify-between">
-                <span className="font-syne text-[10px] font-bold uppercase tracking-wider text-sky-600 dark:text-sky-400 flex items-center gap-1.5">
+                <span className="font-syne text-[11px] font-bold uppercase tracking-wider text-sky-600 dark:text-sky-400 flex items-center gap-1.5">
                   <span>🎯</span> Foco del Día
                 </span>
-                <Link to="/admin/panel/pendientes" className="text-[10px] font-syne font-bold text-gray-400 hover:text-sky-500 transition-colors">
+                <Link to="/admin/panel/pendientes" className="text-[11px] font-syne font-bold text-gray-500 dark:text-gray-400 hover:text-sky-500 transition-colors">
                   Tablero →
                 </Link>
               </div>
@@ -742,15 +748,15 @@ export default function DashboardHome() {
                       <button
                         type="button"
                         onClick={() => handleQuickCompleteTask(t.id)}
-                        className="flex items-center gap-1.5 text-left min-w-0 group cursor-pointer"
+                        className="flex items-center gap-2 text-left min-w-0 min-h-[32px] group cursor-pointer"
                         title="Marcar completada"
                       >
-                        <span className="size-3.5 rounded-full border border-gray-400 group-hover:border-emerald-500 group-hover:bg-emerald-500/20 shrink-0" />
+                        <span className="size-4 rounded-full border-2 border-gray-300 dark:border-gray-600 group-hover:border-emerald-500 group-hover:bg-emerald-500/20 shrink-0" />
                         <span className="font-inter font-medium text-gray-800 dark:text-gray-200 truncate group-hover:line-through">
                           {t.title}
                         </span>
                       </button>
-                      <span className="shrink-0 font-syne text-[9px] font-bold uppercase px-1.5 py-0.5 rounded bg-sky-50 dark:bg-sky-950/60 text-sky-600 dark:text-sky-300">
+                      <span className="shrink-0 font-syne text-[10px] font-bold uppercase px-2 py-0.5 rounded bg-sky-50 dark:bg-sky-950/60 text-sky-700 dark:text-sky-300">
                         {t.area || t.priority}
                       </span>
                     </div>
@@ -764,12 +770,12 @@ export default function DashboardHome() {
             </div>
 
             {/* 4. Saldo Quincena Actual & Ticket Scanner */}
-            <div className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-md rounded-2xl p-4 border border-gray-100 dark:border-gray-800 shadow-2xs space-y-2.5 flex flex-col justify-between">
+            <div className="bg-white dark:bg-[#111827] rounded-2xl p-4 border border-indigo-500/20 dark:border-indigo-400/20 shadow-xs space-y-2.5 flex flex-col justify-between">
               <div className="flex items-center justify-between">
-                <span className="font-syne text-[10px] font-bold uppercase tracking-wider text-indigo-600 dark:text-indigo-400 flex items-center gap-1.5">
+                <span className="font-syne text-[11px] font-bold uppercase tracking-wider text-indigo-600 dark:text-indigo-400 flex items-center gap-1.5">
                   <span>💵</span> {briefing.quincenaLabel}
                 </span>
-                <Link to="/admin/panel/finanzas" className="text-[10px] font-syne font-bold text-gray-400 hover:text-indigo-500 transition-colors">
+                <Link to="/admin/panel/finanzas" className="text-[11px] font-syne font-bold text-gray-500 dark:text-gray-400 hover:text-indigo-500 transition-colors">
                   Finanzas →
                 </Link>
               </div>
@@ -779,14 +785,14 @@ export default function DashboardHome() {
                     ? '$••••••'
                     : `$${briefing.quincenaAvailable.toLocaleString('es-MX', { maximumFractionDigits: 0 })}`}
                 </p>
-                <span className="font-inter text-[11px] text-gray-400">
-                  Disponible estimado · {briefing.pendingShoppingCount} en mandado
+                <span className="font-inter text-xs text-gray-500 dark:text-gray-400">
+                  Disponible · {briefing.pendingShoppingCount} en mandado
                 </span>
               </div>
               <button
                 type="button"
                 onClick={() => setShowScannerModal(true)}
-                className="w-full py-1.5 px-3 rounded-xl bg-sky-500/10 hover:bg-sky-500/20 text-sky-600 dark:text-sky-300 font-syne text-[10px] font-bold uppercase tracking-wider flex items-center justify-center gap-1.5 transition-all cursor-pointer"
+                className="w-full min-h-[40px] py-2 px-3 rounded-xl bg-sky-500/10 hover:bg-sky-500/20 border border-sky-500/20 text-sky-700 dark:text-sky-300 font-syne text-[11px] font-bold uppercase tracking-wider flex items-center justify-center gap-1.5 transition-all cursor-pointer"
               >
                 <HiOutlineCamera className="text-sm" />
                 <span>Escanear Ticket</span>
@@ -797,13 +803,13 @@ export default function DashboardHome() {
       )}
 
       {/* 📌 Pinned Elements Section */}
-      <section className="space-y-4">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          <h2 className="font-dm-sans text-xl font-bold text-[var(--black)] dark:text-white flex items-center gap-2">
+      <section className="space-y-3.5">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <h2 className="font-dm-sans text-lg sm:text-xl font-bold text-[var(--black)] dark:text-white flex items-center gap-2">
             <span>📌</span>
             <span>Elementos Fijados</span>
             {pinnedItems.length > 0 && (
-              <span className="text-xs font-syne font-bold px-2.5 py-0.5 rounded-full bg-amber-100 dark:bg-amber-950/60 text-amber-600 dark:text-amber-300">
+              <span className="text-xs font-syne font-bold px-2.5 py-0.5 rounded-full bg-amber-100 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300">
                 {pinnedItems.length}
               </span>
             )}
@@ -811,8 +817,9 @@ export default function DashboardHome() {
           
           {pinnedItems.length > 6 && (
             <button 
+              type="button"
               onClick={() => setIsPinnedCollapsed(!isPinnedCollapsed)} 
-              className="text-left font-syne text-[10px] font-bold uppercase tracking-widest text-[var(--vibrant-sky-blue)] hover:underline active:scale-95 transition-all shrink-0"
+              className="font-syne text-[11px] font-bold uppercase tracking-wider text-[var(--vibrant-sky-blue)] hover:underline active:scale-95 transition-all shrink-0 min-h-[36px] px-2 cursor-pointer"
             >
               {isPinnedCollapsed ? `Mostrar Todo (${filteredPinned.length})` : 'Contraer Listado'}
             </button>
@@ -820,13 +827,14 @@ export default function DashboardHome() {
         </div>
 
         {pinnedItems.length > 0 && (
-          <div className="flex flex-wrap gap-1.5 pb-2">
+          <div className="flex flex-wrap gap-1.5">
             <button
+              type="button"
               onClick={() => setPinnedFilter('all')}
-              className={`px-3 py-1 rounded-xl text-[10px] font-syne font-bold uppercase tracking-wider transition-all ${
+              className={`px-3 min-h-[38px] py-1.5 rounded-xl text-[11px] font-syne font-bold uppercase tracking-wider transition-all border cursor-pointer ${
                 pinnedFilter === 'all'
-                  ? 'bg-amber-500 text-white shadow-sm'
-                  : 'bg-white dark:bg-gray-900 text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800'
+                  ? 'bg-amber-500 text-white border-amber-500 shadow-xs'
+                  : 'bg-white dark:bg-[#111827] text-gray-600 dark:text-gray-300 border-gray-200/80 dark:border-white/10 hover:bg-gray-50 dark:hover:bg-gray-800'
               }`}
             >
               Todos
@@ -834,11 +842,12 @@ export default function DashboardHome() {
             {activeTypes.map((type) => (
               <button
                 key={type}
+                type="button"
                 onClick={() => setPinnedFilter(type)}
-                className={`px-3 py-1 rounded-xl text-[10px] font-syne font-bold uppercase tracking-wider transition-all ${
+                className={`px-3 min-h-[38px] py-1.5 rounded-xl text-[11px] font-syne font-bold uppercase tracking-wider transition-all border cursor-pointer ${
                   pinnedFilter === type
-                    ? 'bg-amber-500 text-white shadow-sm'
-                    : 'bg-white dark:bg-gray-900 text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800'
+                    ? 'bg-amber-500 text-white border-amber-500 shadow-xs'
+                    : 'bg-white dark:bg-[#111827] text-gray-600 dark:text-gray-300 border-gray-200/80 dark:border-white/10 hover:bg-gray-50 dark:hover:bg-gray-800'
                 }`}
               >
                 {translateType(type)}
@@ -848,19 +857,19 @@ export default function DashboardHome() {
         )}
 
         {pinnedItems.length === 0 ? (
-          <div className="bg-white dark:bg-gray-900/60 rounded-[2rem] p-6 md:p-8 border border-dashed border-gray-200 dark:border-gray-800 text-center space-y-2">
-            <p className="font-dm-sans text-base font-bold text-gray-700 dark:text-gray-300">No tienes elementos fijados</p>
-            <p className="font-inter text-xs text-gray-400 dark:text-gray-500 max-w-md mx-auto">
+          <div className="bg-white dark:bg-[#111827] rounded-3xl p-6 border border-dashed border-gray-300 dark:border-white/15 text-center space-y-2">
+            <p className="font-dm-sans text-base font-bold text-gray-700 dark:text-gray-200">No tienes elementos fijados</p>
+            <p className="font-inter text-xs text-gray-500 dark:text-gray-400 max-w-md mx-auto">
               Puedes fijar cualquier nota, recordatorio, tarea o dato importante usando el icono 📍 desde la búsqueda global (<kbd className="px-1.5 py-0.5 bg-gray-100 dark:bg-gray-800 rounded">Ctrl + K</kbd>).
             </p>
           </div>
         ) : filteredPinned.length === 0 ? (
-          <div className="bg-white dark:bg-gray-900/60 rounded-[2rem] p-6 md:p-8 border border-dashed border-gray-200 dark:border-gray-800 text-center">
+          <div className="bg-white dark:bg-[#111827] rounded-3xl p-6 border border-dashed border-gray-300 dark:border-white/15 text-center">
             <p className="font-dm-sans text-sm font-bold text-gray-500 dark:text-gray-400">No hay elementos fijados para esta categoría.</p>
           </div>
         ) : (
-          <div className="space-y-4">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="space-y-3.5">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
               <AnimatePresence>
                 {displayedPinned.map((item) => (
                   <motion.div
@@ -872,16 +881,17 @@ export default function DashboardHome() {
                   >
                     <Link
                       to={item.path}
-                      className="group block p-5 bg-white dark:bg-gray-900 rounded-3xl border-none hover:border-amber-300 dark:hover:border-amber-700/60 shadow-sm hover:shadow-lg transition-all relative overflow-hidden"
+                      className="group block p-4 sm:p-5 bg-white dark:bg-[#111827] rounded-2xl sm:rounded-3xl border border-gray-200/80 dark:border-white/[0.09] hover:border-amber-400/70 dark:hover:border-amber-400/50 shadow-xs hover:shadow-md transition-all relative overflow-hidden"
                     >
-                      <div className="flex items-start justify-between gap-3">
-                        <span className={`px-2.5 py-1 rounded-full text-[9px] font-syne font-bold uppercase tracking-wider ${getItemBadge(item.type)}`}>
+                      <div className="flex items-start justify-between gap-2.5">
+                        <span className={`px-2.5 py-1 rounded-full text-[10px] font-syne font-bold uppercase tracking-wider ${getItemBadge(item.type)}`}>
                           {translateType(item.type)}
                         </span>
 
                         <button
+                          type="button"
                           onClick={(e) => { e.preventDefault(); handleUnpin(item.id, e); }}
-                          className="px-2 py-1 text-gray-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/40 rounded-lg transition-all text-[10px] font-syne font-bold uppercase tracking-wider flex items-center gap-1 shrink-0"
+                          className="px-2.5 min-h-[34px] py-1 text-gray-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/40 rounded-lg transition-all text-[11px] font-syne font-bold uppercase tracking-wider flex items-center gap-1 shrink-0 cursor-pointer"
                           title="Desfijar de la pantalla de inicio"
                         >
                           <span>📌</span>
@@ -889,7 +899,7 @@ export default function DashboardHome() {
                         </button>
                       </div>
 
-                      <div className="mt-3 space-y-1">
+                      <div className="mt-2.5 space-y-1">
                         <h4 className="font-dm-sans font-bold text-base text-gray-900 dark:text-gray-100 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors line-clamp-1">
                           {item.title}
                         </h4>
@@ -908,8 +918,9 @@ export default function DashboardHome() {
             {filteredPinned.length > 6 && (
               <div className="flex justify-center">
                 <button
+                  type="button"
                   onClick={() => setIsPinnedCollapsed(!isPinnedCollapsed)}
-                  className="px-5 py-2 bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 rounded-xl font-syne text-[10px] font-bold uppercase tracking-wider text-gray-700 dark:text-gray-300 transition-all active:scale-95"
+                  className="px-5 min-h-[42px] py-2 bg-white dark:bg-[#111827] border border-gray-200/80 dark:border-white/10 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-xl font-syne text-xs font-bold uppercase tracking-wider text-gray-700 dark:text-gray-200 transition-all active:scale-95 cursor-pointer"
                 >
                   {isPinnedCollapsed ? `Mostrar ${filteredPinned.length - 6} más` : 'Mostrar menos'}
                 </button>
@@ -920,36 +931,36 @@ export default function DashboardHome() {
       </section>
 
       {/* Module Overview Grid */}
-      <section className="space-y-4">
-        <h2 className="font-dm-sans text-xl font-bold text-[var(--black)] dark:text-white">
+      <section className="space-y-3.5">
+        <h2 className="font-dm-sans text-lg sm:text-xl font-bold text-[var(--black)] dark:text-white">
           Módulos
         </h2>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-5">
           {cards.map((card, idx) => {
             const displayValue = card.isMonetary && isPrivacyMode ? '$••••••' : card.rawVal;
             return (
               <motion.div
                 key={card.label}
-                initial={{ opacity: 0, y: 20 }}
+                initial={{ opacity: 0, y: 16 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: idx * 0.05 }}
+                transition={{ delay: idx * 0.03 }}
               >
                 <Link 
                   to={card.path}
-                  className="group block bg-white dark:bg-gray-900/90 p-5 md:p-8 rounded-[2rem] md:rounded-[2.5rem] border-none shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-500"
+                  className="group flex flex-col justify-between h-full bg-white dark:bg-[#111827] p-4 sm:p-6 rounded-2xl sm:rounded-[2rem] border border-gray-200/80 dark:border-white/[0.09] hover:border-gray-300 dark:hover:border-white/25 shadow-xs hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300"
                 >
-                  <div className="flex justify-between items-start">
-                    <div className={`p-3 md:p-4 rounded-xl md:rounded-2xl ${card.color} text-white shadow-lg`}>
-                      <card.icon className="text-xl md:text-2xl" />
+                  <div className="flex justify-between items-start gap-2">
+                    <div className={`p-2.5 sm:p-3.5 rounded-xl sm:rounded-2xl ${card.color} text-white shadow-md`}>
+                      <card.icon className="text-lg sm:text-2xl" />
                     </div>
-                    <HiOutlineArrowSmRight className="text-xl md:text-2xl text-gray-300 dark:text-gray-600 group-hover:text-black dark:group-hover:text-white group-hover:translate-x-1 transition-all" />
+                    <HiOutlineArrowSmRight className="text-xl text-gray-300 dark:text-gray-600 group-hover:text-black dark:group-hover:text-white group-hover:translate-x-1 transition-all shrink-0" />
                   </div>
-                  <div className="mt-6 md:mt-8">
-                    <p className="font-syne text-[10px] font-bold uppercase tracking-widest text-[var(--gray)] dark:text-gray-400 mb-1">
+                  <div className="mt-4 sm:mt-6 min-w-0">
+                    <p className="font-syne text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-0.5 truncate">
                       {card.label}
                     </p>
-                    <h3 className="font-dm-sans text-xl md:text-3xl font-bold text-[var(--black)] dark:text-white tracking-tight">
+                    <h3 className="font-dm-sans text-lg sm:text-2xl font-bold text-[var(--black)] dark:text-white tracking-tight truncate">
                       {displayValue}
                     </h3>
                   </div>

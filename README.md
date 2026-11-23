@@ -1,7 +1,7 @@
 <div align="center">
   <img src="public/assets/ac-website-icon.svg" alt="Logo" width="100" />
   
-  # Andrés Cordero - Professional Portfolio & Personal Panel PWA (v7.0.0) 🔍✨
+  # Andrés Cordero - Professional Portfolio & Personal Panel PWA (v7.1.0) 🔍✨
   
   **Welcome to my personal ecosystem: a professional portfolio and a custom productivity hub.**  
   Built with UX/UI best practices, premium design, and a focus on mobile-first efficiency.
@@ -16,11 +16,16 @@
 
 ---
 
-## 🚀 Overview (Version 7.0.0)
+## 🚀 Overview (Version 7.1.0)
 
 This repository hosts a dual-purpose platform:
 1. **Professional Portfolio:** A high-end landing page showcasing my engineering background, skills, and achievements with dynamic copyright year updates and zero horizontal overflow.
-2. **Personal Panel PWA (v7.0.0):** An executive personal operating system featuring:
+2. **Personal Panel PWA (v7.1.0):** An executive personal operating system featuring:
+   * **Rediseño UX/UI y Responsividad Integral (v7.1.0):**
+     * **Jerarquía de Superficies y Contraste Bimodal (`src/index.css`):** Restauración de bordes sutiles en modo oscuro (`.dark-glass`, `.surface-panel`, `.surface-card`), diferenciación clara entre contenedor/columna y tarjeta elevada, y mayor legibilidad tipográfica.
+     * **Shell Móvil Limpio y `100dvh` (`DashboardLayout.tsx`):** Cabecera móvil contextual con el nombre del módulo activo y solo acciones esenciales (`+`, `🔍`, Menú), soporte real de altura dinámica (`h-[100dvh]`) y barra inferior táctil mejorada.
+     * **Visibilidad Total sin Scroll Horizontal Oculto:** Eliminación de barras de filtros cortadas con `scrollbar-none` en `Pendientes`, `Finanzas`, `Deudas`, `MandadoModal`, `Compras`, `Notas`, `Plantas`, `Recordatorios`, `Vault`, `Prompts`, `ChecklistMensual`, `Papelera` y `Entrenamiento`.
+     * **Ergonomía Móvil en Módulos Clave:** `Pendientes.tsx` consolida filtros en un cajón colapsable con contador, menú `⋯` limpio por tarjeta, acento lateral por prioridad y flujo natural sin scroll atrapado en móvil; `DashboardHome.tsx` adopta grid de 2 columnas en móvil; `Finanzas.tsx` presenta KPIs `2×2` y selector de período completo visible; `Calendario.tsx` desplaza suavemente hacia la agenda al tocar un día en móvil; `Hero.tsx` optimiza escala y espaciado en teléfonos angostos.
    * **Ecosistema Completo Personal OS v7.0.0 ($0 USD & Supabase Free-Tier Safe):**
      * **Flujo Diario y Navegación Agrupada (`DashboardHome.tsx`, `DashboardLayout.tsx`, `QuickCaptureModal.tsx`, `CommandPalette.tsx`):**
        * **Vista "Mi Día" Accionable:** Tarjetas interactivas para completar tareas prioritarias en 1 clic, registrar riego de plantas (`💧`), monitorear eventos próximos y consultar el saldo disponible real de la quincena actual.

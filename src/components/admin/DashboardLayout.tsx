@@ -129,29 +129,32 @@ function DashboardLayoutContent() {
     syncPinnedItemsWithSupabase({ silent: true });
   }, []);
 
+  const routeTitles: Record<string, string> = {
+    '/admin/panel': 'Inicio • Panel Privado',
+    '/admin/panel/finanzas': 'Finanzas • Panel Privado',
+    '/admin/panel/pendientes': 'Pendientes & Tareas • Panel Privado',
+    '/admin/panel/deudas': 'Deudas & Cobros • Panel Privado',
+    '/admin/panel/vault': 'Bóveda de Textos • Panel Privado',
+    '/admin/panel/compras': 'Lista de Compras & Mandado • Panel Privado',
+    '/admin/panel/recordatorios': 'Fechas & Recordatorios • Panel Privado',
+    '/admin/panel/enlaces': 'Enlaces Rápidos • Panel Privado',
+    '/admin/panel/notas': 'Notas Importantes • Panel Privado',
+    '/admin/panel/entrenamiento': 'Gym & Rutinas • Panel Privado',
+    '/admin/panel/proyectos': 'Proyectos Creativos • Panel Privado',
+    '/admin/panel/checklist': 'Checklist Mensual • Panel Privado',
+    '/admin/panel/recetas': 'Recetario Fitness • Panel Privado',
+    '/admin/panel/plantas': 'Mis Plantas • Panel Privado',
+    '/admin/panel/respaldo': 'Respaldo & Recuperación • Panel Privado',
+    '/admin/panel/calendario': 'Calendario 360° • Panel Privado',
+    '/admin/panel/prompts': 'Prompts & Variables • Panel Privado',
+    '/admin/panel/divisor': 'Divisor de Cuentas • Panel Privado',
+    '/admin/panel/portafolio': 'Mini-CMS Portafolio • Panel Privado',
+    '/admin/panel/papelera': 'Papelera de Reciclaje • Panel Privado',
+  };
+
+  const activeRouteLabel = (routeTitles[location.pathname] || 'Panel Privado').split(' • ')[0];
+
   useEffect(() => {
-    const routeTitles: Record<string, string> = {
-      '/admin/panel': 'Inicio • Panel Privado',
-      '/admin/panel/finanzas': 'Finanzas • Panel Privado',
-      '/admin/panel/pendientes': 'Pendientes & Tareas • Panel Privado',
-      '/admin/panel/deudas': 'Deudas & Cobros • Panel Privado',
-      '/admin/panel/vault': 'Bóveda de Textos • Panel Privado',
-      '/admin/panel/compras': 'Lista de Compras & Mandado • Panel Privado',
-      '/admin/panel/recordatorios': 'Fechas & Recordatorios • Panel Privado',
-      '/admin/panel/enlaces': 'Enlaces Rápidos • Panel Privado',
-      '/admin/panel/notas': 'Notas Importantes • Panel Privado',
-      '/admin/panel/entrenamiento': 'Gym & Rutinas • Panel Privado',
-      '/admin/panel/proyectos': 'Proyectos Creativos • Panel Privado',
-      '/admin/panel/checklist': 'Checklist Mensual • Panel Privado',
-      '/admin/panel/recetas': 'Recetario Fitness • Panel Privado',
-      '/admin/panel/plantas': 'Mis Plantas • Panel Privado',
-      '/admin/panel/respaldo': 'Respaldo & Recuperación • Panel Privado',
-      '/admin/panel/calendario': 'Calendario 360° • Panel Privado',
-      '/admin/panel/prompts': 'Prompts & Variables • Panel Privado',
-      '/admin/panel/divisor': 'Divisor de Cuentas • Panel Privado',
-      '/admin/panel/portafolio': 'Mini-CMS Portafolio • Panel Privado',
-      '/admin/panel/papelera': 'Papelera de Reciclaje • Panel Privado',
-    };
     const title = routeTitles[location.pathname] || 'Panel Privado';
     document.title = `${title} | Andrés Cordero`;
   }, [location.pathname]);
@@ -216,7 +219,7 @@ function DashboardLayoutContent() {
   if (loading) return null;
 
   return (
-    <div className="h-screen bg-soft-light-gray dark:bg-black text-black dark:text-white flex overflow-hidden transition-colors duration-300">
+    <div className="h-[100dvh] bg-soft-light-gray dark:bg-[#09090b] text-black dark:text-white flex overflow-hidden transition-colors duration-300">
       {/* Universal Command Palette Search Modal */}
       <CommandPalette isOpen={isSearchOpen} onClose={() => setIsSearchOpen(false)} />
 
@@ -225,7 +228,7 @@ function DashboardLayoutContent() {
 
       {/* ═══ Desktop Sidebar ═══ */}
       <aside 
-        className="hidden lg:flex flex-col h-screen sticky top-0 w-72 shrink-0 bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl border-r border-gray-200/50 dark:border-gray-800/50 transition-all duration-300"
+        className="hidden lg:flex flex-col h-[100dvh] sticky top-0 w-72 shrink-0 bg-white/90 dark:bg-[#111827]/90 backdrop-blur-xl border-r border-gray-200/80 dark:border-white/[0.08] transition-all duration-300"
       >
         <div className="p-6 flex items-center gap-3.5 shrink-0">
           <Link to="/admin/panel" className="size-11 shrink-0 rounded-2xl overflow-hidden p-0.5 bg-gradient-to-tr from-[var(--vibrant-sky-blue)] via-indigo-500 to-[var(--magenta-pink)] shadow-md hover:scale-105 active:scale-95 transition-all">
@@ -308,70 +311,64 @@ function DashboardLayoutContent() {
           </button>
 
           <div className="text-center select-none pt-1">
-            <span className="font-syne text-[9px] font-bold tracking-widest text-gray-400 dark:text-gray-600 block">
-              VERSIÓN v7.0.0
+            <span className="font-syne text-[10px] font-bold tracking-widest text-gray-400 dark:text-gray-500 block">
+              VERSIÓN v7.1.0
             </span>
           </div>
         </div>
       </aside>
 
       {/* ═══ Mobile Header ═══ */}
-      <div 
-        className="lg:hidden fixed top-0 left-0 right-0 h-16 bg-white/95 dark:bg-[#111827]/95 backdrop-blur-xl border-b border-gray-100 dark:border-gray-800 flex items-center justify-between px-4 z-40 transition-all duration-300 shadow-sm"
+      <header 
+        className="lg:hidden fixed top-0 left-0 right-0 h-16 bg-white/95 dark:bg-[#111827]/95 backdrop-blur-xl border-b border-gray-200/80 dark:border-white/[0.08] flex items-center justify-between gap-3 px-3.5 sm:px-4 z-40 transition-all duration-300 shadow-xs"
       >
-        <Link to="/admin/panel" className="flex items-center gap-2.5">
+        <Link to="/admin/panel" className="flex items-center gap-2.5 min-w-0 flex-1">
           <div className="size-10 rounded-xl overflow-hidden p-0.5 bg-gradient-to-tr from-[var(--vibrant-sky-blue)] via-indigo-500 to-[var(--magenta-pink)] shadow-md shrink-0">
             <div className="size-full rounded-[10px] bg-white dark:bg-gray-900 flex items-center justify-center p-1.5 overflow-hidden">
               <img src="/assets/ac-website-icon.svg" alt="AC Logo" className="size-full object-contain" />
             </div>
           </div>
-          <span className="font-dm-sans font-bold text-sm sm:text-base tracking-tight text-black dark:text-white truncate">Panel Personal</span>
+          <div className="flex flex-col min-w-0">
+            <span className="font-dm-sans font-bold text-sm sm:text-base tracking-tight text-black dark:text-white truncate">
+              {activeRouteLabel}
+            </span>
+            <span className="font-syne text-[10px] font-bold uppercase tracking-wider text-gray-400 dark:text-gray-500 truncate">
+              Panel Personal
+            </span>
+          </div>
         </Link>
-        <div className="flex items-center gap-1.5">
+        <div className="flex items-center gap-2 shrink-0">
           <button
+            type="button"
             onClick={() => setIsQuickCaptureOpen(true)}
-            className="min-w-[38px] min-h-[38px] p-2 bg-black dark:bg-white text-white dark:text-black rounded-xl transition-transform active:scale-95 flex items-center justify-center cursor-pointer"
+            className="min-w-[44px] min-h-[44px] px-3 bg-black dark:bg-white text-white dark:text-black rounded-xl transition-transform active:scale-95 flex items-center justify-center gap-1 cursor-pointer shadow-xs"
             title="Captura Rápida"
+            aria-label="Captura Rápida"
           >
             <HiOutlinePlus className="text-lg" />
           </button>
 
-          <button 
+          <button
+            type="button"
             onClick={() => setIsSearchOpen(true)}
-            className="p-2 bg-gray-100/80 dark:bg-gray-800/80 rounded-xl text-gray-700 dark:text-gray-300 transition-colors active:scale-95 interactive-hover"
+            className="min-w-[44px] min-h-[44px] p-2 bg-gray-100 dark:bg-gray-800 border border-gray-200/70 dark:border-white/10 rounded-xl text-gray-700 dark:text-gray-200 transition-colors active:scale-95 flex items-center justify-center cursor-pointer"
             title="Buscar en todo el panel"
+            aria-label="Buscar en todo el panel"
           >
             <HiOutlineSearch className="text-lg" />
           </button>
 
-          <button 
-            onClick={handleToggleNotifications}
-            className="p-2 bg-gray-100/80 dark:bg-gray-800/80 rounded-xl text-gray-700 dark:text-gray-300 transition-colors active:scale-95 interactive-hover"
-            title="Notificaciones PWA"
-          >
-            {notifPermission === 'granted' ? (
-              <HiBell className="text-lg text-emerald-500" />
-            ) : (
-              <HiOutlineBell className="text-lg text-amber-500" />
-            )}
-          </button>
-
-          <button 
-            onClick={toggleDarkMode}
-            className="p-2 bg-gray-100/80 dark:bg-gray-800/80 rounded-xl text-gray-700 dark:text-amber-400 transition-colors active:scale-95 interactive-hover"
-            title={isDarkMode ? 'Modo Claro' : 'Modo Oscuro'}
-          >
-            {isDarkMode ? <HiOutlineSun className="text-lg" /> : <HiOutlineMoon className="text-lg" />}
-          </button>
-
-          <button 
+          <button
+            type="button"
             onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-            className="p-2 bg-gray-100/80 dark:bg-gray-800/80 rounded-xl hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors active:scale-95 text-gray-800 dark:text-gray-200 interactive-hover"
+            className="min-w-[44px] min-h-[44px] p-2 bg-gray-100 dark:bg-gray-800 border border-gray-200/70 dark:border-white/10 rounded-xl hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors active:scale-95 text-gray-800 dark:text-gray-200 flex items-center justify-center cursor-pointer"
+            title="Abrir menú completo"
+            aria-label="Abrir menú completo"
           >
             {isSidebarOpen ? <HiX className="text-lg" /> : <HiMenuAlt2 className="text-lg" />}
           </button>
         </div>
-      </div>
+      </header>
 
       {/* ═══ Mobile Sidebar Overlay ═══ */}
       <AnimatePresence>
@@ -464,17 +461,17 @@ function DashboardLayoutContent() {
           </button>
 
           <div className="text-center select-none pt-2">
-            <span className="font-syne text-[9px] font-bold tracking-widest text-gray-400 dark:text-gray-600 block">
-              VERSIÓN v7.0.0
+            <span className="font-syne text-[10px] font-bold tracking-widest text-gray-400 dark:text-gray-500 block">
+              VERSIÓN v7.1.0
             </span>
           </div>
         </div>
       </motion.aside>
 
       {/* ═══ Main Content ═══ */}
-      <main ref={mainRef} className="flex-1 overflow-y-auto">
+      <main ref={mainRef} className="flex-1 overflow-y-auto overflow-x-hidden">
         {/* Desktop Top Bar */}
-        <header className="hidden lg:flex h-16 items-center justify-between px-6 xl:px-10 bg-white/90 dark:bg-[#111827]/90 backdrop-blur-xl border-b border-gray-100 dark:border-gray-800/80 sticky top-0 z-30 transition-all duration-300 gap-6 shadow-xs">
+        <header className="hidden lg:flex h-16 items-center justify-between px-6 xl:px-10 bg-white/90 dark:bg-[#111827]/90 backdrop-blur-xl border-b border-gray-200/80 dark:border-white/[0.08] sticky top-0 z-30 transition-all duration-300 gap-6 shadow-xs">
           <div className="flex items-center gap-4 flex-1">
 
             {/* Desktop Command Palette Search Bar */}
@@ -546,7 +543,7 @@ function DashboardLayoutContent() {
           </div>
         </header>
 
-        <div className="p-4 sm:p-6 md:p-8 lg:p-10 pt-20 pb-bottom-nav lg:pt-8 lg:pb-8 max-w-[1600px] mx-auto min-h-screen">
+        <div className="px-3.5 sm:px-6 md:p-8 lg:p-10 pt-[76px] pb-bottom-nav lg:pt-8 lg:pb-8 max-w-[1600px] mx-auto min-h-full">
           <motion.div
             key={location.pathname}
             initial={{ opacity: 0, y: 10 }}
@@ -559,8 +556,8 @@ function DashboardLayoutContent() {
       </main>
 
       {/* ═══ Mobile Bottom Navigation Bar ═══ */}
-      <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-white/85 dark:bg-gray-950/90 backdrop-blur-2xl border-t border-gray-200/50 dark:border-gray-800/50 shadow-[0_-4px_32px_rgba(0,0,0,0.08)]" style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
-        <div className="flex items-center justify-around px-2 py-2">
+      <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-white/95 dark:bg-[#111827]/95 backdrop-blur-2xl border-t border-gray-200/80 dark:border-white/[0.08] shadow-[0_-4px_24px_rgba(0,0,0,0.08)]" style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
+        <div className="flex items-center justify-around px-1.5 py-1.5">
           {bottomNavItems.map((item) => {
             const isActive = item.path && location.pathname === item.path;
             if (!item.path) {
@@ -569,10 +566,10 @@ function DashboardLayoutContent() {
                 <button
                   key="mas"
                   onClick={() => setIsSidebarOpen(true)}
-                  className="flex flex-col items-center gap-1 px-3 py-2 rounded-2xl transition-all active:scale-90 text-gray-400 dark:text-gray-500"
+                  className="flex flex-col items-center justify-center gap-0.5 px-3 min-h-[44px] py-1.5 rounded-2xl transition-all active:scale-90 text-gray-500 dark:text-gray-400 cursor-pointer"
                 >
                   <item.icon className="text-xl" />
-                  <span className="font-syne text-[9px] font-bold uppercase tracking-widest">{item.label}</span>
+                  <span className="font-syne text-[10px] font-bold uppercase tracking-wider">{item.label}</span>
                 </button>
               );
             }
@@ -580,20 +577,20 @@ function DashboardLayoutContent() {
               <Link
                 key={item.path}
                 to={item.path}
-                className={`relative flex flex-col items-center gap-1 px-3 py-2 rounded-2xl transition-all active:scale-90 ${
+                className={`relative flex flex-col items-center justify-center gap-0.5 px-3 min-h-[44px] py-1.5 rounded-2xl transition-all active:scale-90 ${
                   isActive
-                    ? 'text-black dark:text-white'
-                    : 'text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'
+                    ? 'text-black dark:text-white bg-gray-100/90 dark:bg-white/10'
+                    : 'text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200'
                 }`}
               >
                 {isActive && (
                   <motion.div
                     layoutId="bottomNavIndicator"
-                    className="absolute -top-0.5 w-8 h-0.5 bg-black dark:bg-white rounded-full"
+                    className="absolute -top-1 w-8 h-0.5 bg-black dark:bg-white rounded-full"
                   />
                 )}
-                <item.icon className={`text-xl transition-transform ${isActive ? 'scale-110' : ''}`} />
-                <span className={`font-syne text-[9px] font-bold uppercase tracking-widest transition-all ${isActive ? 'opacity-100' : 'opacity-60'}`}>{item.label}</span>
+                <item.icon className={`text-xl transition-transform ${isActive ? 'scale-105' : ''}`} />
+                <span className={`font-syne text-[10px] font-bold uppercase tracking-wider transition-all ${isActive ? 'opacity-100' : 'opacity-80'}`}>{item.label}</span>
               </Link>
             );
           })}

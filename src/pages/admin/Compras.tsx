@@ -233,43 +233,45 @@ export default function Compras() {
   );
 
   return (
-    <div className="space-y-12 pb-28 sm:pb-20">
-      <header className="flex flex-col sm:flex-row sm:items-end justify-between gap-6">
+    <div className="space-y-5 sm:space-y-8 pb-8">
+      <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-3.5">
         <div className="flex-1">
-          <h1 className="font-dm-sans text-3xl md:text-4xl font-bold tracking-tight text-[var(--black)] dark:text-white">
+          <h1 className="font-dm-sans text-2xl sm:text-3xl font-bold tracking-tight text-[var(--black)] dark:text-white">
             Lista de <span className="text-gradient">Compras</span>
           </h1>
-          <p className="font-inter mt-2 text-[var(--dark-gray)] dark:text-gray-400 font-light text-sm">
+          <p className="hidden sm:block font-inter mt-1 text-[var(--dark-gray)] dark:text-gray-400 font-light text-xs">
             Gestiona tus compras generales y accede a tu rutina de mandado semanal.
           </p>
         </div>
 
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
-          <div className="relative flex-1 sm:w-60">
+        <div className="flex flex-wrap items-center gap-2">
+          <div className="relative flex-1 min-w-[180px] sm:w-56">
             <input 
               type="text"
               placeholder="Buscar compra general..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-12 pr-6 py-3.5 bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl outline-none focus:ring-2 ring-gray-100 dark:ring-gray-700 font-inter text-sm shadow-sm transition-all text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500"
+              className="w-full pl-10 pr-4 min-h-[44px] py-2 bg-white dark:bg-[#111827] border border-gray-200/80 dark:border-white/10 rounded-2xl outline-none focus:border-[var(--vibrant-sky-blue)] font-inter text-sm shadow-xs transition-all text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500"
             />
-            <HiOutlineSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-lg" />
+            <HiOutlineSearch className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 text-lg pointer-events-none" />
           </div>
 
           <button
+            type="button"
             onClick={() => setShowQuincenaModal(true)}
-            className="px-5 py-3.5 bg-emerald-600 hover:bg-emerald-700 text-white font-syne text-xs font-bold uppercase tracking-wider rounded-2xl transition-all shadow-md flex items-center justify-center gap-2 shrink-0 interactive-hover"
+            className="px-4 min-h-[44px] py-2 bg-white dark:bg-[#111827] hover:bg-emerald-50 dark:hover:bg-emerald-950/30 border border-emerald-500/30 text-emerald-700 dark:text-emerald-300 font-syne text-xs font-bold uppercase tracking-wider rounded-2xl transition-all shadow-xs flex items-center justify-center gap-2 shrink-0 cursor-pointer"
             title="Abre tu listado aislado de mandado semanal de dieta e insumos"
           >
-            <span>🥗 Mandado Semanal</span>
-            <span className="px-2 py-0.5 bg-emerald-700/80 rounded-full text-[10px] font-bold">
+            <span>🥗 Mandado</span>
+            <span className="px-2 py-0.5 bg-emerald-500/15 rounded-full text-[10px] font-bold">
               {quincenalList.filter(i => !i.bought).length}
             </span>
           </button>
 
           <button 
+            type="button"
             onClick={() => setShowAddForm(!showAddForm)}
-            className="px-6 py-3.5 bg-black dark:bg-white text-white dark:text-black font-syne text-xs font-bold uppercase tracking-wider rounded-2xl hover:scale-105 active:scale-95 transition-all shadow-md flex items-center justify-center gap-2 shrink-0"
+            className="px-4 sm:px-5 min-h-[44px] py-2 bg-black dark:bg-white text-white dark:text-black font-syne text-xs font-bold uppercase tracking-wider rounded-2xl hover:opacity-90 active:scale-95 transition-all shadow-sm flex items-center justify-center gap-2 shrink-0 cursor-pointer"
           >
             <HiOutlinePlus className="text-lg" />
             <span>Agregar Artículo</span>
@@ -278,7 +280,7 @@ export default function Compras() {
       </header>
 
       {/* Filter Tabs */}
-      <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
+      <div className="flex flex-wrap items-center gap-2">
         {[
           { id: 'pending', label: `Por Comprar (${generalList.filter(i => !i.bought).length})` },
           { id: 'bought', label: `Comprados (${generalList.filter(i => i.bought).length})` },
@@ -286,11 +288,12 @@ export default function Compras() {
         ].map((tab) => (
           <button
             key={tab.id}
+            type="button"
             onClick={() => setFilter(tab.id as 'all' | 'pending' | 'bought')}
-            className={`px-5 py-2.5 rounded-2xl text-xs font-syne font-bold uppercase tracking-wider transition-all whitespace-nowrap ${
+            className={`px-4 min-h-[40px] py-2 rounded-2xl text-xs font-syne font-bold uppercase tracking-wider border transition-all cursor-pointer ${
               filter === tab.id 
-                ? 'bg-black dark:bg-white text-white dark:text-black shadow-md' 
-                : 'bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-300 border border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700'
+                ? 'bg-black dark:bg-white text-white dark:text-black border-transparent shadow-sm' 
+                : 'bg-white dark:bg-[#111827] text-gray-600 dark:text-gray-300 border-gray-200/80 dark:border-white/10 hover:bg-gray-50 dark:hover:bg-gray-800'
             }`}
           >
             {tab.label}

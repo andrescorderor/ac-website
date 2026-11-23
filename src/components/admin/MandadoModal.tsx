@@ -680,31 +680,32 @@ export default function MandadoModal({ isOpen, onClose }: MandadoModalProps) {
           }`}
         >
           {/* ═══ FIXED HEADER SECTION ═══ */}
-          <div className="shrink-0 space-y-3.5 pb-3.5 border-b border-gray-100 dark:border-gray-800">
+          <div className="shrink-0 space-y-2.5 sm:space-y-3.5 pb-3 border-b border-gray-200/80 dark:border-white/[0.08]">
             {/* Title & Close button */}
-            <div className="flex items-start justify-between gap-4">
+            <div className="flex items-start justify-between gap-3">
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-2">
-                  <span className="text-2xl shrink-0">🥗</span>
-                  <h2 className="font-dm-sans text-xl sm:text-2xl font-bold text-gray-900 dark:text-white truncate">
+                  <span className="text-xl sm:text-2xl shrink-0">🥗</span>
+                  <h2 className="font-dm-sans text-lg sm:text-2xl font-bold text-gray-900 dark:text-white truncate">
                     Mandado Semanal & Insumos
                   </h2>
                 </div>
-                <p className="font-inter text-xs text-gray-400 mt-0.5 truncate">
+                <p className="hidden sm:block font-inter text-xs text-gray-400 mt-0.5 truncate">
                   Listado de compras recurrente para tu alimentación semanal e insumos de casa.
                 </p>
               </div>
               <button
                 type="button"
                 onClick={onClose}
-                className="p-2 rounded-xl text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 transition-all shrink-0"
+                className="min-w-[40px] min-h-[40px] p-2 rounded-xl text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 transition-all shrink-0 flex items-center justify-center cursor-pointer"
+                aria-label="Cerrar mandado"
               >
                 <HiX className="text-xl" />
               </button>
             </div>
 
             {/* Progress & Control Buttons Header */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 bg-emerald-50/60 dark:bg-emerald-950/30 p-3 sm:p-3.5 rounded-2xl border border-emerald-100 dark:border-emerald-900/40 w-full">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 bg-emerald-50/70 dark:bg-emerald-950/30 p-2.5 sm:p-3.5 rounded-2xl border border-emerald-200/70 dark:border-emerald-800/40 w-full">
               <div className="space-y-1 min-w-0 flex-1">
                 <div className="flex items-center gap-2 flex-wrap">
                   <span className="font-syne text-xs font-bold uppercase tracking-wider text-emerald-800 dark:text-emerald-300">
@@ -728,14 +729,14 @@ export default function MandadoModal({ isOpen, onClose }: MandadoModalProps) {
                 <button
                   type="button"
                   onClick={() => setIsFocusMode(!isFocusMode)}
-                  className={`px-3 py-1.5 font-syne text-xs font-bold uppercase tracking-wider rounded-xl transition-all shadow-xs flex items-center justify-center gap-1.5 interactive-hover shrink-0 ${
+                  className={`px-3 min-h-[40px] py-1.5 font-syne text-xs font-bold uppercase tracking-wider rounded-xl transition-all shadow-xs flex items-center justify-center gap-1.5 shrink-0 cursor-pointer ${
                     isFocusMode
                       ? 'bg-amber-500 text-white animate-pulse shadow-amber-500/20'
-                      : 'bg-amber-100 hover:bg-amber-200 dark:bg-amber-950/50 dark:hover:bg-amber-900/50 text-amber-800 dark:text-amber-300 border border-amber-300/40 dark:border-amber-700/40'
+                      : 'bg-amber-100 hover:bg-amber-200 dark:bg-amber-950/50 dark:hover:bg-amber-900/50 text-amber-800 dark:text-amber-300 border border-amber-300/50 dark:border-amber-700/40'
                   }`}
                   title={isFocusMode ? 'Desactivar Modo Supermercado' : 'Activar Modo Supermercado (Diseñado para comprar en el súper)'}
                 >
-                  <span>{isFocusMode ? '🛒 Modo Normal' : '⚡ Modo Súper'}</span>
+                  <span>{isFocusMode ? '🛒 Normal' : '⚡ Súper'}</span>
                 </button>
 
                 {!isFocusMode && (
@@ -752,16 +753,16 @@ export default function MandadoModal({ isOpen, onClose }: MandadoModalProps) {
                         }
                         setShowAddForm(!showAddForm);
                       }}
-                      className="px-3 py-1.5 bg-black dark:bg-white text-white dark:text-black font-syne text-xs font-bold uppercase tracking-wider rounded-xl transition-all shadow-xs flex items-center justify-center gap-1.5 interactive-hover shrink-0"
+                      className="px-3 min-h-[40px] py-1.5 bg-black dark:bg-white text-white dark:text-black font-syne text-xs font-bold uppercase tracking-wider rounded-xl transition-all shadow-xs flex items-center justify-center gap-1 shrink-0 cursor-pointer"
                     >
                       {showAddForm ? <HiX className="text-sm" /> : <HiOutlinePlus className="text-sm" />}
-                      <span>{showAddForm ? (editingId ? 'Cancelar' : 'Ocultar') : '+ Producto'}</span>
+                      <span>{showAddForm ? (editingId ? 'Cancelar' : 'Cerrar') : 'Producto'}</span>
                     </button>
 
                     <button
                       type="button"
                       onClick={handleRenewWeekly}
-                      className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-syne text-xs font-bold uppercase tracking-wider rounded-xl transition-all shadow-xs flex items-center justify-center gap-1.5 interactive-hover shrink-0"
+                      className="px-3 min-h-[40px] py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-syne text-xs font-bold uppercase tracking-wider rounded-xl transition-all shadow-xs flex items-center justify-center gap-1 shrink-0 cursor-pointer"
                       title="Desmarca todos los artículos para iniciar una nueva semana"
                     >
                       <HiOutlineRefresh className="text-sm" />
@@ -772,26 +773,27 @@ export default function MandadoModal({ isOpen, onClose }: MandadoModalProps) {
               </div>
             </div>
 
-            {/* Search & Filter Tabs Bar */}
+            {/* Search & Filter Tabs Bar (4 columnas visibles sin corte en móvil) */}
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2 w-full">
-              <div className="flex items-center gap-1 bg-gray-100 dark:bg-gray-800/80 p-1 rounded-xl overflow-x-auto shrink-0 scrollbar-none max-w-full">
+              <div className="grid grid-cols-4 sm:flex items-center gap-1 bg-gray-100 dark:bg-gray-800/80 p-1 rounded-xl shrink-0">
                 {[
-                  { key: 'all', label: `Todos (${rawQuincenalList.length})` },
-                  { key: 'pending', label: `Pendientes (${rawQuincenalList.filter(i => !i.bought).length})` },
-                  { key: 'comida', label: `Comida 🍔` },
-                  { key: 'insumos', label: `Insumos 🛒` },
+                  { key: 'all', short: `Todos`, label: `Todos (${rawQuincenalList.length})` },
+                  { key: 'pending', short: `Faltan`, label: `Pendientes (${rawQuincenalList.filter(i => !i.bought).length})` },
+                  { key: 'comida', short: `Comida`, label: `Comida 🍔` },
+                  { key: 'insumos', short: `Insumos`, label: `Insumos 🛒` },
                 ].map(tab => (
                   <button
                     key={tab.key}
                     type="button"
                     onClick={() => setActiveTab(tab.key as any)}
-                    className={`px-3 py-1 rounded-lg font-syne text-[10px] font-bold uppercase tracking-wider transition-all whitespace-nowrap ${
+                    className={`px-2 sm:px-3 min-h-[36px] py-1 rounded-lg font-syne text-[10px] sm:text-[11px] font-bold uppercase tracking-wider transition-all text-center cursor-pointer ${
                       activeTab === tab.key
-                        ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-xs'
-                        : 'text-gray-500 hover:text-gray-900 dark:hover:text-white'
+                        ? 'bg-white dark:bg-[#111827] text-gray-900 dark:text-white shadow-xs'
+                        : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
                     }`}
                   >
-                    {tab.label}
+                    <span className="sm:hidden">{tab.short}</span>
+                    <span className="hidden sm:inline">{tab.label}</span>
                   </button>
                 ))}
               </div>
@@ -802,9 +804,9 @@ export default function MandadoModal({ isOpen, onClose }: MandadoModalProps) {
                   placeholder="Buscar en mandado..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-8 pr-3 py-1.5 bg-gray-50 dark:bg-gray-800/60 border border-gray-200 dark:border-gray-700/80 rounded-xl outline-none text-xs font-inter text-gray-900 dark:text-white placeholder-gray-400 focus:border-emerald-500"
+                  className="w-full pl-9 pr-3 min-h-[40px] py-1.5 bg-gray-50 dark:bg-gray-800/60 border border-gray-200/80 dark:border-white/10 rounded-xl outline-none text-xs font-inter text-gray-900 dark:text-white placeholder-gray-400 focus:border-emerald-500"
                 />
-                <HiOutlineSearch className="absolute left-2.5 top-2 text-xs text-gray-400" />
+                <HiOutlineSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-gray-400 pointer-events-none" />
               </div>
             </div>
 

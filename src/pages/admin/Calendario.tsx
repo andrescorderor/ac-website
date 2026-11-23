@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { supabase } from '@/lib/supabase';
 import { fetchWithCache } from '@/lib/cache';
@@ -266,6 +266,16 @@ export default function Calendario() {
 
   const todayStr = now.toISOString().split('T')[0];
   const selectedEvents = eventsByDay.get(selectedDate) || [];
+  const agendaRef = useRef<HTMLElement>(null);
+
+  const handleSelectDay = (ds: string) => {
+    setSelectedDate(ds);
+    if (typeof window !== 'undefined' && window.innerWidth < 1280) {
+      setTimeout(() => {
+        agendaRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }, 60);
+    }
+  };
 
   if (loading) {
     return (
@@ -277,36 +287,36 @@ export default function Calendario() {
   }
 
   return (
-    <div className="space-y-6 pb-28 sm:pb-20">
+    <div className="space-y-5 pb-8">
       {/* Header */}
-      <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+      <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-3.5">
         <div>
-          <h1 className="font-dm-sans text-3xl md:text-4xl font-bold tracking-tight text-[var(--black)] dark:text-white">
+          <h1 className="font-dm-sans text-2xl sm:text-3xl font-bold tracking-tight text-[var(--black)] dark:text-white">
             Calendario <span className="text-gradient">360°</span>
           </h1>
-          <p className="font-inter mt-1 text-[var(--dark-gray)] dark:text-gray-400 font-light text-sm">
+          <p className="hidden sm:block font-inter mt-1 text-[var(--dark-gray)] dark:text-gray-400 font-light text-xs">
             Todas tus tareas, fechas importantes, riegos de plantas y pagos en una sola vista.
           </p>
         </div>
 
         {/* Navigation & Sources */}
-        <div className="flex flex-wrap items-center gap-2.5">
-          <div className="flex items-center gap-1 bg-white dark:bg-gray-800 p-1 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm">
+        <div className="flex flex-wrap items-center gap-2">
+          <div className="flex items-center gap-1 bg-white dark:bg-[#111827] p-1 rounded-2xl border border-gray-200/80 dark:border-white/10 shadow-xs">
             <button
               type="button"
               onClick={handlePrevMonth}
-              className="min-w-[40px] min-h-[40px] p-2 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 cursor-pointer flex items-center justify-center"
+              className="min-w-[40px] min-h-[40px] p-2 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-200 cursor-pointer flex items-center justify-center"
               title="Mes anterior"
             >
               <HiChevronLeft className="text-lg" />
             </button>
-            <span className="px-3 font-dm-sans font-bold text-sm sm:text-base text-gray-900 dark:text-white min-w-[140px] text-center">
+            <span className="px-2 sm:px-3 font-dm-sans font-bold text-sm sm:text-base text-gray-900 dark:text-white min-w-[125px] sm:min-w-[140px] text-center">
               {MONTH_NAMES[month]} {year}
             </span>
             <button
               type="button"
               onClick={handleNextMonth}
-              className="min-w-[40px] min-h-[40px] p-2 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 cursor-pointer flex items-center justify-center"
+              className="min-w-[40px] min-h-[40px] p-2 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-200 cursor-pointer flex items-center justify-center"
               title="Mes siguiente"
             >
               <HiChevronRight className="text-lg" />
@@ -318,7 +328,7 @@ export default function Calendario() {
             onClick={() => {
               setYear(now.getFullYear());
               setMonth(now.getMonth());
-              setSelectedDate(todayStr);
+              handleSelectDay(todayStr);
             }}
             className="px-4 min-h-[44px] py-2 bg-black dark:bg-white text-white dark:text-black rounded-2xl font-syne text-xs font-bold uppercase tracking-wider cursor-pointer hover:opacity-90 transition-all"
           >
@@ -328,7 +338,7 @@ export default function Calendario() {
           <button
             type="button"
             onClick={() => loadData(true)}
-            className="min-w-[44px] min-h-[44px] p-2.5 bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl text-gray-600 dark:text-gray-300 hover:text-[var(--vibrant-sky-blue)] cursor-pointer flex items-center justify-center"
+            className="min-w-[44px] min-h-[44px] p-2.5 bg-white dark:bg-[#111827] border border-gray-200/80 dark:border-white/10 rounded-2xl text-gray-600 dark:text-gray-300 hover:text-[var(--vibrant-sky-blue)] cursor-pointer flex items-center justify-center"
             title="Actualizar eventos"
           >
             <HiOutlineRefresh className="text-lg" />
@@ -346,10 +356,10 @@ export default function Calendario() {
               key={src}
               type="button"
               onClick={() => setActiveSources((prev) => ({ ...prev, [src]: !prev[src] }))}
-              className={`px-3.5 min-h-[40px] py-2 rounded-2xl text-xs font-syne font-bold uppercase tracking-wider border transition-all cursor-pointer flex items-center gap-2 ${
+              className={`px-3 min-h-[38px] py-1.5 rounded-2xl text-xs font-syne font-bold uppercase tracking-wider border transition-all cursor-pointer flex items-center gap-1.5 ${
                 active
                   ? meta.badge
-                  : 'bg-white/60 dark:bg-gray-800/50 text-gray-400 border-gray-200/60 dark:border-gray-700/60 opacity-60'
+                  : 'bg-white dark:bg-[#111827] text-gray-400 border-gray-200/70 dark:border-white/10 opacity-65'
               }`}
             >
               <span className={`size-2 rounded-full ${meta.dot}`} />
@@ -360,14 +370,14 @@ export default function Calendario() {
       </div>
 
       {/* Main Split: Calendar Grid + Selected Day Panel */}
-      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 items-start">
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-5 sm:gap-6 items-start">
         {/* Calendar Grid */}
-        <div className="xl:col-span-2 bg-white/90 dark:bg-gray-900/90 glass dark:dark-glass rounded-[2rem] p-4 sm:p-6 shadow-sm border border-gray-100 dark:border-gray-800">
+        <div className="xl:col-span-2 bg-white dark:bg-[#111827] rounded-3xl sm:rounded-[2rem] p-3.5 sm:p-6 shadow-xs border border-gray-200/80 dark:border-white/[0.09]">
           <div className="grid grid-cols-7 gap-1 sm:gap-2 mb-2">
             {WEEKDAYS.map((day) => (
               <div
                 key={day}
-                className="text-center font-syne text-[10px] font-bold uppercase tracking-widest text-gray-400 py-1.5"
+                className="text-center font-syne text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400 py-1.5"
               >
                 {day}
               </div>
@@ -377,7 +387,7 @@ export default function Calendario() {
           <div className="grid grid-cols-7 gap-1 sm:gap-2">
             {calendarCells.map((dayNum, idx) => {
               if (!dayNum) {
-                return <div key={`empty-${idx}`} className="min-h-[58px] sm:min-h-[88px] rounded-2xl bg-gray-50/40 dark:bg-gray-800/20" />;
+                return <div key={`empty-${idx}`} className="min-h-[54px] sm:min-h-[84px] rounded-xl sm:rounded-2xl bg-gray-100/60 dark:bg-gray-800/30" />;
               }
 
               const ds = toDateStr(year, month, dayNum);
@@ -389,13 +399,13 @@ export default function Calendario() {
                 <button
                   key={ds}
                   type="button"
-                  onClick={() => setSelectedDate(ds)}
-                  className={`min-h-[58px] sm:min-h-[88px] p-1.5 sm:p-2 rounded-2xl border text-left flex flex-col justify-between transition-all cursor-pointer ${
+                  onClick={() => handleSelectDay(ds)}
+                  className={`min-h-[54px] sm:min-h-[84px] p-1.5 sm:p-2 rounded-xl sm:rounded-2xl border text-left flex flex-col justify-between transition-all cursor-pointer ${
                     isSelected
                       ? 'border-[var(--vibrant-sky-blue)] bg-sky-500/10 dark:bg-sky-500/15 ring-2 ring-[var(--vibrant-sky-blue)]/30'
                       : isToday
                       ? 'border-amber-500/50 bg-amber-500/5'
-                      : 'border-gray-100 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800/60'
+                      : 'border-gray-200/70 dark:border-white/[0.07] hover:bg-gray-50 dark:hover:bg-gray-800/60'
                   }`}
                 >
                   <span
@@ -429,7 +439,7 @@ export default function Calendario() {
                           </div>
                         ))}
                         {dayEvents.length > 2 && (
-                          <span className="text-[9px] font-syne font-bold text-gray-400">
+                          <span className="text-[10px] font-syne font-bold text-gray-400">
                             +{dayEvents.length - 2} más
                           </span>
                         )}
@@ -443,8 +453,8 @@ export default function Calendario() {
         </div>
 
         {/* Selected Day Agenda */}
-        <aside className="bg-white/90 dark:bg-gray-900/90 glass dark:dark-glass rounded-[2rem] p-5 sm:p-6 shadow-sm border border-gray-100 dark:border-gray-800 space-y-4">
-          <div className="flex items-center justify-between border-b border-gray-100 dark:border-gray-800 pb-3">
+        <aside ref={agendaRef} className="bg-white dark:bg-[#111827] rounded-3xl sm:rounded-[2rem] p-4 sm:p-6 shadow-xs border border-gray-200/80 dark:border-white/[0.09] space-y-4">
+          <div className="flex items-center justify-between border-b border-gray-200/80 dark:border-white/[0.08] pb-3">
             <div className="flex items-center gap-2.5">
               <div className="p-2.5 rounded-2xl bg-[var(--vibrant-sky-blue)]/10 text-[var(--vibrant-sky-blue)]">
                 <HiOutlineCalendar className="text-xl" />
@@ -453,7 +463,7 @@ export default function Calendario() {
                 <h2 className="font-dm-sans font-bold text-lg text-gray-900 dark:text-white">
                   {selectedDate === todayStr ? 'Hoy' : selectedDate}
                 </h2>
-                <p className="font-inter text-xs text-gray-400">
+                <p className="font-inter text-xs text-gray-500 dark:text-gray-400">
                   {selectedEvents.length} {selectedEvents.length === 1 ? 'evento' : 'eventos'} en tu agenda
                 </p>
               </div>
@@ -461,7 +471,7 @@ export default function Calendario() {
           </div>
 
           {selectedEvents.length === 0 ? (
-            <div className="py-10 text-center space-y-2">
+            <div className="py-8 text-center space-y-2">
               <p className="font-dm-sans font-bold text-sm text-gray-600 dark:text-gray-300">
                 Día despejado
               </p>
@@ -470,18 +480,18 @@ export default function Calendario() {
               </p>
             </div>
           ) : (
-            <div className="space-y-2.5 max-h-[55vh] overflow-y-auto pr-1">
+            <div className="space-y-2.5 xl:max-h-[60vh] xl:overflow-y-auto xl:pr-1">
               {selectedEvents.map((ev) => {
                 const sMeta = SOURCE_META[ev.source];
                 return (
                   <Link
                     key={ev.id}
                     to={ev.path}
-                    className="block p-3.5 rounded-2xl bg-gray-50/80 dark:bg-gray-800/70 hover:bg-gray-100 dark:hover:bg-gray-800 border border-gray-100 dark:border-gray-700/60 transition-all group cursor-pointer"
+                    className="block p-3.5 rounded-2xl bg-gray-50/90 dark:bg-gray-800/70 hover:bg-gray-100 dark:hover:bg-gray-800 border border-gray-200/70 dark:border-white/10 transition-all group cursor-pointer"
                   >
                     <div className="flex items-start justify-between gap-2">
                       <div className="min-w-0 space-y-1">
-                        <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[9px] font-syne font-bold uppercase tracking-wider border ${sMeta.badge}`}>
+                        <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-syne font-bold uppercase tracking-wider border ${sMeta.badge}`}>
                           {sMeta.icon} {sMeta.label}
                         </span>
                         <h4 className={`font-dm-sans font-bold text-sm text-gray-900 dark:text-white truncate ${ev.done ? 'line-through opacity-60' : ''}`}>

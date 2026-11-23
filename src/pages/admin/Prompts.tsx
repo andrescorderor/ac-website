@@ -209,14 +209,14 @@ export default function Prompts() {
   }
 
   return (
-    <div className="space-y-8 pb-28 sm:pb-20">
+    <div className="space-y-5 sm:space-y-7 pb-8">
       {/* Header */}
-      <header className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+      <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-3.5">
         <div>
-          <h1 className="font-dm-sans text-3xl md:text-4xl font-bold tracking-tight text-[var(--black)] dark:text-white">
+          <h1 className="font-dm-sans text-2xl sm:text-3xl font-bold tracking-tight text-[var(--black)] dark:text-white">
             Prompts & <span className="text-gradient">Variables</span>
           </h1>
-          <p className="font-inter mt-1 text-[var(--dark-gray)] dark:text-gray-400 font-light text-sm">
+          <p className="hidden sm:block font-inter mt-1 text-[var(--dark-gray)] dark:text-gray-400 font-light text-xs">
             Plantillas reutilizables con campos dinámicos <code className="text-xs">{'{{variable}}'}</code> listos para copiar.
           </p>
         </div>
@@ -224,7 +224,7 @@ export default function Prompts() {
         <button
           type="button"
           onClick={openCreateModal}
-          className="px-5 min-h-[44px] py-2.5 bg-black dark:bg-white text-white dark:text-black font-syne text-xs font-bold uppercase tracking-wider rounded-2xl hover:scale-105 active:scale-95 transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer"
+          className="px-4 sm:px-5 min-h-[44px] py-2 bg-black dark:bg-white text-white dark:text-black font-syne text-xs font-bold uppercase tracking-wider rounded-2xl hover:opacity-90 active:scale-95 transition-all shadow-sm flex items-center justify-center gap-2 cursor-pointer"
         >
           <HiOutlinePlus className="text-lg" />
           <span>Nueva Plantilla</span>
@@ -239,21 +239,21 @@ export default function Prompts() {
             placeholder="Buscar plantilla, categoría o variable..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-11 pr-4 min-h-[44px] py-2.5 bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl outline-none font-inter text-sm text-gray-900 dark:text-white placeholder-gray-400 shadow-sm"
+            className="w-full pl-10 pr-4 min-h-[44px] py-2 bg-white dark:bg-[#111827] border border-gray-200/80 dark:border-white/10 rounded-2xl outline-none focus:border-[var(--vibrant-sky-blue)] font-inter text-sm text-gray-900 dark:text-white placeholder-gray-400 shadow-xs"
           />
           <HiOutlineSearch className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 size-5 pointer-events-none" />
         </div>
 
-        <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
+        <div className="flex flex-wrap items-center gap-1.5">
           {['Todas', ...CATEGORIES].map((cat) => (
             <button
               key={cat}
               type="button"
               onClick={() => setCategoryFilter(cat)}
-              className={`px-4 min-h-[40px] py-2 rounded-2xl text-[11px] font-syne font-bold uppercase tracking-wider transition-all whitespace-nowrap cursor-pointer ${
+              className={`px-3.5 min-h-[40px] py-1.5 rounded-2xl text-xs font-syne font-bold uppercase tracking-wider border transition-all cursor-pointer ${
                 categoryFilter === cat
-                  ? 'bg-black dark:bg-white text-white dark:text-black shadow-md'
-                  : 'bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-300 border border-gray-100 dark:border-gray-700'
+                  ? 'bg-black dark:bg-white text-white dark:text-black border-transparent shadow-sm'
+                  : 'bg-white dark:bg-[#111827] text-gray-600 dark:text-gray-300 border-gray-200/80 dark:border-white/10 hover:bg-gray-50 dark:hover:bg-gray-800'
               }`}
             >
               {cat}

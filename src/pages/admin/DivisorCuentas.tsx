@@ -353,14 +353,14 @@ export default function DivisorCuentas() {
   };
 
   return (
-    <div className="space-y-8 pb-28 sm:pb-20">
+    <div className="space-y-5 sm:space-y-8 pb-8">
       {/* Header */}
-      <header className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+      <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-3.5">
         <div className="flex-1 max-w-xl">
-          <h1 className="font-dm-sans text-3xl md:text-4xl font-bold tracking-tight text-[var(--black)] dark:text-white">
+          <h1 className="font-dm-sans text-2xl sm:text-3xl font-bold tracking-tight text-[var(--black)] dark:text-white">
             Divisor de <span className="text-gradient">Cuentas</span>
           </h1>
-          <p className="font-inter mt-1 text-[var(--dark-gray)] dark:text-gray-400 font-light text-sm">
+          <p className="hidden sm:block font-inter mt-1 text-[var(--dark-gray)] dark:text-gray-400 font-light text-xs">
             Calcula y segmenta gastos por personas o grupos, y comparte el desglose directo por WhatsApp.
           </p>
         </div>
@@ -368,7 +368,7 @@ export default function DivisorCuentas() {
         <button
           type="button"
           onClick={handleResetAll}
-          className="px-4 min-h-[44px] py-2.5 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-200 rounded-2xl font-syne text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-2 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer shrink-0"
+          className="px-4 min-h-[44px] py-2 bg-white dark:bg-[#111827] border border-gray-200/80 dark:border-white/10 text-gray-700 dark:text-gray-200 rounded-2xl font-syne text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-2 hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer shrink-0 self-start sm:self-auto"
         >
           <HiOutlineRefresh className="text-base" />
           <span>Nueva Cuenta</span>

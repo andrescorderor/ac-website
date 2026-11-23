@@ -118,7 +118,7 @@ export default function Hero() {
               <span className="font-syne text-[var(--vibrant-sky-blue)] font-bold tracking-[0.3em] uppercase text-xs mb-6 block">
                 {cmsOverride?.heroEyebrow?.trim() || `${t('roles.sd')} & ${t('roles.pm')}`}
               </span>
-              <h1 className="font-dm-sans text-6xl sm:text-8xl lg:text-[10rem] font-bold leading-[0.85] tracking-tighter text-[var(--black)] mb-4">
+              <h1 className="font-dm-sans text-5xl sm:text-7xl md:text-8xl lg:text-[10rem] font-bold leading-[0.88] tracking-tighter text-[var(--black)] mb-3 sm:mb-4">
                 {cmsOverride?.heroHeadline?.trim() || t('hero.make_it')}
               </h1>
               <div className="flex items-center">
@@ -126,12 +126,12 @@ export default function Hero() {
                   key={currentPhraseIndex}
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="font-dm-sans text-gradient text-6xl sm:text-8xl lg:text-[10rem] font-bold leading-none tracking-tighter"
+                  className="font-dm-sans text-gradient text-5xl sm:text-7xl md:text-8xl lg:text-[10rem] font-bold leading-none tracking-tighter"
                 >
                   {displayText}
                 </motion.h1>
                 <motion.div
-                  className="font-dm-sans text-6xl sm:text-8xl lg:text-[10rem] leading-none text-[var(--black)] font-thin ml-2"
+                  className="font-dm-sans text-5xl sm:text-7xl md:text-8xl lg:text-[10rem] leading-none text-[var(--black)] font-thin ml-2"
                   animate={{ opacity: [1, 0] }}
                   transition={{ repeat: Infinity, duration: 0.8 }}
                 >
@@ -144,23 +144,23 @@ export default function Hero() {
               initial={{ opacity: 0, y: 40 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 1, delay: 0.5, ease: [0.16, 1, 0.3, 1] }}
-              className="mt-16 lg:mt-24 max-w-2xl"
+              className="mt-10 sm:mt-16 lg:mt-24 max-w-2xl"
             >
-              <div className="flex flex-col md:flex-row gap-10 items-start md:items-center">
+              <div className="flex flex-col md:flex-row gap-6 sm:gap-10 items-start md:items-center">
                 <div className="relative group flex-shrink-0">
                   <div className="absolute -inset-1 bg-gradient-to-r from-[var(--vibrant-sky-blue)] to-[var(--magenta-pink)] rounded-full blur opacity-25 group-hover:opacity-50 transition duration-1000 group-hover:duration-200" />
                   <img
                     src={heroParagraph.profilePicture}
                     alt="Andres Cordero"
-                    className="relative size-24 rounded-full border-2 border-white grayscale hover:grayscale-0 transition-all duration-700 shadow-2xl object-cover"
+                    className="relative size-20 sm:size-24 rounded-full border-2 border-white grayscale hover:grayscale-0 transition-all duration-700 shadow-2xl object-cover"
                   />
                 </div>
-                <p className="font-inter text-xl lg:text-2xl font-light tracking-tight text-[var(--dark-gray)] leading-relaxed italic">
+                <p className="font-inter text-lg sm:text-xl lg:text-2xl font-light tracking-tight text-[var(--dark-gray)] leading-relaxed italic">
                   "{cmsOverride?.heroBio?.trim() || t('hero.paragraph')}"
                 </p>
               </div>
 
-              <div className="flex flex-wrap items-center gap-8 mt-12">
+              <div className="flex flex-wrap items-center gap-5 sm:gap-8 mt-8 sm:mt-12">
                 <a 
                   href="#portfolio-section" 
                   onClick={(e) => {

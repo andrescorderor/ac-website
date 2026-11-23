@@ -424,23 +424,24 @@ export default function Deudas() {
   );
 
   return (
-    <div className="space-y-8 sm:space-y-10 pb-28 sm:pb-20 max-w-7xl mx-auto">
+    <div className="space-y-5 sm:space-y-8 pb-8 max-w-7xl mx-auto">
       {/* ═══ Header ═══ */}
-      <header className="flex flex-col lg:flex-row lg:items-end justify-between gap-6">
+      <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-3.5">
         <div>
-          <h1 className="font-dm-sans text-3xl md:text-4xl font-bold tracking-tight text-[var(--black)] dark:text-white">
+          <h1 className="font-dm-sans text-2xl sm:text-3xl font-bold tracking-tight text-[var(--black)] dark:text-white">
             Deudas y <span className="text-gradient">Cobros</span>
           </h1>
-          <p className="font-inter mt-2 text-[var(--dark-gray)] dark:text-gray-400 font-light text-sm">
+          <p className="hidden sm:block font-inter mt-1 text-[var(--dark-gray)] dark:text-gray-400 font-light text-xs">
             Control integral de cuentas por cobrar (te deben) y deudas por pagar (debes a otros).
           </p>
         </div>
 
-        <div className="flex flex-wrap items-center gap-3">
+        <div className="flex flex-wrap items-center gap-2">
           {/* Botón Nueva Deuda */}
           <button
+            type="button"
             onClick={() => handleOpenAddModal()}
-            className="px-6 py-3.5 bg-black dark:bg-white text-white dark:text-black font-syne text-xs font-bold uppercase tracking-wider rounded-2xl hover:scale-105 active:scale-95 transition-all shadow-md flex items-center justify-center gap-2 shrink-0 min-h-[44px]"
+            className="w-full sm:w-auto px-5 py-2.5 bg-black dark:bg-white text-white dark:text-black font-syne text-xs font-bold uppercase tracking-wider rounded-2xl hover:opacity-90 active:scale-95 transition-all shadow-sm flex items-center justify-center gap-2 shrink-0 min-h-[44px] cursor-pointer"
           >
             <HiOutlinePlus className="text-lg shrink-0" />
             <span>Nuevo Registro</span>
@@ -448,62 +449,62 @@ export default function Deudas() {
         </div>
       </header>
 
-      {/* ═══ Tarjetas de Métricas y Balance Neto ═══ */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      {/* ═══ Tarjetas de Métricas y Balance Neto (2+1 en móvil, 3 en sm+) ═══ */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4">
         {/* Card 1: Me Deben (Por Cobrar) */}
         <div 
           onClick={() => setCategoryFilter(categoryFilter === 'receivable' ? 'all' : 'receivable')}
-          className={`cursor-pointer bg-white/80 dark:bg-gray-900/80 glass dark:dark-glass p-5 rounded-3xl border transition-all duration-300 shadow-xs hover:shadow-md ${
+          className={`cursor-pointer bg-white dark:bg-[#111827] p-3.5 sm:p-5 rounded-2xl sm:rounded-3xl border transition-all duration-300 shadow-xs hover:shadow-md ${
             categoryFilter === 'receivable'
               ? 'border-emerald-500 ring-2 ring-emerald-500/20'
-              : 'border-gray-200/50 dark:border-gray-800'
+              : 'border-gray-200/80 dark:border-white/[0.09]'
           }`}
         >
-          <div className="flex items-center justify-between gap-2 mb-2">
-            <span className="font-syne text-[10px] font-bold uppercase tracking-widest text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5">
-              <HiOutlineTrendingUp className="text-sm" />
-              Me Deben (Por Cobrar)
+          <div className="flex items-center justify-between gap-1.5 mb-1.5">
+            <span className="font-syne text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400 flex items-center gap-1 truncate">
+              <HiOutlineTrendingUp className="text-sm shrink-0" />
+              <span>Me Deben</span>
             </span>
-            <span className="size-2 rounded-full bg-emerald-500 animate-pulse" />
+            <span className="size-2 rounded-full bg-emerald-500 animate-pulse shrink-0" />
           </div>
-          <p className="font-dm-sans text-2xl sm:text-3xl font-extrabold text-emerald-600 dark:text-emerald-400">
+          <p className="font-dm-sans text-xl sm:text-3xl font-extrabold text-emerald-600 dark:text-emerald-400 truncate">
             ${pendingReceivables.toLocaleString()}
           </p>
-          <p className="font-inter text-[11px] text-gray-400 mt-1">
-            {receivables.filter(d => !d.settled).length} cuentas pendientes · ${settledReceivables.toLocaleString()} ya cobrado
+          <p className="font-inter text-[11px] text-gray-400 mt-1 truncate">
+            {receivables.filter(d => !d.settled).length} pend. · ${settledReceivables.toLocaleString()} cobr.
           </p>
         </div>
 
         {/* Card 2: Yo Debo (Por Pagar) */}
         <div 
           onClick={() => setCategoryFilter(categoryFilter === 'payable' ? 'all' : 'payable')}
-          className={`cursor-pointer bg-white/80 dark:bg-gray-900/80 glass dark:dark-glass p-5 rounded-3xl border transition-all duration-300 shadow-xs hover:shadow-md ${
+          className={`cursor-pointer bg-white dark:bg-[#111827] p-3.5 sm:p-5 rounded-2xl sm:rounded-3xl border transition-all duration-300 shadow-xs hover:shadow-md ${
             categoryFilter === 'payable'
               ? 'border-rose-500 ring-2 ring-rose-500/20'
-              : 'border-gray-200/50 dark:border-gray-800'
+              : 'border-gray-200/80 dark:border-white/[0.09]'
           }`}
         >
-          <div className="flex items-center justify-between gap-2 mb-2">
-            <span className="font-syne text-[10px] font-bold uppercase tracking-widest text-rose-600 dark:text-rose-400 flex items-center gap-1.5">
-              <HiOutlineTrendingDown className="text-sm" />
-              Yo Debo (Por Pagar)
+          <div className="flex items-center justify-between gap-1.5 mb-1.5">
+            <span className="font-syne text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-rose-600 dark:text-rose-400 flex items-center gap-1 truncate">
+              <HiOutlineTrendingDown className="text-sm shrink-0" />
+              <span>Yo Debo</span>
             </span>
-            <span className="size-2 rounded-full bg-rose-500 animate-pulse" />
+            <span className="size-2 rounded-full bg-rose-500 animate-pulse shrink-0" />
           </div>
-          <p className="font-dm-sans text-2xl sm:text-3xl font-extrabold text-rose-600 dark:text-rose-400">
+          <p className="font-dm-sans text-xl sm:text-3xl font-extrabold text-rose-600 dark:text-rose-400 truncate">
             ${pendingPayables.toLocaleString()}
           </p>
-          <p className="font-inter text-[11px] text-gray-400 mt-1">
-            {payables.filter(d => !d.settled).length} deudas pendientes · ${settledPayables.toLocaleString()} ya pagado
+          <p className="font-inter text-[11px] text-gray-400 mt-1 truncate">
+            {payables.filter(d => !d.settled).length} pend. · ${settledPayables.toLocaleString()} pag.
           </p>
         </div>
 
         {/* Card 3: Balance Neto */}
-        <div className="bg-white/80 dark:bg-gray-900/80 glass dark:dark-glass p-5 rounded-3xl border border-gray-200/50 dark:border-gray-800 shadow-xs flex flex-col justify-between">
-          <div className="flex items-center justify-between gap-2 mb-2">
-            <span className="font-syne text-[10px] font-bold uppercase tracking-widest text-gray-400 dark:text-gray-400 flex items-center gap-1.5">
+        <div className="col-span-2 sm:col-span-1 bg-white dark:bg-[#111827] p-3.5 sm:p-5 rounded-2xl sm:rounded-3xl border border-gray-200/80 dark:border-white/[0.09] shadow-xs flex flex-col justify-between">
+          <div className="flex items-center justify-between gap-2 mb-1.5">
+            <span className="font-syne text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400 flex items-center gap-1.5">
               <HiOutlineScale className="text-sm" />
-              Balance Neto Pendiente
+              Balance Neto
             </span>
             <span className={`text-[10px] font-syne font-bold uppercase tracking-wider px-2 py-0.5 rounded-full ${
               netBalance >= 0 
@@ -513,52 +514,55 @@ export default function Deudas() {
               {netBalance >= 0 ? 'A tu favor' : 'En contra'}
             </span>
           </div>
-          <p className={`font-dm-sans text-2xl sm:text-3xl font-extrabold ${
+          <p className={`font-dm-sans text-xl sm:text-3xl font-extrabold ${
             netBalance >= 0 ? 'text-emerald-500 dark:text-emerald-400' : 'text-rose-500 dark:text-rose-400'
           }`}>
             {netBalance >= 0 ? `+$${netBalance.toLocaleString()}` : `-$${Math.abs(netBalance).toLocaleString()}`}
           </p>
           <p className="font-inter text-[11px] text-gray-400 mt-1">
-            Diferencia entre lo que te deben y lo que debes
+            Diferencia neta pendiente
           </p>
         </div>
       </div>
 
-      {/* ═══ Pestañas Principales de Categoría (Me Deben / Yo Debo / Todas) ═══ */}
-      <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4">
+      {/* ═══ Pestañas Principales de Categoría (Todas / Me Deben / Yo Debo — 100% visibles) ═══ */}
+      <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
         {/* Selector de Categoría */}
-        <div className="flex items-center gap-2 p-1.5 bg-gray-100 dark:bg-gray-800/80 rounded-2xl border border-gray-200/50 dark:border-gray-700/50 shrink-0 overflow-x-auto scrollbar-none">
+        <div className="grid grid-cols-3 sm:flex items-center gap-1.5 p-1 bg-gray-100 dark:bg-gray-800/80 rounded-2xl border border-gray-200/60 dark:border-white/10 shrink-0">
           <button
+            type="button"
             onClick={() => setCategoryFilter('all')}
-            className={`px-4 py-2 rounded-xl text-xs font-syne font-bold uppercase tracking-wider transition-all whitespace-nowrap ${
+            className={`px-2 sm:px-4 min-h-[40px] py-1.5 rounded-xl text-[11px] sm:text-xs font-syne font-bold uppercase tracking-wider transition-all text-center cursor-pointer ${
               categoryFilter === 'all'
-                ? 'bg-white dark:bg-gray-900 text-black dark:text-white shadow-xs'
+                ? 'bg-white dark:bg-[#111827] text-black dark:text-white shadow-xs'
                 : 'text-gray-500 dark:text-gray-400 hover:text-black dark:hover:text-white'
             }`}
           >
             Todas ({debts.length})
           </button>
           <button
+            type="button"
             onClick={() => setCategoryFilter('receivable')}
-            className={`px-4 py-2 rounded-xl text-xs font-syne font-bold uppercase tracking-wider transition-all flex items-center gap-1.5 whitespace-nowrap ${
+            className={`px-2 sm:px-4 min-h-[40px] py-1.5 rounded-xl text-[11px] sm:text-xs font-syne font-bold uppercase tracking-wider transition-all flex items-center justify-center gap-1 cursor-pointer ${
               categoryFilter === 'receivable'
                 ? 'bg-emerald-500 text-white shadow-xs'
                 : 'text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/30'
             }`}
           >
-            <span className="size-2 rounded-full bg-current" />
-            Me Deben ({receivables.length})
+            <span className="size-2 rounded-full bg-current shrink-0 hidden sm:inline-block" />
+            <span>Cobrar ({receivables.length})</span>
           </button>
           <button
+            type="button"
             onClick={() => setCategoryFilter('payable')}
-            className={`px-4 py-2 rounded-xl text-xs font-syne font-bold uppercase tracking-wider transition-all flex items-center gap-1.5 whitespace-nowrap ${
+            className={`px-2 sm:px-4 min-h-[40px] py-1.5 rounded-xl text-[11px] sm:text-xs font-syne font-bold uppercase tracking-wider transition-all flex items-center justify-center gap-1 cursor-pointer ${
               categoryFilter === 'payable'
                 ? 'bg-rose-500 text-white shadow-xs'
                 : 'text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/30'
             }`}
           >
-            <span className="size-2 rounded-full bg-current" />
-            Yo Debo ({payables.length})
+            <span className="size-2 rounded-full bg-current shrink-0 hidden sm:inline-block" />
+            <span>Pagar ({payables.length})</span>
           </button>
         </div>
 
@@ -597,7 +601,7 @@ export default function Deudas() {
             <HiOutlineSearch className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 text-base" />
           </div>
 
-          {/* Selector Vista Tarjetas / Tabla (Desktop & Tablet) */}
+          {/* Selector Vista Tarjetas / Tabla */}
           <div className="hidden sm:flex items-center bg-gray-100 dark:bg-gray-800 p-1 rounded-2xl border border-gray-200/50 dark:border-gray-700 shrink-0">
             <button
               onClick={() => setViewMode('cards')}
