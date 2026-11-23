@@ -260,7 +260,7 @@ export default function DashboardHome() {
           }
         }
 
-        // 2. Upcoming events / reminders in the next 3 days
+        // 2. Upcoming events / reminders in the next 5 days
         const upcomingEvents: { id: string; title: string; category: string; daysLeft: number; time?: string }[] = [];
         if (rem?.data) {
           for (const r of rem.data) {
@@ -278,8 +278,8 @@ export default function DashboardHome() {
             } else {
               target = new Date(dateVal + 'T00:00:00');
             }
-            const diffDays = Math.ceil((target.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
-            if (diffDays >= 0 && diffDays <= 3) {
+            const diffDays = Math.round((target.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+            if (diffDays >= 0 && diffDays <= 5) {
               upcomingEvents.push({
                 id: r.id,
                 title: r.title,
@@ -289,23 +289,27 @@ export default function DashboardHome() {
               });
             }
           }
+          upcomingEvents.sort((a, b) => a.daysLeft - b.daysLeft);
         }
 
-        // 3. Urgent or high-priority tasks (with Area metadata)
+        // 3. Overdue, urgent, high-priority, or near-term tasks (with Area metadata)
         const urgentTasks: { id: string; title: string; due_date?: string; priority?: string; area?: string }[] = [];
         if (tsk?.data) {
           for (const t of tsk.data) {
             const meta = parseTaskMeta(t);
-            if (meta.priority === 'Alta' || meta.priority === 'Urgente') {
+            const diffDays = t.due_date
+              ? Math.round((new Date(t.due_date + 'T00:00:00').getTime() - today.getTime()) / (1000 * 60 * 60 * 24))
+              : null;
+            if (diffDays !== null && diffDays < 0) {
+              urgentTasks.push({ id: t.id, title: t.title, due_date: t.due_date, priority: 'Vencida', area: meta.area });
+            } else if (meta.priority === 'Alta' || meta.priority === 'Urgente') {
               urgentTasks.push({ id: t.id, title: t.title, due_date: t.due_date, priority: meta.priority, area: meta.area });
-            } else if (t.due_date) {
-              const target = new Date(t.due_date + 'T00:00:00');
-              const diffDays = Math.ceil((target.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
-              if (diffDays >= 0 && diffDays <= 2) {
-                urgentTasks.push({ id: t.id, title: t.title, due_date: t.due_date, priority: 'Próxima', area: meta.area });
-              }
+            } else if (diffDays !== null && diffDays >= 0 && diffDays <= 5) {
+              urgentTasks.push({ id: t.id, title: t.title, due_date: t.due_date, priority: 'Próxima', area: meta.area });
             }
           }
+          const rank: Record<string, number> = { Vencida: 0, Urgente: 1, Alta: 2, Próxima: 3 };
+          urgentTasks.sort((a, b) => (rank[a.priority || ''] ?? 4) - (rank[b.priority || ''] ?? 4));
         }
 
         // 4. Current Quincena Balance
@@ -726,7 +730,7 @@ export default function DashboardHome() {
                 </div>
               ) : (
                 <p className="font-inter text-xs text-gray-500 dark:text-gray-400">
-                  🏖️ Sin eventos en los próximos 3 días.
+                  🏖️ Sin eventos en los próximos 5 días.
                 </p>
               )}
             </div>
@@ -756,8 +760,12 @@ export default function DashboardHome() {
                           {t.title}
                         </span>
                       </button>
-                      <span className="shrink-0 font-syne text-[10px] font-bold uppercase px-2 py-0.5 rounded bg-sky-50 dark:bg-sky-950/60 text-sky-700 dark:text-sky-300">
-                        {t.area || t.priority}
+                      <span className={`shrink-0 font-syne text-[10px] font-bold uppercase px-2 py-0.5 rounded ${
+                        t.priority === 'Vencida'
+                          ? 'bg-rose-500/15 text-rose-600 dark:text-rose-300'
+                          : 'bg-sky-50 dark:bg-sky-950/60 text-sky-700 dark:text-sky-300'
+                      }`}>
+                        {t.priority === 'Vencida' ? 'Vencida' : t.area || t.priority}
                       </span>
                     </div>
                   ))}
