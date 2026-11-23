@@ -13,10 +13,14 @@ import { useToast } from '@/components/common/ToastContext';
 import {
   PortfolioCmsData,
   CmsProject,
+  CmsExperience,
+  CmsCertification,
   DEFAULT_CMS_DATA,
   loadPortfolioCms,
   savePortfolioCms,
 } from '@/lib/portfolioCms';
+
+type CmsTab = 'projects' | 'experiences' | 'certifications';
 
 const SQL_SNIPPET = `CREATE TABLE IF NOT EXISTS public.portfolio_settings (
   id TEXT PRIMARY KEY DEFAULT 'main',
@@ -29,10 +33,63 @@ CREATE POLICY "Public read portfolio settings" ON public.portfolio_settings FOR 
 DROP POLICY IF EXISTS "Owner manage portfolio settings" ON public.portfolio_settings;
 CREATE POLICY "Owner manage portfolio settings" ON public.portfolio_settings FOR ALL TO authenticated USING (true) WITH CHECK (true);`;
 
+const CARD_CLS =
+  'bg-white dark:bg-[#111827] rounded-[2rem] p-5 sm:p-6 border border-gray-200/80 dark:border-white/[0.09] shadow-sm space-y-4';
+const INPUT_CLS =
+  'w-full px-4 min-h-[44px] py-2 bg-gray-50/70 dark:bg-gray-800/80 border border-gray-200 dark:border-gray-700 rounded-xl outline-none focus:border-[var(--vibrant-sky-blue)] font-inter text-sm text-gray-900 dark:text-white';
+const LABEL_CLS =
+  'block font-syne text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-1';
+
+interface CollectionItemHeaderProps {
+  label: string;
+  index: number;
+  visible: boolean;
+  onToggleVisible: () => void;
+  onRemove: () => void;
+}
+
+/** Shared header bar with visibility toggle and undoable delete for portfolio collection cards. */
+function CollectionItemHeader({
+  label,
+  index,
+  visible,
+  onToggleVisible,
+  onRemove,
+}: CollectionItemHeaderProps) {
+  return (
+    <div className="flex items-center justify-between gap-2">
+      <span className="font-syne text-xs font-bold uppercase tracking-wider text-[var(--vibrant-sky-blue)]">
+        {label} #{index + 1}
+      </span>
+      <div className="flex items-center gap-2">
+        <button
+          type="button"
+          onClick={onToggleVisible}
+          className={`px-3 min-h-[40px] py-1.5 rounded-xl text-[10px] font-syne font-bold uppercase tracking-wider flex items-center gap-1.5 cursor-pointer ${
+            visible
+              ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-300'
+              : 'bg-gray-200 dark:bg-gray-800 text-gray-500 dark:text-gray-400'
+          }`}
+        >
+          {visible ? <HiOutlineEye /> : <HiOutlineEyeOff />}
+          <span>{visible ? 'Visible' : 'Oculto'}</span>
+        </button>
+        <button
+          type="button"
+          onClick={onRemove}
+          className="min-w-[40px] min-h-[40px] p-2 text-rose-500 hover:bg-rose-500/10 rounded-xl cursor-pointer flex items-center justify-center"
+          title={`Quitar ${label.toLowerCase()}`}
+        >
+          <HiOutlineTrash />
+        </button>
+      </div>
+    </div>
+  );
+}
+
 export default function PortafolioCMS() {
   const [cms, setCms] = useState<PortfolioCmsData>(DEFAULT_CMS_DATA);
-  const [phrasesInput, setPhrasesInput] = useState('');
-  const [activeTab, setActiveTab] = useState<'hero' | 'projects'>('hero');
+  const [activeTab, setActiveTab] = useState<CmsTab>('projects');
   const [sourceType, setSourceType] = useState<'public_table' | 'system_store' | 'default'>('default');
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -42,7 +99,6 @@ export default function PortafolioCMS() {
   useEffect(() => {
     loadPortfolioCms().then(({ data, source }) => {
       setCms(data);
-      setPhrasesInput((data.heroPhrases || []).join(', '));
       setSourceType(source);
       setLoading(false);
     });
@@ -52,22 +108,12 @@ export default function PortafolioCMS() {
     e.preventDefault();
     setSaving(true);
     try {
-      const parsedPhrases = phrasesInput
-        .split(',')
-        .map((s) => s.trim())
-        .filter(Boolean);
-
-      const payload: PortfolioCmsData = {
-        ...cms,
-        heroPhrases: parsedPhrases,
-      };
-
-      const { savedPublicTable } = await savePortfolioCms(payload);
+      const { savedPublicTable } = await savePortfolioCms(cms);
       setSourceType(savedPublicTable ? 'public_table' : 'system_store');
       toast.success(
         savedPublicTable
           ? 'Portafolio público actualizado en vivo ✨'
-          : 'Guardado en modo privado/local ✨ (agrega el SQL para hacerlo público a visitantes)'
+          : 'Cambios guardados en tu panel ✨ (ejecuta el SQL público para reflejarlos a visitantes)'
       );
     } catch (err: any) {
       toast.error('Error al guardar CMS: ' + err.message);
@@ -76,32 +122,61 @@ export default function PortafolioCMS() {
     }
   };
 
-  const handleAddProject = () => {
-    const newProj: CmsProject = {
-      id: `proj_${Date.now()}`,
-      title: 'Nuevo Proyecto',
-      description: 'Descripción concisa de arquitectura, stack e impacto logrado.',
-      tags: ['React', 'TypeScript'],
-      image: '/assets/projects-section/Project1.jpg',
-      visible: true,
-    };
-    setCms((prev) => ({ ...prev, projects: [...prev.projects, newProj] }));
-  };
-
-  const handleUpdateProject = (idx: number, patch: Partial<CmsProject>) => {
+  const updateCollectionItem = <K extends CmsTab>(
+    key: K,
+    idx: number,
+    patch: Partial<PortfolioCmsData[K][number]>
+  ) => {
     setCms((prev) => ({
       ...prev,
-      projects: prev.projects.map((p, i) => (i === idx ? { ...p, ...patch } : p)),
+      [key]: prev[key].map((item, i) => (i === idx ? { ...item, ...patch } : item)),
     }));
   };
 
-  const handleRemoveProject = (idx: number) => {
-    const removed = cms.projects[idx];
-    const prevList = cms.projects;
-    setCms((prev) => ({ ...prev, projects: prev.projects.filter((_, i) => i !== idx) }));
-    toast.undoable(`Proyecto "${removed?.title}" quitado`, () => {
-      setCms((prev) => ({ ...prev, projects: prevList }));
+  const removeCollectionItem = <K extends CmsTab>(key: K, idx: number, entityName: string) => {
+    const prevList = cms[key];
+    const removed = prevList[idx] as { title?: string } | undefined;
+    setCms((prev) => ({ ...prev, [key]: prev[key].filter((_, i) => i !== idx) }));
+    toast.undoable(`${entityName} "${removed?.title || ''}" quitado`, () => {
+      setCms((prev) => ({ ...prev, [key]: prevList }));
     });
+  };
+
+  const handleAddCurrent = () => {
+    if (activeTab === 'projects') {
+      const newProj: CmsProject = {
+        id: `proj_${Date.now()}`,
+        title: 'Nuevo Proyecto',
+        description: 'Descripción concisa de arquitectura, stack e impacto logrado.',
+        tags: ['React', 'TypeScript'],
+        image: '/assets/projects-section/Project1.jpg',
+        visible: true,
+      };
+      setCms((prev) => ({ ...prev, projects: [...prev.projects, newProj] }));
+      return;
+    }
+
+    if (activeTab === 'experiences') {
+      const newExp: CmsExperience = {
+        id: `exp_${Date.now()}`,
+        year: '2025 - Presente',
+        title: 'Nuevo Rol / Experiencia',
+        company: 'Organización',
+        description: 'Responsabilidades clave, arquitectura y resultados alcanzados.',
+        visible: true,
+      };
+      setCms((prev) => ({ ...prev, experiences: [...prev.experiences, newExp] }));
+      return;
+    }
+
+    const newCert: CmsCertification = {
+      id: `cert_${Date.now()}`,
+      title: 'Nueva Certificación',
+      subtitle: 'Institución • Emisor',
+      link: 'https://',
+      visible: true,
+    };
+    setCms((prev) => ({ ...prev, certifications: [...prev.certifications, newCert] }));
   };
 
   const handleCopySql = async () => {
@@ -122,15 +197,21 @@ export default function PortafolioCMS() {
     );
   }
 
+  const addButtonLabels: Record<CmsTab, string> = {
+    projects: 'Añadir Proyecto',
+    experiences: 'Añadir Experiencia',
+    certifications: 'Añadir Certificación',
+  };
+
   return (
-    <div className="space-y-8 pb-28 sm:pb-20">
+    <div className="space-y-6 sm:space-y-8 pb-28 sm:pb-20">
       <header className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
         <div>
-          <h1 className="font-dm-sans text-3xl md:text-4xl font-bold tracking-tight text-[var(--black)] dark:text-white">
+          <h1 className="font-dm-sans text-2xl sm:text-3xl md:text-4xl font-bold tracking-tight text-[var(--black)] dark:text-white">
             Mini-CMS <span className="text-gradient">Portafolio</span>
           </h1>
-          <p className="font-inter mt-1 text-[var(--dark-gray)] dark:text-gray-400 font-light text-sm">
-            Edita tu Hero y proyectos destacados públicos sin modificar código ni hacer deploy.
+          <p className="font-inter mt-1 text-[var(--dark-gray)] dark:text-gray-400 font-light text-xs sm:text-sm">
+            Administra las colecciones dinámicas de tu portafolio público (proyectos, experiencia y certificaciones) sin modificar código.
           </p>
         </div>
 
@@ -138,7 +219,7 @@ export default function PortafolioCMS() {
           <Link
             to="/"
             target="_blank"
-            className="px-4 min-h-[44px] py-2.5 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-800 dark:text-gray-100 rounded-2xl font-syne text-xs font-bold uppercase tracking-wider flex items-center gap-2 cursor-pointer"
+            className="px-4 min-h-[44px] py-2.5 bg-white dark:bg-[#111827] border border-gray-200/80 dark:border-white/[0.09] text-gray-800 dark:text-gray-100 rounded-2xl font-syne text-xs font-bold uppercase tracking-wider flex items-center gap-2 cursor-pointer"
           >
             <span>Ver Portafolio</span>
             <HiOutlineExternalLink className="text-base" />
@@ -156,200 +237,229 @@ export default function PortafolioCMS() {
         </div>
       </header>
 
-      {/* Tabs */}
-      <div className="flex items-center gap-2">
-        {[
-          { id: 'hero', label: 'Hero & Perfil' },
-          { id: 'projects', label: `Proyectos (${cms.projects.length})` },
-        ].map((tab) => (
-          <button
-            key={tab.id}
-            type="button"
-            onClick={() => setActiveTab(tab.id as any)}
-            className={`px-5 min-h-[44px] py-2.5 rounded-2xl text-xs font-syne font-bold uppercase tracking-wider transition-all cursor-pointer ${
-              activeTab === tab.id
-                ? 'bg-black dark:bg-white text-white dark:text-black shadow-md'
-                : 'bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-300 border border-gray-100 dark:border-gray-700'
-            }`}
-          >
-            {tab.label}
-          </button>
-        ))}
+      {/* Collection Tabs + Add CTA */}
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex flex-wrap items-center gap-2">
+          {[
+            { id: 'projects' as const, label: `Proyectos (${cms.projects.length})` },
+            { id: 'experiences' as const, label: `Experiencia (${cms.experiences.length})` },
+            { id: 'certifications' as const, label: `Certificaciones (${cms.certifications.length})` },
+          ].map((tab) => (
+            <button
+              key={tab.id}
+              type="button"
+              onClick={() => setActiveTab(tab.id)}
+              className={`px-4 sm:px-5 min-h-[44px] py-2.5 rounded-2xl text-xs font-syne font-bold uppercase tracking-wider transition-all cursor-pointer ${
+                activeTab === tab.id
+                  ? 'bg-black dark:bg-white text-white dark:text-black shadow-md'
+                  : 'bg-white dark:bg-[#111827] text-gray-600 dark:text-gray-300 border border-gray-200/80 dark:border-white/[0.09] hover:bg-gray-50 dark:hover:bg-gray-800'
+              }`}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
+
+        <button
+          type="button"
+          onClick={handleAddCurrent}
+          className="px-4 sm:px-5 min-h-[44px] py-2.5 bg-black dark:bg-white text-white dark:text-black rounded-2xl font-syne text-xs font-bold uppercase tracking-wider flex items-center gap-2 shadow-sm hover:opacity-90 active:scale-95 transition-all cursor-pointer"
+        >
+          <HiOutlinePlus className="text-base" />
+          <span>{addButtonLabels[activeTab]}</span>
+        </button>
       </div>
 
       <form onSubmit={handleSave} className="space-y-6">
-        {activeTab === 'hero' ? (
-          <div className="bg-white/90 dark:bg-gray-900/90 glass dark:dark-glass rounded-[2rem] p-5 sm:p-8 border border-gray-100 dark:border-gray-800 shadow-sm space-y-5">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label className="block font-syne text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-1.5">
-                  Rol / Eyebrow (Deja vacío para usar idioma por defecto)
-                </label>
-                <input
-                  type="text"
-                  placeholder="Ej. Desarrollo de Software & Gestión de Proyectos"
-                  value={cms.heroEyebrow}
-                  onChange={(e) => setCms({ ...cms, heroEyebrow: e.target.value })}
-                  className="w-full px-4 min-h-[44px] py-2.5 bg-gray-50/70 dark:bg-gray-800/80 border border-gray-200 dark:border-gray-700 rounded-xl font-inter text-sm text-gray-900 dark:text-white"
-                />
-              </div>
-
-              <div>
-                <label className="block font-syne text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-1.5">
-                  Titular Principal (Línea 1)
-                </label>
-                <input
-                  type="text"
-                  placeholder="Ej. Arquitectura"
-                  value={cms.heroHeadline}
-                  onChange={(e) => setCms({ ...cms, heroHeadline: e.target.value })}
-                  className="w-full px-4 min-h-[44px] py-2.5 bg-gray-50/70 dark:bg-gray-800/80 border border-gray-200 dark:border-gray-700 rounded-xl font-inter text-sm text-gray-900 dark:text-white"
-                />
-              </div>
-            </div>
-
-            <div>
-              <label className="block font-syne text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-1.5">
-                Frases Rotativas (separadas por coma)
-              </label>
-              <input
-                type="text"
-                placeholder="Estabilidad, Precisión, Impacto, Innovación, Sinergia de IA..."
-                value={phrasesInput}
-                onChange={(e) => setPhrasesInput(e.target.value)}
-                className="w-full px-4 min-h-[44px] py-2.5 bg-gray-50/70 dark:bg-gray-800/80 border border-gray-200 dark:border-gray-700 rounded-xl font-inter text-sm text-gray-900 dark:text-white"
-              />
-            </div>
-
-            <div>
-              <label className="block font-syne text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-1.5">
-                Bio / Párrafo de Presentación
-              </label>
-              <textarea
-                rows={4}
-                placeholder="Deja vacío para mantener el texto bilingüe original..."
-                value={cms.heroBio}
-                onChange={(e) => setCms({ ...cms, heroBio: e.target.value })}
-                className="w-full p-4 bg-gray-50/70 dark:bg-gray-800/80 border border-gray-200 dark:border-gray-700 rounded-2xl font-inter text-sm text-gray-900 dark:text-white resize-y min-h-[120px]"
-              />
-            </div>
-
-            <div>
-              <label className="block font-syne text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-1.5">
-                Texto del Botón CTA
-              </label>
-              <input
-                type="text"
-                placeholder="Ej. Explora mi Portafolio"
-                value={cms.heroCta}
-                onChange={(e) => setCms({ ...cms, heroCta: e.target.value })}
-                className="w-full px-4 min-h-[44px] py-2.5 bg-gray-50/70 dark:bg-gray-800/80 border border-gray-200 dark:border-gray-700 rounded-xl font-inter text-sm text-gray-900 dark:text-white"
-              />
-            </div>
-          </div>
-        ) : (
+        {activeTab === 'projects' && (
           <div className="space-y-4">
-            <div className="flex justify-end">
-              <button
-                type="button"
-                onClick={handleAddProject}
-                className="px-4 min-h-[44px] py-2.5 bg-black dark:bg-white text-white dark:text-black rounded-2xl font-syne text-xs font-bold uppercase tracking-wider flex items-center gap-2 cursor-pointer"
-              >
-                <HiOutlinePlus />
-                <span>Añadir Proyecto</span>
-              </button>
-            </div>
-
-            {cms.projects.map((proj, idx) => (
-              <div
-                key={proj.id}
-                className="bg-white/90 dark:bg-gray-900/90 glass dark:dark-glass rounded-[2rem] p-5 sm:p-6 border border-gray-100 dark:border-gray-800 shadow-sm space-y-4"
-              >
-                <div className="flex items-center justify-between gap-2">
-                  <span className="font-syne text-xs font-bold uppercase tracking-wider text-[var(--vibrant-sky-blue)]">
-                    Proyecto #{idx + 1}
-                  </span>
-                  <div className="flex items-center gap-2">
-                    <button
-                      type="button"
-                      onClick={() => handleUpdateProject(idx, { visible: !proj.visible })}
-                      className={`px-3 min-h-[36px] py-1.5 rounded-xl text-[10px] font-syne font-bold uppercase tracking-wider flex items-center gap-1.5 cursor-pointer ${
-                        proj.visible
-                          ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-300'
-                          : 'bg-gray-200 dark:bg-gray-800 text-gray-500'
-                      }`}
-                    >
-                      {proj.visible ? <HiOutlineEye /> : <HiOutlineEyeOff />}
-                      <span>{proj.visible ? 'Visible' : 'Oculto'}</span>
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => handleRemoveProject(idx)}
-                      className="p-2 text-rose-500 hover:bg-rose-500/10 rounded-xl cursor-pointer"
-                      title="Quitar proyecto"
-                    >
-                      <HiOutlineTrash />
-                    </button>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <div>
-                    <label className="block font-syne text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-1">
-                      Título
-                    </label>
-                    <input
-                      type="text"
-                      value={proj.title}
-                      onChange={(e) => handleUpdateProject(idx, { title: e.target.value })}
-                      className="w-full px-4 min-h-[44px] py-2 bg-gray-50/70 dark:bg-gray-800/80 border border-gray-200 dark:border-gray-700 rounded-xl font-inter text-sm text-gray-900 dark:text-white"
-                    />
-                  </div>
-                  <div>
-                    <label className="block font-syne text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-1">
-                      Ruta de Imagen / URL
-                    </label>
-                    <input
-                      type="text"
-                      value={proj.image}
-                      onChange={(e) => handleUpdateProject(idx, { image: e.target.value })}
-                      className="w-full px-4 min-h-[44px] py-2 bg-gray-50/70 dark:bg-gray-800/80 border border-gray-200 dark:border-gray-700 rounded-xl font-inter text-sm text-gray-900 dark:text-white"
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block font-syne text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-1">
-                    Descripción
-                  </label>
-                  <textarea
-                    rows={2}
-                    value={proj.description}
-                    onChange={(e) => handleUpdateProject(idx, { description: e.target.value })}
-                    className="w-full p-3 bg-gray-50/70 dark:bg-gray-800/80 border border-gray-200 dark:border-gray-700 rounded-xl font-inter text-sm text-gray-900 dark:text-white resize-y min-h-[84px]"
-                  />
-                </div>
-
-                <div>
-                  <label className="block font-syne text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-1">
-                    Tecnologías / Tags (separados por coma)
-                  </label>
-                  <input
-                    type="text"
-                    value={proj.tags.join(', ')}
-                    onChange={(e) =>
-                      handleUpdateProject(idx, {
-                        tags: e.target.value
-                          .split(',')
-                          .map((t) => t.trim())
-                          .filter(Boolean),
-                      })
-                    }
-                    className="w-full px-4 min-h-[44px] py-2 bg-gray-50/70 dark:bg-gray-800/80 border border-gray-200 dark:border-gray-700 rounded-xl font-inter text-sm text-gray-900 dark:text-white"
-                  />
-                </div>
+            {cms.projects.length === 0 ? (
+              <div className={`${CARD_CLS} text-center py-10 text-gray-500 dark:text-gray-400 font-inter text-sm`}>
+                No hay proyectos registrados en tu portafolio.
               </div>
-            ))}
+            ) : (
+              cms.projects.map((proj, idx) => (
+                <div key={proj.id} className={CARD_CLS}>
+                  <CollectionItemHeader
+                    label="Proyecto"
+                    index={idx}
+                    visible={proj.visible}
+                    onToggleVisible={() => updateCollectionItem('projects', idx, { visible: !proj.visible })}
+                    onRemove={() => removeCollectionItem('projects', idx, 'Proyecto')}
+                  />
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                      <label className={LABEL_CLS}>Título</label>
+                      <input
+                        type="text"
+                        value={proj.title}
+                        onChange={(e) => updateCollectionItem('projects', idx, { title: e.target.value })}
+                        className={INPUT_CLS}
+                      />
+                    </div>
+                    <div>
+                      <label className={LABEL_CLS}>Ruta de Imagen / URL</label>
+                      <input
+                        type="text"
+                        value={proj.image}
+                        onChange={(e) => updateCollectionItem('projects', idx, { image: e.target.value })}
+                        className={INPUT_CLS}
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className={LABEL_CLS}>Descripción</label>
+                    <textarea
+                      rows={2}
+                      value={proj.description}
+                      onChange={(e) => updateCollectionItem('projects', idx, { description: e.target.value })}
+                      className="w-full p-3 bg-gray-50/70 dark:bg-gray-800/80 border border-gray-200 dark:border-gray-700 rounded-xl outline-none focus:border-[var(--vibrant-sky-blue)] font-inter text-sm text-gray-900 dark:text-white resize-y min-h-[84px]"
+                    />
+                  </div>
+
+                  <div>
+                    <label className={LABEL_CLS}>Tecnologías / Tags (separados por coma)</label>
+                    <input
+                      type="text"
+                      value={proj.tags.join(', ')}
+                      onChange={(e) =>
+                        updateCollectionItem('projects', idx, {
+                          tags: e.target.value
+                            .split(',')
+                            .map((t) => t.trim())
+                            .filter(Boolean),
+                        })
+                      }
+                      className={INPUT_CLS}
+                    />
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        )}
+
+        {activeTab === 'experiences' && (
+          <div className="space-y-4">
+            {cms.experiences.length === 0 ? (
+              <div className={`${CARD_CLS} text-center py-10 text-gray-500 dark:text-gray-400 font-inter text-sm`}>
+                No hay experiencias registradas en tu portafolio.
+              </div>
+            ) : (
+              cms.experiences.map((exp, idx) => (
+                <div key={exp.id} className={CARD_CLS}>
+                  <CollectionItemHeader
+                    label="Experiencia"
+                    index={idx}
+                    visible={exp.visible}
+                    onToggleVisible={() => updateCollectionItem('experiences', idx, { visible: !exp.visible })}
+                    onRemove={() => removeCollectionItem('experiences', idx, 'Experiencia')}
+                  />
+
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <div>
+                      <label className={LABEL_CLS}>Período / Año</label>
+                      <input
+                        type="text"
+                        placeholder="Ej. 2024 - Presente"
+                        value={exp.year}
+                        onChange={(e) => updateCollectionItem('experiences', idx, { year: e.target.value })}
+                        className={INPUT_CLS}
+                      />
+                    </div>
+                    <div>
+                      <label className={LABEL_CLS}>Cargo / Título</label>
+                      <input
+                        type="text"
+                        value={exp.title}
+                        onChange={(e) => updateCollectionItem('experiences', idx, { title: e.target.value })}
+                        className={INPUT_CLS}
+                      />
+                    </div>
+                    <div>
+                      <label className={LABEL_CLS}>Empresa / Institución</label>
+                      <input
+                        type="text"
+                        value={exp.company}
+                        onChange={(e) => updateCollectionItem('experiences', idx, { company: e.target.value })}
+                        className={INPUT_CLS}
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className={LABEL_CLS}>Descripción</label>
+                    <textarea
+                      rows={3}
+                      value={exp.description}
+                      onChange={(e) => updateCollectionItem('experiences', idx, { description: e.target.value })}
+                      className="w-full p-3 bg-gray-50/70 dark:bg-gray-800/80 border border-gray-200 dark:border-gray-700 rounded-xl outline-none focus:border-[var(--vibrant-sky-blue)] font-inter text-sm text-gray-900 dark:text-white resize-y min-h-[84px]"
+                    />
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        )}
+
+        {activeTab === 'certifications' && (
+          <div className="space-y-4">
+            {cms.certifications.length === 0 ? (
+              <div className={`${CARD_CLS} text-center py-10 text-gray-500 dark:text-gray-400 font-inter text-sm`}>
+                No hay certificaciones registradas en tu portafolio.
+              </div>
+            ) : (
+              cms.certifications.map((cert, idx) => (
+                <div key={cert.id} className={CARD_CLS}>
+                  <CollectionItemHeader
+                    label="Certificación"
+                    index={idx}
+                    visible={cert.visible}
+                    onToggleVisible={() =>
+                      updateCollectionItem('certifications', idx, { visible: !cert.visible })
+                    }
+                    onRemove={() => removeCollectionItem('certifications', idx, 'Certificación')}
+                  />
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                      <label className={LABEL_CLS}>Título de la Certificación</label>
+                      <input
+                        type="text"
+                        value={cert.title}
+                        onChange={(e) => updateCollectionItem('certifications', idx, { title: e.target.value })}
+                        className={INPUT_CLS}
+                      />
+                    </div>
+                    <div>
+                      <label className={LABEL_CLS}>Plataforma / Institución</label>
+                      <input
+                        type="text"
+                        placeholder="Ej. edX • AWS"
+                        value={cert.subtitle}
+                        onChange={(e) =>
+                          updateCollectionItem('certifications', idx, { subtitle: e.target.value })
+                        }
+                        className={INPUT_CLS}
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className={LABEL_CLS}>Enlace de Verificación (URL)</label>
+                    <input
+                      type="text"
+                      placeholder="https://..."
+                      value={cert.link}
+                      onChange={(e) => updateCollectionItem('certifications', idx, { link: e.target.value })}
+                      className={INPUT_CLS}
+                    />
+                  </div>
+                </div>
+              ))
+            )}
           </div>
         )}
 

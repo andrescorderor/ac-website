@@ -1,35 +1,52 @@
+import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
+import { loadPortfolioCms, CmsExperience } from '@/lib/portfolioCms';
 
 export default function ExperienceSection() {
   const { t } = useTranslation();
+  const [cmsExperiences, setCmsExperiences] = useState<CmsExperience[] | null>(null);
 
-  const experiences = [
+  useEffect(() => {
+    loadPortfolioCms().then(({ data, source }) => {
+      if (source !== 'default' && Array.isArray(data.experiences) && data.experiences.length > 0) {
+        setCmsExperiences(data.experiences.filter((e) => e.visible !== false));
+      }
+    });
+  }, []);
+
+  const defaultExperiences = [
     {
+      id: 'exp1',
       year: '2023 - Present',
       title: t('experience.exp1_title', 'Quality Assurance Team Lead'),
       company: t('experience.exp1_company', 'CBQA Solutions Inc.'),
       description: t('experience.exp1_desc', 'Led the QA department, establishing robust testing protocols and integrating automated testing pipelines. Managed project lifecycles to ensure high-quality software delivery.'),
     },
     {
+      id: 'exp2',
       year: '2023 - Present',
       title: t('experience.exp2_title', 'Project Manager & QA Lead'),
       company: t('experience.exp2_company', 'Uanify'),
       description: t('experience.exp2_desc', 'Directed software development projects utilizing agile methodologies. Coordinated cross-functional teams to align business goals with technical execution while maintaining rigorous QA standards.'),
     },
     {
+      id: 'exp3',
       year: '2023 - 2024',
       title: t('experience.exp3_title', 'Web Developer & UX/UI Designer'),
       company: t('experience.exp3_company', 'Freelance'),
       description: t('experience.exp3_desc', 'Delivered comprehensive digital solutions including custom web applications and interactive interfaces, focusing on user-centered design and seamless performance.'),
     },
     {
+      id: 'exp4',
       year: '2020 - 2024',
       title: t('experience.exp4_title', 'Software Engineering Degree'),
       company: t('experience.exp4_company', 'Universidad de La Salle Bajío'),
       description: t('experience.exp4_desc', 'Comprehensive education in software architecture, algorithms, and project management.'),
     },
   ];
+
+  const experiences = cmsExperiences ?? defaultExperiences;
 
   return (
     <section className="flex flex-col px-6 md:px-16 lg:px-36 pt-24 pb-12 bg-[var(--deep-navy-blue-light)] relative overflow-hidden">
@@ -53,7 +70,7 @@ export default function ExperienceSection() {
 
         {experiences.map((exp, index) => (
           <motion.div 
-            key={index}
+            key={exp.id || index}
             initial={{ opacity: 0, x: 20 }}
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}

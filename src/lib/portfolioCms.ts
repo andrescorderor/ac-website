@@ -11,6 +11,23 @@ export interface CmsProject {
   visible: boolean;
 }
 
+export interface CmsExperience {
+  id: string;
+  year: string;
+  title: string;
+  company: string;
+  description: string;
+  visible: boolean;
+}
+
+export interface CmsCertification {
+  id: string;
+  title: string;
+  subtitle: string;
+  link: string;
+  visible: boolean;
+}
+
 export interface PortfolioCmsData {
   heroEyebrow: string;
   heroHeadline: string;
@@ -18,6 +35,8 @@ export interface PortfolioCmsData {
   heroBio: string;
   heroCta: string;
   projects: CmsProject[];
+  experiences: CmsExperience[];
+  certifications: CmsCertification[];
   updatedAt?: string;
 }
 
@@ -69,9 +88,106 @@ export const DEFAULT_CMS_DATA: PortfolioCmsData = {
       visible: true,
     },
   ],
+  experiences: [
+    {
+      id: 'exp1',
+      year: '2023 - Present',
+      title: 'Quality Assurance Team Lead',
+      company: 'CBQA Solutions Inc.',
+      description: 'Led the QA department, establishing robust testing protocols and integrating automated testing pipelines. Managed project lifecycles to ensure high-quality software delivery.',
+      visible: true,
+    },
+    {
+      id: 'exp2',
+      year: '2023 - Present',
+      title: 'Project Manager & QA Lead',
+      company: 'Uanify',
+      description: 'Directed software development projects utilizing agile methodologies. Coordinated cross-functional teams to align business goals with technical execution while maintaining rigorous QA standards.',
+      visible: true,
+    },
+    {
+      id: 'exp3',
+      year: '2023 - 2024',
+      title: 'Web Developer & UX/UI Designer',
+      company: 'Freelance',
+      description: 'Delivered comprehensive digital solutions including custom web applications and interactive interfaces, focusing on user-centered design and seamless performance.',
+      visible: true,
+    },
+    {
+      id: 'exp4',
+      year: '2020 - 2024',
+      title: 'Software Engineering Degree',
+      company: 'Universidad de La Salle Bajío',
+      description: 'Comprehensive education in software architecture, algorithms, and project management.',
+      visible: true,
+    },
+  ],
+  certifications: [
+    {
+      id: 'cert1',
+      title: 'DevOps on AWS: Code, Build, and Test',
+      subtitle: 'edX • AWS',
+      link: 'https://courses.edx.org/certificates/fb06b957b1ca403cb02de35feda5fd2e',
+      visible: true,
+    },
+    {
+      id: 'cert2',
+      title: 'IT Fundamentals for Business Professionals: Software Development',
+      subtitle: 'edX • Universitat Politècnica de València',
+      link: 'https://courses.edx.org/certificates/6243f24e7232421da9bfe2ec6df9b0d5',
+      visible: true,
+    },
+    {
+      id: 'cert3',
+      title: 'DevOps Basics for Everyone',
+      subtitle: 'edX • IBM',
+      link: 'https://courses.edx.org/certificates/1cc6ebef0115443e8e12ea7d8f639d85',
+      visible: true,
+    },
+    {
+      id: 'cert4',
+      title: 'Introduction to Web Development with HTML5, CSS3, and JavaScript',
+      subtitle: 'edX • IBM',
+      link: 'https://courses.edx.org/certificates/259677bb5edf428e921e3e58def0b551',
+      visible: true,
+    },
+    {
+      id: 'cert5',
+      title: 'Introduction to Cloud Native, DevOps, Agile, and NoSQL',
+      subtitle: 'edX • IBM',
+      link: 'https://courses.edx.org/certificates/c6119b76d0b94535b6dca33e3dfbf810',
+      visible: true,
+    },
+    {
+      id: 'cert6',
+      title: 'Agile and Scrum Fundamentals',
+      subtitle: 'edX • University of Washington',
+      link: 'https://courses.edx.org/certificates/7b40186e2ad74e3381b360c716e12096',
+      visible: true,
+    },
+    {
+      id: 'cert7',
+      title: 'Strategic Applications of IT Project & Program Management',
+      subtitle: 'edX • University of Washington',
+      link: 'https://courses.edx.org/certificates/6bf81cae38f247488d6487740745e73c',
+      visible: true,
+    },
+  ],
 };
 
 const LOCAL_CMS_KEY = 'ac_portfolio_cms_v1';
+
+/** Ensures legacy stored CMS records without newer collection arrays fall back safely to defaults. */
+function mergeCmsWithDefaults(raw: Partial<PortfolioCmsData> | null | undefined): PortfolioCmsData {
+  const src = raw || {};
+  return {
+    ...DEFAULT_CMS_DATA,
+    ...src,
+    projects: Array.isArray(src.projects) ? src.projects : DEFAULT_CMS_DATA.projects,
+    experiences: Array.isArray(src.experiences) ? src.experiences : DEFAULT_CMS_DATA.experiences,
+    certifications: Array.isArray(src.certifications) ? src.certifications : DEFAULT_CMS_DATA.certifications,
+  };
+}
 
 /**
  * Loads portfolio CMS overrides: tries public `portfolio_settings` table first,
@@ -92,7 +208,7 @@ export async function loadPortfolioCms(): Promise<{
           .limit(1);
 
         if (!error && pubData && pubData.length > 0 && pubData[0].data) {
-          const merged = { ...DEFAULT_CMS_DATA, ...(pubData[0].data as PortfolioCmsData) };
+          const merged = mergeCmsWithDefaults(pubData[0].data as Partial<PortfolioCmsData>);
           try {
             localStorage.setItem(LOCAL_CMS_KEY, JSON.stringify(merged));
           } catch {}
@@ -104,14 +220,14 @@ export async function loadPortfolioCms(): Promise<{
 
       const stored = await loadSystemData<PortfolioCmsData | null>('portfolio_cms', null, 5 * 60 * 1000);
       if (stored) {
-        return { data: { ...DEFAULT_CMS_DATA, ...stored }, source: 'system_store' as const };
+        return { data: mergeCmsWithDefaults(stored), source: 'system_store' as const };
       }
 
       try {
         const rawLocal = localStorage.getItem(LOCAL_CMS_KEY);
         if (rawLocal) {
           return {
-            data: { ...DEFAULT_CMS_DATA, ...(JSON.parse(rawLocal) as PortfolioCmsData) },
+            data: mergeCmsWithDefaults(JSON.parse(rawLocal) as Partial<PortfolioCmsData>),
             source: 'system_store' as const,
           };
         }

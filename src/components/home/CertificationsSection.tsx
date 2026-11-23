@@ -1,7 +1,7 @@
 /* eslint-disable import/no-extraneous-dependencies */
 /* eslint-disable tailwindcss/no-custom-classname */
 /* eslint-disable react/no-array-index-key */
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useKeenSlider } from 'keen-slider/react';
 import 'keen-slider/keen-slider.min.css';
 
@@ -10,10 +10,37 @@ import { certificationsSectionMocks } from '@mocks/CertificationsSectionMocks';
 import { DynamicButton } from '@components/common/buttons/DynamicButton';
 import { GrLinkNext, GrLinkPrevious } from 'react-icons/gr';
 import { useTranslation } from 'react-i18next';
+import { loadPortfolioCms, CmsCertification } from '@/lib/portfolioCms';
 
 export default function CertificationsSection() {
   const { t } = useTranslation();
   const [, setCurrentSlide] = useState(0);
+  const [cmsCerts, setCmsCerts] = useState<CmsCertification[] | null>(null);
+
+  useEffect(() => {
+    loadPortfolioCms().then(({ data, source }) => {
+      if (source !== 'default' && Array.isArray(data.certifications) && data.certifications.length > 0) {
+        setCmsCerts(data.certifications.filter((c) => c.visible !== false));
+      }
+    });
+  }, []);
+
+  const displayedCertifications = cmsCerts
+    ? cmsCerts.map((c) => ({
+        id: c.id,
+        title: c.title,
+        subtitle: c.subtitle,
+        link: c.link,
+        alt: `Andrés Cordero | ${c.title}`,
+      }))
+    : certificationsSectionMocks.map((cert) => ({
+        id: cert.id,
+        title: t(`certifications_data.${cert.id}_title`),
+        subtitle: t(`certifications_data.${cert.id}_subtitle`),
+        alt: cert.alt,
+        link: cert.link,
+      }));
+
   const [sliderRef, instanceRef] = useKeenSlider({
     loop: true,
     mode: 'free',
@@ -34,6 +61,10 @@ export default function CertificationsSection() {
     },
   });
 
+  useEffect(() => {
+    instanceRef.current?.update();
+  }, [displayedCertifications.length]);
+
   const handlePrevClick = () => {
     if (instanceRef.current) {
       instanceRef.current.prev();
@@ -49,12 +80,12 @@ export default function CertificationsSection() {
   return (
     <section className="relative w-full py-16">
       <div ref={sliderRef} className="keen-slider">
-        {certificationsSectionMocks.map((cert, index) => (
-          <div key={index} className="keen-slider__slide">
+        {displayedCertifications.map((cert, index) => (
+          <div key={cert.id || index} className="keen-slider__slide">
             <CertificationsSectionCard
               id={cert.id}
-              title={t(`certifications_data.${cert.id}_title`)}
-              subtitle={t(`certifications_data.${cert.id}_subtitle`)}
+              title={cert.title}
+              subtitle={cert.subtitle}
               alt={cert.alt}
               link={cert.link}
             />
