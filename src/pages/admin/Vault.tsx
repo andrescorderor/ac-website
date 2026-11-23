@@ -4,23 +4,19 @@ import { supabase } from '@/lib/supabase';
 import { motion, AnimatePresence } from 'framer-motion';
 import { HiOutlinePlus, HiOutlineDuplicate, HiOutlineCheck, HiOutlineTrash, HiX } from 'react-icons/hi';
 import { useToast } from '@/components/common/ToastContext';
-import CustomSelect from '@/components/common/CustomSelect';
 import { togglePinItem, isItemPinned } from '@/lib/pinned';
 import AutoFormattedText from '@/components/common/AutoFormattedText';
 import RichTextEditor from '@/components/common/RichTextEditor';
 import { invalidateCache } from '@/lib/cache';
 import { moveToTrash } from '@/lib/trash';
+import { useSearchParams } from 'react-router-dom';
 
 type VaultItem = {
   id: string;
   title: string;
   content: string;
-  category: string;
+  category?: string;
 };
-
-const CATEGORIES = ['Todas', 'General', 'Passwords', 'IDs', 'Tarjetas', 'Personal', 'Otro'];
-
-import { useSearchParams } from 'react-router-dom';
 
 export default function Vault() {
   const [searchParams] = useSearchParams();
@@ -28,7 +24,6 @@ export default function Vault() {
   const [loading, setLoading] = useState(true);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [showAddForm, setShowAddForm] = useState(false);
-  const [selectedCategory, setSelectedCategory] = useState('Todas');
   const [searchTerm, setSearchTerm] = useState(searchParams.get('search') || '');
 
   useEffect(() => {
@@ -37,7 +32,7 @@ export default function Vault() {
       setSearchTerm(queryParam);
     }
   }, [searchParams]);
-  const [newItem, setNewItem] = useState({ title: '', content: '', category: 'General' });
+  const [newItem, setNewItem] = useState({ title: '', content: '' });
   const { toast } = useToast();
 
   useEffect(() => {
@@ -70,7 +65,7 @@ export default function Vault() {
         user_id: user.id,
         title: newItem.title.trim(),
         content: newItem.content.trim(),
-        category: newItem.category || 'General',
+        category: 'General',
       };
 
       let { data, error } = await supabase
@@ -94,11 +89,11 @@ export default function Vault() {
       if (data && data[0]) {
         const savedItem = {
           ...data[0],
-          category: data[0].category || newItem.category || 'General',
+          category: data[0].category || 'General',
         };
         setItems([savedItem, ...items]);
       }
-      setNewItem({ title: '', content: '', category: 'General' });
+      setNewItem({ title: '', content: '' });
       setShowAddForm(false);
       invalidateCache('search_global_dataset');
       toast.success('Texto guardado en la bóveda');
@@ -164,9 +159,8 @@ export default function Vault() {
   const normalize = (s: string | null | undefined) => (s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
 
   const normSearch = normalize(searchTerm);
-  const filteredItems = items.filter(item => 
-    (selectedCategory === 'Todas' || item.category === selectedCategory) &&
-    (!normSearch || normalize(item.title).includes(normSearch) || normalize(item.content).includes(normSearch))
+  const filteredItems = items.filter(item =>
+    !normSearch || normalize(item.title).includes(normSearch) || normalize(item.content).includes(normSearch)
   );
 
   if (loading) return (
@@ -222,24 +216,6 @@ export default function Vault() {
         </div>
       </header>
 
-      {/* Category Pills */}
-      <div className="flex flex-wrap items-center gap-2">
-        {CATEGORIES.map((cat) => (
-          <button
-            key={cat}
-            type="button"
-            onClick={() => setSelectedCategory(cat)}
-            className={`px-4 min-h-[40px] py-2 rounded-2xl text-xs font-syne font-bold uppercase tracking-wider border transition-all cursor-pointer ${
-              selectedCategory === cat
-                ? 'bg-black dark:bg-white text-white dark:text-black border-transparent shadow-sm'
-                : 'bg-white dark:bg-[#111827] text-gray-600 dark:text-gray-300 border-gray-200/80 dark:border-white/10 hover:bg-gray-50 dark:hover:bg-gray-800'
-            }`}
-          >
-            {cat}
-          </button>
-        ))}
-      </div>
-
       {createPortal(
         <AnimatePresence>
           {showAddForm && (
@@ -265,7 +241,7 @@ export default function Vault() {
                   <button
                     type="button"
                     onClick={() => setShowAddForm(false)}
-                    className="p-2 rounded-xl text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 transition-all"
+                    className="min-w-[40px] min-h-[40px] p-2 rounded-xl text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 transition-all cursor-pointer flex items-center justify-center"
                   >
                     <HiX className="text-xl" />
                   </button>
@@ -274,37 +250,25 @@ export default function Vault() {
                 <form onSubmit={handleAddItem} className="flex flex-col flex-1 min-h-0">
                   {/* Scrollable Body */}
                   <div className="p-6 sm:p-8 overflow-y-auto flex-1 space-y-4">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <label className="font-syne text-[10px] font-bold uppercase tracking-widest text-[var(--gray)] dark:text-gray-400">Título (Ej: CURP)</label>
-                        <input 
-                          value={newItem.title}
-                          onChange={(e) => setNewItem({...newItem, title: e.target.value})}
-                          className="w-full px-5 py-3.5 rounded-xl bg-white dark:bg-gray-800 border border-transparent focus:border-[var(--vibrant-sky-blue)] outline-none font-inter text-sm text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 transition-all shadow-sm"
-                          placeholder="¿Qué es esto?"
-                          required
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <label className="font-syne text-[10px] font-bold uppercase tracking-widest text-[var(--gray)] dark:text-gray-400">Categoría</label>
-                        <CustomSelect
-                          value={newItem.category}
-                          onChange={(val) => setNewItem({...newItem, category: val})}
-                          options={CATEGORIES.filter(c => c !== 'Todas').map(c => ({ value: c, label: c }))}
-                        />
-                      </div>
-                      <div className="md:col-span-2">
-                        <RichTextEditor
-                          label="Valor / Texto a Copiar"
-                          value={newItem.content}
-                          onChange={(val) => setNewItem({...newItem, content: val})}
-                          placeholder="Escribe o pega aquí el texto, código, JSON o información a guardar..."
-                          minHeight="140px"
-                          rows={6}
-                          required
-                        />
-                      </div>
+                    <div className="space-y-2">
+                      <label className="font-syne text-[10px] font-bold uppercase tracking-widest text-[var(--gray)] dark:text-gray-400">Título (Ej: CURP)</label>
+                      <input 
+                        value={newItem.title}
+                        onChange={(e) => setNewItem({...newItem, title: e.target.value})}
+                        className="w-full px-5 min-h-[44px] py-3 rounded-xl bg-white dark:bg-gray-800 border border-gray-200/80 dark:border-gray-700 focus:border-[var(--vibrant-sky-blue)] outline-none font-inter text-sm text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 transition-all shadow-sm"
+                        placeholder="¿Qué es esto?"
+                        required
+                      />
                     </div>
+                    <RichTextEditor
+                      label="Valor / Texto a Copiar"
+                      value={newItem.content}
+                      onChange={(val) => setNewItem({...newItem, content: val})}
+                      placeholder="Escribe o pega aquí el texto, código, JSON o información a guardar..."
+                      minHeight="140px"
+                      rows={6}
+                      required
+                    />
                   </div>
 
                   {/* Sticky Footer Actions */}
@@ -312,13 +276,13 @@ export default function Vault() {
                     <button
                       type="button"
                       onClick={() => setShowAddForm(false)}
-                      className="px-6 py-3 font-syne text-xs font-bold uppercase tracking-wider text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl transition-all"
+                      className="px-6 min-h-[44px] py-2.5 font-syne text-xs font-bold uppercase tracking-wider text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl transition-all cursor-pointer"
                     >
                       Cancelar
                     </button>
                     <button 
                       type="submit"
-                      className="px-8 py-3 bg-black dark:bg-white text-white dark:text-black rounded-xl font-syne text-xs font-bold uppercase tracking-wider hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors shadow-lg interactive-hover"
+                      className="px-8 min-h-[44px] py-2.5 bg-black dark:bg-white text-white dark:text-black rounded-xl font-syne text-xs font-bold uppercase tracking-wider hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors shadow-lg interactive-hover cursor-pointer"
                     >
                       Guardar Texto
                     </button>
@@ -362,7 +326,7 @@ export default function Vault() {
                         toast.info(isNowPinned ? 'Texto de bóveda fijado en el inicio 📌' : 'Texto desfijado');
                         setItems([...items]);
                       }}
-                      className={`p-1.5 rounded-xl transition-all ${
+                      className={`p-1.5 rounded-xl transition-all cursor-pointer ${
                         isItemPinned(item.id)
                           ? 'text-amber-500 bg-amber-50 dark:bg-amber-950/40'
                           : 'opacity-0 group-hover:opacity-100 text-gray-400 hover:text-amber-500 hover:bg-amber-50 dark:hover:bg-amber-950/30'
@@ -373,7 +337,7 @@ export default function Vault() {
                     </button>
                     <button 
                       onClick={() => deleteItem(item.id)}
-                      className="opacity-0 group-hover:opacity-100 p-2 text-red-500 dark:text-red-400 bg-red-500/10 dark:bg-red-500/20 hover:bg-red-500/20 dark:hover:bg-red-500/35 border border-red-500/20 dark:border-red-500/30 rounded-xl transition-all"
+                      className="opacity-0 group-hover:opacity-100 p-2 text-red-500 dark:text-red-400 bg-red-500/10 dark:bg-red-500/20 hover:bg-red-500/20 dark:hover:bg-red-500/35 border border-red-500/20 dark:border-red-500/30 rounded-xl transition-all cursor-pointer"
                     >
                       <HiOutlineTrash />
                     </button>
@@ -400,7 +364,7 @@ export default function Vault() {
                 
                 <button 
                   onClick={() => copyToClipboard(item.content, item.id)}
-                  className={`w-full flex items-center justify-center gap-2 py-3 rounded-2xl font-syne text-[10px] font-bold uppercase tracking-widest transition-all interactive-hover ${
+                  className={`w-full flex items-center justify-center gap-2 min-h-[44px] py-3 rounded-2xl font-syne text-[10px] font-bold uppercase tracking-widest transition-all interactive-hover cursor-pointer ${
                     copiedId === item.id 
                     ? 'bg-green-500 text-white shadow-lg shadow-green-100 dark:shadow-green-900/20' 
                     : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-black dark:hover:bg-white hover:text-white dark:hover:text-black hover:shadow-lg'
