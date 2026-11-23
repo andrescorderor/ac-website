@@ -32,9 +32,6 @@ import {
   PRIORITY_LEVELS,
   PRIORITY_ORDER,
   PRIORITY_STYLES,
-  STATUS_OPTIONS,
-  SUGGESTED_AREAS,
-  SUGGESTED_TAGS,
   parseTaskMeta,
   serializeDescriptionWithMeta,
 } from '@/lib/taskMeta';
@@ -60,7 +57,7 @@ type TaskItem = TaskRow & {
   cleanDescription: string;
 };
 
-type StatusFilter = 'active' | 'pending' | 'in_progress' | 'waiting' | 'completed' | 'all';
+type StatusFilter = 'active' | 'completed' | 'all';
 type ViewMode = 'columns' | 'list';
 
 const normalize = (s: string | null | undefined) =>
@@ -171,9 +168,8 @@ export default function Pendientes() {
   const [formState, setFormState] = useState({
     title: '',
     description: '',
-    area: 'Personal',
+    area: 'General',
     priority: 'Media' as TaskPriority,
-    status: 'pending' as TaskStatus,
     tags: [] as string[],
     due_date: '',
   });
@@ -239,7 +235,7 @@ export default function Pendientes() {
   // Áreas únicas detectadas (áreas creadas + áreas presentes en tareas)
   const existingAreas = useMemo(() => {
     const map = new Map<string, string>();
-    [...customAreas, ...tasks.map((t) => t.area || 'Personal')].forEach((a) => {
+    [...customAreas, ...tasks.map((t) => t.area || 'General')].forEach((a) => {
       const clean = a.trim();
       if (!clean) return;
       const key = normalize(clean);
@@ -248,16 +244,17 @@ export default function Pendientes() {
     return Array.from(map.values());
   }, [customAreas, tasks]);
 
-  const selectableAreas = useMemo(() => {
+  const areaSelectOptions = useMemo(() => {
     const map = new Map<string, string>();
-    [...existingAreas, ...SUGGESTED_AREAS].forEach((a) => {
-      const key = normalize(a);
-      if (!map.has(key)) map.set(key, a);
-    });
-    return Array.from(map.values());
-  }, [existingAreas]);
+    existingAreas.forEach((a) => map.set(normalize(a), a));
+    if (formState.area.trim() && !map.has(normalize(formState.area))) {
+      map.set(normalize(formState.area), formState.area.trim());
+    }
+    const list = Array.from(map.values());
+    return list.length > 0 ? list : ['General'];
+  }, [existingAreas, formState.area]);
 
-  // Etiquetas únicas usadas + guardadas + sugeridas
+  // Etiquetas únicas creadas y usadas por el usuario (sin etiquetas predeterminadas)
   const existingTags = useMemo(() => {
     const map = new Map<string, string>();
     [...customTags, ...tasks.flatMap((t) => t.tags || [])].forEach((tag) => {
@@ -266,15 +263,6 @@ export default function Pendientes() {
     });
     return Array.from(map.values());
   }, [customTags, tasks]);
-
-  const selectableTags = useMemo(() => {
-    const map = new Map<string, string>();
-    [...existingTags, ...SUGGESTED_TAGS].forEach((tag) => {
-      const clean = tag.trim();
-      if (clean && !map.has(normalize(clean))) map.set(normalize(clean), clean);
-    });
-    return Array.from(map.values());
-  }, [existingTags]);
 
   const syncAreasStore = (next: string[]) => {
     try {
@@ -360,9 +348,8 @@ export default function Pendientes() {
     setFormState({
       title: '',
       description: '',
-      area: presetArea || (areaFilter !== 'all' ? areaFilter : 'Personal'),
+      area: presetArea || (areaFilter !== 'all' ? areaFilter : existingAreas[0] || 'General'),
       priority: 'Media',
-      status: 'pending',
       tags: tagFilter !== 'all' ? [tagFilter] : [],
       due_date: '',
     });
@@ -377,7 +364,6 @@ export default function Pendientes() {
       description: task.cleanDescription,
       area: task.area,
       priority: task.priority,
-      status: task.status,
       tags: task.tags || [],
       due_date: task.due_date || '',
     });
@@ -563,8 +549,24 @@ export default function Pendientes() {
       return;
     }
 
-    const cleanArea = formState.area.trim() || 'Personal';
-    const isCompleted = formState.status === 'completed';
+    const cleanArea = formState.area.trim() || existingAreas[0] || 'General';
+    const isCompleted = editingTask ? editingTask.completed : false;
+    const derivedStatus: TaskStatus = isCompleted ? 'completed' : 'pending';
+
+    // Si el usuario escribió una etiqueta en el input y dio directo en Guardar, crearla y asociarla
+    const pendingTagEntries = tagInput
+      .split(',')
+      .map((t) => t.replace(/[|\[\],#]/g, '').trim())
+      .filter(Boolean);
+
+    const tagMap = new Map<string, string>();
+    [...formState.tags, ...pendingTagEntries].forEach((tg) => {
+      const clean = tg.trim();
+      if (clean && !tagMap.has(normalize(clean))) {
+        tagMap.set(normalize(clean), clean);
+      }
+    });
+    const finalTags = Array.from(tagMap.values());
 
     setSubmitting(true);
     try {
@@ -581,8 +583,8 @@ export default function Pendientes() {
           cleanDescription: formState.description.trim(),
           area: cleanArea,
           priority: formState.priority,
-          status: formState.status,
-          tags: formState.tags,
+          status: derivedStatus,
+          tags: finalTags,
           due_date: formState.due_date || null,
           completed: isCompleted,
         }
@@ -591,8 +593,8 @@ export default function Pendientes() {
       const hydrated = hydrateTask({
         ...savedRow,
         area: savedRow.area ?? cleanArea,
-        status: savedRow.status ?? formState.status,
-        tags: savedRow.tags ?? formState.tags,
+        status: savedRow.status ?? derivedStatus,
+        tags: savedRow.tags ?? finalTags,
       });
 
       if (editingTask) {
@@ -604,7 +606,8 @@ export default function Pendientes() {
       }
 
       registerArea(cleanArea);
-      registerTags(formState.tags);
+      registerTags(finalTags);
+      setTagInput('');
       setShowFormModal(false);
       setEditingTask(null);
     } catch (err: any) {
@@ -614,8 +617,9 @@ export default function Pendientes() {
     }
   };
 
-  const handleChangeStatus = async (task: TaskItem, nextStatus: TaskStatus) => {
-    const nextCompleted = nextStatus === 'completed';
+  const toggleTaskComplete = async (task: TaskItem) => {
+    const nextCompleted = !task.completed;
+    const nextStatus: TaskStatus = nextCompleted ? 'completed' : 'pending';
     const prevTasks = tasks;
 
     setTasks((prev) =>
@@ -640,11 +644,10 @@ export default function Pendientes() {
         completed: nextCompleted,
       });
 
-      const statusLabel = STATUS_OPTIONS.find((s) => s.value === nextStatus)?.label || nextStatus;
-      toast.info(nextCompleted ? 'Tarea completada 🎉' : `Status: ${statusLabel}`);
+      toast.info(nextCompleted ? 'Tarea completada 🎉' : 'Tarea reactivada');
     } catch (err: any) {
       setTasks(prevTasks);
-      toast.error('Error al actualizar estado: ' + err.message);
+      toast.error('Error al actualizar tarea: ' + err.message);
     }
   };
 
@@ -668,11 +671,6 @@ export default function Pendientes() {
       setTasks(prevTasks);
       toast.error('Error al cambiar prioridad: ' + err.message);
     }
-  };
-
-  const toggleTaskComplete = (task: TaskItem) => {
-    const nextStatus: TaskStatus = task.completed ? 'pending' : 'completed';
-    handleChangeStatus(task, nextStatus);
   };
 
   const deleteTask = async (id: string) => {
@@ -737,9 +735,7 @@ export default function Pendientes() {
           ? true
           : statusFilter === 'active'
           ? !t.completed
-          : statusFilter === 'completed'
-          ? t.completed
-          : t.status === statusFilter && !t.completed;
+          : t.completed;
 
       const matchesPriority = priorityFilter === 'all' || t.priority === priorityFilter;
       const matchesArea = areaFilter === 'all' || t.area === areaFilter;
@@ -965,39 +961,21 @@ export default function Pendientes() {
           </div>
         </div>
 
-        {/* Footer: 1-Tap Cycle Status Pill + Due Date */}
-        <div className="pt-2 border-t border-gray-100 dark:border-white/[0.06] flex items-center justify-between gap-2">
-          {(() => {
-            const currentOpt = STATUS_OPTIONS.find((s) => s.value === task.status) || STATUS_OPTIONS[0];
-            const nextOpt =
-              STATUS_OPTIONS[
-                (STATUS_OPTIONS.findIndex((s) => s.value === task.status) + 1) % STATUS_OPTIONS.length
-              ];
+        {/* Footer: Due Date only when present */}
+        {task.due_date &&
+          (() => {
+            const due = getDueBadgeStyle(task.due_date, task.completed);
             return (
-              <button
-                type="button"
-                onClick={() => handleChangeStatus(task, nextOpt.value)}
-                title={`Clic para cambiar a: ${nextOpt.label}`}
-                className={`px-2.5 min-h-[34px] py-1 rounded-lg text-[11px] font-syne font-bold uppercase tracking-wider border transition-all cursor-pointer hover:scale-105 active:scale-95 ${currentOpt.badge}`}
-              >
-                {currentOpt.label} ↻
-              </button>
-            );
-          })()}
-
-          {task.due_date &&
-            (() => {
-              const due = getDueBadgeStyle(task.due_date, task.completed);
-              return (
+              <div className="pt-2 border-t border-gray-100 dark:border-white/[0.06] flex items-center justify-end">
                 <span
                   className={`inline-flex items-center gap-1 font-syne text-[11px] font-bold uppercase tracking-wider shrink-0 ${due.cls}`}
                 >
                   <HiOutlineCalendar className="text-xs" />
                   {due.label}
                 </span>
-              );
-            })()}
-        </div>
+              </div>
+            );
+          })()}
       </motion.div>
     );
   };
@@ -1011,7 +989,7 @@ export default function Pendientes() {
             Tablero de <span className="text-gradient">Pendientes</span>
           </h1>
           <p className="hidden sm:block font-inter mt-1 text-[var(--dark-gray)] dark:text-gray-400 font-light text-xs">
-            Organiza tus áreas en columnas ordenadas por prioridad, estado, etiquetas y notas.
+            Organiza tus áreas en columnas ordenadas por prioridad, etiquetas y notas.
           </p>
         </div>
 
@@ -1148,7 +1126,7 @@ export default function Pendientes() {
                 onClick={() => setStatusFilter('active')}
                 className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-gray-900 dark:bg-white text-white dark:text-black font-syne text-[11px] font-bold cursor-pointer"
               >
-                <span>Estado: {statusFilter === 'all' ? 'Todas' : statusFilter}</span>
+                <span>Ver: {statusFilter === 'completed' ? 'Completadas' : 'Todas'}</span>
                 <HiX className="text-xs" />
               </button>
             )}
@@ -1198,14 +1176,11 @@ export default function Pendientes() {
               <div className="surface-panel rounded-2xl p-3.5 sm:p-4 space-y-3.5">
                 <div className="space-y-1.5">
                   <span className="font-syne text-[10px] font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400 block">
-                    Estado
+                    Mostrar
                   </span>
                   <div className="flex flex-wrap gap-1.5">
                     {[
                       { id: 'active', label: `Activas (${tasks.filter((t) => !t.completed).length})` },
-                      { id: 'pending', label: `Pendientes (${tasks.filter((t) => !t.completed && t.status === 'pending').length})` },
-                      { id: 'in_progress', label: `En Progreso (${tasks.filter((t) => !t.completed && t.status === 'in_progress').length})` },
-                      { id: 'waiting', label: `En Espera (${tasks.filter((t) => !t.completed && t.status === 'waiting').length})` },
                       { id: 'completed', label: `Completadas (${tasks.filter((t) => t.completed).length})` },
                       { id: 'all', label: `Todas (${tasks.length})` },
                     ].map((tab) => (
@@ -1493,7 +1468,7 @@ export default function Pendientes() {
                       {editingTask ? 'Editar Tarea' : 'Agregar Nueva Tarea'}
                     </h2>
                     <p className="font-inter text-xs text-gray-400">
-                      Organiza por área, prioridad, estado, etiquetas y notas de seguimiento.
+                      Organiza por área, prioridad, etiquetas y notas de seguimiento.
                     </p>
                   </div>
                   <button
@@ -1523,52 +1498,33 @@ export default function Pendientes() {
                       />
                     </div>
 
-                    {/* Área */}
-                    <div className="space-y-2">
+                    {/* Área (Solo seleccionable) */}
+                    <div>
                       <label
-                        className="block font-syne text-[10px] font-bold uppercase tracking-widest text-[var(--gray)] dark:text-gray-400"
-                        title="Escribe un área nueva o elige una existente para agrupar en columnas"
+                        className="block font-syne text-[10px] font-bold uppercase tracking-widest text-[var(--gray)] dark:text-gray-400 mb-2"
+                        title="Selecciona una de tus áreas existentes. Para crear una nueva usa el botón + Área del tablero."
                       >
                         Área *
                       </label>
-                      <input
-                        type="text"
-                        required
-                        placeholder="Ej. Trabajo, Social, Emprendimiento X, Personal..."
+                      <CustomSelect
                         value={formState.area}
-                        onChange={(e) => setFormState({ ...formState, area: e.target.value })}
-                        className="w-full px-5 min-h-[44px] py-3 bg-gray-50/70 dark:bg-gray-800/80 border border-gray-200/80 dark:border-gray-700 rounded-xl outline-none focus:border-[var(--vibrant-sky-blue)] font-inter text-sm text-gray-900 dark:text-gray-100 placeholder-gray-400"
+                        onChange={(val) => setFormState({ ...formState, area: val })}
+                        options={areaSelectOptions.map((a) => ({ value: a, label: a }))}
                       />
-                      <div className="flex flex-wrap gap-1.5 pt-0.5">
-                        {selectableAreas.map((areaOption) => (
-                          <button
-                            key={areaOption}
-                            type="button"
-                            onClick={() => setFormState({ ...formState, area: areaOption })}
-                            className={`px-3 py-1 rounded-xl font-syne text-[10px] font-bold uppercase tracking-wider transition-all cursor-pointer border ${
-                              formState.area === areaOption
-                                ? 'bg-black dark:bg-white text-white dark:text-black border-transparent'
-                                : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 border-gray-200/60 dark:border-gray-700/60 hover:bg-gray-200 dark:hover:bg-gray-700'
-                            }`}
-                          >
-                            {areaOption}
-                          </button>
-                        ))}
-                      </div>
                     </div>
 
-                    {/* Etiquetas Customizadas */}
+                    {/* Etiquetas Customizadas (creadas por el usuario) */}
                     <div className="space-y-2">
                       <label
                         className="block font-syne text-[10px] font-bold uppercase tracking-widest text-[var(--gray)] dark:text-gray-400"
-                        title="Escribe una etiqueta personalizada o selecciona una existente"
+                        title="Escribe una etiqueta nueva para crearla o selecciona alguna que ya hayas creado"
                       >
                         Etiquetas (Opcional)
                       </label>
                       <div className="flex gap-2">
                         <input
                           type="text"
-                          placeholder="Nueva etiqueta (ej. ClienteVIP, Diseño, Llamada)..."
+                          placeholder="Escribe una etiqueta nueva..."
                           value={tagInput}
                           onChange={(e) => setTagInput(e.target.value)}
                           onKeyDown={(e) => {
@@ -1594,7 +1550,7 @@ export default function Pendientes() {
                           {formState.tags.map((tag) => (
                             <span
                               key={tag}
-                              className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-[var(--vibrant-sky-blue)] text-white font-syne text-[10px] font-bold"
+                              className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-[var(--vibrant-sky-blue)] text-white font-syne text-[11px] font-bold"
                             >
                               <span>#{tag}</span>
                               <button
@@ -1610,25 +1566,29 @@ export default function Pendientes() {
                         </div>
                       )}
 
-                      {/* Etiquetas disponibles existentes/sugeridas */}
-                      <div className="flex flex-wrap gap-1.5 pt-0.5">
-                        {selectableTags
-                          .filter((t) => !formState.tags.some((selected) => normalize(selected) === normalize(t)))
-                          .map((tagOption) => (
-                            <button
-                              key={tagOption}
-                              type="button"
-                              onClick={() => handleToggleFormTag(tagOption)}
-                              className="px-2.5 py-1 rounded-xl font-syne text-[10px] font-bold bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 border border-gray-200/60 dark:border-gray-700/60 hover:bg-sky-500/10 hover:text-sky-600 dark:hover:text-sky-300 transition-all cursor-pointer"
-                            >
-                              + #{tagOption}
-                            </button>
-                          ))}
-                      </div>
+                      {/* Etiquetas existentes creadas previamente por el usuario */}
+                      {existingTags.filter(
+                        (t) => !formState.tags.some((selected) => normalize(selected) === normalize(t))
+                      ).length > 0 && (
+                        <div className="flex flex-wrap gap-1.5 pt-0.5">
+                          {existingTags
+                            .filter((t) => !formState.tags.some((selected) => normalize(selected) === normalize(t)))
+                            .map((tagOption) => (
+                              <button
+                                key={tagOption}
+                                type="button"
+                                onClick={() => handleToggleFormTag(tagOption)}
+                                className="px-2.5 py-1 rounded-xl font-syne text-[11px] font-bold bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 border border-gray-200/70 dark:border-white/10 hover:bg-sky-500/10 hover:text-sky-600 dark:hover:text-sky-300 transition-all cursor-pointer"
+                              >
+                                + #{tagOption}
+                              </button>
+                            ))}
+                        </div>
+                      )}
                     </div>
 
-                    {/* Prioridad, Status y Fecha Límite */}
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    {/* Prioridad y Fecha Límite */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       <div>
                         <label className="block font-syne text-[10px] font-bold uppercase tracking-widest text-[var(--gray)] dark:text-gray-400 mb-2">
                           Prioridad
@@ -1642,20 +1602,6 @@ export default function Pendientes() {
                             { value: 'Media', label: '🔵 Media' },
                             { value: 'Baja', label: '⚪ Baja' },
                           ]}
-                        />
-                      </div>
-
-                      <div>
-                        <label className="block font-syne text-[10px] font-bold uppercase tracking-widest text-[var(--gray)] dark:text-gray-400 mb-2">
-                          Status
-                        </label>
-                        <CustomSelect
-                          value={formState.status}
-                          onChange={(val) => setFormState({ ...formState, status: val as TaskStatus })}
-                          options={STATUS_OPTIONS.map((s) => ({
-                            value: s.value,
-                            label: s.label,
-                          }))}
                         />
                       </div>
 
@@ -1757,26 +1703,11 @@ export default function Pendientes() {
                         type="text"
                         required
                         autoFocus
-                        placeholder="Ej. Trabajo, Emprendimiento X, Social..."
+                        placeholder="Ej. Departamento, Social, Proyecto..."
                         value={newAreaName}
                         onChange={(e) => setNewAreaName(e.target.value)}
                         className="w-full px-4 min-h-[44px] py-3 bg-gray-50/70 dark:bg-gray-800/80 border border-gray-200/80 dark:border-gray-700 rounded-xl outline-none focus:border-[var(--vibrant-sky-blue)] font-inter text-sm text-gray-900 dark:text-gray-100 placeholder-gray-400"
                       />
-                    </div>
-
-                    <div className="flex flex-wrap gap-1.5">
-                      {SUGGESTED_AREAS.filter(
-                        (s) => !existingAreas.some((e) => normalize(e) === normalize(s))
-                      ).map((suggestion) => (
-                        <button
-                          key={suggestion}
-                          type="button"
-                          onClick={() => setNewAreaName(suggestion)}
-                          className="px-3 py-1.5 rounded-xl font-syne text-[10px] font-bold uppercase tracking-wider bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 transition-all cursor-pointer"
-                        >
-                          + {suggestion}
-                        </button>
-                      ))}
                     </div>
                   </div>
 

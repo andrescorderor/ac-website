@@ -1,7 +1,7 @@
 <div align="center">
   <img src="public/assets/ac-website-icon.svg" alt="Logo" width="100" />
   
-  # Andrés Cordero - Professional Portfolio & Personal Panel PWA (v7.1.0) 🔍✨
+  # Andrés Cordero - Professional Portfolio & Personal Panel PWA (v7.2.0) 🔍✨
   
   **Welcome to my personal ecosystem: a professional portfolio and a custom productivity hub.**  
   Built with UX/UI best practices, premium design, and a focus on mobile-first efficiency.
@@ -16,11 +16,15 @@
 
 ---
 
-## 🚀 Overview (Version 7.1.0)
+## 🚀 Overview (Version 7.2.0)
 
 This repository hosts a dual-purpose platform:
 1. **Professional Portfolio:** A high-end landing page showcasing my engineering background, skills, and achievements with dynamic copyright year updates and zero horizontal overflow.
-2. **Personal Panel PWA (v7.1.0):** An executive personal operating system featuring:
+2. **Personal Panel PWA (v7.2.0):** An executive personal operating system featuring:
+   * **Refinamiento de Flujo en `Pendientes` y `Captura Rápida` (v7.2.0):**
+     * **Área 100% Seleccionable (`Pendientes.tsx`, `QuickCaptureModal.tsx`):** En el formulario de tareas el campo de Área utiliza únicamente `CustomSelect` con las áreas reales creadas por el usuario (eliminando texto libre y sugerencias predeterminadas).
+     * **Etiquetas Propias Reutilizables:** Se eliminan las etiquetas predeterminadas (`SUGGESTED_TAGS`); cualquier etiqueta nueva ingresada en una tarea o en Captura Rápida se guarda en `task_tags` y queda disponible de inmediato como chip seleccionable.
+     * **Flujo Directo sin `Status`:** Se retira el selector/ciclo de status de las tarjetas, modal y filtros de `Pendientes`, operando de forma directa con tareas activas y completadas.
    * **Rediseño UX/UI y Responsividad Integral (v7.1.0):**
      * **Jerarquía de Superficies y Contraste Bimodal (`src/index.css`):** Restauración de bordes sutiles en modo oscuro (`.dark-glass`, `.surface-panel`, `.surface-card`), diferenciación clara entre contenedor/columna y tarjeta elevada, y mayor legibilidad tipográfica.
      * **Shell Móvil Limpio y `100dvh` (`DashboardLayout.tsx`):** Cabecera móvil contextual con el nombre del módulo activo y solo acciones esenciales (`+`, `🔍`, Menú), soporte real de altura dinámica (`h-[100dvh]`) y barra inferior táctil mejorada.

@@ -11,9 +11,11 @@ import TicketScannerModal from '@/components/admin/TicketScannerModal';
 import { loadSystemData, saveSystemData } from '@/lib/systemStore';
 import {
   TaskPriority,
-  SUGGESTED_AREAS,
   serializeDescriptionWithMeta,
 } from '@/lib/taskMeta';
+
+const normalizeTag = (s: string) =>
+  s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
 
 type CaptureTab = 'task' | 'expense' | 'note' | 'mandado';
 
@@ -26,11 +28,12 @@ export default function QuickCaptureModal({ isOpen, onClose }: QuickCaptureModal
   const [tab, setTab] = useState<CaptureTab>('task');
   const [submitting, setSubmitting] = useState(false);
   const [showScanner, setShowScanner] = useState(false);
-  const [areas, setAreas] = useState<string[]>(SUGGESTED_AREAS);
+  const [areas, setAreas] = useState<string[]>(['General']);
+  const [savedTags, setSavedTags] = useState<string[]>([]);
 
   // Task state
   const [taskTitle, setTaskTitle] = useState('');
-  const [taskArea, setTaskArea] = useState('Personal');
+  const [taskArea, setTaskArea] = useState('General');
   const [taskPriority, setTaskPriority] = useState<TaskPriority>('Media');
   const [taskTag, setTaskTag] = useState('');
   const [taskDue, setTaskDue] = useState('');
@@ -56,9 +59,32 @@ export default function QuickCaptureModal({ isOpen, onClose }: QuickCaptureModal
 
   useEffect(() => {
     if (!isOpen) return;
-    loadSystemData<string[]>('task_areas', []).then((stored) => {
-      const merged = Array.from(new Set([...stored, ...SUGGESTED_AREAS]));
-      setAreas(merged);
+    let localAreas: string[] = [];
+    let localTags: string[] = [];
+    try {
+      const ra = localStorage.getItem('ac_task_areas_v1');
+      if (ra) localAreas = JSON.parse(ra);
+      const rt = localStorage.getItem('ac_task_tags_v1');
+      if (rt) localTags = JSON.parse(rt);
+    } catch {}
+
+    Promise.all([
+      loadSystemData<string[]>('task_areas', []),
+      loadSystemData<string[]>('task_tags', []),
+    ]).then(([storedAreas, storedTags]) => {
+      const mergedAreas = Array.from(
+        new Set([...(Array.isArray(storedAreas) ? storedAreas : []), ...(Array.isArray(localAreas) ? localAreas : [])].map((a) => String(a).trim()).filter(Boolean))
+      );
+      const finalAreas = mergedAreas.length > 0 ? mergedAreas : ['General'];
+      setAreas(finalAreas);
+      setTaskArea((prev) => (finalAreas.includes(prev) ? prev : finalAreas[0]));
+
+      const tagMap = new Map<string, string>();
+      [...(Array.isArray(storedTags) ? storedTags : []), ...(Array.isArray(localTags) ? localTags : [])].forEach((t) => {
+        const clean = String(t).trim();
+        if (clean && !tagMap.has(normalizeTag(clean))) tagMap.set(normalizeTag(clean), clean);
+      });
+      setSavedTags(Array.from(tagMap.values()));
     });
   }, [isOpen]);
 
@@ -78,7 +104,7 @@ export default function QuickCaptureModal({ isOpen, onClose }: QuickCaptureModal
           setSubmitting(false);
           return;
         }
-        const cleanArea = taskArea.trim() || 'Personal';
+        const cleanArea = taskArea.trim() || areas[0] || 'General';
         const cleanTags = taskTag
           .split(',')
           .map((t) => t.replace(/[|\[\],#]/g, '').trim())
@@ -113,7 +139,23 @@ export default function QuickCaptureModal({ isOpen, onClose }: QuickCaptureModal
         if (!areas.some((a) => a.toLowerCase() === cleanArea.toLowerCase())) {
           const next = [...areas, cleanArea];
           setAreas(next);
+          try {
+            localStorage.setItem('ac_task_areas_v1', JSON.stringify(next));
+          } catch {}
           await saveSystemData('task_areas', next);
+        }
+
+        if (cleanTags.length > 0) {
+          const tagMap = new Map<string, string>();
+          [...savedTags, ...cleanTags].forEach((tg) => {
+            if (!tagMap.has(normalizeTag(tg))) tagMap.set(normalizeTag(tg), tg);
+          });
+          const nextTags = Array.from(tagMap.values());
+          setSavedTags(nextTags);
+          try {
+            localStorage.setItem('ac_task_tags_v1', JSON.stringify(nextTags));
+          } catch {}
+          await saveSystemData('task_tags', nextTags);
         }
 
         setTaskTitle('');
@@ -330,11 +372,30 @@ export default function QuickCaptureModal({ isOpen, onClose }: QuickCaptureModal
                             </label>
                             <input
                               type="text"
-                              placeholder="Ej. Rápido, Seguimiento"
+                              placeholder="Etiquetas nuevas o propias..."
                               value={taskTag}
                               onChange={(e) => setTaskTag(e.target.value)}
                               className="w-full px-4 min-h-[44px] py-2.5 bg-gray-50/70 dark:bg-gray-800/80 border border-gray-200 dark:border-gray-700 rounded-xl font-inter text-sm text-gray-900 dark:text-white"
                             />
+                            {savedTags.length > 0 && (
+                              <div className="flex flex-wrap gap-1 mt-1.5">
+                                {savedTags.map((tg) => (
+                                  <button
+                                    key={tg}
+                                    type="button"
+                                    onClick={() => {
+                                      const parts = taskTag.split(',').map((p) => p.trim()).filter(Boolean);
+                                      if (!parts.some((p) => normalizeTag(p) === normalizeTag(tg))) {
+                                        setTaskTag(parts.length > 0 ? `${parts.join(', ')}, ${tg}` : tg);
+                                      }
+                                    }}
+                                    className="px-2 py-0.5 rounded-lg bg-sky-500/10 text-sky-700 dark:text-sky-300 font-syne text-[10px] font-bold cursor-pointer hover:bg-sky-500/20"
+                                  >
+                                    + #{tg}
+                                  </button>
+                                ))}
+                              </div>
+                            )}
                           </div>
                           <div>
                             <label className="block font-syne text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-1.5">
