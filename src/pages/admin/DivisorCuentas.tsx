@@ -9,8 +9,10 @@ import {
   HiOutlineCheck,
 } from 'react-icons/hi';
 import { supabase } from '@/lib/supabase';
+import { invalidateCache } from '@/lib/cache';
 import { useToast } from '@/components/common/ToastContext';
 import CustomSelect from '@/components/common/CustomSelect';
+import CustomDatePicker from '@/components/common/CustomDatePicker';
 
 interface Participant {
   id: string;
@@ -18,17 +20,12 @@ interface Participant {
   size: number; // 1 = persona individual, 2+ = grupo / pareja
 }
 
-type SplitMode = 'proportional' | 'equal_groups' | 'selected_only' | 'exact';
-
 interface BillExpense {
   id: string;
   concept: string;
   amount: number;
   tipPercent: number;
   paidById: string;
-  splitMode: SplitMode;
-  selectedIds: string[];
-  exactAmounts: Record<string, number>;
 }
 
 interface Transfer {
@@ -39,14 +36,30 @@ interface Transfer {
   amount: number;
 }
 
-const DRAFT_STORAGE_KEY = 'ac_bill_splitter_draft_v1';
+const DRAFT_STORAGE_KEY = 'ac_bill_splitter_draft_v2';
+const SHORT_MONTHS = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
+
+function getTodayIso(): string {
+  const now = new Date();
+  const y = now.getFullYear();
+  const m = String(now.getMonth() + 1).padStart(2, '0');
+  const d = String(now.getDate()).padStart(2, '0');
+  return `${y}-${m}-${d}`;
+}
+
+function formatEventDate(dateStr: string): string {
+  if (!dateStr) return '';
+  const parts = dateStr.split('-').map(Number);
+  if (parts.length !== 3 || parts.some(isNaN)) return dateStr;
+  const [y, m, d] = parts;
+  return `${d} ${SHORT_MONTHS[(m - 1) % 12] || ''} ${y}`;
+}
 
 export default function DivisorCuentas() {
-  const [title, setTitle] = useState('Cuenta Compartida');
-  const [participants, setParticipants] = useState<Participant[]>([
-    { id: 'p-1', name: 'Andrés', size: 1 },
-    { id: 'p-2', name: 'Persona 2', size: 1 },
-  ]);
+  const [title, setTitle] = useState('');
+  const [eventDate, setEventDate] = useState<string>(() => getTodayIso());
+  const [participants, setParticipants] = useState<Participant[]>([]);
+  const [myParticipantId, setMyParticipantId] = useState('');
   const [expenses, setExpenses] = useState<BillExpense[]>([]);
 
   // New Participant Form
@@ -57,10 +70,7 @@ export default function DivisorCuentas() {
   const [expConcept, setExpConcept] = useState('');
   const [expAmount, setExpAmount] = useState('');
   const [expTip, setExpTip] = useState('0');
-  const [expPaidBy, setExpPaidBy] = useState('p-1');
-  const [expMode, setExpMode] = useState<SplitMode>('proportional');
-  const [expSelectedIds, setExpSelectedIds] = useState<string[]>([]);
-  const [expExactMap, setExpExactMap] = useState<Record<string, string>>({});
+  const [expPaidBy, setExpPaidBy] = useState('');
 
   const [copied, setCopied] = useState(false);
   const [sendingDebt, setSendingDebt] = useState(false);
@@ -72,11 +82,13 @@ export default function DivisorCuentas() {
       const raw = localStorage.getItem(DRAFT_STORAGE_KEY);
       if (raw) {
         const parsed = JSON.parse(raw);
-        if (parsed.title) setTitle(parsed.title);
-        if (Array.isArray(parsed.participants) && parsed.participants.length > 0) {
+        if (typeof parsed.title === 'string') setTitle(parsed.title);
+        if (typeof parsed.eventDate === 'string' && parsed.eventDate) setEventDate(parsed.eventDate);
+        if (Array.isArray(parsed.participants)) {
           setParticipants(parsed.participants);
-          setExpPaidBy(parsed.participants[0].id);
+          if (parsed.participants[0]) setExpPaidBy(parsed.participants[0].id);
         }
+        if (typeof parsed.myParticipantId === 'string') setMyParticipantId(parsed.myParticipantId);
         if (Array.isArray(parsed.expenses)) setExpenses(parsed.expenses);
       }
     } catch {}
@@ -84,9 +96,12 @@ export default function DivisorCuentas() {
 
   useEffect(() => {
     try {
-      localStorage.setItem(DRAFT_STORAGE_KEY, JSON.stringify({ title, participants, expenses }));
+      localStorage.setItem(
+        DRAFT_STORAGE_KEY,
+        JSON.stringify({ title, eventDate, participants, myParticipantId, expenses })
+      );
     } catch {}
-  }, [title, participants, expenses]);
+  }, [title, eventDate, participants, myParticipantId, expenses]);
 
   const handleAddParticipant = (e: React.FormEvent) => {
     e.preventDefault();
@@ -102,29 +117,30 @@ export default function DivisorCuentas() {
       size,
     };
     setParticipants((prev) => [...prev, created]);
+    if (!expPaidBy) setExpPaidBy(created.id);
     setNewPersonName('');
     setNewPersonSize('1');
   };
 
   const handleRemoveParticipant = (id: string) => {
-    if (participants.length <= 1) {
-      toast.info('Debe haber al menos 1 participante.');
-      return;
-    }
     const nextParts = participants.filter((p) => p.id !== id);
     setParticipants(nextParts);
-    if (expPaidBy === id && nextParts[0]) setExpPaidBy(nextParts[0].id);
+    if (expPaidBy === id) setExpPaidBy(nextParts[0]?.id || '');
+    if (myParticipantId === id) setMyParticipantId('');
     setExpenses((prev) =>
       prev.map((ex) => ({
         ...ex,
-        paidById: ex.paidById === id ? nextParts[0].id : ex.paidById,
-        selectedIds: ex.selectedIds.filter((s) => s !== id),
+        paidById: ex.paidById === id ? nextParts[0]?.id || '' : ex.paidById,
       }))
     );
   };
 
   const handleAddExpense = (e: React.FormEvent) => {
     e.preventDefault();
+    if (participants.length === 0) {
+      toast.error('Agrega primero al menos una persona o grupo participante.');
+      return;
+    }
     const baseAmt = parseFloat(expAmount);
     const tipPct = Math.max(0, parseFloat(expTip) || 0);
     if (!expConcept.trim() || isNaN(baseAmt) || baseAmt <= 0) {
@@ -133,52 +149,21 @@ export default function DivisorCuentas() {
     }
 
     const totalWithTip = Number((baseAmt * (1 + tipPct / 100)).toFixed(2));
-    const exactParsed: Record<string, number> = {};
-
-    if (expMode === 'selected_only' && expSelectedIds.length === 0) {
-      toast.error('Selecciona al menos una persona o grupo para este gasto.');
-      return;
-    }
-
-    if (expMode === 'exact') {
-      let sum = 0;
-      participants.forEach((p) => {
-        const val = parseFloat(expExactMap[p.id] || '0') || 0;
-        exactParsed[p.id] = val;
-        sum += val;
-      });
-      if (sum <= 0) {
-        toast.error('Ingresa al menos un monto en la asignación exacta.');
-        return;
-      }
-      // Si hay propina, escalar los montos exactos proporcionalmente
-      if (tipPct > 0 && sum > 0) {
-        const factor = 1 + tipPct / 100;
-        Object.keys(exactParsed).forEach((k) => {
-          exactParsed[k] = Number((exactParsed[k] * factor).toFixed(2));
-        });
-      }
-    }
-
     const newExp: BillExpense = {
       id: `exp-${Date.now()}`,
       concept: expConcept.trim(),
       amount: totalWithTip,
       tipPercent: tipPct,
       paidById: expPaidBy || participants[0].id,
-      splitMode: expMode,
-      selectedIds: expSelectedIds.length > 0 ? expSelectedIds : participants.map((p) => p.id),
-      exactAmounts: exactParsed,
     };
 
     setExpenses((prev) => [...prev, newExp]);
     setExpConcept('');
     setExpAmount('');
-    setExpExactMap({});
     toast.success(`Concepto agregado ($${totalWithTip.toLocaleString()})`);
   };
 
-  // Cálculo integral de consumos, pagos y transferencias mínimas
+  // Cálculo integral de consumos, pagos y transferencias mínimas proporcional a integrantes
   const calculation = useMemo(() => {
     const paidMap: Record<string, number> = {};
     const owedMap: Record<string, number> = {};
@@ -188,6 +173,7 @@ export default function DivisorCuentas() {
     });
 
     let grandTotal = 0;
+    const totalSize = participants.reduce((acc, p) => acc + p.size, 0);
 
     expenses.forEach((exp) => {
       grandTotal += exp.amount;
@@ -195,24 +181,7 @@ export default function DivisorCuentas() {
         paidMap[exp.paidById] += exp.amount;
       }
 
-      if (exp.splitMode === 'exact') {
-        participants.forEach((p) => {
-          owedMap[p.id] += exp.exactAmounts[p.id] || 0;
-        });
-      } else if (exp.splitMode === 'equal_groups') {
-        const share = exp.amount / Math.max(1, participants.length);
-        participants.forEach((p) => {
-          owedMap[p.id] += share;
-        });
-      } else if (exp.splitMode === 'selected_only') {
-        const targets = participants.filter((p) => exp.selectedIds.includes(p.id));
-        const totalSize = targets.reduce((acc, p) => acc + p.size, 0) || 1;
-        targets.forEach((p) => {
-          owedMap[p.id] += (exp.amount * p.size) / totalSize;
-        });
-      } else {
-        // proportional by participant size
-        const totalSize = participants.reduce((acc, p) => acc + p.size, 0) || 1;
+      if (totalSize > 0) {
         participants.forEach((p) => {
           owedMap[p.id] += (exp.amount * p.size) / totalSize;
         });
@@ -259,42 +228,81 @@ export default function DivisorCuentas() {
       if (c.amount <= 0.01) j++;
     }
 
-    return { grandTotal: Number(grandTotal.toFixed(2)), balances, transfers };
+    const perPersonAvg = totalSize > 0 ? Number((grandTotal / totalSize).toFixed(2)) : 0;
+
+    return {
+      grandTotal: Number(grandTotal.toFixed(2)),
+      totalPeople: totalSize,
+      perPersonAvg,
+      balances,
+      transfers,
+    };
   }, [participants, expenses]);
 
+  const myTransfers = useMemo(() => {
+    if (!myParticipantId) return [];
+    return calculation.transfers.filter(
+      (t) => t.fromId === myParticipantId || t.toId === myParticipantId
+    );
+  }, [calculation.transfers, myParticipantId]);
+
+  const formatMoney = (val: number) =>
+    val.toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
   const whatsappSummary = useMemo(() => {
+    const cleanTitle = title.trim() || 'Cuenta Compartida';
+    const niceDate = formatEventDate(eventDate);
     const lines: string[] = [];
-    lines.push(`🧾 *${title || 'Cuenta Compartida'}*`);
-    lines.push(`💰 *Total general:* $${calculation.grandTotal.toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`);
+
+    lines.push('*DESGLOSE DE CUENTA*');
+    lines.push(`*Evento:* ${cleanTitle}`);
+    if (niceDate) lines.push(`*Fecha:* ${niceDate}`);
+    lines.push(`*Integrantes:* ${calculation.totalPeople} ${calculation.totalPeople === 1 ? 'persona' : 'personas'}`);
+    lines.push('────────────────────');
+    lines.push(`*TOTAL GENERAL:* *$${formatMoney(calculation.grandTotal)}*`);
+    if (calculation.totalPeople > 0) {
+      lines.push(`_Promedio por persona: $${formatMoney(calculation.perPersonAvg)}_`);
+    }
     lines.push('');
 
     if (expenses.length > 0) {
-      lines.push('*Detalle de gastos:*');
+      lines.push('*DETALLE DE GASTOS*');
       expenses.forEach((ex) => {
-        const payer = participants.find((p) => p.id === ex.paidById)?.name || 'N/A';
-        lines.push(`• ${ex.concept}: $${ex.amount.toFixed(2)} (pagó ${payer}${ex.tipPercent > 0 ? `, propina ${ex.tipPercent}%` : ''})`);
+        const payer = participants.find((p) => p.id === ex.paidById)?.name || 'Sin asignar';
+        const tipText = ex.tipPercent > 0 ? ` · incl. ${ex.tipPercent}% propina` : '';
+        lines.push(`• *${ex.concept}:* $${formatMoney(ex.amount)} _(pagó ${payer}${tipText})_`);
       });
       lines.push('');
     }
 
-    lines.push('*Consumo por persona / grupo:*');
-    calculation.balances.forEach((b) => {
-      const groupTag = b.size > 1 ? ` (${b.size} pers.)` : '';
-      lines.push(`• ${b.name}${groupTag}: le toca *$${b.owed.toFixed(2)}* | pagó $${b.paid.toFixed(2)}`);
-    });
-    lines.push('');
+    if (calculation.balances.length > 0) {
+      lines.push('*CONSUMO POR PERSONA / GRUPO*');
+      calculation.balances.forEach((b) => {
+        const groupTag = b.size > 1 ? ` (${b.size} pers.)` : '';
+        const statusStr =
+          b.net > 0.01
+            ? `a favor +$${formatMoney(b.net)}`
+            : b.net < -0.01
+            ? `debe -$${formatMoney(Math.abs(b.net))}`
+            : 'al corriente';
+        lines.push(
+          `• *${b.name}${groupTag}:* le toca *$${formatMoney(b.owed)}* | pagó $${formatMoney(b.paid)} _(${statusStr})_`
+        );
+      });
+      lines.push('');
+    }
 
-    lines.push('*Liquidación (Quién transfiere a quién):*');
+    lines.push('*LIQUIDACIÓN (TRANSFERENCIAS)*');
     if (calculation.transfers.length === 0) {
-      lines.push('✅ Todo está saldado.');
+      lines.push('✓ Todos los saldos están cubiertos.');
     } else {
-      calculation.transfers.forEach((t) => {
-        lines.push(`👉 *${t.fromName}* transfiere a *${t.toName}*: *$${t.amount.toFixed(2)}*`);
+      calculation.transfers.forEach((t, idx) => {
+        lines.push(`${idx + 1}. *${t.fromName}* → *${t.toName}*: *$${formatMoney(t.amount)}*`);
       });
     }
 
     return lines.join('\n');
-  }, [title, calculation, expenses, participants]);
+  }, [title, eventDate, calculation, expenses, participants]);
 
   const handleCopySummary = async () => {
     try {
@@ -308,13 +316,17 @@ export default function DivisorCuentas() {
   };
 
   const handleShareWhatsApp = () => {
-    const url = `https://wa.me/?text=${encodeURIComponent(whatsappSummary)}`;
+    const url = `https://api.whatsapp.com/send?text=${encodeURIComponent(whatsappSummary)}`;
     window.open(url, '_blank', 'noopener,noreferrer');
   };
 
   const handleSendToDebts = async () => {
-    if (calculation.transfers.length === 0) {
-      toast.info('No hay transferencias pendientes para registrar.');
+    if (!myParticipantId) {
+      toast.info('Selecciona primero cuál persona o grupo te pertenece ("Soy yo") para no contarte a ti mismo.');
+      return;
+    }
+    if (myTransfers.length === 0) {
+      toast.info('No tienes saldos pendientes por cobrar ni por pagar en esta cuenta.');
       return;
     }
     setSendingDebt(true);
@@ -323,17 +335,28 @@ export default function DivisorCuentas() {
       const user = session?.user;
       if (!user) throw new Error('Inicia sesión para guardar en Deudas.');
 
-      const rows = calculation.transfers.map((t) => ({
-        user_id: user.id,
-        debtor_name: `${t.fromName} → ${t.toName}`,
-        amount: t.amount,
-        concept: `[Me Deben] División: ${title} (${t.fromName} paga a ${t.toName})`,
-        settled: false,
-      }));
+      const cleanTitle = title.trim() || 'Cuenta Compartida';
+      const niceDate = formatEventDate(eventDate);
+      const dateSegment = niceDate ? ` (${niceDate})` : '';
+
+      const rows = myTransfers.map((t) => {
+        const isReceivable = t.toId === myParticipantId;
+        const counterparty = isReceivable ? t.fromName : t.toName;
+        const prefix = isReceivable ? '[Me Deben]' : '[Yo Debo]';
+        return {
+          user_id: user.id,
+          debtor_name: counterparty,
+          amount: t.amount,
+          concept: `${prefix} ${cleanTitle}${dateSegment} · División de cuenta`,
+          settled: false,
+        };
+      });
 
       const { error } = await supabase.from('debts').insert(rows);
       if (error) throw error;
-      toast.success(`${rows.length} saldo(s) enviados a tu módulo de Deudas ✨`);
+      invalidateCache('dashboard');
+      invalidateCache('search_global');
+      toast.success(`${rows.length} saldo(s) propio(s) enviados a Deudas ✨`);
     } catch (err: any) {
       toast.error('Error al enviar a Deudas: ' + err.message);
     } finally {
@@ -342,13 +365,12 @@ export default function DivisorCuentas() {
   };
 
   const handleResetAll = () => {
-    setTitle('Cuenta Compartida');
-    setParticipants([
-      { id: 'p-1', name: 'Andrés', size: 1 },
-      { id: 'p-2', name: 'Persona 2', size: 1 },
-    ]);
+    setTitle('');
+    setEventDate(getTodayIso());
+    setParticipants([]);
+    setMyParticipantId('');
     setExpenses([]);
-    setExpPaidBy('p-1');
+    setExpPaidBy('');
     toast.info('Divisor reiniciado');
   };
 
@@ -361,7 +383,7 @@ export default function DivisorCuentas() {
             Divisor de <span className="text-gradient">Cuentas</span>
           </h1>
           <p className="hidden sm:block font-inter mt-1 text-[var(--dark-gray)] dark:text-gray-400 font-light text-xs">
-            Calcula y segmenta gastos por personas o grupos, y comparte el desglose directo por WhatsApp.
+            Segmenta por personas o grupos, marca tu participación y comparte el desglose directo por WhatsApp.
           </p>
         </div>
 
@@ -375,41 +397,63 @@ export default function DivisorCuentas() {
         </button>
       </header>
 
-      {/* Event Title */}
-      <div className="bg-white/90 dark:bg-gray-900/90 glass dark:dark-glass rounded-3xl p-4 sm:p-5 border border-gray-100 dark:border-gray-800 shadow-sm">
-        <label className="block font-syne text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-1.5">
-          Nombre de la Salida / Evento / Viaje
-        </label>
-        <input
-          type="text"
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          placeholder="Ej. Cena del viernes o Viaje a Mazamitla"
-          className="w-full px-4 min-h-[44px] py-2.5 bg-gray-50/70 dark:bg-gray-800/80 border border-gray-200 dark:border-gray-700 rounded-xl outline-none focus:border-[var(--vibrant-sky-blue)] font-dm-sans font-bold text-base text-gray-900 dark:text-white"
-        />
+      {/* Event Title & Date */}
+      <div className="bg-white dark:bg-[#111827] rounded-3xl p-4 sm:p-5 border border-gray-200/80 dark:border-white/[0.09] shadow-xs grid grid-cols-1 sm:grid-cols-3 gap-3.5 items-end">
+        <div className="sm:col-span-2">
+          <label className="block font-syne text-[10px] font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400 mb-1.5">
+            Nombre de la Salida / Evento / Viaje
+          </label>
+          <input
+            type="text"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            placeholder="Ej. Cena del viernes, Taquitos, Viaje a Mazamitla..."
+            className="w-full px-4 min-h-[44px] py-2.5 bg-gray-50/70 dark:bg-gray-800/80 border border-gray-200 dark:border-gray-700 rounded-xl outline-none focus:border-[var(--vibrant-sky-blue)] font-dm-sans font-bold text-sm sm:text-base text-gray-900 dark:text-white placeholder:font-inter placeholder:font-normal placeholder-gray-400"
+          />
+        </div>
+
+        <div>
+          <label className="block font-syne text-[10px] font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400 mb-1.5">
+            Fecha del Evento
+          </label>
+          <CustomDatePicker
+            value={eventDate}
+            onChange={setEventDate}
+            placeholder="Selecciona fecha..."
+          />
+        </div>
       </div>
 
-      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 items-start">
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-5 sm:gap-6 items-start">
         {/* Left 2 Columns: Participants & Expenses */}
-        <div className="xl:col-span-2 space-y-6">
+        <div className="xl:col-span-2 space-y-5 sm:space-y-6">
           {/* 1. Participantes / Grupos */}
-          <section className="bg-white/90 dark:bg-gray-900/90 glass dark:dark-glass rounded-[2rem] p-5 sm:p-6 border border-gray-100 dark:border-gray-800 shadow-sm space-y-4">
-            <div className="flex items-center gap-2.5">
-              <div className="p-2 rounded-xl bg-sky-500/10 text-sky-600 dark:text-sky-400">
-                <HiOutlineUserGroup className="text-lg" />
+          <section className="bg-white dark:bg-[#111827] rounded-3xl p-4 sm:p-6 border border-gray-200/80 dark:border-white/[0.09] shadow-xs space-y-4">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <div className="flex items-center gap-2.5">
+                <div className="p-2 rounded-xl bg-sky-500/10 text-sky-600 dark:text-sky-400">
+                  <HiOutlineUserGroup className="text-lg" />
+                </div>
+                <div>
+                  <h2 className="font-dm-sans font-bold text-base sm:text-lg text-gray-900 dark:text-white">
+                    1. Personas y Grupos ({calculation.totalPeople} {calculation.totalPeople === 1 ? 'integrante' : 'integrantes'})
+                  </h2>
+                </div>
               </div>
-              <h2 className="font-dm-sans font-bold text-lg text-gray-900 dark:text-white">
-                1. Personas y Grupos ({participants.reduce((a, p) => a + p.size, 0)} integrantes)
-              </h2>
+              {participants.length > 0 && (
+                <span className="font-inter text-[11px] text-gray-500 dark:text-gray-400">
+                  Marca <strong className="text-[var(--vibrant-sky-blue)]">Soy yo</strong> en tu registro para enviar solo tus saldos a Deudas.
+                </span>
+              )}
             </div>
 
             <form onSubmit={handleAddParticipant} className="flex flex-col sm:flex-row gap-2.5">
               <input
                 type="text"
-                placeholder="Nombre de persona o grupo (ej. Andrés + Ana)..."
+                placeholder="Nombre de persona o grupo (ej. Silvia y Gabriel)..."
                 value={newPersonName}
                 onChange={(e) => setNewPersonName(e.target.value)}
-                className="flex-1 px-4 min-h-[44px] py-2.5 bg-gray-50/80 dark:bg-gray-800/80 border border-gray-200 dark:border-gray-700 rounded-xl outline-none font-inter text-sm text-gray-900 dark:text-white"
+                className="flex-1 px-4 min-h-[44px] py-2.5 bg-gray-50/80 dark:bg-gray-800/80 border border-gray-200 dark:border-gray-700 rounded-xl outline-none focus:border-[var(--vibrant-sky-blue)] font-inter text-sm text-gray-900 dark:text-white"
               />
               <div className="w-full sm:w-44">
                 <CustomSelect
@@ -421,6 +465,7 @@ export default function DivisorCuentas() {
                     { value: '3', label: 'Grupo de 3' },
                     { value: '4', label: 'Grupo de 4' },
                     { value: '5', label: 'Grupo de 5' },
+                    { value: '6', label: 'Grupo de 6' },
                   ]}
                 />
               </div>
@@ -433,41 +478,73 @@ export default function DivisorCuentas() {
               </button>
             </form>
 
-            <div className="flex flex-wrap gap-2">
-              {participants.map((p) => (
-                <div
-                  key={p.id}
-                  className="inline-flex items-center gap-2 px-3.5 py-2 rounded-2xl bg-gray-50 dark:bg-gray-800 border border-gray-200/70 dark:border-gray-700 text-sm font-inter text-gray-800 dark:text-gray-100"
-                >
-                  <span className="font-semibold">{p.name}</span>
-                  {p.size > 1 && (
-                    <span className="px-2 py-0.5 rounded-md bg-sky-500/15 text-sky-600 dark:text-sky-300 font-syne text-[10px] font-bold">
-                      ×{p.size}
-                    </span>
-                  )}
-                  <button
-                    type="button"
-                    onClick={() => handleRemoveParticipant(p.id)}
-                    className="text-gray-400 hover:text-rose-500 cursor-pointer p-0.5"
-                    title="Quitar participante"
-                  >
-                    <HiOutlineTrash className="text-sm" />
-                  </button>
-                </div>
-              ))}
-            </div>
+            {participants.length === 0 ? (
+              <div className="p-5 rounded-2xl border border-dashed border-gray-300 dark:border-white/15 text-center">
+                <p className="font-inter text-xs sm:text-sm text-gray-500 dark:text-gray-400">
+                  Aún no hay participantes. Agrega a cada persona o grupo que participó en la cuenta.
+                </p>
+              </div>
+            ) : (
+              <div className="flex flex-wrap gap-2">
+                {participants.map((p) => {
+                  const isMe = myParticipantId === p.id;
+                  return (
+                    <div
+                      key={p.id}
+                      className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-2xl border text-sm font-inter transition-all ${
+                        isMe
+                          ? 'bg-sky-500/10 border-[var(--vibrant-sky-blue)]/50 text-gray-900 dark:text-white'
+                          : 'bg-gray-50 dark:bg-gray-800 border-gray-200/80 dark:border-white/10 text-gray-800 dark:text-gray-100'
+                      }`}
+                    >
+                      <span className="font-semibold">{p.name}</span>
+                      {p.size > 1 && (
+                        <span className="px-1.5 py-0.5 rounded-md bg-sky-500/15 text-sky-600 dark:text-sky-300 font-syne text-[10px] font-bold">
+                          ×{p.size}
+                        </span>
+                      )}
+                      <button
+                        type="button"
+                        onClick={() => setMyParticipantId(isMe ? '' : p.id)}
+                        className={`px-2 py-1 rounded-xl font-syne text-[10px] font-bold uppercase tracking-wider transition-all cursor-pointer ${
+                          isMe
+                            ? 'bg-[var(--vibrant-sky-blue)] text-white shadow-xs'
+                            : 'bg-white dark:bg-gray-700 text-gray-500 dark:text-gray-300 border border-gray-200/70 dark:border-white/10 hover:text-[var(--vibrant-sky-blue)]'
+                        }`}
+                        title={isMe ? 'Quitar marca de mi usuario' : 'Marcar que esta persona o grupo me pertenece'}
+                      >
+                        {isMe ? 'Tú ✓' : 'Soy yo'}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveParticipant(p.id)}
+                        className="min-w-[28px] min-h-[28px] flex items-center justify-center text-gray-400 hover:text-rose-500 cursor-pointer p-1 rounded-lg hover:bg-rose-500/10"
+                        title="Quitar participante"
+                      >
+                        <HiOutlineTrash className="text-sm" />
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </section>
 
-          {/* 2. Agregar Gastos y Segmentación */}
-          <section className="bg-white/90 dark:bg-gray-900/90 glass dark:dark-glass rounded-[2rem] p-5 sm:p-6 border border-gray-100 dark:border-gray-800 shadow-sm space-y-5">
-            <h2 className="font-dm-sans font-bold text-lg text-gray-900 dark:text-white">
-              2. Gastos y Segmentación
-            </h2>
+          {/* 2. Gastos (División proporcional automática por integrantes) */}
+          <section className="bg-white dark:bg-[#111827] rounded-3xl p-4 sm:p-6 border border-gray-200/80 dark:border-white/[0.09] shadow-xs space-y-4">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <h2 className="font-dm-sans font-bold text-base sm:text-lg text-gray-900 dark:text-white">
+                2. Gastos Realizados
+              </h2>
+              <span className="font-inter text-xs text-gray-500 dark:text-gray-400">
+                Se divide automáticamente entre las {calculation.totalPeople || 0} personas
+              </span>
+            </div>
 
-            <form onSubmit={handleAddExpense} className="space-y-4 bg-gray-50/60 dark:bg-gray-800/40 p-4 rounded-2xl border border-gray-100 dark:border-gray-800">
+            <form onSubmit={handleAddExpense} className="space-y-4 surface-panel p-4 rounded-2xl">
               <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
                 <div className="sm:col-span-2">
-                  <label className="block font-syne text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-1">
+                  <label className="block font-syne text-[10px] font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400 mb-1">
                     Concepto *
                   </label>
                   <input
@@ -476,11 +553,11 @@ export default function DivisorCuentas() {
                     placeholder="Ej. Cena, Airbnb, Botella, Uber..."
                     value={expConcept}
                     onChange={(e) => setExpConcept(e.target.value)}
-                    className="w-full px-4 min-h-[44px] py-2.5 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl outline-none font-inter text-sm text-gray-900 dark:text-white"
+                    className="w-full px-4 min-h-[44px] py-2.5 bg-white dark:bg-[#111827] border border-gray-200/80 dark:border-white/10 rounded-xl outline-none focus:border-[var(--vibrant-sky-blue)] font-inter text-sm text-gray-900 dark:text-white"
                   />
                 </div>
                 <div>
-                  <label className="block font-syne text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-1">
+                  <label className="block font-syne text-[10px] font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400 mb-1">
                     Monto ($) *
                   </label>
                   <input
@@ -490,11 +567,11 @@ export default function DivisorCuentas() {
                     placeholder="0.00"
                     value={expAmount}
                     onChange={(e) => setExpAmount(e.target.value)}
-                    className="w-full px-4 min-h-[44px] py-2.5 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl outline-none font-dm-sans font-bold text-sm text-gray-900 dark:text-white"
+                    className="w-full px-4 min-h-[44px] py-2.5 bg-white dark:bg-[#111827] border border-gray-200/80 dark:border-white/10 rounded-xl outline-none focus:border-[var(--vibrant-sky-blue)] font-dm-sans font-bold text-sm text-gray-900 dark:text-white"
                   />
                 </div>
                 <div>
-                  <label className="block font-syne text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-1">
+                  <label className="block font-syne text-[10px] font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400 mb-1">
                     Propina (%)
                   </label>
                   <input
@@ -504,99 +581,30 @@ export default function DivisorCuentas() {
                     placeholder="0"
                     value={expTip}
                     onChange={(e) => setExpTip(e.target.value)}
-                    className="w-full px-4 min-h-[44px] py-2.5 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl outline-none font-dm-sans font-bold text-sm text-gray-900 dark:text-white"
+                    className="w-full px-4 min-h-[44px] py-2.5 bg-white dark:bg-[#111827] border border-gray-200/80 dark:border-white/10 rounded-xl outline-none focus:border-[var(--vibrant-sky-blue)] font-dm-sans font-bold text-sm text-gray-900 dark:text-white"
                   />
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label className="block font-syne text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-1">
+              <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3">
+                <div className="flex-1 sm:max-w-xs">
+                  <label className="block font-syne text-[10px] font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400 mb-1">
                     ¿Quién pagó?
                   </label>
                   <CustomSelect
                     value={expPaidBy}
                     onChange={setExpPaidBy}
+                    placeholder="Agrega participantes arriba..."
                     options={participants.map((p) => ({
                       value: p.id,
                       label: p.size > 1 ? `${p.name} (×${p.size})` : p.name,
                     }))}
                   />
                 </div>
-                <div>
-                  <label className="block font-syne text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-1">
-                    Cómo dividirlo
-                  </label>
-                  <CustomSelect
-                    value={expMode}
-                    onChange={(val) => setExpMode(val as SplitMode)}
-                    options={[
-                      { value: 'proportional', label: 'Todos (proporcional a integrantes)' },
-                      { value: 'equal_groups', label: 'Todos (partes iguales por fila)' },
-                      { value: 'selected_only', label: 'Solo personas/grupos seleccionados' },
-                      { value: 'exact', label: 'Montos exactos personalizados' },
-                    ]}
-                  />
-                </div>
-              </div>
 
-              {expMode === 'selected_only' && (
-                <div className="space-y-2">
-                  <span className="block font-syne text-[10px] font-bold uppercase tracking-widest text-gray-400">
-                    Participantes incluidos en este gasto:
-                  </span>
-                  <div className="flex flex-wrap gap-2">
-                    {participants.map((p) => {
-                      const active = expSelectedIds.includes(p.id);
-                      return (
-                        <button
-                          key={p.id}
-                          type="button"
-                          onClick={() =>
-                            setExpSelectedIds((prev) =>
-                              prev.includes(p.id) ? prev.filter((x) => x !== p.id) : [...prev, p.id]
-                            )
-                          }
-                          className={`px-3 py-1.5 rounded-xl font-syne text-xs font-bold transition-all cursor-pointer border ${
-                            active
-                              ? 'bg-[var(--vibrant-sky-blue)] text-white border-transparent'
-                              : 'bg-white dark:bg-gray-900 text-gray-600 dark:text-gray-300 border-gray-200 dark:border-gray-700'
-                          }`}
-                        >
-                          {p.name} {p.size > 1 ? `(×${p.size})` : ''}
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-              )}
-
-              {expMode === 'exact' && (
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
-                  {participants.map((p) => (
-                    <div key={p.id}>
-                      <label className="block font-inter text-xs text-gray-500 dark:text-gray-400 mb-1 truncate">
-                        {p.name} ($)
-                      </label>
-                      <input
-                        type="number"
-                        step="0.01"
-                        placeholder="0.00"
-                        value={expExactMap[p.id] || ''}
-                        onChange={(e) =>
-                          setExpExactMap((prev) => ({ ...prev, [p.id]: e.target.value }))
-                        }
-                        className="w-full px-3 min-h-[40px] bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl font-dm-sans text-sm text-gray-900 dark:text-white"
-                      />
-                    </div>
-                  ))}
-                </div>
-              )}
-
-              <div className="flex justify-end">
                 <button
                   type="submit"
-                  className="px-6 min-h-[44px] py-2.5 bg-black dark:bg-white text-white dark:text-black rounded-xl font-syne text-xs font-bold uppercase tracking-wider cursor-pointer flex items-center gap-2 shadow-sm hover:scale-105 active:scale-95 transition-all"
+                  className="px-6 min-h-[44px] py-2.5 bg-black dark:bg-white text-white dark:text-black rounded-xl font-syne text-xs font-bold uppercase tracking-wider cursor-pointer flex items-center justify-center gap-2 shadow-sm hover:opacity-90 active:scale-95 transition-all shrink-0"
                 >
                   <HiOutlinePlus />
                   <span>Agregar Gasto</span>
@@ -608,11 +616,11 @@ export default function DivisorCuentas() {
             {expenses.length > 0 && (
               <div className="space-y-2.5">
                 {expenses.map((ex) => {
-                  const payer = participants.find((p) => p.id === ex.paidById)?.name || 'N/A';
+                  const payer = participants.find((p) => p.id === ex.paidById)?.name || 'Sin asignar';
                   return (
                     <div
                       key={ex.id}
-                      className="flex items-center justify-between gap-3 p-3.5 rounded-2xl bg-gray-50/70 dark:bg-gray-800/60 border border-gray-100 dark:border-gray-800"
+                      className="flex items-center justify-between gap-3 p-3.5 rounded-2xl bg-gray-50/90 dark:bg-gray-800/60 border border-gray-200/70 dark:border-white/10"
                     >
                       <div className="min-w-0">
                         <h4 className="font-dm-sans font-bold text-sm text-gray-900 dark:text-white truncate">
@@ -625,12 +633,12 @@ export default function DivisorCuentas() {
                       </div>
                       <div className="flex items-center gap-2 shrink-0">
                         <span className="font-dm-sans font-bold text-base text-gray-900 dark:text-white">
-                          ${ex.amount.toFixed(2)}
+                          ${formatMoney(ex.amount)}
                         </span>
                         <button
                           type="button"
                           onClick={() => setExpenses((prev) => prev.filter((item) => item.id !== ex.id))}
-                          className="p-2 text-rose-500 hover:bg-rose-500/10 rounded-xl cursor-pointer"
+                          className="min-w-[38px] min-h-[38px] p-2 text-rose-500 hover:bg-rose-500/10 rounded-xl cursor-pointer flex items-center justify-center"
                           title="Eliminar gasto"
                         >
                           <HiOutlineTrash />
@@ -645,43 +653,70 @@ export default function DivisorCuentas() {
         </div>
 
         {/* Right Column: Totals, Transfers & WhatsApp Share */}
-        <aside className="bg-white/90 dark:bg-gray-900/90 glass dark:dark-glass rounded-[2rem] p-5 sm:p-6 border border-gray-100 dark:border-gray-800 shadow-sm space-y-5">
+        <aside className="bg-white dark:bg-[#111827] rounded-3xl p-5 sm:p-6 border border-gray-200/80 dark:border-white/[0.09] shadow-xs space-y-5">
           <div>
-            <span className="font-syne text-[10px] font-bold uppercase tracking-widest text-gray-400 block">
-              Total de la Cuenta
-            </span>
-            <p className="font-dm-sans text-3xl font-bold text-gray-900 dark:text-white">
-              ${calculation.grandTotal.toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            <div className="flex items-center justify-between gap-2">
+              <span className="font-syne text-[10px] font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">
+                Total de la Cuenta
+              </span>
+              {eventDate && (
+                <span className="font-syne text-[10px] font-bold uppercase tracking-wider text-gray-400">
+                  {formatEventDate(eventDate)}
+                </span>
+              )}
+            </div>
+            <p className="font-dm-sans text-3xl font-bold text-gray-900 dark:text-white mt-0.5">
+              ${formatMoney(calculation.grandTotal)}
             </p>
+            {calculation.totalPeople > 0 && (
+              <p className="font-inter text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                Promedio por persona: <strong className="text-gray-800 dark:text-gray-200">${formatMoney(calculation.perPersonAvg)}</strong>
+              </p>
+            )}
           </div>
 
-          <div className="space-y-2 border-t border-gray-100 dark:border-gray-800 pt-4">
-            <span className="font-syne text-[10px] font-bold uppercase tracking-widest text-gray-400 block">
+          <div className="space-y-2 border-t border-gray-200/70 dark:border-white/[0.08] pt-4">
+            <span className="font-syne text-[10px] font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400 block">
               Consumo por Persona / Grupo
             </span>
-            {calculation.balances.map((b) => (
-              <div key={b.id} className="flex items-center justify-between text-xs font-inter py-1">
-                <span className="text-gray-700 dark:text-gray-200 font-medium truncate">
-                  {b.name} {b.size > 1 ? `(×${b.size})` : ''}
-                </span>
-                <div className="text-right shrink-0">
-                  <span className="font-dm-sans font-bold text-gray-900 dark:text-white">
-                    Toca: ${b.owed.toFixed(2)}
+            {calculation.balances.length === 0 ? (
+              <p className="text-xs font-inter text-gray-400">
+                Agrega personas o grupos para calcular lo que corresponde a cada uno.
+              </p>
+            ) : (
+              calculation.balances.map((b) => (
+                <div key={b.id} className="flex items-center justify-between text-xs font-inter py-1 gap-2">
+                  <span className="text-gray-800 dark:text-gray-200 font-medium truncate flex items-center gap-1.5">
+                    <span className="truncate">{b.name} {b.size > 1 ? `(×${b.size})` : ''}</span>
+                    {myParticipantId === b.id && (
+                      <span className="px-1.5 py-0.5 rounded bg-[var(--vibrant-sky-blue)]/15 text-[var(--vibrant-sky-blue)] font-syne text-[9px] font-bold uppercase shrink-0">
+                        Tú
+                      </span>
+                    )}
                   </span>
-                  <span
-                    className={`ml-2 font-syne text-[10px] font-bold ${
-                      b.net >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-500'
-                    }`}
-                  >
-                    {b.net >= 0 ? `+$${b.net.toFixed(2)}` : `-$${Math.abs(b.net).toFixed(2)}`}
-                  </span>
+                  <div className="text-right shrink-0">
+                    <span className="font-dm-sans font-bold text-gray-900 dark:text-white">
+                      ${formatMoney(b.owed)}
+                    </span>
+                    <span
+                      className={`ml-2 font-syne text-[10px] font-bold ${
+                        b.net > 0.01
+                          ? 'text-emerald-600 dark:text-emerald-400'
+                          : b.net < -0.01
+                          ? 'text-rose-500'
+                          : 'text-gray-400'
+                      }`}
+                    >
+                      {b.net > 0.01 ? `+$${formatMoney(b.net)}` : b.net < -0.01 ? `-$${formatMoney(Math.abs(b.net))}` : 'OK'}
+                    </span>
+                  </div>
                 </div>
-              </div>
-            ))}
+              ))
+            )}
           </div>
 
-          <div className="space-y-2 border-t border-gray-100 dark:border-gray-800 pt-4">
-            <span className="font-syne text-[10px] font-bold uppercase tracking-widest text-gray-400 block">
+          <div className="space-y-2 border-t border-gray-200/70 dark:border-white/[0.08] pt-4">
+            <span className="font-syne text-[10px] font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400 block">
               Liquidación Sugerida
             </span>
             {calculation.transfers.length === 0 ? (
@@ -699,7 +734,7 @@ export default function DivisorCuentas() {
                       <strong>{t.fromName}</strong> → <strong>{t.toName}</strong>
                     </span>
                     <span className="font-dm-sans font-bold text-emerald-700 dark:text-emerald-300 shrink-0">
-                      ${t.amount.toFixed(2)}
+                      ${formatMoney(t.amount)}
                     </span>
                   </div>
                 ))}
@@ -711,7 +746,7 @@ export default function DivisorCuentas() {
             <button
               type="button"
               onClick={handleShareWhatsApp}
-              className="w-full min-h-[44px] py-3 px-4 bg-emerald-600 hover:bg-emerald-700 text-white rounded-2xl font-syne text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-2 shadow-md transition-all cursor-pointer"
+              className="w-full min-h-[44px] py-3 px-4 bg-emerald-600 hover:bg-emerald-700 text-white rounded-2xl font-syne text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-2 shadow-sm transition-all cursor-pointer"
             >
               <HiOutlineShare className="text-base" />
               <span>Compartir por WhatsApp</span>
@@ -731,9 +766,13 @@ export default function DivisorCuentas() {
                 type="button"
                 disabled={sendingDebt}
                 onClick={handleSendToDebts}
-                className="w-full min-h-[44px] py-2.5 px-4 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-2xl font-syne text-[11px] font-bold uppercase tracking-wider transition-all cursor-pointer disabled:opacity-50"
+                className="w-full min-h-[44px] py-2.5 px-4 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-2xl font-syne text-[11px] font-bold uppercase tracking-wider transition-all cursor-pointer disabled:opacity-50 border border-gray-200/70 dark:border-white/10"
               >
-                {sendingDebt ? 'Enviando...' : 'Enviar Saldos a Deudas'}
+                {sendingDebt
+                  ? 'Enviando...'
+                  : myParticipantId
+                  ? `Enviar Mis Saldos a Deudas (${myTransfers.length})`
+                  : 'Marca "Soy yo" para Enviar a Deudas'}
               </button>
             )}
           </div>
