@@ -1,7 +1,7 @@
 <div align="center">
   <img src="public/assets/ac-website-icon.svg" alt="Logo" width="100" />
   
-  # Andrés Cordero - Professional Portfolio & Personal Panel PWA (v7.2.0) 🔍✨
+  # Andrés Cordero - Professional Portfolio & Personal Panel PWA (v7.2.1) 🔍✨
   
   **Welcome to my personal ecosystem: a professional portfolio and a custom productivity hub.**  
   Built with UX/UI best practices, premium design, and a focus on mobile-first efficiency.
@@ -16,11 +16,13 @@
 
 ---
 
-## 🚀 Overview (Version 7.2.0)
+## 🚀 Overview (Version 7.2.1)
 
 This repository hosts a dual-purpose platform:
 1. **Professional Portfolio:** A high-end landing page showcasing my engineering background, skills, and achievements with dynamic copyright year updates and zero horizontal overflow.
-2. **Personal Panel PWA (v7.2.0):** An executive personal operating system featuring:
+2. **Personal Panel PWA (v7.2.1):** An executive personal operating system featuring:
+   * **Calendario 360° de Plantas Limpio (`Calendario.tsx` - v7.2.1):**
+     * Muestra únicamente la fecha de riego actual (si toca hoy o está atrasada) o la siguiente fecha próxima por planta, evitando proyectar repeticiones en todo el mes.
    * **Refinamiento de Flujo en `Pendientes` y `Captura Rápida` (v7.2.0):**
      * **Área 100% Seleccionable (`Pendientes.tsx`, `QuickCaptureModal.tsx`):** En el formulario de tareas el campo de Área utiliza únicamente `CustomSelect` con las áreas reales creadas por el usuario (eliminando texto libre y sugerencias predeterminadas).
      * **Etiquetas Propias Reutilizables:** Se eliminan las etiquetas predeterminadas (`SUGGESTED_TAGS`); cualquier etiqueta nueva ingresada en una tarea o en Captura Rápida se guarda en `task_tags` y queda disponible de inmediato como chip seleccionable.

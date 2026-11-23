@@ -171,33 +171,38 @@ export default function Calendario() {
       });
     }
 
-    // 3. Riego de Plantas proyectado en el mes
+    // 3. Riego de Plantas: únicamente fecha actual (hoy/atrasada) o siguiente próximo riego
     if (activeSources.plant) {
-      const monthStart = new Date(year, month, 1);
-      const monthEnd = new Date(year, month, daysInMonth);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const todayDs = toDateStr(today.getFullYear(), today.getMonth(), today.getDate());
+
       rawData.plants.forEach((p) => {
         const freq = Number(p.watering_frequency_days);
         if (!p.last_watered_at || !freq || freq <= 0) return;
-        const cursor = new Date(`${p.last_watered_at}T00:00:00`);
-        if (Number.isNaN(cursor.getTime())) return;
+        const nextWater = new Date(`${p.last_watered_at}T00:00:00`);
+        if (Number.isNaN(nextWater.getTime())) return;
+        nextWater.setDate(nextWater.getDate() + freq);
 
-        // Avanzar hasta entrar al mes visible
-        while (cursor < monthStart) {
-          cursor.setDate(cursor.getDate() + freq);
+        let targetDs: string;
+        let statusTag = '';
+        if (nextWater <= today) {
+          targetDs = todayDs;
+          const overdueDays = Math.round((today.getTime() - nextWater.getTime()) / (1000 * 60 * 60 * 24));
+          statusTag = overdueDays > 0 ? ` · Atrasada ${overdueDays}d` : ' · Toca hoy';
+        } else {
+          targetDs = toDateStr(nextWater.getFullYear(), nextWater.getMonth(), nextWater.getDate());
         }
-        let guard = 0;
-        while (cursor <= monthEnd && guard < 35) {
-          const ds = toDateStr(cursor.getFullYear(), cursor.getMonth(), cursor.getDate());
+
+        if (targetDs.startsWith(monthPrefix)) {
           addEvent({
-            id: `plt-${p.id}-${ds}`,
-            date: ds,
+            id: `plt-${p.id}-${targetDs}`,
+            date: targetDs,
             source: 'plant',
             title: `Regar: ${p.nickname || p.species}`,
-            meta: `${p.emoji || '🪴'} Cada ${freq} días`,
+            meta: `${p.emoji || '🪴'} Cada ${freq} días${statusTag}`,
             path: '/admin/panel/plantas',
           });
-          cursor.setDate(cursor.getDate() + freq);
-          guard++;
         }
       });
     }
