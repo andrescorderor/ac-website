@@ -1,7 +1,7 @@
 <div align="center">
   <img src="public/assets/ac-website-icon.svg" alt="Logo" width="100" />
   
-  # Andrés Cordero - Professional Portfolio & Personal Panel PWA (v7.4.4) 🔍✨
+  # Andrés Cordero - Professional Portfolio & Personal Panel PWA (v7.4.5) 🔍✨
   
   **Welcome to my personal ecosystem: a professional portfolio and a custom productivity hub.**  
   Built with UX/UI best practices, premium design, and a focus on mobile-first efficiency.
@@ -16,11 +16,13 @@
 
 ---
 
-## 🚀 Overview (Version 7.4.4)
+## 🚀 Overview (Version 7.4.5)
 
 This repository hosts a dual-purpose platform:
 1. **Professional Portfolio:** A high-end landing page showcasing my engineering background, skills, and achievements with dynamic copyright year updates and zero horizontal overflow.
-2. **Personal Panel PWA (v7.4.4):** An executive personal operating system featuring:
+2. **Personal Panel PWA (v7.4.5):** An executive personal operating system featuring:
+   * **Fechas Importantes en Vista de Lista Directa (`Recordatorios.tsx` - v7.4.5):**
+     * Retira la vista redundante de calendario y el selector `Lista | Calendario` (cubierto de forma integral por Calendario 360°), dejando la lista cronológica directa con búsqueda insensible a acentos.
    * **Bóveda de Textos Directa sin Categorías (`Vault.tsx` - v7.4.4):**
      * Retira filtros y selector de categoría en registros de bóveda para ofrecer una búsqueda plana e inmediata con tolerancia a acentos.
    * **Prompts & Variables Directos sin Categorías (`Prompts.tsx` - v7.4.3):**
