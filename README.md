@@ -1,7 +1,7 @@
 <div align="center">
   <img src="public/assets/ac-website-icon.svg" alt="Logo" width="100" />
   
-  # Andrés Cordero - Professional Portfolio & Personal Panel PWA (v7.5.0) 🔍✨
+  # Andrés Cordero - Professional Portfolio & Personal Panel PWA (v7.5.1) 🔍✨
   
   **Welcome to my personal ecosystem: a professional portfolio and a custom productivity hub.**  
   Built with UX/UI best practices, premium design, and a focus on mobile-first efficiency.
@@ -16,11 +16,13 @@
 
 ---
 
-## 🚀 Overview (Version 7.5.0)
+## 🚀 Overview (Version 7.5.1)
 
 This repository hosts a dual-purpose platform:
 1. **Professional Portfolio:** A high-end landing page showcasing my engineering background, skills, and achievements with dynamic copyright year updates and zero horizontal overflow.
-2. **Personal Panel PWA (v7.5.0):** An executive personal operating system featuring:
+2. **Personal Panel PWA (v7.5.1):** An executive personal operating system featuring:
+   * **Corrección de Eliminación Permanente en Prompts (`Prompts.tsx` - v7.5.1):**
+     * Elimina la restauración automática de plantillas por defecto cuando el usuario vacía o borra todas sus plantillas e invalida el caché de búsqueda global al guardar cambios.
    * **Radar de Agenda: Vencidos sin Atender & Próximos 5 Días (`Calendario.tsx`, `DashboardHome.tsx` - v7.5.0):**
      * Incorpora un panel accionable sobre el Calendario 360° para revisar al instante tareas y riegos vencidos junto con todos los compromisos de los próximos 5 días (cruzando límites de mes), con botones de 1-clic **Completar** y **Regar** con soporte Undo y sincronización en `Mi Día Accionable`.
    * **Mini-CMS Portafolio Enfocado en Colecciones (`PortafolioCMS.tsx` - v7.4.6):**

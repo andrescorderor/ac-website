@@ -12,6 +12,7 @@ import {
 } from 'react-icons/hi';
 import { useToast } from '@/components/common/ToastContext';
 import { loadSystemData, saveSystemData } from '@/lib/systemStore';
+import { invalidateCache } from '@/lib/cache';
 
 export interface PromptTemplate {
   id: string;
@@ -20,23 +21,6 @@ export interface PromptTemplate {
   body: string;
   updatedAt: string;
 }
-
-const DEFAULT_PROMPTS: PromptTemplate[] = [
-  {
-    id: 'prompt-seguimiento-comercial',
-    title: 'Seguimiento de Propuesta Comercial',
-    category: 'General',
-    body: 'Hola {{cliente}}, ¿cómo estás?\n\nTe escribo para dar seguimiento a la propuesta de {{proyecto}} por un total de ${{monto}} que te compartí el {{fecha}}.\n\nSi tienes alguna duda técnica o quieres ajustar el alcance, con gusto lo revisamos en una llamada breve.\n\nSaludos,\nAndrés Cordero',
-    updatedAt: new Date().toISOString(),
-  },
-  {
-    id: 'prompt-especificacion-tecnica',
-    title: 'Prompt Arquitectura & Código',
-    category: 'General',
-    body: 'Actúa como Tech Lead Senior especialista en {{stack}}.\n\nContexto del proyecto: {{proyecto}}\nObjetivo principal: {{objetivo}}\nRestricciones clave: {{restricciones}}\n\nPropón primero la arquitectura, modelo de datos y casos borde antes de generar la implementación.',
-    updatedAt: new Date().toISOString(),
-  },
-];
 
 const normalize = (s: string | null | undefined) =>
   (s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
@@ -72,8 +56,8 @@ export default function Prompts() {
   }, []);
 
   const loadPrompts = async () => {
-    const saved = await loadSystemData<PromptTemplate[]>('prompt_templates', []);
-    const list = Array.isArray(saved) && saved.length > 0 ? saved : DEFAULT_PROMPTS;
+    const saved = await loadSystemData<PromptTemplate[] | null>('prompt_templates', null);
+    const list = Array.isArray(saved) ? saved : [];
     setPrompts(list);
     setSelectedId(list[0]?.id || null);
     setLoading(false);
@@ -82,6 +66,7 @@ export default function Prompts() {
   const persistPrompts = async (next: PromptTemplate[]) => {
     setPrompts(next);
     await saveSystemData('prompt_templates', next);
+    invalidateCache('search_global_dataset');
   };
 
   const filteredPrompts = useMemo(() => {
@@ -241,15 +226,35 @@ export default function Prompts() {
         {/* Templates List */}
         <div className="space-y-3">
           {filteredPrompts.length === 0 ? (
-            <div className="bg-white dark:bg-[#111827] border border-gray-200/80 dark:border-white/[0.09] rounded-3xl p-8 text-center space-y-2 shadow-xs">
-              <p className="font-dm-sans font-bold text-gray-700 dark:text-gray-200">Sin coincidencias</p>
-              <button
-                type="button"
-                onClick={() => setSearchTerm('')}
-                className="text-xs font-syne font-bold uppercase text-[var(--vibrant-sky-blue)] cursor-pointer"
-              >
-                Limpiar búsqueda
-              </button>
+            <div className="bg-white dark:bg-[#111827] border border-gray-200/80 dark:border-white/[0.09] rounded-3xl p-8 text-center space-y-3 shadow-xs">
+              {prompts.length === 0 ? (
+                <>
+                  <p className="font-dm-sans font-bold text-gray-700 dark:text-gray-200">
+                    Aún no tienes plantillas
+                  </p>
+                  <button
+                    type="button"
+                    onClick={openCreateModal}
+                    className="inline-flex items-center justify-center gap-1.5 px-4 min-h-[44px] py-2 bg-black dark:bg-white text-white dark:text-black rounded-2xl text-xs font-syne font-bold uppercase tracking-wider cursor-pointer hover:opacity-90 transition-all"
+                  >
+                    <HiOutlinePlus className="text-base" />
+                    <span>Crear Primera Plantilla</span>
+                  </button>
+                </>
+              ) : (
+                <>
+                  <p className="font-dm-sans font-bold text-gray-700 dark:text-gray-200">
+                    Sin coincidencias
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => setSearchTerm('')}
+                    className="min-h-[44px] px-3 text-xs font-syne font-bold uppercase text-[var(--vibrant-sky-blue)] cursor-pointer"
+                  >
+                    Limpiar búsqueda
+                  </button>
+                </>
+              )}
             </div>
           ) : (
             filteredPrompts.map((p) => {
