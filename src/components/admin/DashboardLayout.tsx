@@ -312,7 +312,7 @@ function DashboardLayoutContent() {
 
           <div className="text-center select-none pt-1">
             <span className="font-syne text-[10px] font-bold tracking-widest text-gray-400 dark:text-gray-500 block">
-              VERSIÓN v7.2.1
+              VERSIÓN v7.3.0
             </span>
           </div>
         </div>
@@ -462,7 +462,7 @@ function DashboardLayoutContent() {
 
           <div className="text-center select-none pt-2">
             <span className="font-syne text-[10px] font-bold tracking-widest text-gray-400 dark:text-gray-500 block">
-              VERSIÓN v7.2.1
+              VERSIÓN v7.3.0
             </span>
           </div>
         </div>
@@ -495,24 +495,6 @@ function DashboardLayoutContent() {
             >
               <HiOutlinePlus className="text-base" />
               <span>Captura</span>
-            </button>
-
-            <button
-              onClick={handleToggleNotifications}
-              className="flex items-center gap-2 px-4 min-h-[44px] py-2 bg-gray-100 dark:bg-gray-800 rounded-xl border border-gray-200/60 dark:border-gray-700/60 text-xs font-syne font-bold uppercase tracking-wider text-gray-700 dark:text-gray-200 hover:scale-105 active:scale-95 transition-all cursor-pointer"
-              title="Notificaciones PWA"
-            >
-              {notifPermission === 'granted' ? (
-                <>
-                  <HiBell className="text-base text-emerald-500" />
-                  <span>Alertas OK</span>
-                </>
-              ) : (
-                <>
-                  <HiOutlineBell className="text-base text-amber-500 animate-bounce" />
-                  <span>Activar Alertas</span>
-                </>
-              )}
             </button>
 
             <button

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { supabase } from '@/lib/supabase';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -11,17 +11,55 @@ import {
   HiX,
   HiOutlineSearch,
   HiOutlineChevronDown,
-  HiOutlineChevronUp
+  HiOutlineChevronUp,
+  HiOutlineShoppingBag
 } from 'react-icons/hi';
 import { useToast } from '@/components/common/ToastContext';
 import CustomSelect from '@/components/common/CustomSelect';
 import { togglePinItem, isItemPinned } from '@/lib/pinned';
 import { moveToTrash } from '@/lib/trash';
-import { useSearchParams } from 'react-router-dom';
+import { invalidateCache } from '@/lib/cache';
+import { Link, useSearchParams } from 'react-router-dom';
 import AutoFormattedText from '@/components/common/AutoFormattedText';
 import RichTextEditor from '@/components/common/RichTextEditor';
 
-type Task = { id: string; text: string; done: boolean };
+type Task = {
+  id: string;
+  text: string;
+  done: boolean;
+  shoppingItemId?: string | null;
+  shoppingItemName?: string | null;
+};
+
+type ShoppingLinkItem = {
+  id: string;
+  name: string;
+  location: string | null;
+  price: number | null;
+  priority?: string | null;
+  type?: string | null;
+  category?: string | null;
+  bought: boolean;
+};
+
+const isMandadoItem = (item: ShoppingLinkItem): boolean => {
+  if (item.type === 'semanal' || item.type === 'quincenal' || item.type === 'ocasional') return true;
+  if (item.category === 'semanal' || item.category === 'quincenal' || item.category === 'ocasional' || item.category === 'comida' || item.category === 'insumos') return true;
+  if (
+    item.location?.includes('Semanal') ||
+    item.location?.includes('Quincenal') ||
+    item.location?.includes('Agotar') ||
+    item.location?.includes('Agotamiento') ||
+    item.location?.includes('Mandado') ||
+    item.location?.includes('Comida') ||
+    item.location?.includes('Insumos') ||
+    item.location?.includes('🍔') ||
+    item.location?.includes('🛒') ||
+    item.location?.includes('🥗') ||
+    item.location?.includes('📦')
+  ) return true;
+  return false;
+};
 
 type Project = {
   id: string;
@@ -67,20 +105,43 @@ export default function Proyectos() {
 
   const [form, setForm] = useState(EMPTY_FORM);
   const [newTaskText, setNewTaskText] = useState('');
+  const [selectedShoppingLink, setSelectedShoppingLink] = useState('');
+  const [shoppingItems, setShoppingItems] = useState<ShoppingLinkItem[]>([]);
   const [submitting, setSubmitting] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => { fetchProjects(); }, []);
 
   const fetchProjects = async () => {
-    const { data, error } = await supabase
-      .from('creative_projects')
-      .select('*')
-      .order('created_at', { ascending: false });
-    if (error) toast.error('Error al cargar proyectos: ' + error.message);
-    else if (data) setProjects(data.map(p => ({ ...p, tasks: p.tasks || [] })));
+    const [projRes, shopRes] = await Promise.all([
+      supabase
+        .from('creative_projects')
+        .select('*')
+        .order('created_at', { ascending: false }),
+      supabase
+        .from('shopping_list')
+        .select('*')
+        .order('created_at', { ascending: false }),
+    ]);
+
+    if (projRes.error) toast.error('Error al cargar proyectos: ' + projRes.error.message);
+    else if (projRes.data) setProjects(projRes.data.map(p => ({ ...p, tasks: p.tasks || [] })));
+
+    if (!shopRes.error && shopRes.data) {
+      setShoppingItems(shopRes.data);
+    }
     setLoading(false);
   };
+
+  const shoppingMap = useMemo(
+    () => new Map(shoppingItems.map((item) => [item.id, item])),
+    [shoppingItems]
+  );
+
+  const generalShoppingItems = useMemo(
+    () => shoppingItems.filter((item) => !isMandadoItem(item)),
+    [shoppingItems]
+  );
 
   const openAddForm = () => {
     setEditingProject(null);
@@ -173,18 +234,127 @@ export default function Proyectos() {
   };
 
   const addTask = async (project: Project) => {
-    if (!newTaskText.trim()) return;
-    const newTask: Task = { id: Date.now().toString(), text: newTaskText.trim(), done: false };
-    const updatedTasks = [...project.tasks, newTask];
-    await supabase.from('creative_projects').update({ tasks: updatedTasks }).eq('id', project.id);
-    setProjects(projects.map(p => p.id === project.id ? { ...p, tasks: updatedTasks } : p));
-    setNewTaskText('');
+    const trimmedText = newTaskText.trim();
+    const linkedExisting =
+      selectedShoppingLink && selectedShoppingLink !== '__create_new__'
+        ? shoppingMap.get(selectedShoppingLink)
+        : undefined;
+
+    if (selectedShoppingLink === '__create_new__' && !trimmedText) {
+      toast.error('Escribe qué deseas comprar para crearlo en Compras');
+      return;
+    }
+
+    if (!trimmedText && !linkedExisting) return;
+
+    let shoppingItemId: string | null = linkedExisting ? linkedExisting.id : null;
+    let shoppingItemName: string | null = linkedExisting ? linkedExisting.name : null;
+    let taskDone = linkedExisting ? Boolean(linkedExisting.bought) : false;
+    let taskText = trimmedText || (linkedExisting ? `Comprar: ${linkedExisting.name}` : '');
+
+    try {
+      if (selectedShoppingLink === '__create_new__') {
+        const { data: { session } } = await supabase.auth.getSession();
+        const user = session?.user;
+        if (!user) {
+          toast.error('Sesión no iniciada');
+          return;
+        }
+
+        const itemName = trimmedText.replace(/^comprar[:\s]+/i, '').trim() || trimmedText;
+        const { data: createdRows, error: createErr } = await supabase
+          .from('shopping_list')
+          .insert([
+            {
+              user_id: user.id,
+              name: itemName,
+              location: `Proyecto: ${project.name}`,
+              price: null,
+              priority: 'Media',
+              bought: false,
+            },
+          ])
+          .select();
+
+        if (createErr) throw createErr;
+
+        if (createdRows && createdRows[0]) {
+          const created = createdRows[0] as ShoppingLinkItem;
+          shoppingItemId = created.id;
+          shoppingItemName = created.name;
+          taskText = /^comprar\b/i.test(trimmedText) ? trimmedText : `Comprar: ${created.name}`;
+          setShoppingItems((prev) => [created, ...prev]);
+          invalidateCache('dashboard');
+          invalidateCache('search_global');
+          toast.success(`"${created.name}" añadido a Compras y vinculado`);
+        }
+      }
+
+      const newTask: Task = {
+        id: Date.now().toString(),
+        text: taskText,
+        done: taskDone,
+        shoppingItemId,
+        shoppingItemName,
+      };
+      const updatedTasks = [...project.tasks, newTask];
+      const { error } = await supabase
+        .from('creative_projects')
+        .update({ tasks: updatedTasks })
+        .eq('id', project.id);
+      if (error) throw error;
+
+      setProjects(projects.map(p => p.id === project.id ? { ...p, tasks: updatedTasks } : p));
+      setNewTaskText('');
+      setSelectedShoppingLink('');
+    } catch (err: any) {
+      toast.error('Error al agregar sub-tarea: ' + err.message);
+    }
   };
 
   const toggleTask = async (project: Project, taskId: string) => {
-    const updatedTasks = project.tasks.map(t => t.id === taskId ? { ...t, done: !t.done } : t);
-    await supabase.from('creative_projects').update({ tasks: updatedTasks }).eq('id', project.id);
+    const targetTask = project.tasks.find((t) => t.id === taskId);
+    if (!targetTask) return;
+
+    const linkedItem = targetTask.shoppingItemId ? shoppingMap.get(targetTask.shoppingItemId) : undefined;
+    const currentDone = linkedItem ? Boolean(linkedItem.bought) : targetTask.done;
+    const nextDone = !currentDone;
+
+    const updatedTasks = project.tasks.map(t => t.id === taskId ? { ...t, done: nextDone } : t);
     setProjects(projects.map(p => p.id === project.id ? { ...p, tasks: updatedTasks } : p));
+
+    try {
+      const { error } = await supabase
+        .from('creative_projects')
+        .update({ tasks: updatedTasks })
+        .eq('id', project.id);
+      if (error) throw error;
+
+      if (targetTask.shoppingItemId) {
+        const { error: shopErr } = await supabase
+          .from('shopping_list')
+          .update({ bought: nextDone })
+          .eq('id', targetTask.shoppingItemId);
+
+        if (!shopErr) {
+          setShoppingItems((prev) =>
+            prev.map((item) =>
+              item.id === targetTask.shoppingItemId ? { ...item, bought: nextDone } : item
+            )
+          );
+          invalidateCache('dashboard');
+          invalidateCache('search_global');
+          toast.info(
+            nextDone
+              ? `🛒 "${linkedItem?.name || targetTask.shoppingItemName}" marcado como comprado`
+              : `🛒 "${linkedItem?.name || targetTask.shoppingItemName}" marcado por comprar`
+          );
+        }
+      }
+    } catch (err: any) {
+      toast.error('Error al actualizar sub-tarea: ' + err.message);
+      fetchProjects();
+    }
   };
 
   const deleteTask = async (project: Project, taskId: string) => {
@@ -227,36 +397,37 @@ export default function Proyectos() {
   );
 
   return (
-    <div className="space-y-10 pb-28 sm:pb-20">
+    <div className="space-y-5 sm:space-y-8 pb-8">
       {/* Header */}
-      <header className="flex flex-col sm:flex-row sm:items-end justify-between gap-6">
+      <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-3.5">
         <div>
-          <h1 className="font-dm-sans text-3xl md:text-4xl font-bold tracking-tight text-black dark:text-white">
+          <h1 className="font-dm-sans text-2xl sm:text-3xl font-bold tracking-tight text-black dark:text-white">
             Proyectos <span className="text-gradient">Creativos</span>
           </h1>
-          <p className="font-inter mt-2 text-[var(--dark-gray)] dark:text-gray-400 font-light text-sm">
-            Tu espacio personal para gestionar proyectos y creaciones propias.
+          <p className="hidden sm:block font-inter mt-1 text-[var(--dark-gray)] dark:text-gray-400 font-light text-xs">
+            Tu espacio personal para gestionar proyectos, sub-tareas y compras vinculadas.
           </p>
         </div>
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4">
-          <div className="relative flex-1 sm:w-64">
+        <div className="flex flex-wrap items-center gap-2">
+          <div className="relative flex-1 min-w-[180px] sm:w-60">
             <input
               type="text"
               placeholder="Buscar proyectos..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-12 pr-6 py-3.5 bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl outline-none focus:ring-2 ring-gray-100 dark:ring-gray-700 font-inter text-sm shadow-sm transition-all text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500"
+              className="w-full pl-10 pr-4 min-h-[44px] py-2 bg-white dark:bg-[#111827] border border-gray-200/80 dark:border-white/10 rounded-2xl outline-none focus:border-[var(--vibrant-sky-blue)] font-inter text-sm shadow-xs transition-all text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500"
             />
-            <HiOutlineSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-lg" />
+            <HiOutlineSearch className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 text-lg pointer-events-none" />
           </div>
 
           <motion.button
-            whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
+            type="button"
+            whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }}
             onClick={openAddForm}
-            className="px-6 py-3.5 bg-black dark:bg-white text-white dark:text-black font-syne text-xs font-bold uppercase tracking-wider rounded-2xl shadow-lg flex items-center justify-center gap-2 shrink-0"
+            className="px-4 sm:px-5 min-h-[44px] py-2 bg-black dark:bg-white text-white dark:text-black font-syne text-xs font-bold uppercase tracking-wider rounded-2xl shadow-sm flex items-center justify-center gap-2 shrink-0 cursor-pointer"
           >
             <HiOutlinePlus className="text-lg" />
-            Nuevo Proyecto
+            <span>Nuevo Proyecto</span>
           </motion.button>
         </div>
       </header>
@@ -422,7 +593,11 @@ export default function Proyectos() {
           <AnimatePresence>
             {filtered.map((project) => {
               const isExpanded = expandedId === project.id;
-              const doneTasks = project.tasks.filter(t => t.done).length;
+              const isTaskDone = (t: Task) =>
+                t.shoppingItemId && shoppingMap.has(t.shoppingItemId)
+                  ? Boolean(shoppingMap.get(t.shoppingItemId)!.bought)
+                  : t.done;
+              const doneTasks = project.tasks.filter(isTaskDone).length;
               const totalTasks = project.tasks.length;
 
               return (
@@ -432,7 +607,7 @@ export default function Proyectos() {
                   initial={{ opacity: 0, scale: 0.95 }}
                   animate={{ opacity: 1, scale: 1 }}
                   exit={{ opacity: 0, scale: 0.95 }}
-                  className="group bg-white/80 dark:bg-gray-900/80 glass dark:dark-glass p-6 rounded-[2rem] border-none shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col justify-between overflow-hidden relative"
+                  className="group bg-white dark:bg-[#111827] p-5 sm:p-6 rounded-3xl border border-gray-200/80 dark:border-white/[0.09] shadow-xs hover:shadow-lg transition-all duration-300 flex flex-col justify-between relative"
                 >
                   {/* Card Header */}
                   <div className="flex-1 space-y-4">
@@ -515,10 +690,15 @@ export default function Proyectos() {
                   </div>
 
                   {/* Expand/Collapse Tasks */}
-                  <div className="border-t border-gray-100/50 dark:border-gray-800/50">
+                  <div className="border-t border-gray-200/70 dark:border-white/[0.08] mt-3 pt-1">
                     <button
-                      onClick={() => setExpandedId(isExpanded ? null : project.id)}
-                      className="w-full px-6 py-3 flex items-center justify-between text-xs font-syne font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400 hover:bg-gray-50/50 dark:hover:bg-gray-800/30 transition-all"
+                      type="button"
+                      onClick={() => {
+                        setExpandedId(isExpanded ? null : project.id);
+                        setNewTaskText('');
+                        setSelectedShoppingLink('');
+                      }}
+                      className="w-full px-2 min-h-[42px] py-2 flex items-center justify-between text-xs font-syne font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400 hover:text-black dark:hover:text-white rounded-xl transition-all cursor-pointer"
                     >
                       <span>Sub-tareas ({totalTasks})</span>
                       {isExpanded ? <HiOutlineChevronUp /> : <HiOutlineChevronDown />}
@@ -528,40 +708,106 @@ export default function Proyectos() {
                       {isExpanded && (
                         <motion.div
                           initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }}
-                          className="overflow-hidden"
+                          className="overflow-visible"
                         >
-                          <div className="pb-5 space-y-2">
-                            {project.tasks.map(task => (
-                              <div key={task.id} className="flex items-center gap-3 group">
-                                <button onClick={() => toggleTask(project, task.id)} className="shrink-0">
-                                  {task.done
-                                    ? <HiOutlineCheckCircle className="text-emerald-500 text-lg" />
-                                    : <HiOutlineDotsCircleHorizontal className="text-gray-300 dark:text-gray-600 text-lg" />
+                          <div className="pb-2 pt-1 space-y-2.5">
+                            {project.tasks.map((task) => {
+                              const linkedItem = task.shoppingItemId
+                                ? shoppingMap.get(task.shoppingItemId)
+                                : undefined;
+                              const done = isTaskDone(task);
+                              const shopName = linkedItem?.name || task.shoppingItemName;
+
+                              return (
+                                <div key={task.id} className="flex items-start gap-2.5 group/task">
+                                  <button
+                                    type="button"
+                                    onClick={() => toggleTask(project, task.id)}
+                                    className="shrink-0 mt-0.5 cursor-pointer"
+                                    title={done ? 'Marcar pendiente' : 'Marcar completada'}
+                                  >
+                                    {done
+                                      ? <HiOutlineCheckCircle className="text-emerald-500 text-lg" />
+                                      : <HiOutlineDotsCircleHorizontal className="text-gray-400 dark:text-gray-500 text-lg hover:text-[var(--vibrant-sky-blue)]" />
+                                    }
+                                  </button>
+
+                                  <div className="flex-1 min-w-0 space-y-1">
+                                    <span className={`font-inter text-sm block break-words ${done ? 'line-through text-gray-400 dark:text-gray-500' : 'text-gray-800 dark:text-gray-200'}`}>
+                                      {task.text}
+                                    </span>
+
+                                    {task.shoppingItemId && shopName && (
+                                      <Link
+                                        to={`/admin/panel/compras?search=${encodeURIComponent(shopName)}`}
+                                        className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[10px] font-syne font-bold uppercase tracking-wider border transition-all ${
+                                          done
+                                            ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-300 border-emerald-500/25'
+                                            : 'bg-sky-500/10 text-sky-700 dark:text-sky-300 border-sky-500/25 hover:bg-sky-500/20'
+                                        }`}
+                                        title="Ver ítem en Lista de Compras"
+                                      >
+                                        <HiOutlineShoppingBag className="text-xs shrink-0" />
+                                        <span className="truncate max-w-[170px]">{shopName}</span>
+                                        {linkedItem?.price ? (
+                                          <span className="opacity-75">· ${linkedItem.price.toLocaleString()}</span>
+                                        ) : null}
+                                      </Link>
+                                    )}
+                                  </div>
+
+                                  <button
+                                    type="button"
+                                    onClick={() => deleteTask(project, task.id)}
+                                    className="p-1.5 text-red-500/70 hover:text-red-500 lg:opacity-0 lg:group-hover/task:opacity-100 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-lg transition-all cursor-pointer shrink-0"
+                                    title="Eliminar sub-tarea"
+                                  >
+                                    <HiX className="text-xs" />
+                                  </button>
+                                </div>
+                              );
+                            })}
+
+                            <div className="pt-2 space-y-2 border-t border-gray-100 dark:border-white/[0.06]">
+                              <div className="flex gap-2">
+                                <input
+                                  placeholder={
+                                    selectedShoppingLink === '__create_new__'
+                                      ? 'Artículo a comprar (ej. Cuerdas Elixir)...'
+                                      : 'Nueva sub-tarea o compra...'
                                   }
-                                </button>
-                                <span className={`font-inter text-sm flex-1 ${task.done ? 'line-through text-gray-400' : 'text-gray-700 dark:text-gray-200'}`}>
-                                  {task.text}
-                                </span>
-                                <button onClick={() => deleteTask(project, task.id)} className="opacity-0 group-hover:opacity-100 p-1 text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-lg transition-all">
-                                  <HiX className="text-xs" />
+                                  value={expandedId === project.id ? newTaskText : ''}
+                                  onChange={e => setNewTaskText(e.target.value)}
+                                  onKeyDown={e => {
+                                    if (e.key === 'Enter') {
+                                      e.preventDefault();
+                                      addTask(project);
+                                    }
+                                  }}
+                                  className="flex-1 min-w-0 px-3.5 min-h-[42px] py-2 bg-gray-50 dark:bg-gray-800/80 border border-gray-200/80 dark:border-white/10 rounded-xl text-sm outline-none focus:border-[var(--vibrant-sky-blue)] font-inter text-gray-900 dark:text-gray-100 placeholder-gray-400 transition-all"
+                                />
+                                <button
+                                  type="button"
+                                  onClick={() => addTask(project)}
+                                  className="min-w-[42px] min-h-[42px] p-2.5 bg-black dark:bg-white text-white dark:text-black rounded-xl hover:opacity-90 active:scale-95 transition-all flex items-center justify-center cursor-pointer shrink-0"
+                                  title="Agregar sub-tarea"
+                                >
+                                  <HiOutlinePlus className="text-base" />
                                 </button>
                               </div>
-                            ))}
 
-                            <div className="flex gap-2 mt-3">
-                              <input
-                                placeholder="Nueva sub-tarea..."
-                                value={expandedId === project.id ? newTaskText : ''}
-                                onChange={e => setNewTaskText(e.target.value)}
-                                onKeyDown={e => e.key === 'Enter' && addTask(project)}
-                                className="flex-1 px-4 py-2 bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-xl text-sm outline-none focus:border-[var(--vibrant-sky-blue)] font-inter text-gray-900 dark:text-gray-100 placeholder-gray-400 transition-all"
+                              <CustomSelect
+                                value={expandedId === project.id ? selectedShoppingLink : ''}
+                                onChange={(val) => setSelectedShoppingLink(val)}
+                                options={[
+                                  { value: '', label: 'Sin vincular a Compras' },
+                                  { value: '__create_new__', label: '➕ Crear en Compras y vincular' },
+                                  ...generalShoppingItems.map((item) => ({
+                                    value: item.id,
+                                    label: `🛒 ${item.name}${item.price ? ` ($${item.price.toLocaleString()})` : ''}${item.bought ? ' · Comprado' : ''}`,
+                                  })),
+                                ]}
                               />
-                              <button
-                                onClick={() => addTask(project)}
-                                className="p-2.5 bg-black dark:bg-white text-white dark:text-black rounded-xl interactive-hover"
-                              >
-                                <HiOutlinePlus />
-                              </button>
                             </div>
                           </div>
                         </motion.div>

@@ -1,7 +1,7 @@
 <div align="center">
   <img src="public/assets/ac-website-icon.svg" alt="Logo" width="100" />
   
-  # Andrés Cordero - Professional Portfolio & Personal Panel PWA (v7.2.1) 🔍✨
+  # Andrés Cordero - Professional Portfolio & Personal Panel PWA (v7.3.0) 🔍✨
   
   **Welcome to my personal ecosystem: a professional portfolio and a custom productivity hub.**  
   Built with UX/UI best practices, premium design, and a focus on mobile-first efficiency.
@@ -16,11 +16,14 @@
 
 ---
 
-## 🚀 Overview (Version 7.2.1)
+## 🚀 Overview (Version 7.3.0)
 
 This repository hosts a dual-purpose platform:
 1. **Professional Portfolio:** A high-end landing page showcasing my engineering background, skills, and achievements with dynamic copyright year updates and zero horizontal overflow.
-2. **Personal Panel PWA (v7.2.1):** An executive personal operating system featuring:
+2. **Personal Panel PWA (v7.3.0):** An executive personal operating system featuring:
+   * **Proyectos Vinculados a Compras & Barra Superior Limpia (`Proyectos.tsx`, `DashboardLayout.tsx` - v7.3.0):**
+     * Permite crear sub-tareas dentro de cualquier proyecto vinculándolas directamente a un ítem existente de `Compras` (o creándolo al instante desde el proyecto), con enlace directo al módulo y sincronización bidireccional del estado comprado/completado.
+     * Retira el botón validador de alertas del navbar superior de escritorio dejando la barra más despejada.
    * **Calendario 360° de Plantas Limpio (`Calendario.tsx` - v7.2.1):**
      * Muestra únicamente la fecha de riego actual (si toca hoy o está atrasada) o la siguiente fecha próxima por planta, evitando proyectar repeticiones en todo el mes.
    * **Refinamiento de Flujo en `Pendientes` y `Captura Rápida` (v7.2.0):**
