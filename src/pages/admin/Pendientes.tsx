@@ -111,12 +111,36 @@ function getDueBadgeStyle(dueDate: string, completed: boolean) {
   return { label: dueDate, cls: 'text-gray-400 dark:text-gray-500' };
 }
 
+const AREAS_STORAGE_KEY = 'ac_task_areas_v1';
+
+function loadStoredAreas(): string[] {
+  try {
+    const raw = localStorage.getItem(AREAS_STORAGE_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed.filter((a) => typeof a === 'string' && a.trim()) : [];
+  } catch {
+    return [];
+  }
+}
+
+function saveStoredAreas(areas: string[]) {
+  try {
+    localStorage.setItem(AREAS_STORAGE_KEY, JSON.stringify(areas));
+  } catch {
+    // Ignore storage quota / private mode errors
+  }
+}
+
 export default function Pendientes() {
   const [searchParams] = useSearchParams();
   const [tasks, setTasks] = useState<TaskItem[]>([]);
+  const [customAreas, setCustomAreas] = useState<string[]>(() => loadStoredAreas());
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [showFormModal, setShowFormModal] = useState(false);
+  const [showAreaModal, setShowAreaModal] = useState(false);
+  const [newAreaName, setNewAreaName] = useState('');
   const [editingTask, setEditingTask] = useState<TaskItem | null>(null);
 
   const [viewMode, setViewMode] = useState<ViewMode>('columns');
@@ -162,17 +186,70 @@ export default function Pendientes() {
     setLoading(false);
   };
 
-  // Ámbitos únicos detectados + sugeridos para autocompletar
+  // Ámbitos únicos detectados (áreas creadas + áreas presentes en tareas)
   const existingAreas = useMemo(() => {
-    const set = new Set<string>();
-    tasks.forEach((t) => set.add(t.area || 'Personal'));
-    return Array.from(set);
-  }, [tasks]);
+    const map = new Map<string, string>();
+    [...customAreas, ...tasks.map((t) => t.area || 'Personal')].forEach((a) => {
+      const clean = a.trim();
+      if (!clean) return;
+      const key = normalize(clean);
+      if (!map.has(key)) map.set(key, clean);
+    });
+    return Array.from(map.values());
+  }, [customAreas, tasks]);
 
   const selectableAreas = useMemo(() => {
-    const set = new Set<string>([...SUGGESTED_AREAS, ...existingAreas]);
-    return Array.from(set);
+    const map = new Map<string, string>();
+    [...existingAreas, ...SUGGESTED_AREAS].forEach((a) => {
+      const key = normalize(a);
+      if (!map.has(key)) map.set(key, a);
+    });
+    return Array.from(map.values());
   }, [existingAreas]);
+
+  const registerArea = (areaName: string) => {
+    const clean = areaName.trim();
+    if (!clean) return;
+    setCustomAreas((prev) => {
+      if (prev.some((a) => normalize(a) === normalize(clean))) return prev;
+      const next = [...prev, clean];
+      saveStoredAreas(next);
+      return next;
+    });
+  };
+
+  const handleCreateArea = (e: React.FormEvent) => {
+    e.preventDefault();
+    const clean = newAreaName.trim();
+    if (!clean) {
+      toast.error('Escribe el nombre del área');
+      return;
+    }
+    if (existingAreas.some((a) => normalize(a) === normalize(clean))) {
+      toast.info(`El área "${clean}" ya existe`);
+      setNewAreaName('');
+      setShowAreaModal(false);
+      return;
+    }
+    registerArea(clean);
+    setNewAreaName('');
+    setShowAreaModal(false);
+    setViewMode('columns');
+    setAreaFilter('all');
+    toast.success(`Área "${clean}" creada`);
+  };
+
+  const handleRemoveEmptyArea = (areaName: string) => {
+    const hasTasks = tasks.some((t) => normalize(t.area) === normalize(areaName));
+    if (hasTasks) return;
+    setCustomAreas((prev) => {
+      const next = prev.filter((a) => normalize(a) !== normalize(areaName));
+      saveStoredAreas(next);
+      return next;
+    });
+    if (areaFilter === areaName) setAreaFilter('all');
+    toast.info(`Columna "${areaName}" ocultada`);
+  };
 
   const openCreateModal = (presetArea?: string) => {
     setEditingTask(null);
@@ -311,6 +388,7 @@ export default function Pendientes() {
         toast.success(`Agregada en "${cleanArea}"`);
       }
 
+      registerArea(cleanArea);
       setShowFormModal(false);
       setEditingTask(null);
     } catch (err: any) {
@@ -446,23 +524,32 @@ export default function Pendientes() {
     return sortTasksByPriority(list);
   }, [tasks, statusFilter, priorityFilter, areaFilter, searchTerm]);
 
-  // Agrupación en columnas por ámbito
+  // Agrupación en columnas por ámbito (incluye columnas vacías creadas por el usuario)
   const columns = useMemo(() => {
     const map = new Map<string, TaskItem[]>();
+
+    // Sembrar columnas visibles cuando no hay búsqueda o si coincide el nombre del área
+    const termNorm = normalize(searchTerm.trim());
+    existingAreas.forEach((area) => {
+      if (areaFilter !== 'all' && area !== areaFilter) return;
+      if (termNorm && !normalize(area).includes(termNorm)) return;
+      map.set(area, []);
+    });
+
     filteredTasks.forEach((task) => {
       const list = map.get(task.area) || [];
       list.push(task);
       map.set(task.area, list);
     });
 
-    // Ordenar columnas poniendo primero las que tienen tareas urgentes/altas
+    // Ordenar columnas poniendo primero las que tienen tareas urgentes/altas, manteniendo vacías al final
     return Array.from(map.entries()).sort((a, b) => {
       const aTop = a[1][0] ? PRIORITY_ORDER[a[1][0].priority] : 99;
       const bTop = b[1][0] ? PRIORITY_ORDER[b[1][0].priority] : 99;
       if (aTop !== bTop) return aTop - bTop;
       return b[1].length - a[1].length;
     });
-  }, [filteredTasks]);
+  }, [existingAreas, filteredTasks, areaFilter, searchTerm]);
 
   if (loading) {
     return (
@@ -684,8 +771,20 @@ export default function Pendientes() {
 
           <button
             type="button"
+            onClick={() => {
+              setNewAreaName('');
+              setShowAreaModal(true);
+            }}
+            className="px-4 min-h-[44px] py-2.5 bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-100 border border-gray-200 dark:border-gray-700 font-syne text-xs font-bold uppercase tracking-wider rounded-2xl hover:border-[var(--vibrant-sky-blue)] transition-all shadow-sm flex items-center justify-center gap-2 cursor-pointer touch-manipulation shrink-0"
+          >
+            <HiOutlinePlus className="text-base text-[var(--vibrant-sky-blue)]" />
+            <span>Nueva Área</span>
+          </button>
+
+          <button
+            type="button"
             onClick={() => openCreateModal()}
-            className="px-5 min-h-[44px] py-2.5 bg-black dark:bg-white text-white dark:text-black font-syne text-xs font-bold uppercase tracking-wider rounded-2xl hover:scale-105 active:scale-95 transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer touch-manipulation"
+            className="px-5 min-h-[44px] py-2.5 bg-black dark:bg-white text-white dark:text-black font-syne text-xs font-bold uppercase tracking-wider rounded-2xl hover:scale-105 active:scale-95 transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer touch-manipulation shrink-0"
           >
             <HiOutlinePlus className="text-lg" />
             <span>Nueva Tarea</span>
@@ -778,7 +877,142 @@ export default function Pendientes() {
       </div>
 
       {/* Content Area: Columns vs List */}
-      {filteredTasks.length === 0 ? (
+      {viewMode === 'columns' ? (
+        columns.length === 0 ? (
+          <div className="bg-white dark:bg-gray-900 rounded-[2rem] p-12 text-center border-none shadow-sm space-y-4">
+            <p className="font-dm-sans text-lg font-bold text-gray-700 dark:text-gray-200">
+              No hay áreas o tareas con estos filtros
+            </p>
+            <p className="font-inter text-sm text-gray-400 dark:text-gray-500">
+              Crea un área nueva para organizar tus pendientes en columnas o restablece los filtros.
+            </p>
+            <div className="flex flex-wrap items-center justify-center gap-3">
+              <button
+                type="button"
+                onClick={() => {
+                  setNewAreaName('');
+                  setShowAreaModal(true);
+                }}
+                className="px-5 min-h-[44px] py-2.5 bg-black dark:bg-white text-white dark:text-black rounded-xl font-syne text-xs font-bold uppercase tracking-wider transition-all cursor-pointer"
+              >
+                + Crear Área
+              </button>
+              {(searchTerm || areaFilter !== 'all' || priorityFilter !== 'all' || statusFilter !== 'active') && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSearchTerm('');
+                    setAreaFilter('all');
+                    setPriorityFilter('all');
+                    setStatusFilter('active');
+                  }}
+                  className="px-5 min-h-[44px] py-2.5 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-xl font-syne text-xs font-bold uppercase tracking-wider transition-all cursor-pointer"
+                >
+                  Restablecer filtros
+                </button>
+              )}
+            </div>
+          </div>
+        ) : (
+          <div
+            className={
+              columns.length === 1 && areaFilter !== 'all'
+                ? 'max-w-2xl'
+                : 'flex gap-4 overflow-x-auto pb-4 snap-x snap-mandatory items-start'
+            }
+          >
+            {columns.map(([areaName, areaTasks]) => {
+              const accent = getAreaAccent(areaName);
+              const activeCount = areaTasks.filter((t) => !t.completed).length;
+              const hasAnyTaskInArea = tasks.some((t) => normalize(t.area) === normalize(areaName));
+
+              return (
+                <section
+                  key={areaName}
+                  className={`${
+                    columns.length === 1 && areaFilter !== 'all'
+                      ? 'w-full'
+                      : 'w-[86vw] sm:w-[320px] xl:w-[310px] 2xl:w-[320px] shrink-0 snap-start'
+                  } bg-gray-50/80 dark:bg-gray-900/40 rounded-[2rem] p-4 border ${accent.border} flex flex-col gap-3`}
+                >
+                  {/* Column Header */}
+                  <div className="flex items-center justify-between gap-2 pb-2 border-b border-gray-200/70 dark:border-gray-800 shrink-0">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <span className={`size-2.5 rounded-full shrink-0 ${accent.dot}`} />
+                      <h3 className="font-dm-sans font-bold text-base sm:text-lg text-gray-900 dark:text-white truncate">
+                        {areaName}
+                      </h3>
+                      <span className={`px-2 py-0.5 rounded-full text-[10px] font-syne font-bold shrink-0 ${accent.headerBg}`}>
+                        {activeCount}
+                      </span>
+                    </div>
+
+                    <div className="flex items-center gap-1 shrink-0">
+                      {!hasAnyTaskInArea && (
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveEmptyArea(areaName)}
+                          className="min-w-[36px] min-h-[36px] p-2 rounded-xl text-gray-400 hover:text-rose-500 hover:bg-rose-500/10 transition-all cursor-pointer flex items-center justify-center"
+                          title={`Quitar área vacía ${areaName}`}
+                        >
+                          <HiX className="text-sm" />
+                        </button>
+                      )}
+                      <button
+                        type="button"
+                        onClick={() => openCreateModal(areaName)}
+                        className="min-w-[36px] min-h-[36px] p-2 rounded-xl bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:text-[var(--vibrant-sky-blue)] shadow-2xs border border-gray-200/60 dark:border-gray-700/60 transition-all cursor-pointer flex items-center justify-center"
+                        title={`Agregar tarea en ${areaName}`}
+                      >
+                        <HiOutlinePlus className="text-base" />
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Column Cards (Scrollable per column for 5+ areas alignment) */}
+                  <div className="space-y-3 max-h-[65vh] overflow-y-auto pr-0.5">
+                    {areaTasks.length === 0 ? (
+                      <button
+                        type="button"
+                        onClick={() => openCreateModal(areaName)}
+                        className="w-full py-8 px-4 rounded-2xl border border-dashed border-gray-200 dark:border-gray-800 text-center text-gray-400 dark:text-gray-500 hover:border-[var(--vibrant-sky-blue)] hover:text-[var(--vibrant-sky-blue)] transition-all cursor-pointer space-y-1.5"
+                      >
+                        <HiOutlinePlus className="text-xl mx-auto" />
+                        <span className="block font-syne text-[10px] font-bold uppercase tracking-wider">
+                          Agregar en {areaName}
+                        </span>
+                      </button>
+                    ) : (
+                      <AnimatePresence>
+                        {areaTasks.map((task) => renderTaskCard(task, true))}
+                      </AnimatePresence>
+                    )}
+                  </div>
+                </section>
+              );
+            })}
+
+            {/* Ghost Add Column Card */}
+            {areaFilter === 'all' && !searchTerm && (
+              <button
+                type="button"
+                onClick={() => {
+                  setNewAreaName('');
+                  setShowAreaModal(true);
+                }}
+                className="w-[70vw] sm:w-[240px] shrink-0 snap-start min-h-[160px] rounded-[2rem] border-2 border-dashed border-gray-200/80 dark:border-gray-800 hover:border-[var(--vibrant-sky-blue)] text-gray-400 dark:text-gray-500 hover:text-[var(--vibrant-sky-blue)] transition-all flex flex-col items-center justify-center gap-2 p-6 cursor-pointer"
+              >
+                <div className="size-10 rounded-2xl bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
+                  <HiOutlinePlus className="text-xl" />
+                </div>
+                <span className="font-syne text-xs font-bold uppercase tracking-wider text-center">
+                  Nueva Área
+                </span>
+              </button>
+            )}
+          </div>
+        )
+      ) : filteredTasks.length === 0 ? (
         <div className="bg-white dark:bg-gray-900 rounded-[2rem] p-12 text-center border-none shadow-sm space-y-3">
           <p className="font-dm-sans text-lg font-bold text-gray-700 dark:text-gray-200">
             No hay tareas con estos filtros
@@ -800,59 +1034,6 @@ export default function Pendientes() {
               Restablecer filtros
             </button>
           )}
-        </div>
-      ) : viewMode === 'columns' ? (
-        <div
-          className={
-            columns.length === 1
-              ? 'max-w-2xl'
-              : 'flex gap-4 overflow-x-auto pb-4 snap-x snap-mandatory items-start'
-          }
-        >
-          {columns.map(([areaName, areaTasks]) => {
-            const accent = getAreaAccent(areaName);
-            const activeCount = areaTasks.filter((t) => !t.completed).length;
-
-            return (
-              <section
-                key={areaName}
-                className={`${
-                  columns.length === 1
-                    ? 'w-full'
-                    : 'w-[86vw] sm:w-[320px] xl:w-[310px] 2xl:w-[320px] shrink-0 snap-start'
-                } bg-gray-50/80 dark:bg-gray-900/40 rounded-[2rem] p-4 border ${accent.border} flex flex-col gap-3`}
-              >
-                {/* Column Header */}
-                <div className="flex items-center justify-between gap-2 pb-2 border-b border-gray-200/70 dark:border-gray-800 shrink-0">
-                  <div className="flex items-center gap-2 min-w-0">
-                    <span className={`size-2.5 rounded-full shrink-0 ${accent.dot}`} />
-                    <h3 className="font-dm-sans font-bold text-base sm:text-lg text-gray-900 dark:text-white truncate">
-                      {areaName}
-                    </h3>
-                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-syne font-bold shrink-0 ${accent.headerBg}`}>
-                      {activeCount}
-                    </span>
-                  </div>
-
-                  <button
-                    type="button"
-                    onClick={() => openCreateModal(areaName)}
-                    className="min-w-[36px] min-h-[36px] p-2 rounded-xl bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:text-[var(--vibrant-sky-blue)] shadow-2xs border border-gray-200/60 dark:border-gray-700/60 transition-all cursor-pointer shrink-0 flex items-center justify-center"
-                    title={`Agregar tarea en ${areaName}`}
-                  >
-                    <HiOutlinePlus className="text-base" />
-                  </button>
-                </div>
-
-                {/* Column Cards (Scrollable per column for 5+ areas alignment) */}
-                <div className="space-y-3 max-h-[65vh] overflow-y-auto pr-0.5">
-                  <AnimatePresence>
-                    {areaTasks.map((task) => renderTaskCard(task, true))}
-                  </AnimatePresence>
-                </div>
-              </section>
-            );
-          })}
         </div>
       ) : (
         <div className="space-y-4">
@@ -1025,6 +1206,101 @@ export default function Pendientes() {
                       ) : (
                         <span>{editingTask ? 'Guardar Cambios' : 'Guardar Tarea'}</span>
                       )}
+                    </button>
+                  </div>
+                </form>
+              </motion.div>
+            </div>
+          )}
+        </AnimatePresence>,
+        document.body
+      )}
+
+      {/* Create New Area Modal (4-Part Architecture) */}
+      {createPortal(
+        <AnimatePresence>
+          {showAreaModal && (
+            <div
+              className="fixed inset-0 z-[9999] flex items-center justify-center p-4 sm:p-6 overflow-y-auto bg-black/60 backdrop-blur-md cursor-pointer"
+              onClick={(e) => {
+                if (e.target === e.currentTarget) setShowAreaModal(false);
+              }}
+            >
+              <motion.div
+                onClick={(e) => e.stopPropagation()}
+                initial={{ opacity: 0, scale: 0.95, y: 16 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.95, y: 16 }}
+                className="bg-white dark:bg-gray-900 rounded-[2rem] max-h-[90vh] flex flex-col max-w-md w-full border-none shadow-2xl cursor-default overflow-hidden"
+              >
+                {/* 1. Sticky Header */}
+                <div className="flex items-center justify-between p-6 pb-4 border-b border-gray-100 dark:border-gray-800 shrink-0">
+                  <div>
+                    <h2 className="font-dm-sans text-xl font-bold text-gray-900 dark:text-white">
+                      Nueva Área / Ámbito
+                    </h2>
+                    <p className="font-inter text-xs text-gray-400">
+                      Crea una columna dedicada en tu tablero de pendientes.
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setShowAreaModal(false)}
+                    className="min-w-[40px] min-h-[40px] p-2 rounded-xl text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 transition-all cursor-pointer flex items-center justify-center"
+                  >
+                    <HiX className="text-xl" />
+                  </button>
+                </div>
+
+                {/* Form */}
+                <form onSubmit={handleCreateArea} className="flex flex-col flex-1 min-h-0">
+                  {/* 2. Scrollable Body */}
+                  <div className="p-6 overflow-y-auto flex-1 min-h-0 space-y-4">
+                    <div>
+                      <label className="block font-syne text-[10px] font-bold uppercase tracking-widest text-[var(--gray)] dark:text-gray-400 mb-2">
+                        Nombre del Área *
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        autoFocus
+                        placeholder="Ej. Trabajo, Emprendimiento X, Social..."
+                        value={newAreaName}
+                        onChange={(e) => setNewAreaName(e.target.value)}
+                        className="w-full px-4 min-h-[44px] py-3 bg-gray-50/70 dark:bg-gray-800/80 border border-gray-200/80 dark:border-gray-700 rounded-xl outline-none focus:border-[var(--vibrant-sky-blue)] font-inter text-sm text-gray-900 dark:text-gray-100 placeholder-gray-400"
+                      />
+                    </div>
+
+                    <div className="flex flex-wrap gap-1.5">
+                      {SUGGESTED_AREAS.filter(
+                        (s) => !existingAreas.some((e) => normalize(e) === normalize(s))
+                      ).map((suggestion) => (
+                        <button
+                          key={suggestion}
+                          type="button"
+                          onClick={() => setNewAreaName(suggestion)}
+                          className="px-3 py-1.5 rounded-xl font-syne text-[10px] font-bold uppercase tracking-wider bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 transition-all cursor-pointer"
+                        >
+                          + {suggestion}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* 3. Sticky Footer */}
+                  <div className="flex justify-end gap-3 p-4 sm:p-5 border-t border-gray-100 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-900/50 shrink-0">
+                    <button
+                      type="button"
+                      onClick={() => setShowAreaModal(false)}
+                      className="px-5 min-h-[44px] py-2.5 font-syne text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl transition-all cursor-pointer"
+                    >
+                      Cancelar
+                    </button>
+                    <button
+                      type="submit"
+                      className="px-6 min-h-[44px] py-2.5 bg-black dark:bg-white text-white dark:text-black font-syne text-xs font-bold uppercase tracking-wider rounded-xl hover:scale-105 active:scale-95 transition-all shadow-md cursor-pointer"
+                    >
+                      Crear Columna
                     </button>
                   </div>
                 </form>

@@ -1,7 +1,7 @@
 <div align="center">
   <img src="public/assets/ac-website-icon.svg" alt="Logo" width="100" />
   
-  # Andrés Cordero - Professional Portfolio & Personal Panel PWA (v6.26.0) 🔍✨
+  # Andrés Cordero - Professional Portfolio & Personal Panel PWA (v6.27.0) 🔍✨
   
   **Welcome to my personal ecosystem: a professional portfolio and a custom productivity hub.**  
   Built with UX/UI best practices, premium design, and a focus on mobile-first efficiency.
@@ -16,11 +16,13 @@
 
 ---
 
-## 🚀 Overview (Version 6.26.0)
+## 🚀 Overview (Version 6.27.0)
 
 This repository hosts a dual-purpose platform:
 1. **Professional Portfolio:** A high-end landing page showcasing my engineering background, skills, and achievements with dynamic copyright year updates and zero horizontal overflow.
-2. **Personal Panel PWA (v6.26.0):** An executive personal operating system featuring:
+2. **Personal Panel PWA (v6.27.0):** An executive personal operating system featuring:
+   * **Creación Directa de Áreas y Adición Contextual por Columna (`Pendientes.tsx` - v6.27.0):**
+     * **Columnas Persistentes:** Permite crear nuevas áreas desde el botón **+ Nueva Área** o al final del tablero, manteniendo visibles las columnas incluso cuando aún tienen 0 tareas y permitiendo agregar tareas directamente dentro de la columna seleccionada.
    * **Refinamiento UX Multi-Ámbito y Ergonomía General (`Pendientes.tsx`, `DashboardLayout.tsx` - v6.26.0):**
      * **Tablero Horizontal Alineado para 5+ Ámbitos:** Columnas con ancho ergonómico, `snap-x` en móvil y scroll interno independiente por columna (`max-h-[65vh]`), manteniendo todas las cabeceras alineadas y con paleta determinística de 6 colores distintos.
      * **Tarjetas Escaneables de Baja Fricción:** Pill único interactivo para ciclar el status en 1 clic (`Pendiente → En Progreso → En Espera → Completada`) y alertas visuales automáticas para fechas vencidas o de hoy.
