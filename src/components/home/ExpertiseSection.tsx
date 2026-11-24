@@ -15,13 +15,13 @@ export default function ExpertiseSection() {
             viewport={{ once: true }}
             transition={{ duration: 0.8 }}
           >
-            <span className="font-syne text-[var(--vibrant-sky-blue)] font-bold tracking-[0.3em] uppercase text-xs mb-6 block">
+            <span className="font-syne text-[var(--vibrant-sky-blue)] font-bold tracking-[0.3em] uppercase text-xs mb-4 block">
               {t('expertise.title')} — {t('expertise.competencies')}
             </span>
-            <h2 className="font-dm-sans text-5xl sm:text-7xl lg:text-8xl font-bold tracking-tight leading-[0.9] text-[var(--black)] mb-10">
+            <h2 className="font-dm-sans text-4xl sm:text-6xl lg:text-7xl font-bold tracking-tight leading-[0.95] text-[var(--black)]">
               {t('expertise.core_title')} <span className="text-gradient">{t('expertise.core_title_bold')}</span>
             </h2>
-            <div className="h-2 w-24 bg-gradient-to-r from-[var(--vibrant-sky-blue)] to-[var(--magenta-pink)] rounded-full mb-12" />
+            <div className="h-1.5 w-20 bg-gradient-to-r from-[var(--vibrant-sky-blue)] to-[var(--magenta-pink)] rounded-full mt-6 mb-8" />
             <p className="font-inter text-xl text-[var(--dark-gray)] font-light leading-relaxed max-w-md">
               {t('expertise.intro')}
             </p>

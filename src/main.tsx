@@ -15,8 +15,8 @@ import {
 } from 'react-router-dom';
 import { registerSW } from 'virtual:pwa-register';
 
-import Login from '@pages/admin/Login';
-import DashboardLayout from '@components/admin/DashboardLayout';
+const Login = lazyWithRetry(() => import('@pages/admin/Login'));
+const DashboardLayout = lazyWithRetry(() => import('@components/admin/DashboardLayout'));
 import NotFound from '@pages/NotFound';
 
 const CHUNK_RELOAD_KEY = 'ac_chunk_reload_ts';
@@ -171,12 +171,20 @@ const router = createBrowserRouter([
   },
   {
     path: '/admin',
-    element: <Login />,
+    element: (
+      <Suspense fallback={<PageLoader />}>
+        <Login />
+      </Suspense>
+    ),
     errorElement: <RouteErrorBoundary />,
   },
   {
     path: '/admin/panel',
-    element: <DashboardLayout />,
+    element: (
+      <Suspense fallback={<PageLoader />}>
+        <DashboardLayout />
+      </Suspense>
+    ),
     errorElement: <RouteErrorBoundary />,
     children: [
       {

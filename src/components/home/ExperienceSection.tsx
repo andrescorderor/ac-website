@@ -4,7 +4,7 @@ import { motion } from 'framer-motion';
 import { loadPortfolioCms, CmsExperience } from '@/lib/portfolioCms';
 
 export default function ExperienceSection() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [cmsExperiences, setCmsExperiences] = useState<CmsExperience[] | null>(null);
 
   useEffect(() => {
@@ -60,9 +60,13 @@ export default function ExperienceSection() {
           viewport={{ once: true }}
           className="mb-14 lg:mb-20"
         >
-          <h2 className="font-dm-sans text-5xl sm:text-6xl lg:text-7xl font-bold tracking-tight leading-[0.95] text-[var(--black)] hover:cursor-default">
+          <span className="font-syne text-[var(--vibrant-sky-blue)] font-bold tracking-[0.3em] uppercase text-xs mb-4 block">
+            {i18n.language?.startsWith('es') ? 'TRAYECTORIA' : 'CAREER PATH'}
+          </span>
+          <h2 className="font-dm-sans text-4xl sm:text-6xl lg:text-7xl font-bold tracking-tight leading-[0.95] text-[var(--black)] hover:cursor-default">
             {t('experience.title', 'Professional Experience')}
           </h2>
+          <div className="h-1.5 w-20 bg-gradient-to-r from-[var(--vibrant-sky-blue)] to-[var(--magenta-pink)] rounded-full mt-6" />
         </motion.div>
 
         <div className="relative flex flex-col gap-12 w-full lg:w-4/5 ml-auto">

@@ -62,13 +62,13 @@ export default function ProjectsSection() {
   });
 
   return (
-    <section id="portfolio-section" className="w-full pt-4 pb-16">
-      <div className="container mx-auto max-w-7xl px-6 md:px-12 lg:px-20 pt-14 pb-10 sm:pb-12">
+    <section id="portfolio-section" className="w-full py-20 lg:py-28">
+      <div className="container mx-auto max-w-7xl px-6 md:px-12 lg:px-20 pb-10 sm:pb-12">
         <span className="font-syne text-[var(--vibrant-sky-blue)] font-bold tracking-[0.3em] uppercase text-xs mb-4 block">
           {i18n.language?.startsWith('es') ? 'PORTAFOLIO' : 'PORTFOLIO'}
         </span>
         <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6">
-          <h2 className="font-dm-sans text-5xl sm:text-6xl lg:text-7xl font-bold tracking-tight leading-[0.95] text-[var(--black)] hover:cursor-default">
+          <h2 className="font-dm-sans text-4xl sm:text-6xl lg:text-7xl font-bold tracking-tight leading-[0.95] text-[var(--black)] hover:cursor-default">
             {t('portfolio.title')}
           </h2>
           <p className="font-inter w-full lg:max-w-md text-base sm:text-lg font-light leading-relaxed text-[var(--dark-gray)]">

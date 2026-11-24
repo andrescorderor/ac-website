@@ -96,6 +96,23 @@ export default defineConfig({
     assetsDir: 'assets',
     sourcemap: true,
     chunkSizeWarningLimit: 600,
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          'vendor-react': ['react', 'react-dom', 'react-router-dom'],
+          'vendor-supabase': ['@supabase/supabase-js'],
+          'vendor-motion': ['framer-motion'],
+          'vendor-icons': [
+            'react-icons/hi',
+            'react-icons/fa',
+            'react-icons/io',
+            'react-icons/io5',
+            'react-icons/md',
+            'react-icons/gr',
+          ],
+        },
+      },
+    },
   },
   server: {
     open: true,

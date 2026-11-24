@@ -1,7 +1,7 @@
 <div align="center">
   <img src="public/assets/ac-website-icon.svg" alt="Logo" width="100" />
   
-  # Andrés Cordero - Professional Portfolio & Personal Panel PWA (v8.1.0) 🔍✨
+  # Andrés Cordero - Professional Portfolio & Personal Panel PWA (v8.2.0) 🔍✨
   
   **Welcome to my personal ecosystem: a professional portfolio and a custom productivity hub.**  
   Built with UX/UI best practices, premium design, and a focus on mobile-first efficiency.
@@ -16,13 +16,18 @@
 
 ---
 
-## 🚀 Overview (Version 8.1.0)
+## 🚀 Overview (Version 8.2.0)
 
 This repository hosts a dual-purpose platform:
 1. **Professional Portfolio:** A high-end landing page showcasing my engineering background, skills, and achievements with dynamic copyright year updates and zero horizontal overflow.
-2. **Personal Panel PWA (v8.1.0):** An executive personal operating system featuring:
+2. **Personal Panel PWA (v8.2.0):** An executive personal operating system featuring:
+   * **Modales Públicos Accesibles WAI-ARIA, Ritmo Unificado & Code-Splitting (`v8.2.0`):**
+     * Hook compartido `useAccessibleModal` en `Modal.tsx` y `ContactModal.tsx` con `role="dialog"`/`aria-modal`/`aria-labelledby` en el panel, trampa de foco (`Tab`/`Shift+Tab`), restauración del foco y del scroll previo (`overflow`).
+     * Rediseño de `ContactModal.tsx` a estructura de 4 partes con un único botón de cierre, etiquetas visibles (`<label>`) y soporte bimodal Claro/Oscuro.
+     * Escala tipográfica y ritmo vertical unificados (`py-20 lg:py-28`) en `ExpertiseSection`, `ExperienceSection`, `ProjectsSection` y `CertificationsSection`.
+     * División de bundle en `vite.config.ts` (`manualChunks`) y carga diferida de `Login` / `DashboardLayout` en `main.tsx`.
    * **Ritmo Editorial Unificado, Modales Públicos de 4 Partes y Optimización Tipográfica (`v8.1.0`):**
-     * Carga tipográfica optimizada en `index.css` eliminando 3 fuentes sin uso (`DM Sans`, `Inter`, `Syne`).
+     * Carga tipográfica optimizada en `index.css` eliminando las 3 fuentes sin uso (`Manrope`, `Oswald`, `Space Grotesk`) y conservando únicamente `DM Sans`, `Inter` y `Syne`.
      * Encabezados, anchos (`max-w-7xl`) y escala tipográfica homologados en `ExpertiseSection`, `ExperienceSection`, `ProjectsSection`, `CertificationsSection` y `Footer`.
      * `Modal.tsx` y `ContactModal.tsx` actualizados con cabecera fija, cuerpo scrollable, cierre con `Escape` y validación de clic en backdrop.
    * **Auto-Recuperación ante Despliegues y Chunks Dinámicos (`main.tsx`, `vite.config.ts` - v8.0.3):**

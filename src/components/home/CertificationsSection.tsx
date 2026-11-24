@@ -78,14 +78,15 @@ export default function CertificationsSection() {
   };
 
   return (
-    <section className="relative w-full py-16">
-      <div className="container mx-auto max-w-7xl px-6 md:px-12 lg:px-20 mb-10">
-        <span className="font-syne text-[var(--vibrant-sky-blue)] font-bold tracking-[0.3em] uppercase text-xs mb-3 block">
+    <section className="relative w-full py-20 lg:py-28">
+      <div className="container mx-auto max-w-7xl px-6 md:px-12 lg:px-20 mb-10 sm:mb-12">
+        <span className="font-syne text-[var(--vibrant-sky-blue)] font-bold tracking-[0.3em] uppercase text-xs mb-4 block">
           {i18n.language?.startsWith('es') ? 'CREDENCIALES' : 'CREDENTIALS'}
         </span>
-        <h2 className="font-dm-sans text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight leading-tight text-[var(--black)]">
+        <h2 className="font-dm-sans text-4xl sm:text-6xl lg:text-7xl font-bold tracking-tight leading-[0.95] text-[var(--black)]">
           {t('certifications.title')}
         </h2>
+        <div className="h-1.5 w-20 bg-gradient-to-r from-[var(--vibrant-sky-blue)] to-[var(--magenta-pink)] rounded-full mt-6" />
       </div>
       <div ref={sliderRef} className="keen-slider">
         {displayedCertifications.map((cert, index) => (
