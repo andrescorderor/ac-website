@@ -1,4 +1,4 @@
-import { StrictMode } from 'react';
+import { StrictMode, ComponentType, lazy, Suspense, useEffect } from 'react';
 
 import './index.css';
 import './i18n';
@@ -7,35 +7,141 @@ import Layout from '@components/common/Layout';
 import Home from '@pages/Home';
 import { createRoot } from 'react-dom/client';
 import { MotionConfig } from 'framer-motion';
-import { createBrowserRouter, RouterProvider } from 'react-router-dom';
+import {
+  createBrowserRouter,
+  RouterProvider,
+  useRouteError,
+  Link,
+} from 'react-router-dom';
 import { registerSW } from 'virtual:pwa-register';
 
-import { lazy, Suspense } from 'react';
 import Login from '@pages/admin/Login';
 import DashboardLayout from '@components/admin/DashboardLayout';
 import NotFound from '@pages/NotFound';
 
-// Lazy-loaded Admin Pages para optimización de bundle
-const DashboardHome = lazy(() => import('@pages/admin/DashboardHome'));
-const Finanzas = lazy(() => import('@pages/admin/Finanzas'));
-const Pendientes = lazy(() => import('@pages/admin/Pendientes'));
-const Deudas = lazy(() => import('@pages/admin/Deudas'));
-const Vault = lazy(() => import('@pages/admin/Vault'));
-const Compras = lazy(() => import('@pages/admin/Compras'));
-const Recordatorios = lazy(() => import('@pages/admin/Recordatorios'));
-const Enlaces = lazy(() => import('@pages/admin/Enlaces'));
-const Notas = lazy(() => import('@pages/admin/Notas'));
-const Proyectos = lazy(() => import('@pages/admin/Proyectos'));
-const ChecklistMensual = lazy(() => import('@pages/admin/ChecklistMensual'));
-const Recetas = lazy(() => import('@pages/admin/Recetas'));
-const Plantas = lazy(() => import('@pages/admin/Plantas'));
-const Entrenamiento = lazy(() => import('@pages/admin/Entrenamiento'));
-const Respaldo = lazy(() => import('@pages/admin/Respaldo'));
-const Calendario = lazy(() => import('@pages/admin/Calendario'));
-const Prompts = lazy(() => import('@pages/admin/Prompts'));
-const DivisorCuentas = lazy(() => import('@pages/admin/DivisorCuentas'));
-const PortafolioCMS = lazy(() => import('@pages/admin/PortafolioCMS'));
-const Papelera = lazy(() => import('@pages/admin/Papelera'));
+const CHUNK_RELOAD_KEY = 'ac_chunk_reload_ts';
+const CHUNK_RELOAD_COOLDOWN_MS = 15000;
+
+function isChunkLoadError(err: unknown): boolean {
+  const msg = err instanceof Error ? err.message : String(err || '');
+  return (
+    msg.includes('Failed to fetch dynamically imported module') ||
+    msg.includes('Importing a module script failed') ||
+    msg.includes('error loading dynamically imported module') ||
+    msg.includes('Unable to preload CSS')
+  );
+}
+
+/** Recarga la página tras un nuevo deploy (máx. una vez cada 15s) para cargar los hashes vigentes. */
+function reloadForNewBuild(): boolean {
+  try {
+    const lastTs = Number(sessionStorage.getItem(CHUNK_RELOAD_KEY) || '0');
+    const now = Date.now();
+    if (now - lastTs > CHUNK_RELOAD_COOLDOWN_MS) {
+      sessionStorage.setItem(CHUNK_RELOAD_KEY, String(now));
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker
+          .getRegistrations()
+          .then((regs) => regs.forEach((r) => r.update().catch(() => {})))
+          .catch(() => {});
+      }
+      window.location.reload();
+      return true;
+    }
+  } catch {
+    // Modo incógnito sin sessionStorage: recargar directamente solo si no viene de bucle
+  }
+  return false;
+}
+
+if (typeof window !== 'undefined') {
+  window.addEventListener('vite:preloadError', (event) => {
+    event.preventDefault();
+    reloadForNewBuild();
+  });
+}
+
+function lazyWithRetry<T extends ComponentType<any>>(
+  factory: () => Promise<{ default: T }>
+) {
+  return lazy(() =>
+    factory().catch((err) => {
+      if (isChunkLoadError(err) && reloadForNewBuild()) {
+        // Mantiene Suspense activo mientras el navegador recarga hacia la nueva versión
+        return new Promise<{ default: T }>(() => {});
+      }
+      throw err;
+    })
+  );
+}
+
+function RouteErrorBoundary() {
+  const error = useRouteError();
+  const isChunkErr = isChunkLoadError(error);
+
+  useEffect(() => {
+    if (isChunkErr) {
+      reloadForNewBuild();
+    }
+  }, [isChunkErr]);
+
+  return (
+    <div className="min-h-screen bg-gray-50 dark:bg-[#09090b] text-gray-900 dark:text-white flex items-center justify-center p-4 sm:p-6">
+      <div className="w-full max-w-md surface-card rounded-[2rem] p-6 sm:p-8 text-center space-y-5">
+        <div className="mx-auto size-14 rounded-2xl bg-[var(--vibrant-sky-blue)]/10 text-[var(--vibrant-sky-blue)] flex items-center justify-center text-2xl font-bold">
+          ↻
+        </div>
+        <div className="space-y-2">
+          <h1 className="font-dm-sans text-xl sm:text-2xl font-bold tracking-tight">
+            {isChunkErr ? 'Nueva versión disponible' : 'No se pudo cargar el módulo'}
+          </h1>
+          <p className="font-inter text-sm text-gray-500 dark:text-gray-400">
+            {isChunkErr
+              ? 'Se desplegó una actualización del panel mientras tenías la sesión abierta. Recarga para sincronizar los archivos.'
+              : 'Ocurrió un fallo inesperado al abrir esta vista.'}
+          </p>
+        </div>
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-3 pt-1">
+          <button
+            type="button"
+            onClick={() => window.location.reload()}
+            className="px-6 min-h-[44px] py-2.5 bg-black dark:bg-white text-white dark:text-black rounded-2xl font-syne text-xs font-bold uppercase tracking-wider hover:opacity-90 active:scale-95 transition-all cursor-pointer"
+          >
+            Recargar Panel
+          </button>
+          <Link
+            to="/admin/panel"
+            className="px-6 min-h-[44px] py-2.5 bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-100 border border-gray-200 dark:border-gray-700 rounded-2xl font-syne text-xs font-bold uppercase tracking-wider flex items-center justify-center hover:bg-gray-200 dark:hover:bg-gray-700 transition-all cursor-pointer"
+          >
+            Volver al Inicio
+          </Link>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Lazy-loaded Admin Pages con auto-recuperación tras despliegues
+const DashboardHome = lazyWithRetry(() => import('@pages/admin/DashboardHome'));
+const Finanzas = lazyWithRetry(() => import('@pages/admin/Finanzas'));
+const Pendientes = lazyWithRetry(() => import('@pages/admin/Pendientes'));
+const Deudas = lazyWithRetry(() => import('@pages/admin/Deudas'));
+const Vault = lazyWithRetry(() => import('@pages/admin/Vault'));
+const Compras = lazyWithRetry(() => import('@pages/admin/Compras'));
+const Recordatorios = lazyWithRetry(() => import('@pages/admin/Recordatorios'));
+const Enlaces = lazyWithRetry(() => import('@pages/admin/Enlaces'));
+const Notas = lazyWithRetry(() => import('@pages/admin/Notas'));
+const Proyectos = lazyWithRetry(() => import('@pages/admin/Proyectos'));
+const ChecklistMensual = lazyWithRetry(() => import('@pages/admin/ChecklistMensual'));
+const Recetas = lazyWithRetry(() => import('@pages/admin/Recetas'));
+const Plantas = lazyWithRetry(() => import('@pages/admin/Plantas'));
+const Entrenamiento = lazyWithRetry(() => import('@pages/admin/Entrenamiento'));
+const Respaldo = lazyWithRetry(() => import('@pages/admin/Respaldo'));
+const Calendario = lazyWithRetry(() => import('@pages/admin/Calendario'));
+const Prompts = lazyWithRetry(() => import('@pages/admin/Prompts'));
+const DivisorCuentas = lazyWithRetry(() => import('@pages/admin/DivisorCuentas'));
+const PortafolioCMS = lazyWithRetry(() => import('@pages/admin/PortafolioCMS'));
+const Papelera = lazyWithRetry(() => import('@pages/admin/Papelera'));
 
 const PageLoader = () => (
   <div className="p-4 sm:p-8 space-y-6 max-w-7xl mx-auto animate-pulse">
@@ -55,6 +161,7 @@ const router = createBrowserRouter([
   {
     path: '/',
     element: <Layout />,
+    errorElement: <RouteErrorBoundary />,
     children: [
       {
         path: '/',
@@ -65,10 +172,12 @@ const router = createBrowserRouter([
   {
     path: '/admin',
     element: <Login />,
+    errorElement: <RouteErrorBoundary />,
   },
   {
     path: '/admin/panel',
     element: <DashboardLayout />,
+    errorElement: <RouteErrorBoundary />,
     children: [
       {
         index: true,
@@ -244,5 +353,5 @@ createRoot(document.getElementById('root')!).render(
       <Cursor />
       <RouterProvider router={router} />
     </MotionConfig>
-  </StrictMode>,
+  </StrictMode>
 );
