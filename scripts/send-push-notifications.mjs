@@ -5,8 +5,13 @@ const SUPABASE_URL = process.env.SUPABASE_URL || 'https://epsrgbfnidejfuysjnli.s
 const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY || 'sb_publishable_DvB_j8sZX3Vtkw4QFPlWSg_hSF1qnIK';
 
 const VAPID_PUBLIC_KEY = process.env.VAPID_PUBLIC_KEY || 'BFMrFY-j-MXeAU3olGKxMpp6kZjQLnSLh3BjZKQuoPYnMGjSKbQvy8nJKuZsoSYss7cvkBf-59jeg1CxHJlKwd4';
-const VAPID_PRIVATE_KEY = process.env.VAPID_PRIVATE_KEY || 'qHbyjsl9IJE81ZIydlUQxJrdBWCjDCqIgLf4Mi8KGqs';
+const VAPID_PRIVATE_KEY = process.env.VAPID_PRIVATE_KEY;
 const VAPID_SUBJECT = 'mailto:andresmcorderor@admin.com';
+
+if (!VAPID_PRIVATE_KEY) {
+  console.warn('⚠️ VAPID_PRIVATE_KEY no está definida en las variables de entorno (GitHub Secrets). Omitiendo despacho Web Push.');
+  process.exit(0);
+}
 
 webpush.setVapidDetails(VAPID_SUBJECT, VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY);
 

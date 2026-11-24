@@ -1,7 +1,9 @@
 import { supabase } from '@/lib/supabase';
 
-// VAPID Public Key for Web Push Protocol (Safe to be public)
-export const VAPID_PUBLIC_KEY = 'BFMrFY-j-MXeAU3olGKxMpp6kZjQLnSLh3BjZKQuoPYnMGjSKbQvy8nJKuZsoSYss7cvkBf-59jeg1CxHJlKwd4';
+// VAPID Public Key for Web Push Protocol (Safe to be public; overridable via VITE_VAPID_PUBLIC_KEY for rotation)
+export const VAPID_PUBLIC_KEY =
+  import.meta.env.VITE_VAPID_PUBLIC_KEY ||
+  'BFMrFY-j-MXeAU3olGKxMpp6kZjQLnSLh3BjZKQuoPYnMGjSKbQvy8nJKuZsoSYss7cvkBf-59jeg1CxHJlKwd4';
 
 function urlBase64ToUint8Array(base64String: string) {
   const padding = '='.repeat((4 - (base64String.length % 4)) % 4);

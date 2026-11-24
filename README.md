@@ -1,7 +1,7 @@
 <div align="center">
   <img src="public/assets/ac-website-icon.svg" alt="Logo" width="100" />
   
-  # Andrés Cordero - Professional Portfolio & Personal Panel PWA (v8.0.1) 🔍✨
+  # Andrés Cordero - Professional Portfolio & Personal Panel PWA (v8.0.2) 🔍✨
   
   **Welcome to my personal ecosystem: a professional portfolio and a custom productivity hub.**  
   Built with UX/UI best practices, premium design, and a focus on mobile-first efficiency.
@@ -16,11 +16,13 @@
 
 ---
 
-## 🚀 Overview (Version 8.0.1)
+## 🚀 Overview (Version 8.0.2)
 
 This repository hosts a dual-purpose platform:
 1. **Professional Portfolio:** A high-end landing page showcasing my engineering background, skills, and achievements with dynamic copyright year updates and zero horizontal overflow.
-2. **Personal Panel PWA (v8.0.1):** An executive personal operating system featuring:
+2. **Personal Panel PWA (v8.0.2):** An executive personal operating system featuring:
+   * **Higiene de Seguridad en Clave Privada VAPID (`scripts/send-push-notifications.mjs` - v8.0.2):**
+     * Se elimina la clave privada VAPID codificada como fallback del repositorio para exigir lectura exclusiva desde variables de entorno/GitHub Secrets (`VAPID_PRIVATE_KEY`), permitiendo también rotación por `VITE_VAPID_PUBLIC_KEY`.
    * **Pulido Visual del Portafolio Público (`v8.0.1`):**
      * Calibración tipográfica del `Hero` para evitar saltos a mitad de palabra en títulos largos (`Architecting` / `Arquitectura`), `HeroCircles` orbital renovado sin listeners inactivos, tema editorial claro por defecto con soporte completo en portales/modales al alternar a modo oscuro, botones CTA de alto contraste y tarjetas de `Expertise` con expansión natural sin recortes.
    * **Design System 2.0 & Motion Premium (v8.0.0):**
