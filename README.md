@@ -1,7 +1,7 @@
 <div align="center">
   <img src="public/assets/ac-website-icon.svg" alt="Logo" width="100" />
   
-  # Andrés Cordero - Professional Portfolio & Personal Panel PWA (v8.3.1) 🔍✨
+  # Andrés Cordero - Professional Portfolio & Personal Panel PWA (v8.3.2) 🔍✨
   
   **Welcome to my personal ecosystem: a professional portfolio and a custom productivity hub.**  
   Built with UX/UI best practices, premium design, and a focus on mobile-first efficiency.
@@ -16,11 +16,13 @@
 
 ---
 
-## 🚀 Overview (Version 8.3.1)
+## 🚀 Overview (Version 8.3.2)
 
 This repository hosts a dual-purpose platform:
 1. **Professional Portfolio:** A high-end landing page showcasing my engineering background, skills, and achievements with dynamic copyright year updates and zero horizontal overflow.
-2. **Personal Panel PWA (v8.3.1):** An executive personal operating system featuring:
+2. **Personal Panel PWA (v8.3.2):** An executive personal operating system featuring:
+   * **Sincronización de Eventos Próximos en Inicio y Calendario (`DashboardHome.tsx`, `Recordatorios.tsx`, `Calendario.tsx` - v8.3.2):**
+     * Homologa la consulta y normalización de fechas (`date` / `event_date`) en `DashboardHome` e invalida automáticamente los cachés de Inicio, Calendario 360° y Búsqueda Global al crear, editar, eliminar o restaurar fechas importantes.
    * **Contención de Variables Largas y Tarjetas Limpias en `Prompts` (`Prompts.tsx` - v8.3.1):**
      * Formateo legible y ajuste de línea (`break-words`) en etiquetas de variables largas, contención estricta de grid (`min-w-0` / `overflow-hidden`) y previsualización `<pre>` con ajuste automático de línea (`overflow-wrap: anywhere`) y scroll vertical máximo.
      * Tarjetas laterales compactadas mostrando hasta 3 variables resumidas más contador `+N más`, botones táctiles de `44px` y modal accesible con `useAccessibleModal`.

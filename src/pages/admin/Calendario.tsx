@@ -456,7 +456,8 @@ export default function Calendario() {
     // 2. Reminders in next 5 days (handles annual recurring & month boundaries)
     if (activeSources.reminder) {
       rawData.reminders.forEach((r) => {
-        const rawDate = r.date || r.event_date;
+        const rawDateRaw = r.date || r.event_date;
+        const rawDate = typeof rawDateRaw === 'string' ? rawDateRaw.split('T')[0] : '';
         if (!rawDate) return;
         let matchedDs: string | null = null;
         let matchedDiff: number | null = null;

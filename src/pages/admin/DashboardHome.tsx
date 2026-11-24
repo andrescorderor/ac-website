@@ -204,7 +204,7 @@ export default function DashboardHome() {
     if (!user) return;
 
     try {
-      const cachedDashboard = await fetchWithCache('dashboard_stats_and_briefing', async () => {
+      const cachedDashboard = await fetchWithCache('dashboard_stats_and_briefing_v2', async () => {
         const currentMonthYear = `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}`;
 
         const [exp, tsk, vlt, dbt, shp, rem, bkm, nts, prj, chk, rec, plt, sal] = await Promise.all([
@@ -213,7 +213,7 @@ export default function DashboardHome() {
           supabase.from('vault_items').select('*', { count: 'exact', head: true }),
           supabase.from('debts').select('amount').eq('settled', false),
           supabase.from('shopping_list').select('id', { count: 'exact', head: true }).eq('bought', false),
-          supabase.from('reminders').select('id, title, category, date, time, recurring'),
+          supabase.from('reminders').select('*'),
           supabase.from('bookmarks').select('*', { count: 'exact', head: true }),
           supabase
             .from('notes')
@@ -268,20 +268,26 @@ export default function DashboardHome() {
         const upcomingEvents: { id: string; title: string; category: string; daysLeft: number; time?: string }[] = [];
         if (rem?.data) {
           for (const r of rem.data) {
-            const dateVal = (r as any).date || (r as any).event_date;
+            const rawDateVal = (r as any).date || (r as any).event_date;
+            const dateVal = typeof rawDateVal === 'string' ? rawDateVal.split('T')[0] : '';
             if (!dateVal) continue;
+            const parts = dateVal.split('-');
+            if (parts.length < 3) continue;
+            const year = parseInt(parts[0], 10);
+            const month = parseInt(parts[1], 10) - 1;
+            const day = parseInt(parts[2], 10);
+            if (Number.isNaN(year) || Number.isNaN(month) || Number.isNaN(day)) continue;
+
             let target: Date;
             if (r.recurring) {
-              const parts = dateVal.split('-');
-              const month = parseInt(parts[1], 10) - 1;
-              const day = parseInt(parts[2], 10);
               target = new Date(today.getFullYear(), month, day);
               if (target < today) {
                 target = new Date(today.getFullYear() + 1, month, day);
               }
             } else {
-              target = new Date(dateVal + 'T00:00:00');
+              target = new Date(year, month, day);
             }
+            if (Number.isNaN(target.getTime())) continue;
             const diffDays = Math.round((target.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
             if (diffDays >= 0 && diffDays <= 5) {
               upcomingEvents.push({

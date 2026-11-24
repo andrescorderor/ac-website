@@ -17,6 +17,7 @@ import CustomSelect from '@/components/common/CustomSelect';
 import CustomDatePicker from '@/components/common/CustomDatePicker';
 import { togglePinItem, isItemPinned } from '@/lib/pinned';
 import { moveToTrash } from '@/lib/trash';
+import { invalidateCache } from '@/lib/cache';
 import { useSearchParams } from 'react-router-dom';
 import AutoFormattedText from '@/components/common/AutoFormattedText';
 import RichTextEditor from '@/components/common/RichTextEditor';
@@ -165,6 +166,9 @@ export default function Recordatorios() {
       if (error) throw error;
 
       toast.success(editingId ? 'Fecha actualizada' : 'Fecha importante registrada');
+      invalidateCache('dashboard');
+      invalidateCache('calendario_360_data');
+      invalidateCache('search_global_dataset');
       setNewReminder({ title: '', date: '', time: '', category: 'Otro', recurring: false, notes: '' });
       setEditingId(null);
       setShowAddForm(false);
@@ -185,6 +189,9 @@ export default function Recordatorios() {
       const { error } = await supabase.from('reminders').delete().eq('id', id);
       if (error) throw error;
       setReminders((prev) => prev.filter((r) => r.id !== id));
+      invalidateCache('dashboard');
+      invalidateCache('calendario_360_data');
+      invalidateCache('search_global_dataset');
       moveToTrash({
         table: 'reminders',
         entityLabel: 'Fecha',
@@ -204,6 +211,9 @@ export default function Recordatorios() {
             ...rest,
           }]);
           if (restoreErr) throw restoreErr;
+          invalidateCache('dashboard');
+          invalidateCache('calendario_360_data');
+          invalidateCache('search_global_dataset');
           fetchReminders();
           toast.success('Fecha importante restaurada ↩️');
         } catch (err: any) {
