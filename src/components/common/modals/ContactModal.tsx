@@ -44,6 +44,17 @@ export default function ContactModal({ isOpen, onClose }: ModalProps) {
     };
   }, [isOpen]);
 
+  useEffect(() => {
+    if (!isOpen) return undefined;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        onClose();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose]);
+
   const {
     register,
     handleSubmit,
@@ -97,8 +108,12 @@ export default function ContactModal({ isOpen, onClose }: ModalProps) {
     <AnimatePresence>
       {isOpen && (
         <motion.div
-          className="fixed inset-0 z-[10000] flex items-center justify-center bg-black/60 backdrop-blur-md"
-          onClick={onClose}
+          role="dialog"
+          aria-modal="true"
+          className="fixed inset-0 z-[10000] flex items-center justify-center p-3 sm:p-6 bg-black/60 backdrop-blur-md cursor-pointer"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) onClose();
+          }}
           initial="hidden"
           animate="visible"
           exit="hidden"
@@ -106,7 +121,7 @@ export default function ContactModal({ isOpen, onClose }: ModalProps) {
           transition={{ duration: 0.3 }}
         >
           <motion.div
-            className="relative flex flex-col lg:flex-row w-[95%] lg:w-[80%] max-h-[90vh] overflow-y-auto shadow-2xl bg-[var(--white)] rounded-2xl overflow-hidden border border-[var(--dark-gray)]"
+            className="relative flex flex-col lg:flex-row w-full max-w-6xl max-h-[90vh] overflow-y-auto shadow-2xl bg-[var(--white)] rounded-2xl border border-[var(--dark-gray)] cursor-default"
             onClick={(e) => e.stopPropagation()}
             variants={modalVariants}
             initial="hidden"
@@ -210,7 +225,7 @@ export default function ContactModal({ isOpen, onClose }: ModalProps) {
                       id="fullName"
                       type="text"
                       placeholder={t('contact.name_placeholder')}
-                      className="font-dm-sans w-full border-b bg-none px-3 py-2 bg-[var(--black)] focus:outline-none"
+                      className="font-dm-sans w-full min-h-[44px] border-b bg-none px-3 py-2 bg-[var(--black)] focus:outline-none"
                       {...register('fullName', {
                         required: t('contact.error_required'),
                       })}
@@ -227,7 +242,7 @@ export default function ContactModal({ isOpen, onClose }: ModalProps) {
                       id="mailAddress"
                       type="email"
                       placeholder={t('contact.email_placeholder')}
-                      className="font-dm-sans w-full border-b bg-none px-3 py-2 bg-[var(--black)] focus:outline-none"
+                      className="font-dm-sans w-full min-h-[44px] border-b bg-none px-3 py-2 bg-[var(--black)] focus:outline-none"
                       {...register('mailAddress', {
                         required: t('contact.error_email'),
                         pattern: {
@@ -259,7 +274,7 @@ export default function ContactModal({ isOpen, onClose }: ModalProps) {
 
                   <button
                     type="submit"
-                    className="w-full animate-gradient-random font-syne inline-block rounded-full bg-[var(--soft-light-gray)] bg-opacity-50 bg-gradient-to-r from-[var(--deep-navy-blue)] via-[var(--vibrant-sky-blue)] to-[var(--magenta-pink)] p-4 px-4 text-base font-semibold text-[var(--white)]"
+                    className="w-full min-h-[48px] animate-gradient-random font-syne inline-block rounded-full bg-[var(--soft-light-gray)] bg-opacity-50 bg-gradient-to-r from-[var(--deep-navy-blue)] via-[var(--vibrant-sky-blue)] to-[var(--magenta-pink)] p-4 px-4 text-base font-semibold text-white cursor-pointer"
                   >
                     {t('contact.submit')}
                   </button>

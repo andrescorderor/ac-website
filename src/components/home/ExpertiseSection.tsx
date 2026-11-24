@@ -6,8 +6,8 @@ import { motion } from 'framer-motion';
 export default function ExpertiseSection() {
   const { t } = useTranslation();
   return (
-    <section className="relative px-6 md:px-16 lg:px-36 py-20 lg:py-32 overflow-hidden">
-      <div className="flex flex-col lg:flex-row gap-12 lg:gap-20">
+    <section className="relative py-20 lg:py-28 overflow-hidden">
+      <div className="container mx-auto max-w-7xl px-6 md:px-12 lg:px-20 flex flex-col lg:flex-row gap-12 lg:gap-16">
         <div className="w-full lg:w-2/5">
           <motion.div
             initial={{ opacity: 0, y: 30 }}

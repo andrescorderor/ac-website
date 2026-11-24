@@ -49,22 +49,23 @@ export default function ExperienceSection() {
   const experiences = cmsExperiences ?? defaultExperiences;
 
   return (
-    <section className="flex flex-col px-6 md:px-16 lg:px-36 pt-24 pb-12 bg-[var(--deep-navy-blue-light)] relative overflow-hidden">
+    <section className="bg-[var(--deep-navy-blue-light)] relative overflow-hidden py-20 lg:py-28">
       {/* Decorative background element */}
       <div className="absolute top-0 right-0 w-64 h-64 bg-[var(--vibrant-sky-blue-light)] rounded-full blur-[100px] opacity-50 -mr-32 -mt-32" />
 
-      <motion.div 
-        initial={{ opacity: 0, y: 20 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true }}
-        className="mb-20"
-      >
-        <h2 className="font-dm-sans text-5xl sm:text-7xl lg:text-[7rem] font-light tracking-tight leading-none text-[var(--dark-gray)] hover:cursor-default">
-          {t('experience.title', 'Professional Experience')}
-        </h2>
-      </motion.div>
+      <div className="container mx-auto max-w-7xl px-6 md:px-12 lg:px-20 flex flex-col">
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          className="mb-14 lg:mb-20"
+        >
+          <h2 className="font-dm-sans text-5xl sm:text-6xl lg:text-7xl font-bold tracking-tight leading-[0.95] text-[var(--black)] hover:cursor-default">
+            {t('experience.title', 'Professional Experience')}
+          </h2>
+        </motion.div>
 
-      <div className="relative flex flex-col gap-12 w-full lg:w-4/5 ml-auto">
+        <div className="relative flex flex-col gap-12 w-full lg:w-4/5 ml-auto">
         {/* The vertical line */}
         <div className="absolute left-0 md:left-40 top-0 bottom-0 w-px bg-gradient-to-b from-[var(--vibrant-sky-blue)] via-[var(--light-gray)] to-transparent" />
 
@@ -101,6 +102,7 @@ export default function ExperienceSection() {
             </div>
           </motion.div>
         ))}
+        </div>
       </div>
     </section>
   );

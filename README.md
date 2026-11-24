@@ -1,7 +1,7 @@
 <div align="center">
   <img src="public/assets/ac-website-icon.svg" alt="Logo" width="100" />
   
-  # Andrés Cordero - Professional Portfolio & Personal Panel PWA (v8.0.3) 🔍✨
+  # Andrés Cordero - Professional Portfolio & Personal Panel PWA (v8.1.0) 🔍✨
   
   **Welcome to my personal ecosystem: a professional portfolio and a custom productivity hub.**  
   Built with UX/UI best practices, premium design, and a focus on mobile-first efficiency.
@@ -16,11 +16,15 @@
 
 ---
 
-## 🚀 Overview (Version 8.0.3)
+## 🚀 Overview (Version 8.1.0)
 
 This repository hosts a dual-purpose platform:
 1. **Professional Portfolio:** A high-end landing page showcasing my engineering background, skills, and achievements with dynamic copyright year updates and zero horizontal overflow.
-2. **Personal Panel PWA (v8.0.3):** An executive personal operating system featuring:
+2. **Personal Panel PWA (v8.1.0):** An executive personal operating system featuring:
+   * **Ritmo Editorial Unificado, Modales Públicos de 4 Partes y Optimización Tipográfica (`v8.1.0`):**
+     * Carga tipográfica optimizada en `index.css` eliminando 3 fuentes sin uso (`DM Sans`, `Inter`, `Syne`).
+     * Encabezados, anchos (`max-w-7xl`) y escala tipográfica homologados en `ExpertiseSection`, `ExperienceSection`, `ProjectsSection`, `CertificationsSection` y `Footer`.
+     * `Modal.tsx` y `ContactModal.tsx` actualizados con cabecera fija, cuerpo scrollable, cierre con `Escape` y validación de clic en backdrop.
    * **Auto-Recuperación ante Despliegues y Chunks Dinámicos (`main.tsx`, `vite.config.ts` - v8.0.3):**
      * Manejo automático de errores `Failed to fetch dynamically imported module` mediante `lazyWithRetry`, listener global `vite:preloadError`, pantalla de recuperación `RouteErrorBoundary`, `navigateFallbackDenylist` en `/assets/` y activación inmediata del Service Worker (`skipWaiting` / `clientsClaim` / `cleanupOutdatedCaches`).
    * **Higiene de Seguridad en Clave Privada VAPID (`scripts/send-push-notifications.mjs` - v8.0.2):**

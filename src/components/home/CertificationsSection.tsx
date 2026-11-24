@@ -13,7 +13,7 @@ import { useTranslation } from 'react-i18next';
 import { loadPortfolioCms, CmsCertification } from '@/lib/portfolioCms';
 
 export default function CertificationsSection() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [currentSlide, setCurrentSlide] = useState(0);
   const [cmsCerts, setCmsCerts] = useState<CmsCertification[] | null>(null);
 
@@ -79,6 +79,14 @@ export default function CertificationsSection() {
 
   return (
     <section className="relative w-full py-16">
+      <div className="container mx-auto max-w-7xl px-6 md:px-12 lg:px-20 mb-10">
+        <span className="font-syne text-[var(--vibrant-sky-blue)] font-bold tracking-[0.3em] uppercase text-xs mb-3 block">
+          {i18n.language?.startsWith('es') ? 'CREDENCIALES' : 'CREDENTIALS'}
+        </span>
+        <h2 className="font-dm-sans text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight leading-tight text-[var(--black)]">
+          {t('certifications.title')}
+        </h2>
+      </div>
       <div ref={sliderRef} className="keen-slider">
         {displayedCertifications.map((cert, index) => (
           <div key={cert.id || index} className="keen-slider__slide">

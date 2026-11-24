@@ -14,7 +14,7 @@ import { loadPortfolioCms, CmsProject } from '@/lib/portfolioCms';
 import { HiChevronLeft, HiChevronRight } from 'react-icons/hi';
 
 export default function ProjectsSection() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [currentSlide, setCurrentSlide] = useState(0);
   const [cmsProjects, setCmsProjects] = useState<CmsProject[] | null>(null);
 
@@ -62,18 +62,20 @@ export default function ProjectsSection() {
   });
 
   return (
-    <section id="portfolio-section" className=" w-full pt-0 pb-16">
-      <div className="animate-gradient-random pointer-events-none bg-[var(--soft-light-gray)] bg-gradient-to-r from-[var(--deep-navy-blue)] via-[var(--vibrant-sky-blue)] to-[var(--magenta-pink)] ">
-        <div className="bg-gradient-to-l from-black to-transparent text-white ">
-          <div className="flex flex-col lg:flex-row bg-gradient-to-r from-black to-transparent p-6 md:p-12 lg:p-16 lg:px-36 gap-6 lg:gap-0">
-            <h2 className="font-dm-sans flex flex-col justify-end text-5xl sm:text-7xl lg:text-[6rem] font-light tracking-tight leading-tight hover:cursor-default">
-              {t('portfolio.title')}
-            </h2>
-            <p className="font-dm-sans lg:ml-auto flex w-full lg:w-1/4 flex-col justify-center gap-4 lg:gap-8 text-start text-lg lg:text-xl font-light tracking-wide text-gray-300">
-              {t('portfolio.subtitle')}
-            </p>
-          </div>
+    <section id="portfolio-section" className="w-full pt-4 pb-16">
+      <div className="container mx-auto max-w-7xl px-6 md:px-12 lg:px-20 pt-14 pb-10 sm:pb-12">
+        <span className="font-syne text-[var(--vibrant-sky-blue)] font-bold tracking-[0.3em] uppercase text-xs mb-4 block">
+          {i18n.language?.startsWith('es') ? 'PORTAFOLIO' : 'PORTFOLIO'}
+        </span>
+        <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6">
+          <h2 className="font-dm-sans text-5xl sm:text-6xl lg:text-7xl font-bold tracking-tight leading-[0.95] text-[var(--black)] hover:cursor-default">
+            {t('portfolio.title')}
+          </h2>
+          <p className="font-inter w-full lg:max-w-md text-base sm:text-lg font-light leading-relaxed text-[var(--dark-gray)]">
+            {t('portfolio.subtitle')}
+          </p>
         </div>
+        <div className="h-1.5 w-20 bg-gradient-to-r from-[var(--vibrant-sky-blue)] to-[var(--magenta-pink)] rounded-full mt-6" />
       </div>
       <div ref={sliderRef} className="keen-slider">
         {displayedProjects.map((project, index) => (
