@@ -4,7 +4,7 @@ import { Outlet } from 'react-router-dom';
 import Footer from './Footer';
 import Header from './Header';
 
-const PUBLIC_THEME_KEY = 'public_theme';
+const PUBLIC_THEME_KEY = 'ac_public_theme';
 
 function getInitialPublicTheme(): boolean {
   try {
@@ -13,9 +13,7 @@ function getInitialPublicTheme(): boolean {
   } catch {
     // Ignora errores de almacenamiento (modo privado)
   }
-  return typeof window !== 'undefined' && !!window.matchMedia
-    ? window.matchMedia('(prefers-color-scheme: dark)').matches
-    : false;
+  return false; // Tema editorial claro por defecto en portafolio público
 }
 
 export default function Layout() {
@@ -27,6 +25,14 @@ export default function Layout() {
     } catch {
       // Ignora errores de almacenamiento
     }
+    const root = document.documentElement;
+    root.classList.add('public-site');
+    root.classList.toggle('public-dark', isDark);
+    root.classList.toggle('public-light', !isDark);
+
+    return () => {
+      root.classList.remove('public-site', 'public-dark', 'public-light');
+    };
   }, [isDark]);
 
   return (

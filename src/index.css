@@ -330,15 +330,3 @@ textarea {
   .marquee-dup { display: none !important; }
   .animate-drift-a, .animate-drift-b, .animate-float { animation: none !important; }
 }
-
-/* ═══ Hero: titular escalado al ancho real de su columna (sin cortes a media palabra) ═══ */
-.hero-text-col { container-type: inline-size; }
-.hero-headline {
-  font-size: clamp(2rem, 10vw, 7rem);
-  overflow-wrap: normal;
-  word-break: normal;
-  hyphens: manual;
-}
-@supports (font-size: 1cqw) {
-  .hero-headline { font-size: clamp(2rem, 12cqw, 9rem); }
-}

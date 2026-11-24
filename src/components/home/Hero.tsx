@@ -11,7 +11,8 @@ import HeroCircles from './HeroCircles';
 import { loadPortfolioCms, PortfolioCmsData } from '@/lib/portfolioCms';
 
 const EASE = [0.16, 1, 0.3, 1] as const;
-const HEADLINE_SIZE = 'font-dm-sans hero-headline font-bold leading-[0.92] tracking-tighter';
+const HEADLINE_SIZE =
+  'font-dm-sans text-[clamp(2.35rem,7.2vw,6.25rem)] lg:text-[clamp(3.5rem,5.2vw,6.25rem)] font-bold leading-[0.95] tracking-tight';
 
 export default function Hero() {
   const { t } = useTranslation();
@@ -88,9 +89,9 @@ export default function Hero() {
         <div className="spotlight-surface" />
       </div>
 
-      <div className="container mx-auto px-6 md:px-16 lg:px-36 w-full">
-        <div className="flex flex-col lg:flex-row items-start lg:items-center gap-12 lg:gap-24">
-          <div className="flex-1 z-10 min-w-0 hero-text-col">
+      <div className="container mx-auto max-w-7xl px-6 md:px-12 lg:px-20 w-full">
+        <div className="flex flex-col lg:flex-row items-start lg:items-center gap-10 lg:gap-16">
+          <div className="flex-1 z-10 min-w-0">
             <motion.span
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
@@ -104,7 +105,7 @@ export default function Hero() {
               initial={{ opacity: 0, y: 28 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.9, delay: 0.1, ease: EASE }}
-              className={`${HEADLINE_SIZE} text-[var(--black)] mb-2 sm:mb-3`}
+              className={`${HEADLINE_SIZE} text-[var(--black)] mb-2 sm:mb-3 whitespace-nowrap`}
             >
               {cmsOverride?.heroHeadline?.trim() || t('hero.make_it')}
             </motion.h1>

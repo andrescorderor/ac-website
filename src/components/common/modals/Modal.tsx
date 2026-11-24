@@ -63,7 +63,7 @@ export default function Modal({
           transition={{ duration: 0.3 }}
         >
           <motion.div
-            className="relative w-[95%] md:w-[80%] lg:w-[65%] max-h-[90vh] overflow-y-auto overflow-x-hidden shadow-[0_32px_64px_-16px_rgba(0,0,0,0.5)] bg-white rounded-[2.5rem] border border-[var(--light-gray)]"
+            className="relative w-[95%] md:w-[80%] lg:w-[65%] max-h-[90vh] overflow-y-auto overflow-x-hidden shadow-[0_32px_64px_-16px_rgba(0,0,0,0.5)] bg-[var(--white)] text-[var(--black)] rounded-[2.5rem] border border-[var(--light-gray)]"
             onClick={(e) => e.stopPropagation()}
             variants={modalVariants}
             initial="hidden"

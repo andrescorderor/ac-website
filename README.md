@@ -21,8 +21,8 @@
 This repository hosts a dual-purpose platform:
 1. **Professional Portfolio:** A high-end landing page showcasing my engineering background, skills, and achievements with dynamic copyright year updates and zero horizontal overflow.
 2. **Personal Panel PWA (v8.0.1):** An executive personal operating system featuring:
-   * **Hero Responsivo en Cualquier Pantalla (`Hero.tsx` - v8.0.1):**
-     * El titular escala con el ancho real de su columna (container query `cqw`), evitando cortes a media palabra en monitores ultra anchos y móviles.
+   * **Pulido Visual del Portafolio Público (`v8.0.1`):**
+     * Calibración tipográfica del `Hero` para evitar saltos a mitad de palabra en títulos largos (`Architecting` / `Arquitectura`), `HeroCircles` orbital renovado sin listeners inactivos, tema editorial claro por defecto con soporte completo en portales/modales al alternar a modo oscuro, botones CTA de alto contraste y tarjetas de `Expertise` con expansión natural sin recortes.
    * **Design System 2.0 & Motion Premium (v8.0.0):**
      * **Portafolio público:** selector **Claro / Oscuro** (preferencia guardada y sincronizada con el sistema), Hero con rotación de frases sin saltos de layout, spotlight reactivo por CSS variables, barra de progreso de scroll, fondos con deriva lenta GPU-friendly y cinta de tecnologías 100% CSS (cero re-renders por frame, pausa al hover/foco).
      * **Accesibilidad y táctil:** `prefers-reduced-motion` global (CSS + `MotionConfig`), controles semánticos en `Header`, contenido de tarjetas de proyectos visible en pantallas táctiles, controles y paginación visibles en móvil (Proyectos y Certificaciones) y timeline con indicador móvil.

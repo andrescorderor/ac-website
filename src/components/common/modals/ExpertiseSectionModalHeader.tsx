@@ -57,7 +57,7 @@ export default function ExpertiseSectionModalHeader({
                   transition={{ delay: index * 0.03 }}
                   className="group flex flex-col items-center gap-3"
                 >
-                  <div className="relative size-16 sm:size-20 flex items-center justify-center rounded-2xl bg-[var(--soft-light-gray)] border border-transparent group-hover:border-[var(--vibrant-sky-blue)] group-hover:bg-white group-hover:shadow-xl group-hover:-translate-y-1 transition-all duration-300">
+                  <div className="relative size-16 sm:size-20 flex items-center justify-center rounded-2xl bg-[var(--soft-light-gray)] border border-transparent group-hover:border-[var(--vibrant-sky-blue)] group-hover:bg-[var(--white)] group-hover:shadow-xl group-hover:-translate-y-1 transition-all duration-300">
                     <img 
                       src={image.src} 
                       alt={image.alt} 
