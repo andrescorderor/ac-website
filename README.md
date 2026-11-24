@@ -1,7 +1,7 @@
 <div align="center">
   <img src="public/assets/ac-website-icon.svg" alt="Logo" width="100" />
   
-  # Andrés Cordero - Professional Portfolio & Personal Panel PWA (v8.3.0) 🔍✨
+  # Andrés Cordero - Professional Portfolio & Personal Panel PWA (v8.3.1) 🔍✨
   
   **Welcome to my personal ecosystem: a professional portfolio and a custom productivity hub.**  
   Built with UX/UI best practices, premium design, and a focus on mobile-first efficiency.
@@ -16,11 +16,14 @@
 
 ---
 
-## 🚀 Overview (Version 8.3.0)
+## 🚀 Overview (Version 8.3.1)
 
 This repository hosts a dual-purpose platform:
 1. **Professional Portfolio:** A high-end landing page showcasing my engineering background, skills, and achievements with dynamic copyright year updates and zero horizontal overflow.
-2. **Personal Panel PWA (v8.3.0):** An executive personal operating system featuring:
+2. **Personal Panel PWA (v8.3.1):** An executive personal operating system featuring:
+   * **Contención de Variables Largas y Tarjetas Limpias en `Prompts` (`Prompts.tsx` - v8.3.1):**
+     * Formateo legible y ajuste de línea (`break-words`) en etiquetas de variables largas, contención estricta de grid (`min-w-0` / `overflow-hidden`) y previsualización `<pre>` con ajuste automático de línea (`overflow-wrap: anywhere`) y scroll vertical máximo.
+     * Tarjetas laterales compactadas mostrando hasta 3 variables resumidas más contador `+N más`, botones táctiles de `44px` y modal accesible con `useAccessibleModal`.
    * **Blindaje del Panel Privado, Shell Móvil y Accesibilidad Táctil (`v8.3.0`):**
      * **Privacidad en Búsqueda e IA (`CommandPalette.tsx`, `TicketScannerModal.tsx`):** Ocultamiento de secretos de Bóveda en resultados globales (búsqueda solo por título/categoría sin proyectar `content` en caché ni enviarlo a Gemini), envío de la API key mediante cabecera `x-goog-api-key` fuera de la URL y protección `try/catch` en `localStorage`.
      * **Respaldos Validados (`Respaldo.tsx`):** Lista blanca estricta de las 15 tablas permitidas (`ALLOWED_TABLE_IDS`) y validación de filas al restaurar, detección explícita de errores en exportaciones JSON/CSV, versión sincronizada y modal accesible con scroll seguro.

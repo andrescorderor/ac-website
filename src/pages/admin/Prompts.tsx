@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -11,6 +11,7 @@ import {
   HiX,
 } from 'react-icons/hi';
 import { useToast } from '@/components/common/ToastContext';
+import { useAccessibleModal } from '@/components/common/modals/Modal';
 import { loadSystemData, saveSystemData } from '@/lib/systemStore';
 import { invalidateCache } from '@/lib/cache';
 
@@ -34,6 +35,10 @@ function extractVariables(text: string): string[] {
   return Array.from(set);
 }
 
+function formatVariableLabel(name: string): string {
+  return name.replace(/[_/]+/g, ' ').replace(/\s+/g, ' ').trim();
+}
+
 export default function Prompts() {
   const [prompts, setPrompts] = useState<PromptTemplate[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -48,8 +53,11 @@ export default function Prompts() {
     title: '',
     body: '',
   });
+  const modalPanelRef = useRef<HTMLDivElement>(null);
 
   const { toast } = useToast();
+
+  useAccessibleModal(showModal, () => setShowModal(false), modalPanelRef);
 
   useEffect(() => {
     loadPrompts();
@@ -88,6 +96,11 @@ export default function Prompts() {
   const detectedVariables = useMemo(
     () => (activePrompt ? extractVariables(activePrompt.body) : []),
     [activePrompt]
+  );
+
+  const filledCount = useMemo(
+    () => detectedVariables.filter((v) => Boolean(varValues[v]?.trim())).length,
+    [detectedVariables, varValues]
   );
 
   const renderedOutput = useMemo(() => {
@@ -224,7 +237,7 @@ export default function Prompts() {
       {/* Main Split */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
         {/* Templates List */}
-        <div className="space-y-3">
+        <div className="space-y-3 min-w-0">
           {filteredPrompts.length === 0 ? (
             <div className="bg-white dark:bg-[#111827] border border-gray-200/80 dark:border-white/[0.09] rounded-3xl p-8 text-center space-y-3 shadow-xs">
               {prompts.length === 0 ? (
@@ -267,14 +280,14 @@ export default function Prompts() {
                     setSelectedId(p.id);
                     setVarValues({});
                   }}
-                  className={`p-4 rounded-3xl border transition-all cursor-pointer space-y-2 ${
+                  className={`p-4 rounded-3xl border transition-all cursor-pointer space-y-2 overflow-hidden ${
                     isSelected
                       ? 'bg-white dark:bg-[#111827] border-[var(--vibrant-sky-blue)] shadow-md ring-1 ring-[var(--vibrant-sky-blue)]/20'
                       : 'bg-white dark:bg-[#111827] border-gray-200/80 dark:border-white/[0.09] hover:border-gray-300 dark:hover:border-white/20 shadow-xs'
                   }`}
                 >
                   <div className="flex items-start justify-between gap-2">
-                    <div className="min-w-0 pt-0.5">
+                    <div className="min-w-0 pt-1">
                       <h3 className="font-dm-sans font-bold text-base text-gray-900 dark:text-white truncate">
                         {p.title}
                       </h3>
@@ -283,7 +296,8 @@ export default function Prompts() {
                       <button
                         type="button"
                         onClick={() => openEditModal(p)}
-                        className="min-w-[36px] min-h-[36px] p-2 text-gray-400 hover:text-[var(--vibrant-sky-blue)] rounded-xl cursor-pointer flex items-center justify-center"
+                        aria-label={`Editar ${p.title}`}
+                        className="min-w-[44px] min-h-[44px] p-2 text-gray-400 hover:text-[var(--vibrant-sky-blue)] rounded-xl cursor-pointer flex items-center justify-center"
                         title="Editar plantilla"
                       >
                         <HiOutlinePencil />
@@ -291,7 +305,8 @@ export default function Prompts() {
                       <button
                         type="button"
                         onClick={() => handleDeletePrompt(p)}
-                        className="min-w-[36px] min-h-[36px] p-2 text-red-500 hover:bg-red-500/10 rounded-xl cursor-pointer flex items-center justify-center"
+                        aria-label={`Eliminar ${p.title}`}
+                        className="min-w-[44px] min-h-[44px] p-2 text-red-500 hover:bg-red-500/10 rounded-xl cursor-pointer flex items-center justify-center"
                         title="Eliminar plantilla"
                       >
                         <HiOutlineTrash />
@@ -302,15 +317,21 @@ export default function Prompts() {
                     {p.body}
                   </p>
                   {vars.length > 0 && (
-                    <div className="flex flex-wrap gap-1 pt-0.5">
-                      {vars.map((v) => (
+                    <div className="flex flex-wrap gap-1.5 pt-0.5">
+                      {vars.slice(0, 3).map((v) => (
                         <span
                           key={v}
-                          className="px-2 py-0.5 rounded-md text-[10px] font-mono bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300"
+                          title={`{{${v}}}`}
+                          className="max-w-full truncate px-2 py-0.5 rounded-md text-[10px] font-mono bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300"
                         >
-                          {v}
+                          {formatVariableLabel(v)}
                         </span>
                       ))}
+                      {vars.length > 3 && (
+                        <span className="px-2 py-0.5 rounded-md text-[10px] font-syne font-bold bg-sky-500/10 text-sky-600 dark:text-sky-300">
+                          +{vars.length - 3} más
+                        </span>
+                      )}
                     </div>
                   )}
                 </div>
@@ -320,9 +341,9 @@ export default function Prompts() {
         </div>
 
         {/* Interactive Variable Filler & Preview */}
-        <div className="lg:col-span-2">
+        <div className="lg:col-span-2 min-w-0">
           {activePrompt ? (
-            <div className="bg-white/95 dark:bg-[#111827]/95 glass dark:dark-glass rounded-[2rem] p-5 sm:p-7 border border-gray-200/80 dark:border-white/[0.09] shadow-sm space-y-6">
+            <div className="bg-white/95 dark:bg-[#111827]/95 glass dark:dark-glass rounded-[2rem] p-5 sm:p-7 border border-gray-200/80 dark:border-white/[0.09] shadow-sm space-y-6 overflow-hidden">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-gray-100 dark:border-gray-800 pb-4">
                 <div className="min-w-0">
                   <h2 className="font-dm-sans text-xl sm:text-2xl font-bold text-gray-900 dark:text-white break-words">
@@ -342,37 +363,46 @@ export default function Prompts() {
 
               {detectedVariables.length > 0 && (
                 <div className="space-y-3">
-                  <div className="flex items-center justify-between">
+                  <div className="flex items-center justify-between gap-2">
                     <span className="font-syne text-[10px] font-bold uppercase tracking-widest text-gray-400">
-                      Rellenar Variables ({detectedVariables.length})
+                      Rellenar Variables ({filledCount}/{detectedVariables.length})
                     </span>
                     {Object.keys(varValues).length > 0 && (
                       <button
                         type="button"
                         onClick={() => setVarValues({})}
-                        className="font-syne text-[10px] font-bold uppercase text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 cursor-pointer"
+                        className="min-h-[36px] px-2 font-syne text-[10px] font-bold uppercase text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 cursor-pointer"
                       >
                         Limpiar campos
                       </button>
                     )}
                   </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    {detectedVariables.map((vName) => (
-                      <div key={vName}>
-                        <label className="block font-syne text-[10px] font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400 mb-1">
-                          {vName}
-                        </label>
-                        <input
-                          type="text"
-                          placeholder={`Valor para ${vName}...`}
-                          value={varValues[vName] || ''}
-                          onChange={(e) =>
-                            setVarValues((prev) => ({ ...prev, [vName]: e.target.value }))
-                          }
-                          className="w-full px-4 min-h-[44px] py-2.5 bg-gray-50/80 dark:bg-gray-800/80 border border-gray-200 dark:border-gray-700 rounded-xl outline-none focus:border-[var(--vibrant-sky-blue)] font-inter text-sm text-gray-900 dark:text-white"
-                        />
-                      </div>
-                    ))}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                    {detectedVariables.map((vName, idx) => {
+                      const readableLabel = formatVariableLabel(vName);
+                      const inputId = `prompt-var-${idx}`;
+                      return (
+                        <div key={vName} className="min-w-0 space-y-1.5">
+                          <label
+                            htmlFor={inputId}
+                            title={`{{${vName}}}`}
+                            className="block font-syne text-[10px] font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400 break-words leading-snug"
+                          >
+                            {readableLabel}
+                          </label>
+                          <input
+                            id={inputId}
+                            type="text"
+                            placeholder={`Escribir ${readableLabel.toLowerCase()}...`}
+                            value={varValues[vName] || ''}
+                            onChange={(e) =>
+                              setVarValues((prev) => ({ ...prev, [vName]: e.target.value }))
+                            }
+                            className="w-full px-4 min-h-[44px] py-2.5 bg-gray-50/80 dark:bg-gray-800/80 border border-gray-200 dark:border-gray-700 rounded-xl outline-none focus:border-[var(--vibrant-sky-blue)] font-inter text-sm text-gray-900 dark:text-white"
+                          />
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
               )}
@@ -381,7 +411,7 @@ export default function Prompts() {
                 <span className="block font-syne text-[10px] font-bold uppercase tracking-widest text-gray-400">
                   Vista Previa Final
                 </span>
-                <pre className="whitespace-pre-wrap font-inter text-sm leading-relaxed p-5 rounded-2xl bg-gray-50 dark:bg-gray-800/70 border border-gray-100 dark:border-gray-700/70 text-gray-800 dark:text-gray-100">
+                <pre className="whitespace-pre-wrap break-words [overflow-wrap:anywhere] max-h-[55vh] overflow-y-auto overflow-x-hidden font-inter text-sm leading-relaxed p-5 rounded-2xl bg-gray-50 dark:bg-gray-800/70 border border-gray-100 dark:border-gray-700/70 text-gray-800 dark:text-gray-100">
                   {renderedOutput}
                 </pre>
               </div>
@@ -405,15 +435,20 @@ export default function Prompts() {
               }}
             >
               <motion.div
+                ref={modalPanelRef}
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="prompt-modal-title"
+                tabIndex={-1}
                 onClick={(e) => e.stopPropagation()}
                 initial={{ opacity: 0, scale: 0.95, y: 18 }}
                 animate={{ opacity: 1, scale: 1, y: 0 }}
                 exit={{ opacity: 0, scale: 0.95, y: 18 }}
-                className="bg-white dark:bg-gray-900 rounded-[2.5rem] max-h-[90vh] flex flex-col max-w-2xl w-full border-none shadow-2xl cursor-default overflow-hidden"
+                className="bg-white dark:bg-gray-900 rounded-[2.5rem] max-h-[90vh] flex flex-col max-w-2xl w-full border-none shadow-2xl cursor-default overflow-hidden outline-none"
               >
                 <div className="flex items-center justify-between p-6 sm:p-7 pb-4 border-b border-gray-100 dark:border-gray-800 shrink-0">
                   <div>
-                    <h2 className="font-dm-sans text-2xl font-bold text-gray-900 dark:text-white">
+                    <h2 id="prompt-modal-title" className="font-dm-sans text-2xl font-bold text-gray-900 dark:text-white">
                       {editingPrompt ? 'Editar Plantilla' : 'Nueva Plantilla con Variables'}
                     </h2>
                     <p className="font-inter text-xs text-gray-400">
@@ -423,7 +458,8 @@ export default function Prompts() {
                   <button
                     type="button"
                     onClick={() => setShowModal(false)}
-                    className="min-w-[40px] min-h-[40px] p-2 rounded-xl text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 cursor-pointer flex items-center justify-center"
+                    aria-label="Cerrar modal"
+                    className="min-w-[44px] min-h-[44px] p-2 rounded-xl text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 cursor-pointer flex items-center justify-center"
                   >
                     <HiX className="text-xl" />
                   </button>

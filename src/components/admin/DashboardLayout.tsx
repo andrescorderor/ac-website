@@ -334,7 +334,7 @@ function DashboardLayoutContent() {
 
           <div className="text-center select-none pt-1">
             <span className="font-syne text-[10px] font-bold tracking-widest text-gray-400 dark:text-gray-500 block">
-              VERSIÓN v8.3.0
+              VERSIÓN v8.3.1
             </span>
           </div>
         </div>
@@ -499,7 +499,7 @@ function DashboardLayoutContent() {
 
           <div className="text-center select-none pt-2">
             <span className="font-syne text-[10px] font-bold tracking-widest text-gray-400 dark:text-gray-500 block">
-              VERSIÓN v8.3.0
+              VERSIÓN v8.3.1
             </span>
           </div>
         </div>
