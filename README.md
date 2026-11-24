@@ -1,7 +1,7 @@
 <div align="center">
   <img src="public/assets/ac-website-icon.svg" alt="Logo" width="100" />
   
-  # Andrés Cordero - Professional Portfolio & Personal Panel PWA (v8.2.0) 🔍✨
+  # Andrés Cordero - Professional Portfolio & Personal Panel PWA (v8.3.0) 🔍✨
   
   **Welcome to my personal ecosystem: a professional portfolio and a custom productivity hub.**  
   Built with UX/UI best practices, premium design, and a focus on mobile-first efficiency.
@@ -16,11 +16,16 @@
 
 ---
 
-## 🚀 Overview (Version 8.2.0)
+## 🚀 Overview (Version 8.3.0)
 
 This repository hosts a dual-purpose platform:
 1. **Professional Portfolio:** A high-end landing page showcasing my engineering background, skills, and achievements with dynamic copyright year updates and zero horizontal overflow.
-2. **Personal Panel PWA (v8.2.0):** An executive personal operating system featuring:
+2. **Personal Panel PWA (v8.3.0):** An executive personal operating system featuring:
+   * **Blindaje del Panel Privado, Shell Móvil y Accesibilidad Táctil (`v8.3.0`):**
+     * **Privacidad en Búsqueda e IA (`CommandPalette.tsx`, `TicketScannerModal.tsx`):** Ocultamiento de secretos de Bóveda en resultados globales (búsqueda solo por título/categoría sin proyectar `content` en caché ni enviarlo a Gemini), envío de la API key mediante cabecera `x-goog-api-key` fuera de la URL y protección `try/catch` en `localStorage`.
+     * **Respaldos Validados (`Respaldo.tsx`):** Lista blanca estricta de las 15 tablas permitidas (`ALLOWED_TABLE_IDS`) y validación de filas al restaurar, detección explícita de errores en exportaciones JSON/CSV, versión sincronizada y modal accesible con scroll seguro.
+     * **Shell Móvil, Capas Z y Notificaciones (`DashboardLayout.tsx`, `ToastContext.tsx`):** Drawer móvil sobre la barra inferior (`z-[70]`), eliminación del botón hamburguesa duplicado en la cabecera superior, cierre con `Escape`, soporte `env(safe-area-inset-top/bottom)` y toasts anclados sobre la navegación inferior con `aria-live` y objetivos táctiles `≥ 40px`.
+     * **Acceso, Papelera y Controles Compartidos (`Login.tsx`, `Papelera.tsx`, `DashboardHome.tsx`, `CustomSelect.tsx`, `CustomDatePicker.tsx`, `RichTextEditor.tsx`, `ChecklistMensual.tsx`):** Manejo `try/catch/finally` en autenticación con etiquetas semánticas (`48px`), confirmación in-app en 2 pasos al eliminar permanentemente de Papelera, `CustomDatePicker` con botón de limpieza hermano (sin botones anidados), `RichTextEditor` con `role="textbox"`/`aria-labelledby` y checkboxes/acciones de checklist operables por teclado a `≥ 44px`.
    * **Modales Públicos Accesibles WAI-ARIA, Ritmo Unificado & Code-Splitting (`v8.2.0`):**
      * Hook compartido `useAccessibleModal` en `Modal.tsx` y `ContactModal.tsx` con `role="dialog"`/`aria-modal`/`aria-labelledby` en el panel, trampa de foco (`Tab`/`Shift+Tab`), restauración del foco y del scroll previo (`overflow`).
      * Rediseño de `ContactModal.tsx` a estructura de 4 partes con un único botón de cierre, etiquetas visibles (`<label>`) y soporte bimodal Claro/Oscuro.

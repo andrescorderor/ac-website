@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -9,6 +9,7 @@ import {
   HiX,
 } from 'react-icons/hi';
 import { useToast } from '@/components/common/ToastContext';
+import { useAccessibleModal } from '@/components/common/modals/Modal';
 import {
   TrashItem,
   getTrashItems,
@@ -31,9 +32,14 @@ export default function Papelera() {
   const [searchTerm, setSearchTerm] = useState('');
   const [typeFilter, setTypeFilter] = useState('Todos');
   const [restoringId, setRestoringId] = useState<string | null>(null);
+  const [confirmingDeleteId, setConfirmingDeleteId] = useState<string | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
   const [showEmptyConfirm, setShowEmptyConfirm] = useState(false);
+  const emptyModalRef = useRef<HTMLDivElement>(null);
 
   const { toast } = useToast();
+
+  useAccessibleModal(showEmptyConfirm, () => setShowEmptyConfirm(false), emptyModalRef);
 
   useEffect(() => {
     loadTrash();
@@ -78,16 +84,28 @@ export default function Papelera() {
   };
 
   const handleDeletePermanent = async (trashId: string) => {
-    const remaining = await deletePermanentlyFromTrash(trashId);
-    setItems(remaining);
-    toast.info('Elemento eliminado definitivamente.');
+    setDeletingId(trashId);
+    try {
+      const remaining = await deletePermanentlyFromTrash(trashId);
+      setItems(remaining);
+      setConfirmingDeleteId(null);
+      toast.info('Elemento eliminado definitivamente.');
+    } catch (err: any) {
+      toast.error('Error al eliminar definitivamente: ' + (err?.message || 'Error inesperado'));
+    } finally {
+      setDeletingId(null);
+    }
   };
 
   const handleConfirmEmpty = async () => {
-    await emptyTrash();
-    setItems([]);
-    setShowEmptyConfirm(false);
-    toast.success('Papelera vaciada correctamente.');
+    try {
+      await emptyTrash();
+      setItems([]);
+      setShowEmptyConfirm(false);
+      toast.success('Papelera vaciada correctamente.');
+    } catch (err: any) {
+      toast.error('Error al vaciar la papelera: ' + (err?.message || 'Error inesperado'));
+    }
   };
 
   if (loading) {
@@ -205,23 +223,47 @@ export default function Papelera() {
                 )}
               </div>
 
-              <div className="flex items-center gap-2 shrink-0">
-                <button
-                  type="button"
-                  disabled={restoringId === item.trashId}
-                  onClick={() => handleRestore(item)}
-                  className="px-4 min-h-[44px] py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-syne text-xs font-bold uppercase tracking-wider cursor-pointer transition-all disabled:opacity-50"
-                >
-                  {restoringId === item.trashId ? 'Restaurando...' : 'Restaurar'}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => handleDeletePermanent(item.trashId)}
-                  className="min-w-[44px] min-h-[44px] p-2.5 text-rose-500 hover:bg-rose-500/10 rounded-xl cursor-pointer flex items-center justify-center"
-                  title="Eliminar permanentemente"
-                >
-                  <HiOutlineTrash className="text-lg" />
-                </button>
+              <div className="flex items-center gap-2 shrink-0 flex-wrap">
+                {confirmingDeleteId === item.trashId ? (
+                  <>
+                    <button
+                      type="button"
+                      disabled={deletingId === item.trashId}
+                      onClick={() => handleDeletePermanent(item.trashId)}
+                      className="px-4 min-h-[44px] py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-xl font-syne text-xs font-bold uppercase tracking-wider cursor-pointer transition-all disabled:opacity-50"
+                    >
+                      {deletingId === item.trashId ? 'Borrando...' : 'Confirmar'}
+                    </button>
+                    <button
+                      type="button"
+                      disabled={deletingId === item.trashId}
+                      onClick={() => setConfirmingDeleteId(null)}
+                      className="px-4 min-h-[44px] py-2 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-xl font-syne text-xs font-bold uppercase tracking-wider cursor-pointer transition-all"
+                    >
+                      Cancelar
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <button
+                      type="button"
+                      disabled={restoringId === item.trashId}
+                      onClick={() => handleRestore(item)}
+                      className="px-4 min-h-[44px] py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-syne text-xs font-bold uppercase tracking-wider cursor-pointer transition-all disabled:opacity-50"
+                    >
+                      {restoringId === item.trashId ? 'Restaurando...' : 'Restaurar'}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setConfirmingDeleteId(item.trashId)}
+                      aria-label={`Eliminar definitivamente ${item.title}`}
+                      className="min-w-[44px] min-h-[44px] p-2.5 text-rose-500 hover:bg-rose-500/10 rounded-xl cursor-pointer flex items-center justify-center"
+                      title="Eliminar permanentemente"
+                    >
+                      <HiOutlineTrash className="text-lg" />
+                    </button>
+                  </>
+                )}
               </div>
             </div>
           ))}
@@ -239,23 +281,29 @@ export default function Papelera() {
               }}
             >
               <motion.div
+                ref={emptyModalRef}
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="empty-trash-modal-title"
+                tabIndex={-1}
                 onClick={(e) => e.stopPropagation()}
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.95 }}
-                className="bg-white dark:bg-gray-900 rounded-[2rem] max-w-md w-full shadow-2xl overflow-hidden cursor-default flex flex-col max-h-[90vh]"
+                className="bg-white dark:bg-gray-900 rounded-[2rem] max-w-md w-full shadow-2xl overflow-hidden cursor-default flex flex-col max-h-[90vh] outline-none"
               >
                 <div className="flex items-center justify-between p-6 pb-4 border-b border-gray-100 dark:border-gray-800 shrink-0">
                   <div className="flex items-center gap-2.5 text-rose-500">
                     <HiOutlineExclamation className="text-2xl" />
-                    <h2 className="font-dm-sans text-xl font-bold text-gray-900 dark:text-white">
+                    <h2 id="empty-trash-modal-title" className="font-dm-sans text-xl font-bold text-gray-900 dark:text-white">
                       Vaciar Papelera
                     </h2>
                   </div>
                   <button
                     type="button"
                     onClick={() => setShowEmptyConfirm(false)}
-                    className="min-w-[40px] min-h-[40px] p-2 rounded-xl text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 cursor-pointer flex items-center justify-center"
+                    aria-label="Cerrar confirmación"
+                    className="min-w-[44px] min-h-[44px] p-2 rounded-xl text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 cursor-pointer flex items-center justify-center"
                   >
                     <HiX className="text-xl" />
                   </button>

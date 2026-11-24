@@ -12,11 +12,16 @@ export default function Login() {
 
   useEffect(() => {
     document.title = 'Acceso • Panel Privado | Andrés Cordero';
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session) {
-        navigate('/admin/panel', { replace: true });
-      }
-    });
+    supabase.auth
+      .getSession()
+      .then(({ data: { session } }) => {
+        if (session) {
+          navigate('/admin/panel', { replace: true });
+        }
+      })
+      .catch(() => {
+        // Ignorar fallos de red silenciosos al verificar sesión inicial
+      });
   }, [navigate]);
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -24,24 +29,29 @@ export default function Login() {
     setLoading(true);
     setError(null);
 
-    const emailToUse = email.includes('@') ? email : `${email}@admin.com`;
+    try {
+      const emailToUse = email.includes('@') ? email : `${email}@admin.com`;
 
-    const { error } = await supabase.auth.signInWithPassword({
-      email: emailToUse,
-      password,
-    });
+      const { error: authError } = await supabase.auth.signInWithPassword({
+        email: emailToUse,
+        password,
+      });
 
-    if (error) {
-      if (error.message.includes('exceed_egress_quota') || error.message.includes('restricted')) {
-        setError('⚠️ El proyecto de Supabase tiene la cuota de transferencia (egress) temporalmente restringida en el plan gratuito. Revisa tu panel en supabase.com para desbloquearlo o verificar el ciclo.');
-      } else if (error.message.includes('Invalid login credentials')) {
-        setError('Contraseña o usuario incorrectos. Verifica tus credenciales.');
+      if (authError) {
+        if (authError.message.includes('exceed_egress_quota') || authError.message.includes('restricted')) {
+          setError('⚠️ El proyecto de Supabase tiene la cuota de transferencia (egress) temporalmente restringida en el plan gratuito.');
+        } else if (authError.message.includes('Invalid login credentials')) {
+          setError('Contraseña o usuario incorrectos. Verifica tus credenciales.');
+        } else {
+          setError('No se pudo iniciar sesión. Verifica tu usuario y contraseña.');
+        }
       } else {
-        setError(error.message || 'Acceso denegado. Verifica tu usuario y contraseña.');
+        navigate('/admin/panel');
       }
+    } catch {
+      setError('No fue posible conectar con el servidor. Verifica tu conexión a internet.');
+    } finally {
       setLoading(false);
-    } else {
-      navigate('/admin/panel');
     }
   };
 
@@ -72,39 +82,43 @@ export default function Login() {
 
           <form onSubmit={handleLogin} className="space-y-4 pt-2">
             {error && (
-              <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-xl text-xs text-red-600 dark:text-red-400 font-inter text-center">
+              <div role="alert" className="p-3 bg-red-500/10 border border-red-500/20 rounded-xl text-xs text-red-600 dark:text-red-400 font-inter text-center">
                 {error}
               </div>
             )}
 
             <div className="space-y-1">
-              <label className="font-syne text-[10px] font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400">
+              <label htmlFor="admin-login-user" className="font-syne text-[10px] font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400">
                 Usuario / Email
               </label>
               <div className="relative flex items-center">
                 <HiOutlineUser className="absolute left-4 text-gray-400 text-base pointer-events-none" />
                 <input
+                  id="admin-login-user"
                   type="text"
+                  autoComplete="username"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full pl-11 pr-4 py-3 rounded-2xl bg-gray-50 dark:bg-gray-800/80 border border-gray-200/80 dark:border-gray-700/80 focus:border-[var(--vibrant-sky-blue)] dark:focus:border-[var(--vibrant-sky-blue)] text-sm font-inter text-gray-900 dark:text-gray-100 placeholder-gray-400 outline-none transition-all"
-                  placeholder="andresmcorderor"
+                  className="w-full min-h-[48px] pl-11 pr-4 py-3 rounded-2xl bg-gray-50 dark:bg-gray-800/80 border border-gray-200/80 dark:border-gray-700/80 focus:border-[var(--vibrant-sky-blue)] dark:focus:border-[var(--vibrant-sky-blue)] text-sm font-inter text-gray-900 dark:text-gray-100 placeholder-gray-400 outline-none transition-all"
+                  placeholder="usuario@admin.com"
                   required
                 />
               </div>
             </div>
 
             <div className="space-y-1">
-              <label className="font-syne text-[10px] font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400">
+              <label htmlFor="admin-login-password" className="font-syne text-[10px] font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400">
                 Contraseña
               </label>
               <div className="relative flex items-center">
                 <HiOutlineLockClosed className="absolute left-4 text-gray-400 text-base pointer-events-none" />
                 <input
+                  id="admin-login-password"
                   type="password"
+                  autoComplete="current-password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full pl-11 pr-4 py-3 rounded-2xl bg-gray-50 dark:bg-gray-800/80 border border-gray-200/80 dark:border-gray-700/80 focus:border-[var(--vibrant-sky-blue)] dark:focus:border-[var(--vibrant-sky-blue)] text-sm font-inter text-gray-900 dark:text-gray-100 placeholder-gray-400 outline-none transition-all"
+                  className="w-full min-h-[48px] pl-11 pr-4 py-3 rounded-2xl bg-gray-50 dark:bg-gray-800/80 border border-gray-200/80 dark:border-gray-700/80 focus:border-[var(--vibrant-sky-blue)] dark:focus:border-[var(--vibrant-sky-blue)] text-sm font-inter text-gray-900 dark:text-gray-100 placeholder-gray-400 outline-none transition-all"
                   placeholder="••••••••"
                   required
                 />
@@ -114,7 +128,7 @@ export default function Login() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-3.5 mt-2 bg-black dark:bg-white text-white dark:text-black font-syne text-xs font-bold uppercase tracking-widest rounded-2xl hover:bg-gray-800 dark:hover:bg-gray-100 transition-all shadow-lg active:scale-95 disabled:opacity-50"
+              className="w-full min-h-[48px] py-3.5 mt-2 bg-black dark:bg-white text-white dark:text-black font-syne text-xs font-bold uppercase tracking-widest rounded-2xl hover:bg-gray-800 dark:hover:bg-gray-100 transition-all shadow-lg active:scale-95 disabled:opacity-50 cursor-pointer"
             >
               {loading ? 'Verificando...' : 'Entrar al Panel'}
             </button>

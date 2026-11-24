@@ -25,6 +25,7 @@ import {
   HiX,
 } from 'react-icons/hi';
 import { useToast } from '@/components/common/ToastContext';
+import { useAccessibleModal } from '@/components/common/modals/Modal';
 
 // Las 15 tablas activas del ecosistema Supabase
 const SYSTEM_TABLES = [
@@ -44,6 +45,9 @@ const SYSTEM_TABLES = [
   { id: 'plants', label: 'Mis Plantas y Riegos', icon: HiOutlineSparkles, color: 'text-emerald-600 bg-emerald-50 dark:bg-emerald-950/40 border-emerald-300 dark:border-emerald-800/60' },
   { id: 'user_pinned_items', label: 'Elementos Fijados (Pins)', icon: HiOutlineBookmark, color: 'text-amber-600 bg-amber-50 dark:bg-amber-950/40 border-amber-300 dark:border-amber-800/60' },
 ] as const;
+
+type SystemTableId = (typeof SYSTEM_TABLES)[number]['id'];
+const ALLOWED_TABLE_IDS = new Set<string>(SYSTEM_TABLES.map((t) => t.id));
 
 interface BackupFilePayload {
   version?: string;
@@ -65,6 +69,7 @@ interface RestoreProgress {
 export default function Respaldo() {
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const restorePanelRef = useRef<HTMLDivElement>(null);
 
   // Estados de métricas
   const [tableStats, setTableStats] = useState<Record<string, number>>({});
@@ -81,6 +86,14 @@ export default function Respaldo() {
   const [restoring, setRestoring] = useState(false);
   const [restoreProgress, setRestoreProgress] = useState<RestoreProgress[]>([]);
   const [restoreComplete, setRestoreComplete] = useState(false);
+
+  useAccessibleModal(
+    showRestoreModal && Boolean(parsedBackup),
+    () => {
+      if (!restoring) setShowRestoreModal(false);
+    },
+    restorePanelRef
+  );
 
   useEffect(() => {
     fetchTableCounts();
@@ -124,9 +137,17 @@ export default function Respaldo() {
         return;
       }
 
-      // Consultar en paralelo las 15 tablas completas
-      const tablePromises = SYSTEM_TABLES.map(t =>
-        supabase.from(t.id).select('*').then(res => ({ id: t.id, data: res.data || [] }))
+      // Consultar en paralelo las 15 tablas completas verificando errores explícitamente
+      const tablePromises = SYSTEM_TABLES.map((t) =>
+        supabase
+          .from(t.id)
+          .select('*')
+          .then((res) => {
+            if (res.error) {
+              throw new Error(`Error leyendo ${t.id}: ${res.error.message}`);
+            }
+            return { id: t.id, data: res.data || [] };
+          })
       );
       const results = await Promise.all(tablePromises);
 
@@ -140,9 +161,9 @@ export default function Respaldo() {
 
       const backupObj: BackupFilePayload = {
         app: 'Andrés Cordero • Personal OS',
-        version: '6.21.0',
+        version: '8.3.0',
         exported_at: new Date().toISOString(),
-        user_email: user.email || 'andres@example.com',
+        user_email: user.email || 'admin',
         total_records: totalItems,
         tables: tablesMap,
       };
@@ -181,6 +202,11 @@ export default function Respaldo() {
         supabase.from('debts').select('debtor_name, amount, concept, type, settled'),
         supabase.from('notes').select('title, category, content'),
       ]);
+
+      const queryError = exp.error || tsk.error || shp.error || rem.error || dbt.error || nts.error;
+      if (queryError) {
+        throw new Error(queryError.message);
+      }
 
       let csv = '=== GASTOS Y FINANZAS ===\nFecha,Concepto,Categoria,Monto\n';
       exp.data?.forEach(e => {
@@ -246,8 +272,21 @@ export default function Respaldo() {
         const text = event.target?.result as string;
         const parsed = JSON.parse(text) as BackupFilePayload;
 
-        if (!parsed || typeof parsed !== 'object' || !parsed.tables) {
+        if (
+          !parsed ||
+          typeof parsed !== 'object' ||
+          Array.isArray(parsed) ||
+          !parsed.tables ||
+          typeof parsed.tables !== 'object' ||
+          Array.isArray(parsed.tables)
+        ) {
           toast.error('El archivo no contiene un formato de respaldo válido de la app');
+          return;
+        }
+
+        const recognizedTables = Object.keys(parsed.tables).filter((tbl) => ALLOWED_TABLE_IDS.has(tbl));
+        if (recognizedTables.length === 0) {
+          toast.error('El archivo no contiene tablas reconocidas por el sistema.');
           return;
         }
 
@@ -294,8 +333,30 @@ export default function Respaldo() {
       setRestoreProgress(initialProgress);
 
       for (let i = 0; i < tablesInPayload.length; i++) {
-        const tableName = tablesInPayload[i];
-        const rows: any[] = parsedBackup.tables[tableName] || [];
+        const rawTableName = tablesInPayload[i];
+
+        if (!ALLOWED_TABLE_IDS.has(rawTableName)) {
+          setRestoreProgress(prev =>
+            prev.map((p, idx) =>
+              idx === i ? { ...p, status: 'error', errorMessage: 'Tabla no permitida' } : p
+            )
+          );
+          continue;
+        }
+
+        const tableName = rawTableName as SystemTableId;
+        const rawRows = parsedBackup.tables[tableName];
+
+        if (!Array.isArray(rawRows)) {
+          setRestoreProgress(prev =>
+            prev.map((p, idx) =>
+              idx === i ? { ...p, status: 'error', errorMessage: 'Formato de filas inválido' } : p
+            )
+          );
+          continue;
+        }
+
+        const rows = rawRows.filter((r): r is Record<string, any> => Boolean(r) && typeof r === 'object' && !Array.isArray(r));
 
         setRestoreProgress(prev =>
           prev.map((p, idx) => (idx === i ? { ...p, status: 'running' } : p))
@@ -583,7 +644,7 @@ export default function Respaldo() {
       <AnimatePresence>
         {showRestoreModal && parsedBackup && (
           <div
-            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-md"
+            className="fixed inset-0 z-[70] flex items-center justify-center p-4 overflow-y-auto bg-black/60 backdrop-blur-md"
             onClick={(e) => {
               if (e.target === e.currentTarget && !restoring) {
                 setShowRestoreModal(false);
@@ -591,11 +652,16 @@ export default function Respaldo() {
             }}
           >
             <motion.div
+              ref={restorePanelRef}
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="restore-modal-title"
+              tabIndex={-1}
               initial={{ opacity: 0, scale: 0.95, y: 15 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 15 }}
               onClick={(e) => e.stopPropagation()}
-              className="bg-white dark:bg-gray-900 w-full max-w-2xl rounded-3xl shadow-2xl border border-gray-100 dark:border-gray-800 flex flex-col max-h-[88vh] overflow-hidden"
+              className="bg-white dark:bg-gray-900 w-full max-w-2xl rounded-3xl shadow-2xl border border-gray-100 dark:border-gray-800 flex flex-col max-h-[88vh] overflow-hidden outline-none"
             >
               {/* 1. Cabecera Fija */}
               <div className="p-5 sm:p-6 border-b border-gray-100 dark:border-gray-800 flex items-center justify-between shrink-0">
@@ -604,7 +670,7 @@ export default function Respaldo() {
                     <HiOutlineUpload />
                   </div>
                   <div>
-                    <h3 className="font-syne font-bold text-base sm:text-lg text-gray-900 dark:text-white">
+                    <h3 id="restore-modal-title" className="font-syne font-bold text-base sm:text-lg text-gray-900 dark:text-white">
                       Restauración de Base de Datos
                     </h3>
                     <p className="font-inter text-xs text-gray-500 dark:text-gray-400">
@@ -617,6 +683,7 @@ export default function Respaldo() {
                   <button
                     type="button"
                     onClick={() => setShowRestoreModal(false)}
+                    aria-label="Cerrar modal de restauración"
                     className="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-all min-h-[44px] min-w-[44px] flex items-center justify-center cursor-pointer"
                   >
                     <HiX className="text-xl" />

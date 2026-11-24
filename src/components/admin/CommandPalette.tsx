@@ -189,6 +189,22 @@ function MarkdownRenderer({ content }: { content: string }) {
   );
 }
 
+function readStoredGeminiKey(): string {
+  try {
+    return localStorage.getItem('ac_gemini_api_key') || '';
+  } catch {
+    return '';
+  }
+}
+
+function writeStoredGeminiKey(key: string): void {
+  try {
+    localStorage.setItem('ac_gemini_api_key', key);
+  } catch {
+    // Ignore storage access errors in private browsing modes
+  }
+}
+
 export default function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
   const [mode, setMode] = useState<'search' | 'ai'>('search');
   const [query, setQuery] = useState('');
@@ -198,7 +214,7 @@ export default function CommandPalette({ isOpen, onClose }: CommandPaletteProps)
 
   // AI Assistant State
   const [apiKey, setApiKey] = useState<string>(() => {
-    return import.meta.env.VITE_GEMINI_API_KEY || localStorage.getItem('ac_gemini_api_key') || '';
+    return import.meta.env.VITE_GEMINI_API_KEY || readStoredGeminiKey();
   });
   const [tempApiKeyInput, setTempApiKeyInput] = useState('');
   const [showKeyConfig, setShowKeyConfig] = useState(false);
@@ -297,13 +313,13 @@ export default function CommandPalette({ isOpen, onClose }: CommandPaletteProps)
     try {
       // Use cached lightweight snapshot of the user's data with 2-minute TTL
       // This loads all lightweight entries once and performs 100% accent-insensitive matching client-side
-      const resultsData = await fetchWithCache('search_global_dataset_v2', async () => {
+      const resultsData = await fetchWithCache('search_global_dataset_v3', async () => {
         const [nts, rem, tsk, dbt, vlt, shp, prj, chk, rec, fin, plt, bkmRes] = await Promise.all([
           supabase.from('notes').select('id, title, category, content, created_at').order('created_at', { ascending: false }).limit(200),
           supabase.from('reminders').select('*').order('created_at', { ascending: false }).limit(200),
           supabase.from('tasks').select('id, title, description, priority, completed, due_date, created_at').order('created_at', { ascending: false }).limit(200),
           supabase.from('debts').select('*').order('created_at', { ascending: false }).limit(200),
-          supabase.from('vault_items').select('*').order('created_at', { ascending: false }).limit(200),
+          supabase.from('vault_items').select('id, title, category, created_at').order('created_at', { ascending: false }).limit(200),
           supabase.from('shopping_list').select('id, name, location, price, bought, created_at').order('created_at', { ascending: false }).limit(200),
           supabase.from('creative_projects').select('id, name, description, category, status, emoji, created_at').order('created_at', { ascending: false }).limit(200),
           supabase.from('monthly_checklist_items').select('id, title, category, created_at').order('created_at', { ascending: false }).limit(200),
@@ -402,18 +418,11 @@ export default function CommandPalette({ isOpen, onClose }: CommandPaletteProps)
       });
 
       vlt.data?.forEach(v => {
-        const match = !termNorm || normalize(v.title).includes(termNorm) || normalize(v.content).includes(termNorm) || normalize(v.category).includes(termNorm);
+        const match = !termNorm || normalize(v.title).includes(termNorm) || normalize(v.category).includes(termNorm);
         if (match) {
-          let snippet = v.content || '';
-          if (termNorm && normalize(v.content).includes(termNorm)) {
-            const matchIdx = normalize(v.content).indexOf(termNorm);
-            const start = Math.max(0, matchIdx - 20);
-            const end = Math.min(v.content.length, matchIdx + termNorm.length + 40);
-            snippet = (start > 0 ? '...' : '') + v.content.slice(start, end).trim() + (end < v.content.length ? '...' : '');
-          } else {
-            snippet = (v.content?.slice(0, 50) || '') + ((v.content?.length || 0) > 50 ? '...' : '');
-          }
-          const sub = v.category ? `${v.category} · ${snippet}` : (snippet || '🔒 Texto seguro en bóveda');
+          const sub = v.category
+            ? `${v.category} · 🔒 Contenido protegido en Bóveda`
+            : '🔒 Contenido protegido en Bóveda';
 
           push({ id: v.id, type: 'vault', title: v.title, subtitle: sub, path: '/admin/panel/vault', icon: TYPE_META.vault.icon, categoryLabel: TYPE_META.vault.label, badgeColor: TYPE_META.vault.color, rawTitle: v.title });
         }
@@ -528,14 +537,14 @@ export default function CommandPalette({ isOpen, onClose }: CommandPaletteProps)
   const saveApiKey = () => {
     const key = tempApiKeyInput.trim();
     if (!key) return;
-    localStorage.setItem('ac_gemini_api_key', key);
+    writeStoredGeminiKey(key);
     setApiKey(key);
     setShowKeyConfig(false);
     toast.success('¡Gemini API Key guardada!');
   };
 
   const getActiveApiKey = () => {
-    return import.meta.env.VITE_GEMINI_API_KEY || apiKey || localStorage.getItem('ac_gemini_api_key') || '';
+    return import.meta.env.VITE_GEMINI_API_KEY || apiKey || readStoredGeminiKey();
   };
 
   const handleAskAI = async (e?: React.FormEvent) => {
@@ -556,13 +565,13 @@ export default function CommandPalette({ isOpen, onClose }: CommandPaletteProps)
     setAiThinking(true);
 
     try {
-      // Fetch full database snapshot for context (cached for 3 minutes to eliminate egress on multiple chat questions)
-      const aiContextData = await fetchWithCache('ai_db_snapshot_v2', async () => {
+      // Fetch database snapshot for context (vault secret content is never requested or transmitted)
+      const aiContextData = await fetchWithCache('ai_db_snapshot_v3', async () => {
         const [exp, tsk, dbt, vlt, shp, rem, nts, prj, chk, rec, plt, bkm, sal] = await Promise.all([
           supabase.from('finance_expenses').select('amount, category, concept, created_at').order('created_at', { ascending: false }).limit(25),
           supabase.from('tasks').select('title, description, priority, completed, due_date').order('created_at', { ascending: false }).limit(25),
           supabase.from('debts').select('*').order('created_at', { ascending: false }).limit(40),
-          supabase.from('vault_items').select('*').limit(25),
+          supabase.from('vault_items').select('id, title, category').limit(25),
           supabase.from('shopping_list').select('name, location, bought, quantity').limit(25),
           supabase.from('reminders').select('*').order('created_at', { ascending: false }).limit(25),
           supabase.from('notes').select('title, category, content').order('created_at', { ascending: false }).limit(25),
@@ -655,7 +664,9 @@ ${bkm.data?.map(b => `- ${b.title} [Categoría: ${b.category || 'General'}]: ${b
       // Dynamic Discovery via ListModels API
       let discoveredModels: string[] = [];
       try {
-        const listRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${currentKey}`);
+        const listRes = await fetch('https://generativelanguage.googleapis.com/v1beta/models', {
+          headers: { 'x-goog-api-key': currentKey },
+        });
         const listData = await listRes.json();
         if (listData.models && Array.isArray(listData.models)) {
           discoveredModels = listData.models
@@ -702,10 +713,13 @@ Campos por tipo:
         for (const apiVer of ['v1beta', 'v1']) {
           try {
             const res = await fetch(
-              `https://generativelanguage.googleapis.com/${apiVer}/models/${modelName}:generateContent?key=${currentKey}`,
+              `https://generativelanguage.googleapis.com/${apiVer}/models/${modelName}:generateContent`,
               {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: {
+                  'Content-Type': 'application/json',
+                  'x-goog-api-key': currentKey,
+                },
                 body: JSON.stringify(requestPayload),
               }
             );
@@ -1103,11 +1117,12 @@ Campos por tipo:
                         placeholder="AIzaSy..."
                         value={tempApiKeyInput}
                         onChange={e => setTempApiKeyInput(e.target.value)}
-                        className="flex-1 px-4 py-2 bg-white dark:bg-gray-900 border border-amber-200 dark:border-amber-900 rounded-xl outline-none font-mono text-xs text-gray-900 dark:text-gray-100"
+                        className="flex-1 px-4 min-h-[44px] py-2 bg-white dark:bg-gray-900 border border-amber-200 dark:border-amber-900 rounded-xl outline-none font-mono text-xs text-gray-900 dark:text-gray-100"
                       />
                       <button
+                        type="button"
                         onClick={saveApiKey}
-                        className="px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white font-syne text-xs font-bold uppercase tracking-wider rounded-xl transition-all shadow-sm"
+                        className="px-4 min-h-[44px] py-2 bg-amber-600 hover:bg-amber-700 text-white font-syne text-xs font-bold uppercase tracking-wider rounded-xl transition-all shadow-sm cursor-pointer"
                       >
                         Guardar
                       </button>
@@ -1126,7 +1141,7 @@ Campos por tipo:
                         ¡Hola! Soy tu asistente de panel personal.
                       </p>
                       <p className="font-inter text-xs text-gray-400 dark:text-gray-500 max-w-sm mx-auto leading-relaxed">
-                        Tengo acceso a la información de tus tareas, deudas, recetas, proyectos y finanzas para ayudarte a tomar decisiones o consultar datos.
+                        Consulta tareas, finanzas, deudas, notas y recetas con Gemini API (el contenido secreto de tu Bóveda nunca se comparte).
                       </p>
                       <div className="flex flex-wrap justify-center gap-2 pt-2">
                         {[
@@ -1137,8 +1152,9 @@ Campos por tipo:
                         ].map(q => (
                           <button
                             key={q}
+                            type="button"
                             onClick={() => { setAiPrompt(q); }}
-                            className="px-3 py-1.5 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-xl text-xs font-inter transition-all"
+                            className="px-3 min-h-[40px] py-1.5 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-xl text-xs font-inter transition-all cursor-pointer"
                           >
                             {q}
                           </button>
@@ -1225,8 +1241,9 @@ Campos por tipo:
                     <button
                       type="button"
                       onClick={() => setAiChat([])}
-                      className="p-2 text-red-500 dark:text-red-400 bg-red-500/10 dark:bg-red-500/20 hover:bg-red-500/20 dark:hover:bg-red-500/35 border border-red-500/20 dark:border-red-500/30 rounded-xl transition-all shrink-0"
+                      className="min-w-[44px] min-h-[44px] p-2 text-red-500 dark:text-red-400 bg-red-500/10 dark:bg-red-500/20 hover:bg-red-500/20 dark:hover:bg-red-500/35 border border-red-500/20 dark:border-red-500/30 rounded-xl transition-all shrink-0 flex items-center justify-center cursor-pointer"
                       title="Borrar chat"
+                      aria-label="Borrar chat"
                     >
                       <HiOutlineTrash className="text-base" />
                     </button>
@@ -1234,7 +1251,8 @@ Campos por tipo:
                   <button
                     type="submit"
                     disabled={!aiPrompt.trim() || aiThinking}
-                    className="p-2.5 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-40 text-white rounded-xl transition-all shadow-sm flex items-center justify-center shrink-0"
+                    aria-label="Enviar consulta"
+                    className="min-w-[44px] min-h-[44px] p-2.5 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-40 text-white rounded-xl transition-all shadow-sm flex items-center justify-center shrink-0 cursor-pointer"
                   >
                     <HiOutlinePaperAirplane className="text-base rotate-90" />
                   </button>

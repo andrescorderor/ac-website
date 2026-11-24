@@ -29,7 +29,6 @@ import {
   HiOutlineBell,
   HiBell,
   HiOutlineSearch,
-  HiMenuAlt2,
   HiX,
   HiOutlineColorSwatch,
   HiOutlineCheckCircle,
@@ -123,6 +122,18 @@ function DashboardLayoutContent() {
   useEffect(() => {
     setIsSidebarOpen(false);
   }, [location.pathname]);
+
+  useEffect(() => {
+    if (!isSidebarOpen) return undefined;
+    const handleEsc = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        setIsSidebarOpen(false);
+      }
+    };
+    window.addEventListener('keydown', handleEsc);
+    return () => window.removeEventListener('keydown', handleEsc);
+  }, [isSidebarOpen]);
 
   useEffect(() => {
     checkUser();
@@ -285,8 +296,9 @@ function DashboardLayoutContent() {
 
         <div className="p-3 border-t border-gray-100 dark:border-gray-800/80 shrink-0 space-y-2">
           <button
+            type="button"
             onClick={handleToggleNotifications}
-            className="w-full flex items-center gap-4 px-4 py-3.5 rounded-2xl transition-all duration-300 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
+            className="w-full flex items-center gap-4 px-4 min-h-[44px] py-3 rounded-2xl transition-all duration-300 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 cursor-pointer"
             title="Activar o probar notificaciones PWA"
           >
             {notifPermission === 'granted' ? (
@@ -300,8 +312,9 @@ function DashboardLayoutContent() {
           </button>
 
           <button
+            type="button"
             onClick={toggleDarkMode}
-            className="w-full flex items-center gap-4 px-4 py-3.5 rounded-2xl transition-all duration-300 text-gray-700 dark:text-amber-400 hover:bg-gray-100 dark:hover:bg-gray-800"
+            className="w-full flex items-center gap-4 px-4 min-h-[44px] py-3 rounded-2xl transition-all duration-300 text-gray-700 dark:text-amber-400 hover:bg-gray-100 dark:hover:bg-gray-800 cursor-pointer"
             title={isDarkMode ? 'Cambiar a Modo Claro' : 'Cambiar a Modo Oscuro'}
           >
             {isDarkMode ? <HiOutlineSun className="text-2xl shrink-0 text-amber-400" /> : <HiOutlineMoon className="text-2xl shrink-0 text-gray-700" />}
@@ -311,8 +324,9 @@ function DashboardLayoutContent() {
           </button>
 
           <button
+            type="button"
             onClick={handleLogout}
-            className="w-full flex items-center gap-4 px-4 py-3.5 rounded-2xl transition-all duration-300 text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30"
+            className="w-full flex items-center gap-4 px-4 min-h-[44px] py-3 rounded-2xl transition-all duration-300 text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 cursor-pointer"
           >
             <HiOutlineLogout className="text-2xl shrink-0" />
             <span className="font-syne text-xs font-bold uppercase tracking-widest">Salir</span>
@@ -320,61 +334,54 @@ function DashboardLayoutContent() {
 
           <div className="text-center select-none pt-1">
             <span className="font-syne text-[10px] font-bold tracking-widest text-gray-400 dark:text-gray-500 block">
-              VERSIÓN v8.2.0
+              VERSIÓN v8.3.0
             </span>
           </div>
         </div>
       </aside>
 
       {/* ═══ Mobile Header ═══ */}
-      <header 
-        className="lg:hidden fixed top-0 left-0 right-0 h-16 bg-white/95 dark:bg-[#111827]/95 backdrop-blur-xl border-b border-gray-200/80 dark:border-white/[0.08] flex items-center justify-between gap-3 px-3.5 sm:px-4 z-40 transition-all duration-300 shadow-xs"
+      <header
+        style={{ paddingTop: 'env(safe-area-inset-top)' }}
+        className="lg:hidden fixed top-0 left-0 right-0 bg-white/95 dark:bg-[#111827]/95 backdrop-blur-xl border-b border-gray-200/80 dark:border-white/[0.08] z-40 transition-all duration-300 shadow-xs"
       >
-        <Link to="/admin/panel" className="flex items-center gap-2.5 min-w-0 flex-1">
-          <div className="size-10 rounded-xl overflow-hidden p-0.5 bg-gradient-to-tr from-[var(--vibrant-sky-blue)] via-indigo-500 to-[var(--magenta-pink)] shadow-md shrink-0">
-            <div className="size-full rounded-[10px] bg-white dark:bg-gray-900 flex items-center justify-center p-1.5 overflow-hidden">
-              <img src="/assets/ac-website-icon.svg" alt="AC Logo" className="size-full object-contain" />
+        <div className="min-h-16 flex items-center justify-between gap-3 px-3.5 sm:px-4">
+          <Link to="/admin/panel" className="flex items-center gap-2.5 min-w-0 flex-1">
+            <div className="size-10 rounded-xl overflow-hidden p-0.5 bg-gradient-to-tr from-[var(--vibrant-sky-blue)] via-indigo-500 to-[var(--magenta-pink)] shadow-md shrink-0">
+              <div className="size-full rounded-[10px] bg-white dark:bg-gray-900 flex items-center justify-center p-1.5 overflow-hidden">
+                <img src="/assets/ac-website-icon.svg" alt="AC Logo" className="size-full object-contain" />
+              </div>
             </div>
-          </div>
-          <div className="flex flex-col min-w-0">
-            <span className="font-dm-sans font-bold text-sm sm:text-base tracking-tight text-black dark:text-white truncate">
-              {activeRouteLabel}
-            </span>
-            <span className="font-syne text-[10px] font-bold uppercase tracking-wider text-gray-400 dark:text-gray-500 truncate">
-              Panel Personal
-            </span>
-          </div>
-        </Link>
-        <div className="flex items-center gap-2 shrink-0">
-          <button
-            type="button"
-            onClick={() => setIsQuickCaptureOpen(true)}
-            className="min-w-[44px] min-h-[44px] px-3 bg-black dark:bg-white text-white dark:text-black rounded-xl transition-transform active:scale-95 flex items-center justify-center gap-1 cursor-pointer shadow-xs"
-            title="Captura Rápida"
-            aria-label="Captura Rápida"
-          >
-            <HiOutlinePlus className="text-lg" />
-          </button>
+            <div className="flex flex-col min-w-0">
+              <span className="font-dm-sans font-bold text-sm sm:text-base tracking-tight text-black dark:text-white truncate">
+                {activeRouteLabel}
+              </span>
+              <span className="font-syne text-[10px] font-bold uppercase tracking-wider text-gray-400 dark:text-gray-500 truncate">
+                Panel Personal
+              </span>
+            </div>
+          </Link>
+          <div className="flex items-center gap-2 shrink-0">
+            <button
+              type="button"
+              onClick={() => setIsQuickCaptureOpen(true)}
+              className="min-w-[44px] min-h-[44px] px-3 bg-black dark:bg-white text-white dark:text-black rounded-xl transition-transform active:scale-95 flex items-center justify-center gap-1 cursor-pointer shadow-xs"
+              title="Captura Rápida"
+              aria-label="Captura Rápida"
+            >
+              <HiOutlinePlus className="text-lg" />
+            </button>
 
-          <button
-            type="button"
-            onClick={() => setIsSearchOpen(true)}
-            className="min-w-[44px] min-h-[44px] p-2 bg-gray-100 dark:bg-gray-800 border border-gray-200/70 dark:border-white/10 rounded-xl text-gray-700 dark:text-gray-200 transition-colors active:scale-95 flex items-center justify-center cursor-pointer"
-            title="Buscar en todo el panel"
-            aria-label="Buscar en todo el panel"
-          >
-            <HiOutlineSearch className="text-lg" />
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-            className="min-w-[44px] min-h-[44px] p-2 bg-gray-100 dark:bg-gray-800 border border-gray-200/70 dark:border-white/10 rounded-xl hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors active:scale-95 text-gray-800 dark:text-gray-200 flex items-center justify-center cursor-pointer"
-            title="Abrir menú completo"
-            aria-label="Abrir menú completo"
-          >
-            {isSidebarOpen ? <HiX className="text-lg" /> : <HiMenuAlt2 className="text-lg" />}
-          </button>
+            <button
+              type="button"
+              onClick={() => setIsSearchOpen(true)}
+              className="min-w-[44px] min-h-[44px] p-2 bg-gray-100 dark:bg-gray-800 border border-gray-200/70 dark:border-white/10 rounded-xl text-gray-700 dark:text-gray-200 transition-colors active:scale-95 flex items-center justify-center cursor-pointer"
+              title="Buscar en todo el panel"
+              aria-label="Buscar en todo el panel"
+            >
+              <HiOutlineSearch className="text-lg" />
+            </button>
+          </div>
         </div>
       </header>
 
@@ -386,28 +393,47 @@ function DashboardLayoutContent() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={() => setIsSidebarOpen(false)}
-            className="lg:hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-40"
+            className="lg:hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-[60] cursor-pointer"
           />
         )}
       </AnimatePresence>
 
       {/* ═══ Mobile Sidebar Panel ═══ */}
       <motion.aside
+        role={isSidebarOpen ? 'dialog' : undefined}
+        aria-modal={isSidebarOpen || undefined}
+        aria-label="Menú completo"
+        aria-hidden={!isSidebarOpen}
+        style={{
+          paddingTop: 'env(safe-area-inset-top)',
+          paddingBottom: 'env(safe-area-inset-bottom)',
+        }}
         initial={{ x: '-100%' }}
         animate={{ x: isSidebarOpen ? 0 : '-100%' }}
         transition={{ type: 'spring', damping: 28, stiffness: 280 }}
-        className="lg:hidden fixed top-0 left-0 bottom-0 w-[80%] max-w-xs bg-white dark:bg-[#111827] z-50 flex flex-col shadow-2xl border-r border-gray-100 dark:border-gray-800"
+        className="lg:hidden fixed top-0 left-0 bottom-0 w-[82%] max-w-xs bg-white dark:bg-[#111827] z-[70] flex flex-col shadow-2xl border-r border-gray-100 dark:border-gray-800"
       >
-        <div className="flex items-center gap-3 p-6 pb-4 shrink-0">
-          <div className="size-11 rounded-2xl overflow-hidden p-0.5 bg-gradient-to-tr from-[var(--vibrant-sky-blue)] via-indigo-500 to-[var(--magenta-pink)] shadow-xl shrink-0">
-            <div className="size-full rounded-[14px] bg-white dark:bg-gray-900 flex items-center justify-center p-2 overflow-hidden">
-              <img src="/assets/ac-website-icon.svg" alt="AC Logo" className="size-full object-contain" />
+        <div className="flex items-center justify-between gap-3 p-6 pb-4 shrink-0">
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="size-11 rounded-2xl overflow-hidden p-0.5 bg-gradient-to-tr from-[var(--vibrant-sky-blue)] via-indigo-500 to-[var(--magenta-pink)] shadow-xl shrink-0">
+              <div className="size-full rounded-[14px] bg-white dark:bg-gray-900 flex items-center justify-center p-2 overflow-hidden">
+                <img src="/assets/ac-website-icon.svg" alt="AC Logo" className="size-full object-contain" />
+              </div>
+            </div>
+            <div className="flex flex-col min-w-0">
+              <span className="font-dm-sans font-bold text-lg tracking-tight text-black dark:text-white truncate">Panel Personal</span>
+              <span className="font-syne text-[9px] font-bold uppercase tracking-widest text-gray-400 truncate">Andrés Cordero</span>
             </div>
           </div>
-          <div className="flex flex-col min-w-0">
-            <span className="font-dm-sans font-bold text-lg tracking-tight text-black dark:text-white truncate">Panel Personal</span>
-            <span className="font-syne text-[9px] font-bold uppercase tracking-widest text-gray-400 truncate">Andrés Cordero</span>
-          </div>
+
+          <button
+            type="button"
+            onClick={() => setIsSidebarOpen(false)}
+            aria-label="Cerrar menú completo"
+            className="min-w-[44px] min-h-[44px] p-2 rounded-xl text-gray-400 hover:text-gray-700 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors flex items-center justify-center cursor-pointer shrink-0"
+          >
+            <HiX className="text-xl" />
+          </button>
         </div>
 
         <nav className="flex-1 px-3 space-y-4 overflow-y-auto py-2">
@@ -437,8 +463,9 @@ function DashboardLayoutContent() {
 
         <div className="p-3 border-t border-gray-100 dark:border-gray-800 shrink-0 space-y-2">
           <button
+            type="button"
             onClick={handleToggleNotifications}
-            className="w-full flex items-center gap-4 px-4 py-3 rounded-xl text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-all active:scale-[0.98]"
+            className="w-full flex items-center gap-4 px-4 min-h-[44px] py-3 rounded-xl text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-all active:scale-[0.98] cursor-pointer"
           >
             {notifPermission === 'granted' ? (
               <HiBell className="text-xl text-emerald-500" />
@@ -451,8 +478,9 @@ function DashboardLayoutContent() {
           </button>
 
           <button
+            type="button"
             onClick={toggleDarkMode}
-            className="w-full flex items-center gap-4 px-4 py-3 rounded-xl text-gray-700 dark:text-amber-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-all active:scale-[0.98]"
+            className="w-full flex items-center gap-4 px-4 min-h-[44px] py-3 rounded-xl text-gray-700 dark:text-amber-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-all active:scale-[0.98] cursor-pointer"
           >
             {isDarkMode ? <HiOutlineSun className="text-xl text-amber-400" /> : <HiOutlineMoon className="text-xl" />}
             <span className="font-syne text-[11px] font-bold uppercase tracking-widest text-gray-800 dark:text-gray-200">
@@ -461,8 +489,9 @@ function DashboardLayoutContent() {
           </button>
 
           <button
+            type="button"
             onClick={handleLogout}
-            className="w-full flex items-center gap-4 px-4 py-3 rounded-xl text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 transition-all active:scale-[0.98]"
+            className="w-full flex items-center gap-4 px-4 min-h-[44px] py-3 rounded-xl text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 transition-all active:scale-[0.98] cursor-pointer"
           >
             <HiOutlineLogout className="text-xl" />
             <span className="font-syne text-[11px] font-bold uppercase tracking-widest">Cerrar Sesión</span>
@@ -470,7 +499,7 @@ function DashboardLayoutContent() {
 
           <div className="text-center select-none pt-2">
             <span className="font-syne text-[10px] font-bold tracking-widest text-gray-400 dark:text-gray-500 block">
-              VERSIÓN v8.2.0
+              VERSIÓN v8.3.0
             </span>
           </div>
         </div>
@@ -533,7 +562,7 @@ function DashboardLayoutContent() {
           </div>
         </header>
 
-        <div className="px-3.5 sm:px-6 md:p-8 lg:p-10 pt-[76px] pb-bottom-nav lg:pt-8 lg:pb-8 max-w-[1600px] mx-auto min-h-full">
+        <div className="px-3.5 sm:px-6 md:p-8 lg:p-10 pt-[calc(env(safe-area-inset-top,0px)+4.75rem)] pb-bottom-nav lg:pt-8 lg:pb-8 max-w-[1600px] mx-auto min-h-full">
           <motion.div
             key={location.pathname}
             initial={{ opacity: 0, y: 6 }}

@@ -1,4 +1,4 @@
-import { useRef, useEffect, useCallback, useState } from 'react';
+import { useRef, useEffect, useCallback, useState, useId } from 'react';
 
 interface RichTextEditorProps {
   value: string;
@@ -200,6 +200,7 @@ export default function RichTextEditor({
   const editorRef = useRef<HTMLDivElement | null>(null);
   const lastMdRef = useRef<string>(value || '');
   const [isEmpty, setIsEmpty] = useState<boolean>(!value || !value.trim());
+  const labelId = useId();
 
   // Initialize and synchronize content when value changes externally
   useEffect(() => {
@@ -350,7 +351,7 @@ export default function RichTextEditor({
       {/* Header with Label and In-Place Formatting Tools */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
         {label && (
-          <label className="block font-syne text-[10px] font-bold uppercase tracking-widest text-[var(--gray)] dark:text-gray-400">
+          <label id={labelId} className="block font-syne text-[10px] font-bold uppercase tracking-widest text-[var(--gray)] dark:text-gray-400">
             {label} {required && '*'}
           </label>
         )}
@@ -363,7 +364,7 @@ export default function RichTextEditor({
               e.preventDefault();
               toggleHeading();
             }}
-            className="px-2.5 py-1 hover:bg-white dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-lg text-xs font-syne font-bold transition-all shrink-0 flex items-center gap-1 shadow-2xs interactive-hover"
+            className="min-h-[40px] sm:min-h-[36px] px-2.5 py-1 hover:bg-white dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-lg text-xs font-syne font-bold transition-all shrink-0 flex items-center gap-1 shadow-2xs interactive-hover cursor-pointer"
             title="Convertir a Encabezado (H3)"
           >
             <span className="text-[var(--vibrant-sky-blue)] font-bold text-[11px]">H3</span>
@@ -376,7 +377,7 @@ export default function RichTextEditor({
               e.preventDefault();
               toggleBold();
             }}
-            className="px-2.5 py-1 hover:bg-white dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-lg text-xs font-syne font-bold transition-all shrink-0 shadow-2xs interactive-hover"
+            className="min-h-[40px] sm:min-h-[36px] px-2.5 py-1 hover:bg-white dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-lg text-xs font-syne font-bold transition-all shrink-0 shadow-2xs interactive-hover cursor-pointer flex items-center"
             title="Formato Negrita"
           >
             <strong className="text-[11px]">B</strong>
@@ -389,7 +390,7 @@ export default function RichTextEditor({
               e.preventDefault();
               toggleBulletList();
             }}
-            className="px-2.5 py-1 hover:bg-white dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-lg text-xs font-syne font-bold transition-all shrink-0 shadow-2xs interactive-hover"
+            className="min-h-[40px] sm:min-h-[36px] px-2.5 py-1 hover:bg-white dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-lg text-xs font-syne font-bold transition-all shrink-0 shadow-2xs interactive-hover cursor-pointer flex items-center"
             title="Lista con Viñetas"
           >
             <span className="text-[var(--vibrant-sky-blue)] font-bold text-sm leading-none">•</span>
@@ -402,7 +403,7 @@ export default function RichTextEditor({
               e.preventDefault();
               toggleOrderedList();
             }}
-            className="px-2.5 py-1 hover:bg-white dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-lg text-xs font-syne font-bold transition-all shrink-0 shadow-2xs interactive-hover"
+            className="min-h-[40px] sm:min-h-[36px] px-2.5 py-1 hover:bg-white dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-lg text-xs font-syne font-bold transition-all shrink-0 shadow-2xs interactive-hover cursor-pointer flex items-center"
             title="Lista Numerada"
           >
             <span className="text-[11px] font-bold">1.</span>
@@ -421,6 +422,11 @@ export default function RichTextEditor({
 
         <div
           ref={editorRef}
+          role="textbox"
+          aria-multiline="true"
+          aria-required={required || undefined}
+          aria-labelledby={label ? labelId : undefined}
+          aria-label={!label ? placeholder : undefined}
           contentEditable
           suppressContentEditableWarning
           onInput={handleInput}

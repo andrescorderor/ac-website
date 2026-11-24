@@ -183,17 +183,18 @@ export default function CustomDatePicker({
     return today.getFullYear() === year && today.getMonth() === month && today.getDate() === day;
   };
 
+  const showClearButton = Boolean(value && !required && !disabled);
+
   return (
     <div className={`relative ${className}`} ref={containerRef}>
-      <div
-        role="button"
-        tabIndex={disabled ? -1 : 0}
+      <button
+        type="button"
         aria-haspopup="dialog"
         aria-expanded={isOpen}
-        aria-disabled={disabled || undefined}
+        disabled={disabled}
         onKeyDown={(e) => {
-          if (disabled || e.target !== e.currentTarget) return;
-          if (e.key === 'Enter' || e.key === ' ' || e.key === 'ArrowDown') {
+          if (disabled) return;
+          if (e.key === 'ArrowDown') {
             e.preventDefault();
             updateCoords();
             setIsOpen(true);
@@ -205,31 +206,29 @@ export default function CustomDatePicker({
             setIsOpen(!isOpen);
           }
         }}
-        className={`flex items-center justify-between w-full px-5 min-h-[48px] py-3 bg-gray-50/80 dark:bg-gray-800/80 border border-gray-100 dark:border-gray-700/80 rounded-xl cursor-pointer hover:border-gray-300 dark:hover:border-gray-500 transition-all font-inter text-sm text-gray-900 dark:text-gray-100 shadow-xs select-none ${
+        className={`flex items-center justify-between w-full pl-5 ${showClearButton ? 'pr-12' : 'pr-5'} min-h-[48px] py-3 text-left bg-gray-50/80 dark:bg-gray-800/80 border border-gray-100 dark:border-gray-700/80 rounded-xl cursor-pointer hover:border-gray-300 dark:hover:border-gray-500 transition-all font-inter text-sm text-gray-900 dark:text-gray-100 shadow-xs select-none ${
           disabled ? 'opacity-50 cursor-not-allowed' : ''
         }`}
       >
         <div className="flex items-center gap-2.5 min-w-0">
           <HiOutlineCalendar className="text-gray-400 dark:text-gray-500 shrink-0 text-base" />
-          <span className={value ? "font-medium" : "text-gray-400 dark:text-gray-500"}>
+          <span className={`truncate ${value ? 'font-medium' : 'text-gray-400 dark:text-gray-500'}`}>
             {value ? formatDisplay(value) : placeholder}
           </span>
         </div>
+      </button>
 
-        <div className="flex items-center gap-1.5 shrink-0">
-          {value && !required && !disabled && (
-            <button
-              type="button"
-              onClick={clearDate}
-              className="min-w-[36px] min-h-[36px] flex items-center justify-center p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 rounded-md transition-colors"
-              title="Borrar fecha"
-              aria-label="Borrar fecha"
-            >
-              <HiX className="text-xs" />
-            </button>
-          )}
-        </div>
-      </div>
+      {showClearButton && (
+        <button
+          type="button"
+          onClick={clearDate}
+          className="absolute right-2 top-1/2 -translate-y-1/2 min-w-[40px] min-h-[40px] flex items-center justify-center p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 rounded-lg transition-colors cursor-pointer"
+          title="Borrar fecha"
+          aria-label="Borrar fecha"
+        >
+          <HiX className="text-xs" />
+        </button>
+      )}
 
       {createPortal(
         <AnimatePresence>
@@ -257,7 +256,8 @@ export default function CustomDatePicker({
                 <button
                   type="button"
                   onClick={prevMonth}
-                  className="min-w-[44px] min-h-[44px] flex items-center justify-center p-1.5 rounded-lg text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                  aria-label="Mes anterior"
+                  className="min-w-[44px] min-h-[44px] flex items-center justify-center p-1.5 rounded-lg text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors cursor-pointer"
                 >
                   <HiChevronLeft className="text-base" />
                 </button>
@@ -267,7 +267,8 @@ export default function CustomDatePicker({
                 <button
                   type="button"
                   onClick={nextMonth}
-                  className="min-w-[44px] min-h-[44px] flex items-center justify-center p-1.5 rounded-lg text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                  aria-label="Mes siguiente"
+                  className="min-w-[44px] min-h-[44px] flex items-center justify-center p-1.5 rounded-lg text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors cursor-pointer"
                 >
                   <HiChevronRight className="text-base" />
                 </button>

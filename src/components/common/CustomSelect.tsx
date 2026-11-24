@@ -162,6 +162,7 @@ export default function CustomSelect({
         aria-haspopup="listbox"
         aria-expanded={isOpen}
         aria-controls={isOpen ? listId : undefined}
+        aria-activedescendant={isOpen && activeIndex >= 0 ? `${listId}-opt-${activeIndex}` : undefined}
         disabled={disabled}
         onClick={() => (isOpen ? closeMenu(false) : openMenu())}
         onKeyDown={handleKeyDown}

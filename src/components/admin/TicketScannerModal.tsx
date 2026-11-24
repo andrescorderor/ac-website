@@ -6,6 +6,7 @@ import { supabase } from '@/lib/supabase';
 import { useToast } from '@/components/common/ToastContext';
 import CustomSelect from '@/components/common/CustomSelect';
 import CustomDatePicker from '@/components/common/CustomDatePicker';
+import { useAccessibleModal } from '@/components/common/modals/Modal';
 
 interface TicketScannerModalProps {
   isOpen: boolean;
@@ -72,6 +73,7 @@ function getGeminiApiKey(): string {
 
 export default function TicketScannerModal({ isOpen, onClose, onSaved }: TicketScannerModalProps) {
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [analyzing, setAnalyzing] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -84,6 +86,8 @@ export default function TicketScannerModal({ isOpen, onClose, onSaved }: TicketS
     setAnalyzing(false);
     onClose();
   };
+
+  useAccessibleModal(isOpen, resetAndClose, panelRef);
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -124,10 +128,13 @@ Reglas:
       for (const model of models) {
         try {
           const res = await fetch(
-            `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`,
+            `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`,
             {
               method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
+              headers: {
+                'Content-Type': 'application/json',
+                'x-goog-api-key': apiKey,
+              },
               body: JSON.stringify({
                 contents: [
                   {
@@ -257,26 +264,32 @@ Reglas:
           }}
         >
           <motion.div
+            ref={panelRef}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="ticket-scanner-title"
+            tabIndex={-1}
             onClick={(e) => e.stopPropagation()}
             initial={{ opacity: 0, scale: 0.95, y: 18 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 18 }}
-            className="bg-white dark:bg-gray-900 rounded-[2.5rem] max-h-[90vh] flex flex-col max-w-xl w-full border-none shadow-2xl cursor-default overflow-hidden"
+            className="bg-white dark:bg-gray-900 rounded-[2.5rem] max-h-[90vh] flex flex-col max-w-xl w-full border-none shadow-2xl cursor-default overflow-hidden outline-none"
           >
             {/* 1. Sticky Header */}
             <div className="flex items-center justify-between p-6 sm:p-7 pb-4 border-b border-gray-100 dark:border-gray-800 shrink-0">
               <div>
-                <h2 className="font-dm-sans text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">
+                <h2 id="ticket-scanner-title" className="font-dm-sans text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">
                   Escáner de Tickets
                 </h2>
                 <p className="font-inter text-xs text-gray-400">
-                  Extrae monto, fecha y categoría directo en memoria (0 bytes en la nube).
+                  Lectura con Gemini Vision en memoria · Sin guardar imágenes en tu base de datos.
                 </p>
               </div>
               <button
                 type="button"
                 onClick={resetAndClose}
-                className="min-w-[40px] min-h-[40px] p-2 rounded-xl text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 transition-all cursor-pointer flex items-center justify-center"
+                aria-label="Cerrar escáner"
+                className="min-w-[44px] min-h-[44px] p-2 rounded-xl text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 transition-all cursor-pointer flex items-center justify-center"
               >
                 <HiX className="text-xl" />
               </button>

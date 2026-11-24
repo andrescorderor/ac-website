@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { supabase } from '@/lib/supabase';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -15,6 +15,7 @@ import {
   HiOutlineSearch,
 } from 'react-icons/hi';
 import { useToast } from '@/components/common/ToastContext';
+import { useAccessibleModal } from '@/components/common/modals/Modal';
 import { togglePinItem, isItemPinned } from '@/lib/pinned';
 
 type ChecklistItem = {
@@ -69,7 +70,17 @@ export default function ChecklistMensual() {
   }, [searchParams]);
 
   const [submitting, setSubmitting] = useState(false);
+  const modalPanelRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
+
+  useAccessibleModal(
+    showAddForm,
+    () => {
+      setShowAddForm(false);
+      setEditingItem(null);
+    },
+    modalPanelRef
+  );
 
   const currentMonthYear = toMonthYear(new Date());
   const isCurrentMonth = viewingMonth === currentMonthYear;
@@ -319,18 +330,28 @@ export default function ChecklistMensual() {
               }}
             >
               <motion.div
+                ref={modalPanelRef}
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="checklist-modal-title"
+                tabIndex={-1}
                 onClick={(e) => e.stopPropagation()}
                 initial={{ opacity: 0, scale: 0.95, y: 20 }}
                 animate={{ opacity: 1, scale: 1, y: 0 }}
                 exit={{ opacity: 0, scale: 0.95, y: 20 }}
-                className="bg-white dark:bg-gray-900 rounded-[2.5rem] max-h-[90vh] flex flex-col max-w-xl w-full border-none shadow-2xl my-8 cursor-default overflow-hidden"
+                className="bg-white dark:bg-gray-900 rounded-[2.5rem] max-h-[90vh] flex flex-col max-w-xl w-full border-none shadow-2xl my-8 cursor-default overflow-hidden outline-none"
               >
                 {/* Sticky Header */}
                 <div className="flex items-center justify-between p-6 sm:p-8 pb-4 sm:pb-4 border-b border-gray-100 dark:border-gray-800 shrink-0">
-                  <h3 className="font-dm-sans text-xl font-bold text-black dark:text-white">
+                  <h3 id="checklist-modal-title" className="font-dm-sans text-xl font-bold text-black dark:text-white">
                     {editingItem ? 'Editar Ítem' : 'Nuevo Ítem del Checklist'}
                   </h3>
-                  <button onClick={() => { setShowAddForm(false); setEditingItem(null); }} className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl transition-all">
+                  <button
+                    type="button"
+                    aria-label="Cerrar modal"
+                    onClick={() => { setShowAddForm(false); setEditingItem(null); }}
+                    className="min-w-[44px] min-h-[44px] p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl transition-all flex items-center justify-center cursor-pointer"
+                  >
                     <HiX className="text-xl" />
                   </button>
                 </div>
@@ -343,27 +364,33 @@ export default function ChecklistMensual() {
                       <label className="font-syne text-[10px] font-bold uppercase tracking-widest text-gray-500">Ícono</label>
                       <div className="flex flex-wrap gap-2">
                         {EMOJIS.map(e => (
-                          <button key={e} type="button" onClick={() => setForm({ ...form, emoji: e })}
-                            className={`size-9 text-lg rounded-xl border-2 transition-all ${form.emoji === e ? 'border-black dark:border-white bg-gray-100 dark:bg-gray-800 scale-110' : 'border-transparent hover:border-gray-200'}`}
-                          >{e}</button>
+                          <button
+                            key={e}
+                            type="button"
+                            onClick={() => setForm({ ...form, emoji: e })}
+                            className={`size-11 text-lg rounded-xl border-2 transition-all cursor-pointer flex items-center justify-center ${form.emoji === e ? 'border-black dark:border-white bg-gray-100 dark:bg-gray-800 scale-105' : 'border-transparent hover:border-gray-200 dark:hover:border-gray-700'}`}
+                          >
+                            {e}
+                          </button>
                         ))}
                       </div>
                     </div>
 
                     <div className="space-y-2">
-                      <label className="font-syne text-[10px] font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">Título *</label>
+                      <label htmlFor="checklist-title-input" className="font-syne text-[10px] font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">Título *</label>
                       <input
+                        id="checklist-title-input"
                         required value={form.title} onChange={e => setForm({ ...form, title: e.target.value })}
                         placeholder="Ej. Pagar renta, Netflix, Gym..."
-                        className="w-full px-4 min-h-[44px] py-3 bg-gray-50/70 dark:bg-gray-800/80 border border-gray-200/80 dark:border-white/10 focus:border-[var(--vibrant-sky-blue)] rounded-xl outline-none font-inter text-sm text-gray-900 dark:text-gray-100 placeholder-gray-400 transition-all shadow-xs"
+                        className="w-full px-4 min-h-[48px] py-3 bg-gray-50/70 dark:bg-gray-800/80 border border-gray-200/80 dark:border-white/10 focus:border-[var(--vibrant-sky-blue)] rounded-xl outline-none font-inter text-sm text-gray-900 dark:text-gray-100 placeholder-gray-400 transition-all shadow-xs"
                       />
                     </div>
                   </div>
 
                   {/* Sticky Footer Actions */}
                   <div className="flex justify-end gap-3 p-4 sm:p-6 border-t border-gray-100 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-900/50 shrink-0">
-                    <button type="button" onClick={() => { setShowAddForm(false); setEditingItem(null); }} className="px-6 py-3 font-syne text-xs font-bold uppercase tracking-wider text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl transition-all">Cancelar</button>
-                    <button type="submit" disabled={submitting} className="px-8 py-3 bg-black dark:bg-white text-white dark:text-black font-syne text-xs font-bold uppercase tracking-wider rounded-xl shadow-md disabled:opacity-50 interactive-hover flex items-center gap-2">
+                    <button type="button" onClick={() => { setShowAddForm(false); setEditingItem(null); }} className="px-6 min-h-[44px] py-3 font-syne text-xs font-bold uppercase tracking-wider text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl transition-all cursor-pointer">Cancelar</button>
+                    <button type="submit" disabled={submitting} className="px-8 min-h-[44px] py-3 bg-black dark:bg-white text-white dark:text-black font-syne text-xs font-bold uppercase tracking-wider rounded-xl shadow-md disabled:opacity-50 interactive-hover flex items-center gap-2 cursor-pointer">
                       {submitting ? <div className="size-3 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : null}
                       {editingItem ? 'Guardar' : 'Añadir'}
                     </button>
@@ -411,7 +438,7 @@ export default function ChecklistMensual() {
                     if ((e.target as HTMLElement).closest('.action-btn')) return;
                     toggleComplete(item);
                   }}
-                  className={`group flex items-center gap-3.5 sm:gap-4 p-4 rounded-2xl border transition-all duration-300 cursor-pointer ${
+                  className={`group flex items-center gap-2.5 sm:gap-3.5 p-3 sm:p-4 rounded-2xl border transition-all duration-300 cursor-pointer ${
                     done
                       ? 'bg-emerald-50/60 dark:bg-emerald-950/25 border-emerald-300/60 dark:border-emerald-800/40'
                       : 'bg-white dark:bg-[#111827] border-gray-200/80 dark:border-white/[0.09] hover:border-gray-300 dark:hover:border-white/25 shadow-xs'
@@ -419,13 +446,24 @@ export default function ChecklistMensual() {
                 >
                   <button
                     type="button"
-                    className={`size-8 rounded-full border-2 flex items-center justify-center shrink-0 transition-all cursor-pointer ${
-                      done
-                        ? 'bg-emerald-500 border-emerald-500'
-                        : 'border-gray-300 dark:border-gray-600 hover:border-[var(--vibrant-sky-blue)]'
-                    }`}
+                    role="checkbox"
+                    aria-checked={done}
+                    aria-label={`Marcar ${item.title} como ${done ? 'pendiente' : 'completado'}`}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      toggleComplete(item);
+                    }}
+                    className="action-btn min-w-[44px] min-h-[44px] flex items-center justify-center rounded-xl shrink-0 cursor-pointer"
                   >
-                    {done && <HiOutlineCheck className="text-white text-sm" />}
+                    <span
+                      className={`size-8 rounded-full border-2 flex items-center justify-center transition-all ${
+                        done
+                          ? 'bg-emerald-500 border-emerald-500'
+                          : 'border-gray-300 dark:border-gray-600 group-hover:border-[var(--vibrant-sky-blue)]'
+                      }`}
+                    >
+                      {done && <HiOutlineCheck className="text-white text-sm" />}
+                    </span>
                   </button>
 
                   <span className="text-xl shrink-0">{item.emoji}</span>
@@ -442,7 +480,7 @@ export default function ChecklistMensual() {
                   </div>
 
                   {!isReadOnly && (
-                    <div className="action-btn flex items-center gap-1 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-all shrink-0">
+                    <div className="action-btn flex items-center gap-1 opacity-100 md:opacity-0 md:group-hover:opacity-100 md:group-focus-within:opacity-100 [@media(hover:none)]:opacity-100 transition-all shrink-0">
                       <button
                         type="button"
                         onClick={() => {
@@ -456,7 +494,8 @@ export default function ChecklistMensual() {
                           toast.info(isNowPinned ? 'Ítem fijado 📌' : 'Ítem desfijado');
                           setItems([...items]);
                         }}
-                        className={`min-w-[36px] min-h-[36px] p-1.5 rounded-xl transition-all cursor-pointer flex items-center justify-center ${
+                        aria-label={isItemPinned(item.id) ? `Desfijar ${item.title}` : `Fijar ${item.title}`}
+                        className={`min-w-[44px] min-h-[44px] p-1.5 rounded-xl transition-all cursor-pointer flex items-center justify-center ${
                           isItemPinned(item.id)
                             ? 'text-amber-500 bg-amber-50 dark:bg-amber-950/40'
                             : 'text-gray-400 hover:text-amber-500 hover:bg-amber-50 dark:hover:bg-amber-950/30'
@@ -468,7 +507,8 @@ export default function ChecklistMensual() {
                       <button
                         type="button"
                         onClick={() => openEdit(item)}
-                        className="min-w-[36px] min-h-[36px] p-1.5 text-gray-400 hover:text-black dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl transition-all cursor-pointer flex items-center justify-center"
+                        aria-label={`Editar ${item.title}`}
+                        className="min-w-[44px] min-h-[44px] p-1.5 text-gray-400 hover:text-black dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl transition-all cursor-pointer flex items-center justify-center"
                         title="Editar ítem"
                       >
                         <HiOutlinePencil className="text-sm" />
@@ -476,7 +516,8 @@ export default function ChecklistMensual() {
                       <button
                         type="button"
                         onClick={() => deleteItem(item.id)}
-                        className="min-w-[36px] min-h-[36px] p-2 text-red-500 dark:text-red-400 bg-red-500/10 dark:bg-red-500/20 hover:bg-red-500/20 dark:hover:bg-red-500/35 border border-red-500/20 dark:border-red-500/30 rounded-xl transition-all shrink-0 cursor-pointer flex items-center justify-center"
+                        aria-label={`Eliminar ${item.title}`}
+                        className="min-w-[44px] min-h-[44px] p-2 text-red-500 dark:text-red-400 bg-red-500/10 dark:bg-red-500/20 hover:bg-red-500/20 dark:hover:bg-red-500/35 border border-red-500/20 dark:border-red-500/30 rounded-xl transition-all shrink-0 cursor-pointer flex items-center justify-center"
                         title="Eliminar ítem"
                       >
                         <HiOutlineTrash className="text-sm" />

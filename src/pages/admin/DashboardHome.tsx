@@ -70,9 +70,13 @@ export default function DashboardHome() {
     hasAlerts: false,
   });
   const [isBriefingDismissed, setIsBriefingDismissed] = useState(() => {
-    const dismissedDate = localStorage.getItem('ac_briefing_dismissed_date');
-    const today = new Date().toISOString().split('T')[0];
-    return dismissedDate === today;
+    try {
+      const dismissedDate = localStorage.getItem('ac_briefing_dismissed_date');
+      const today = new Date().toISOString().split('T')[0];
+      return dismissedDate === today;
+    } catch {
+      return false;
+    }
   });
   const [pinnedItems, setPinnedItems] = useState<PinnedItem[]>([]);
   const [pinnedFilter, setPinnedFilter] = useState<string>('all');
@@ -644,7 +648,7 @@ export default function DashboardHome() {
             <div className="flex items-center gap-2 shrink-0">
               <Link
                 to="/admin/panel/calendario"
-                className="inline-flex items-center gap-1.5 px-3 min-h-[38px] py-1.5 rounded-xl bg-white dark:bg-[#111827] border border-gray-200/80 dark:border-white/10 text-[11px] font-syne font-bold uppercase tracking-wider text-gray-700 dark:text-gray-200 hover:border-[var(--vibrant-sky-blue)] transition-all cursor-pointer"
+                className="inline-flex items-center gap-1.5 px-3 min-h-[44px] py-1.5 rounded-xl bg-white dark:bg-[#111827] border border-gray-200/80 dark:border-white/10 text-[11px] font-syne font-bold uppercase tracking-wider text-gray-700 dark:text-gray-200 hover:border-[var(--vibrant-sky-blue)] transition-all cursor-pointer"
               >
                 <span>📅</span>
                 <span className="hidden sm:inline">Calendario 360°</span>
@@ -654,10 +658,15 @@ export default function DashboardHome() {
                 type="button"
                 onClick={() => {
                   const today = new Date().toISOString().split('T')[0];
-                  localStorage.setItem('ac_briefing_dismissed_date', today);
+                  try {
+                    localStorage.setItem('ac_briefing_dismissed_date', today);
+                  } catch {
+                    // Ignore storage restrictions in private mode
+                  }
                   setIsBriefingDismissed(true);
                 }}
-                className="min-w-[38px] min-h-[38px] flex items-center justify-center p-1.5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl transition-all text-sm shrink-0 cursor-pointer"
+                aria-label="Ocultar resumen por hoy"
+                className="min-w-[44px] min-h-[44px] flex items-center justify-center p-1.5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl transition-all text-sm shrink-0 cursor-pointer"
                 title="Ocultar resumen por hoy"
               >
                 <HiX />
@@ -684,7 +693,7 @@ export default function DashboardHome() {
                       type="button"
                       onClick={() => handleQuickWaterPlant(p.id, p.nickname)}
                       title="Clic para marcar como regada hoy"
-                      className="inline-flex items-center gap-1.5 px-3 min-h-[36px] py-1.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 hover:bg-emerald-100 dark:hover:bg-emerald-900 text-emerald-700 dark:text-emerald-300 font-inter text-xs font-medium border border-emerald-200/70 dark:border-emerald-800/60 transition-all cursor-pointer"
+                      className="inline-flex items-center gap-1.5 px-3 min-h-[44px] py-1.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 hover:bg-emerald-100 dark:hover:bg-emerald-900 text-emerald-700 dark:text-emerald-300 font-inter text-xs font-medium border border-emerald-200/70 dark:border-emerald-800/60 transition-all cursor-pointer"
                     >
                       <span>{p.emoji}</span>
                       <span>{p.nickname}</span>
@@ -752,7 +761,7 @@ export default function DashboardHome() {
                       <button
                         type="button"
                         onClick={() => handleQuickCompleteTask(t.id)}
-                        className="flex items-center gap-2 text-left min-w-0 min-h-[32px] group cursor-pointer"
+                        className="flex items-center gap-2 text-left min-w-0 min-h-[44px] py-1 group cursor-pointer"
                         title="Marcar completada"
                       >
                         <span className="size-4 rounded-full border-2 border-gray-300 dark:border-gray-600 group-hover:border-emerald-500 group-hover:bg-emerald-500/20 shrink-0" />
@@ -800,7 +809,7 @@ export default function DashboardHome() {
               <button
                 type="button"
                 onClick={() => setShowScannerModal(true)}
-                className="w-full min-h-[40px] py-2 px-3 rounded-xl bg-sky-500/10 hover:bg-sky-500/20 border border-sky-500/20 text-sky-700 dark:text-sky-300 font-syne text-[11px] font-bold uppercase tracking-wider flex items-center justify-center gap-1.5 transition-all cursor-pointer"
+                className="w-full min-h-[44px] py-2 px-3 rounded-xl bg-sky-500/10 hover:bg-sky-500/20 border border-sky-500/20 text-sky-700 dark:text-sky-300 font-syne text-[11px] font-bold uppercase tracking-wider flex items-center justify-center gap-1.5 transition-all cursor-pointer"
               >
                 <HiOutlineCamera className="text-sm" />
                 <span>Escanear Ticket</span>

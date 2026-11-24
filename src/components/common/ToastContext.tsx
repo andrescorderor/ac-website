@@ -90,11 +90,13 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       {children}
       {/* Toast Overlay Container via Portal */}
       {createPortal(
-        <div className="fixed bottom-6 right-6 z-[999999] flex flex-col gap-2.5 max-w-sm sm:max-w-md w-full pointer-events-none px-4 sm:px-0">
+        <div className="fixed bottom-[calc(env(safe-area-inset-bottom,0px)+5.25rem)] lg:bottom-6 right-0 sm:right-6 z-[999999] flex flex-col gap-2.5 max-w-sm sm:max-w-md w-full pointer-events-none px-4 sm:px-0">
           <AnimatePresence>
             {toasts.map((t) => (
               <motion.div
                 key={t.id}
+                role={t.type === 'error' ? 'alert' : 'status'}
+                aria-live={t.type === 'error' ? 'assertive' : 'polite'}
                 initial={{ opacity: 0, y: 20, scale: 0.95 }}
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 exit={{ opacity: 0, y: 10, scale: 0.95 }}
@@ -119,6 +121,7 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
                 <div className="flex items-center gap-2 shrink-0">
                   {t.action && (
                     <button
+                      type="button"
                       onClick={async (e) => {
                         e.stopPropagation();
                         removeToast(t.id);
@@ -128,15 +131,17 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
                           console.error('Error al deshacer:', err);
                         }
                       }}
-                      className="flex items-center gap-1.5 px-3 py-1.5 bg-white/15 hover:bg-white/25 active:bg-white/30 text-amber-300 hover:text-amber-200 rounded-xl font-syne text-xs font-bold uppercase tracking-wider transition-all border border-white/10 shadow-sm"
+                      className="flex items-center gap-1.5 px-3 min-h-[40px] py-1.5 bg-white/15 hover:bg-white/25 active:bg-white/30 text-amber-300 hover:text-amber-200 rounded-xl font-syne text-xs font-bold uppercase tracking-wider transition-all border border-white/10 shadow-sm cursor-pointer"
                     >
                       <HiReply className="text-xs shrink-0" />
                       <span>{t.action.label}</span>
                     </button>
                   )}
                   <button
+                    type="button"
                     onClick={() => removeToast(t.id)}
-                    className="p-1 hover:bg-white/10 rounded-lg transition-colors shrink-0 text-gray-400 hover:text-white"
+                    aria-label="Cerrar notificación"
+                    className="min-w-[40px] min-h-[40px] p-1 hover:bg-white/10 rounded-lg transition-colors shrink-0 text-gray-400 hover:text-white flex items-center justify-center cursor-pointer"
                   >
                     <HiX className="text-sm opacity-60 hover:opacity-100" />
                   </button>
