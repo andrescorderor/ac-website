@@ -1,8 +1,9 @@
 import { useState, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { HiOutlineCamera, HiOutlineUpload, HiX, HiOutlineCheckCircle } from 'react-icons/hi';
+import { HiOutlineCamera, HiOutlineUpload, HiX, HiOutlineCheckCircle, HiOutlineKey, HiOutlineExclamationCircle } from 'react-icons/hi';
 import { supabase } from '@/lib/supabase';
+import { invalidateCache } from '@/lib/cache';
 import { useToast } from '@/components/common/ToastContext';
 import CustomSelect from '@/components/common/CustomSelect';
 import CustomDatePicker from '@/components/common/CustomDatePicker';
@@ -49,16 +50,49 @@ async function compressImageToBase64(file: File): Promise<{ base64: string; prev
           return;
         }
         ctx.drawImage(img, 0, 0, width, height);
-        const dataUrl = canvas.toDataURL('image/jpeg', 0.72);
+        const dataUrl = canvas.toDataURL('image/jpeg', 0.78);
         const base64 = dataUrl.split(',')[1] || '';
         resolve({ base64, previewUrl: dataUrl });
       };
-      img.onerror = () => reject(new Error('Archivo de imagen inválido.'));
+      img.onerror = () =>
+        reject(new Error('Formato de imagen no compatible en este navegador. Intenta con JPG, PNG o WebP.'));
       img.src = reader.result as string;
     };
     reader.onerror = () => reject(new Error('Error leyendo archivo.'));
     reader.readAsDataURL(file);
   });
+}
+
+const EXCLUDED_MODEL_KEYWORDS = ['embedding', 'imagen', 'veo', 'tts', 'audio', 'aqa', 'lyria', 'robotics', 'computer-use'];
+const PREFERRED_VISION_MODELS = ['gemini-2.5-flash', 'gemini-2.5-flash-lite', 'gemini-2.0-flash'];
+
+async function resolveVisionModels(apiKey: string): Promise<string[]> {
+  let discovered: string[] = [];
+  try {
+    const res = await fetch('https://generativelanguage.googleapis.com/v1beta/models', {
+      headers: { 'x-goog-api-key': apiKey },
+    });
+    if (res.ok) {
+      const listData = await res.json();
+      if (Array.isArray(listData?.models)) {
+        discovered = listData.models
+          .filter((m: any) => m.supportedGenerationMethods?.includes('generateContent'))
+          .map((m: any) => String(m.name || '').replace(/^models\//, ''))
+          .filter(
+            (name: string) =>
+              name.startsWith('gemini-') &&
+              !EXCLUDED_MODEL_KEYWORDS.some((kw) => name.toLowerCase().includes(kw))
+          );
+      }
+    }
+  } catch {
+    // Fall back to static list on network/discovery failure
+  }
+
+  const prioritized = PREFERRED_VISION_MODELS.filter(
+    (m) => discovered.length === 0 || discovered.includes(m)
+  );
+  return Array.from(new Set([...prioritized, ...discovered, ...PREFERRED_VISION_MODELS]));
 }
 
 function getGeminiApiKey(): string {
@@ -71,6 +105,14 @@ function getGeminiApiKey(): string {
   }
 }
 
+function saveStoredGeminiApiKey(key: string): void {
+  try {
+    localStorage.setItem('ac_gemini_api_key', key);
+  } catch {
+    // Ignore storage errors in private browsing mode
+  }
+}
+
 export default function TicketScannerModal({ isOpen, onClose, onSaved }: TicketScannerModalProps) {
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const panelRef = useRef<HTMLDivElement>(null);
@@ -78,25 +120,45 @@ export default function TicketScannerModal({ isOpen, onClose, onSaved }: TicketS
   const [analyzing, setAnalyzing] = useState(false);
   const [saving, setSaving] = useState(false);
   const [scanned, setScanned] = useState<ScannedResult | null>(null);
+  const [scanError, setScanError] = useState<string | null>(null);
+  const [showKeyInput, setShowKeyInput] = useState(false);
+  const [keyDraft, setKeyDraft] = useState('');
   const { toast } = useToast();
 
   const resetAndClose = () => {
     setPreviewUrl(null);
     setScanned(null);
+    setScanError(null);
+    setShowKeyInput(false);
     setAnalyzing(false);
     onClose();
   };
 
   useAccessibleModal(isOpen, resetAndClose, panelRef);
 
+  const handleSaveApiKey = () => {
+    const trimmed = keyDraft.trim();
+    if (!trimmed) return;
+    saveStoredGeminiApiKey(trimmed);
+    setKeyDraft('');
+    setShowKeyInput(false);
+    setScanError(null);
+    toast.success('Clave de Gemini guardada. Vuelve a seleccionar tu imagen.');
+  };
+
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
     e.target.value = '';
 
+    setScanError(null);
+
     const apiKey = getGeminiApiKey();
     if (!apiKey) {
-      toast.error('Configura tu VITE_GEMINI_API_KEY o clave en Buscar/IA para usar el escáner.');
+      const msg = 'Falta configurar tu clave gratuita de Gemini API para leer tickets.';
+      setScanError(msg);
+      setShowKeyInput(true);
+      toast.error(msg);
       return;
     }
 
@@ -121,7 +183,7 @@ Reglas:
 - "amount" debe ser el total final numérico pagado.
 - Clasifica en "comida" (despensa, alimentos, restaurantes), "insumos" (limpieza, hogar, farmacia, compras varias) o "servicios" (luz, internet, suscripciones).`;
 
-      const models = ['gemini-2.0-flash', 'gemini-1.5-flash-latest', 'gemini-1.5-flash'];
+      const models = await resolveVisionModels(apiKey);
       let parsedJson: any = null;
       let lastErr = '';
 
@@ -149,12 +211,29 @@ Reglas:
                     ],
                   },
                 ],
+                generationConfig: {
+                  responseMimeType: 'application/json',
+                  temperature: 0.1,
+                },
               }),
             }
           );
 
           const data = await res.json();
-          const rawText = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+          if (!res.ok) {
+            lastErr = data?.error?.message || `HTTP ${res.status}`;
+            continue;
+          }
+
+          const parts = data?.candidates?.[0]?.content?.parts;
+          const rawText = Array.isArray(parts)
+            ? parts
+                .filter((p: any) => !p.thought && typeof p.text === 'string')
+                .map((p: any) => p.text)
+                .join('\n')
+                .trim()
+            : '';
+
           if (rawText) {
             const cleaned = rawText
               .replace(/```json\s*/gi, '')
@@ -168,7 +247,7 @@ Reglas:
           }
           if (data?.error?.message) lastErr = data.error.message;
         } catch (err: any) {
-          lastErr = err.message;
+          lastErr = err?.message || 'Error de red';
         }
       }
 
@@ -199,7 +278,12 @@ Reglas:
 
       toast.success('Ticket leído correctamente. Revisa y guarda ✨');
     } catch (err: any) {
-      toast.error('Error al analizar ticket: ' + err.message);
+      const msg = err?.message || 'No se pudo procesar la imagen.';
+      setScanError(msg);
+      if (/api key|permission|unauthorized|401|403/i.test(msg)) {
+        setShowKeyInput(true);
+      }
+      toast.error('Error al analizar ticket: ' + msg);
     } finally {
       setAnalyzing(false);
     }
@@ -243,6 +327,8 @@ Reglas:
         if (retry.error) throw retry.error;
       }
 
+      invalidateCache('dashboard');
+      invalidateCache('calendario_360_data');
       window.dispatchEvent(new Event('ac_finance_changed'));
       toast.success(`Gasto de $${amountNum.toLocaleString()} registrado en Finanzas`);
       onSaved?.();
@@ -327,6 +413,63 @@ Reglas:
                     </>
                   )}
                 </button>
+
+                {scanError && (
+                  <div
+                    role="alert"
+                    className="p-3.5 rounded-2xl bg-rose-500/10 border border-rose-500/25 flex items-start gap-2.5 text-xs font-inter text-rose-700 dark:text-rose-300"
+                  >
+                    <HiOutlineExclamationCircle className="text-lg shrink-0 mt-0.5 text-rose-500" />
+                    <div className="min-w-0 flex-1 space-y-2">
+                      <p className="leading-snug break-words">{scanError}</p>
+                      {!showKeyInput && (
+                        <button
+                          type="button"
+                          onClick={() => setShowKeyInput(true)}
+                          className="inline-flex items-center gap-1.5 font-syne text-[10px] font-bold uppercase tracking-wider text-rose-600 dark:text-rose-200 underline cursor-pointer"
+                        >
+                          <HiOutlineKey className="text-xs" />
+                          <span>Configurar o cambiar clave Gemini</span>
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {showKeyInput && (
+                  <div className="p-4 rounded-2xl bg-amber-50/80 dark:bg-amber-950/40 border border-amber-200/70 dark:border-amber-900/50 space-y-2.5">
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="inline-flex items-center gap-1.5 font-syne text-[10px] font-bold uppercase tracking-wider text-amber-700 dark:text-amber-300">
+                        <HiOutlineKey className="text-sm" />
+                        <span>Clave Gemini API (Gratis)</span>
+                      </span>
+                      <a
+                        href="https://aistudio.google.com/app/apikey"
+                        target="_blank"
+                        rel="noreferrer"
+                        className="font-syne text-[10px] font-bold uppercase tracking-wider text-amber-700 dark:text-amber-200 underline"
+                      >
+                        Obtener clave
+                      </a>
+                    </div>
+                    <div className="flex gap-2">
+                      <input
+                        type="password"
+                        value={keyDraft}
+                        onChange={(e) => setKeyDraft(e.target.value)}
+                        placeholder="AIzaSy..."
+                        className="flex-1 px-3.5 min-h-[44px] py-2 bg-white dark:bg-gray-900 border border-amber-200 dark:border-amber-800 rounded-xl outline-none font-mono text-xs text-gray-900 dark:text-white"
+                      />
+                      <button
+                        type="button"
+                        onClick={handleSaveApiKey}
+                        className="px-4 min-h-[44px] py-2 bg-amber-600 hover:bg-amber-700 text-white font-syne text-xs font-bold uppercase tracking-wider rounded-xl cursor-pointer transition-all shrink-0"
+                      >
+                        Guardar
+                      </button>
+                    </div>
+                  </div>
+                )}
 
                 {previewUrl && (
                   <div className="rounded-2xl overflow-hidden border border-gray-100 dark:border-gray-800 max-h-48 bg-black/5 flex items-center justify-center">

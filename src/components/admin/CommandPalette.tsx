@@ -669,24 +669,26 @@ ${bkm.data?.map(b => `- ${b.title} [Categoría: ${b.category || 'General'}]: ${b
         });
         const listData = await listRes.json();
         if (listData.models && Array.isArray(listData.models)) {
+          const excluded = ['embedding', 'imagen', 'veo', 'tts', 'audio', 'aqa', 'lyria', 'robotics', 'computer-use'];
           discoveredModels = listData.models
             .filter((m: any) => m.supportedGenerationMethods?.includes('generateContent'))
-            .map((m: any) => m.name.replace('models/', ''));
+            .map((m: any) => String(m.name || '').replace(/^models\//, ''))
+            .filter(
+              (name: string) =>
+                name.startsWith('gemini-') && !excluded.some((kw) => name.toLowerCase().includes(kw))
+            );
         }
       } catch (e) {
         // Fallback
       }
 
       const fallbackList = [
+        'gemini-2.5-flash',
+        'gemini-2.5-flash-lite',
         'gemini-2.0-flash',
-        'gemini-2.0-flash-exp',
-        'gemini-1.5-flash-latest',
-        'gemini-1.5-flash-8b',
-        'gemini-1.5-flash',
-        'gemini-1.5-pro',
       ];
 
-      const candidateModels = Array.from(new Set([...discoveredModels, ...fallbackList]));
+      const candidateModels = Array.from(new Set([...fallbackList.filter((m) => discoveredModels.length === 0 || discoveredModels.includes(m)), ...discoveredModels, ...fallbackList]));
 
       const requestPayload = {
         system_instruction: {
@@ -724,8 +726,16 @@ Campos por tipo:
               }
             );
             const data = await res.json();
-            if (data.candidates?.[0]?.content?.parts?.[0]?.text) {
-              answer = data.candidates[0].content.parts[0].text;
+            const parts = data?.candidates?.[0]?.content?.parts;
+            const extractedText = Array.isArray(parts)
+              ? parts
+                  .filter((p: any) => !p.thought && typeof p.text === 'string')
+                  .map((p: any) => p.text)
+                  .join('\n')
+                  .trim()
+              : '';
+            if (extractedText) {
+              answer = extractedText;
               break;
             }
             if (data.error) {

@@ -1,7 +1,7 @@
 <div align="center">
   <img src="public/assets/ac-website-icon.svg" alt="Logo" width="100" />
   
-  # Andrés Cordero - Professional Portfolio & Personal Panel PWA (v8.3.2) 🔍✨
+  # Andrés Cordero - Professional Portfolio & Personal Panel PWA (v8.3.3) 🔍✨
   
   **Welcome to my personal ecosystem: a professional portfolio and a custom productivity hub.**  
   Built with UX/UI best practices, premium design, and a focus on mobile-first efficiency.
@@ -16,11 +16,14 @@
 
 ---
 
-## 🚀 Overview (Version 8.3.2)
+## 🚀 Overview (Version 8.3.3)
 
 This repository hosts a dual-purpose platform:
 1. **Professional Portfolio:** A high-end landing page showcasing my engineering background, skills, and achievements with dynamic copyright year updates and zero horizontal overflow.
-2. **Personal Panel PWA (v8.3.2):** An executive personal operating system featuring:
+2. **Personal Panel PWA (v8.3.3):** An executive personal operating system featuring:
+   * **Resiliencia del Escáner de Tickets & Descubrimiento Gemini 2.5 (`TicketScannerModal.tsx`, `CommandPalette.tsx` - v8.3.3):**
+     * Descubrimiento dinámico de modelos activos vía `ListModels` priorizando `gemini-2.5-flash`, `gemini-2.5-flash-lite` y `gemini-2.0-flash` en reemplazo de variantes 1.5 retiradas.
+     * Configuración JSON estricta (`responseMimeType: 'application/json'`), filtrado seguro de partes `thought` de Gemini 2.5, banner in-modal de diagnóstico con configuración rápida de API key y actualización automática de caché al guardar el gasto.
    * **Sincronización de Eventos Próximos en Inicio y Calendario (`DashboardHome.tsx`, `Recordatorios.tsx`, `Calendario.tsx` - v8.3.2):**
      * Homologa la consulta y normalización de fechas (`date` / `event_date`) en `DashboardHome` e invalida automáticamente los cachés de Inicio, Calendario 360° y Búsqueda Global al crear, editar, eliminar o restaurar fechas importantes.
    * **Contención de Variables Largas y Tarjetas Limpias en `Prompts` (`Prompts.tsx` - v8.3.1):**
