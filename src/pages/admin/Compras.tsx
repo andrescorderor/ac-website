@@ -9,12 +9,14 @@ import {
   HiOutlineLocationMarker,
   HiOutlineTag,
   HiOutlineSearch,
+  HiOutlineCamera,
   HiX
 } from 'react-icons/hi';
 import { MdOutlineCircle } from 'react-icons/md';
 import { useToast } from '@/components/common/ToastContext';
 import CustomSelect from '@/components/common/CustomSelect';
 import MandadoModal from '@/components/admin/MandadoModal';
+import MandadoScannerModal from '@/components/admin/MandadoScannerModal';
 import { togglePinItem, isItemPinned } from '@/lib/pinned';
 import { moveToTrash } from '@/lib/trash';
 
@@ -32,7 +34,7 @@ type ShoppingItem = {
 import { useSearchParams } from 'react-router-dom';
 
 export default function Compras() {
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [items, setItems] = useState<ShoppingItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
@@ -73,12 +75,19 @@ export default function Compras() {
   };
 
   const [showQuincenaModal, setShowQuincenaModal] = useState(false);
+  const [showScannerModal, setShowScannerModal] = useState(false);
 
   useEffect(() => {
     if (searchParams.get('quincena') === 'true' || searchParams.get('mandado') === 'true') {
       setShowQuincenaModal(true);
     }
-  }, [searchParams]);
+    if (searchParams.get('scan') === '1') {
+      setShowScannerModal(true);
+      const next = new URLSearchParams(searchParams);
+      next.delete('scan');
+      setSearchParams(next, { replace: true });
+    }
+  }, [searchParams, setSearchParams]);
 
   const isMandadoItem = (item: ShoppingItem): boolean => {
     if (item.type === 'semanal' || item.type === 'quincenal' || item.type === 'ocasional') return true;
@@ -258,6 +267,16 @@ export default function Compras() {
 
           <button
             type="button"
+            onClick={() => setShowScannerModal(true)}
+            className="px-4 min-h-[44px] py-2 bg-white dark:bg-[#111827] hover:bg-sky-50 dark:hover:bg-sky-950/30 border border-sky-500/30 text-sky-700 dark:text-sky-300 font-syne text-xs font-bold uppercase tracking-wider rounded-2xl transition-all shadow-xs flex items-center justify-center gap-2 shrink-0 cursor-pointer"
+            title="Escanea una foto para completar o agregar elementos a tu Mandado"
+          >
+            <HiOutlineCamera className="text-base" />
+            <span>Escanear</span>
+          </button>
+
+          <button
+            type="button"
             onClick={() => setShowQuincenaModal(true)}
             className="px-4 min-h-[44px] py-2 bg-white dark:bg-[#111827] hover:bg-emerald-50 dark:hover:bg-emerald-950/30 border border-emerald-500/30 text-emerald-700 dark:text-emerald-300 font-syne text-xs font-bold uppercase tracking-wider rounded-2xl transition-all shadow-xs flex items-center justify-center gap-2 shrink-0 cursor-pointer"
             title="Abre tu listado aislado de mandado semanal de dieta e insumos"
@@ -308,6 +327,13 @@ export default function Compras() {
           setShowQuincenaModal(false);
           fetchItems();
         }}
+      />
+
+      {/* ═══ Escáner Inteligente de Mandado Modal ═══ */}
+      <MandadoScannerModal
+        isOpen={showScannerModal}
+        onClose={() => setShowScannerModal(false)}
+        onApplied={fetchItems}
       />
 
       {/* Add Item Modal */}

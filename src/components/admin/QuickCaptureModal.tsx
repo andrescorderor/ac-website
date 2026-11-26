@@ -7,7 +7,7 @@ import { invalidateCache } from '@/lib/cache';
 import { useToast } from '@/components/common/ToastContext';
 import CustomSelect from '@/components/common/CustomSelect';
 import CustomDatePicker from '@/components/common/CustomDatePicker';
-import TicketScannerModal from '@/components/admin/TicketScannerModal';
+import MandadoScannerModal from '@/components/admin/MandadoScannerModal';
 import { loadSystemData, saveSystemData } from '@/lib/systemStore';
 import {
   TaskPriority,
@@ -413,18 +413,6 @@ export default function QuickCaptureModal({ isOpen, onClose }: QuickCaptureModal
 
                     {tab === 'expense' && (
                       <>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            onClose();
-                            setShowScanner(true);
-                          }}
-                          className="w-full min-h-[44px] py-2.5 px-4 bg-sky-500/10 hover:bg-sky-500/20 text-sky-600 dark:text-sky-300 border border-sky-500/30 rounded-xl font-syne text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-2 cursor-pointer"
-                        >
-                          <HiOutlineCamera className="text-base" />
-                          <span>Escanear Ticket con Cámara (IA)</span>
-                        </button>
-
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                           <div>
                             <label className="block font-syne text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-1.5">
@@ -526,6 +514,18 @@ export default function QuickCaptureModal({ isOpen, onClose }: QuickCaptureModal
 
                     {tab === 'mandado' && (
                       <>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            onClose();
+                            setShowScanner(true);
+                          }}
+                          className="w-full min-h-[44px] py-2.5 px-4 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30 rounded-xl font-syne text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-2 cursor-pointer"
+                        >
+                          <HiOutlineCamera className="text-base" />
+                          <span>Escanear Foto para Mandado (IA)</span>
+                        </button>
+
                         <div>
                           <label className="block font-syne text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-1.5">
                             Producto *
@@ -608,7 +608,7 @@ export default function QuickCaptureModal({ isOpen, onClose }: QuickCaptureModal
         document.body
       )}
 
-      <TicketScannerModal
+      <MandadoScannerModal
         isOpen={showScanner}
         onClose={() => setShowScanner(false)}
       />

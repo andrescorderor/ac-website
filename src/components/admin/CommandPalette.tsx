@@ -503,6 +503,7 @@ export default function CommandPalette({ isOpen, onClose }: CommandPaletteProps)
       // Quick navigation to new modules (Backup, Calendar 360, Divisor, CMS, Papelera)
       const moduleShortcuts = [
         { id: 'sys_calendario', title: 'Calendario Maestro 360°', subtitle: 'Agenda unificada de tareas, fechas, plantas y finanzas', path: '/admin/panel/calendario', keywords: ['calendario', 'agenda', '360', 'mes'] },
+        { id: 'sys_mandado_scanner', title: 'Escáner de Mandado con Cámara', subtitle: 'Analiza fotos de tickets o lista para completar o agregar mandado', path: '/admin/panel/compras?scan=1', keywords: ['escaner', 'ticket', 'foto', 'camara', 'mandado', 'compras'] },
         { id: 'sys_divisor', title: 'Divisor de Cuentas Grupales', subtitle: 'Cálculo por personas/grupos y envío por WhatsApp', path: '/admin/panel/divisor', keywords: ['divisor', 'cuentas', 'dividir', 'grupos', 'whatsapp'] },
         { id: 'sys_prompts', title: 'Prompts & Variables', subtitle: 'Plantillas dinámicas {{variable}} listas para copiar', path: '/admin/panel/prompts', keywords: ['prompts', 'plantillas', 'variables'] },
         { id: 'sys_portafolio', title: 'Mini-CMS del Portafolio', subtitle: 'Editar Hero y proyectos de la web pública', path: '/admin/panel/portafolio', keywords: ['portafolio', 'cms', 'hero', 'publico'] },

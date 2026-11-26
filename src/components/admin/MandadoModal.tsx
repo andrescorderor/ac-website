@@ -2,10 +2,11 @@ import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { supabase } from '@/lib/supabase';
 import { motion, AnimatePresence } from 'framer-motion';
-import { HiOutlinePlus, HiOutlineCheckCircle, HiOutlineTrash, HiOutlineRefresh, HiOutlineLocationMarker, HiOutlineSearch, HiOutlinePencil, HiOutlineClock, HiX } from 'react-icons/hi';
+import { HiOutlinePlus, HiOutlineCheckCircle, HiOutlineTrash, HiOutlineRefresh, HiOutlineLocationMarker, HiOutlineSearch, HiOutlinePencil, HiOutlineClock, HiOutlineCamera, HiX } from 'react-icons/hi';
 import { MdOutlineCircle } from 'react-icons/md';
 import { useToast } from '@/components/common/ToastContext';
 import CustomSelect from '@/components/common/CustomSelect';
+import MandadoScannerModal from '@/components/admin/MandadoScannerModal';
 
 type ShoppingItem = {
   id: string;
@@ -45,6 +46,7 @@ export default function MandadoModal({ isOpen, onClose }: MandadoModalProps) {
   const [stockItem, setStockItem] = useState<ShoppingItem | null>(null);
   const [stockValue, setStockValue] = useState<string>('');
   const [isFocusMode, setIsFocusMode] = useState(false);
+  const [showScannerModal, setShowScannerModal] = useState(false);
   const [wakeLock, setWakeLock] = useState<any>(null);
 
   // Request screen wake lock when entering Focus Mode (prevent screen from turning off in supermarket)
@@ -659,6 +661,7 @@ export default function MandadoModal({ isOpen, onClose }: MandadoModalProps) {
   if (!isOpen) return null;
 
   return createPortal(
+    <>
     <AnimatePresence>
       <div 
         className={`fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-md cursor-pointer transition-all ${
@@ -741,6 +744,16 @@ export default function MandadoModal({ isOpen, onClose }: MandadoModalProps) {
 
                 {!isFocusMode && (
                   <>
+                    <button
+                      type="button"
+                      onClick={() => setShowScannerModal(true)}
+                      className="px-3 min-h-[40px] py-1.5 bg-sky-500/15 hover:bg-sky-500/25 text-sky-700 dark:text-sky-300 border border-sky-500/30 font-syne text-xs font-bold uppercase tracking-wider rounded-xl transition-all shadow-xs flex items-center justify-center gap-1 shrink-0 cursor-pointer"
+                      title="Analizar foto para completar o agregar a tu mandado"
+                    >
+                      <HiOutlineCamera className="text-sm" />
+                      <span>Escanear</span>
+                    </button>
+
                     <button
                       type="button"
                       onClick={() => {
@@ -1485,7 +1498,13 @@ export default function MandadoModal({ isOpen, onClose }: MandadoModalProps) {
           )}
         </AnimatePresence>
       </div>
-    </AnimatePresence>,
+    </AnimatePresence>
+    <MandadoScannerModal
+      isOpen={showScannerModal}
+      onClose={() => setShowScannerModal(false)}
+      onApplied={fetchItemsAndAutoSeed}
+    />
+  </>,
     document.body
   );
 }

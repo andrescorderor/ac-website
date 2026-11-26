@@ -14,7 +14,6 @@ import {
   HiOutlineClock,
   HiOutlineRefresh,
   HiOutlineSwitchHorizontal,
-  HiOutlineCamera,
   HiOutlineDotsHorizontal
 } from 'react-icons/hi';
 import { useSearchParams } from 'react-router-dom';
@@ -22,7 +21,6 @@ import { useToast } from '@/components/common/ToastContext';
 import CustomSelect from '@/components/common/CustomSelect';
 import CustomDatePicker from '@/components/common/CustomDatePicker';
 import MandadoModal from '@/components/admin/MandadoModal';
-import TicketScannerModal from '@/components/admin/TicketScannerModal';
 import { moveToTrash } from '@/lib/trash';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -132,7 +130,6 @@ export default function Finanzas() {
   const [isPrivacyMode, setIsPrivacyMode] = useState(true);
   const [showAddModal, setShowAddModal] = useState(false);
   const [showMandadoModal, setShowMandadoModal] = useState(false);
-  const [showScannerModal, setShowScannerModal] = useState(false);
   const [searchParams, setSearchParams] = useSearchParams();
   const [filterCategory, setFilterCategory] = useState('Todas');
   const [searchTerm, setSearchTerm] = useState('');
@@ -171,12 +168,6 @@ export default function Finanzas() {
       setShowAddModal(true);
       const next = new URLSearchParams(searchParams);
       next.delete('new');
-      setSearchParams(next, { replace: true });
-    }
-    if (searchParams.get('scan') === '1') {
-      setShowScannerModal(true);
-      const next = new URLSearchParams(searchParams);
-      next.delete('scan');
       setSearchParams(next, { replace: true });
     }
   }, [searchParams]);
@@ -644,16 +635,6 @@ export default function Finanzas() {
             title="Abrir lista de Mandado Semanal y Modo Súper"
           >
             <span>🥗 Mandado</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setShowScannerModal(true)}
-            className="cursor-pointer flex items-center justify-center gap-1.5 px-3.5 py-2 bg-white dark:bg-[#111827] hover:bg-sky-50 dark:hover:bg-sky-950/30 border border-gray-200/80 dark:border-white/10 text-sky-700 dark:text-sky-300 rounded-xl font-syne text-xs font-bold uppercase tracking-wider transition-all shadow-xs min-h-[44px]"
-            title="Escanear ticket con cámara usando IA"
-          >
-            <HiOutlineCamera className="text-base" />
-            <span>Ticket</span>
           </button>
 
           <button
@@ -1541,13 +1522,6 @@ export default function Finanzas() {
       <MandadoModal
         isOpen={showMandadoModal}
         onClose={handleMandadoModalClose}
-      />
-
-      {/* Ticket Scanner Modal */}
-      <TicketScannerModal
-        isOpen={showScannerModal}
-        onClose={() => setShowScannerModal(false)}
-        onSaved={fetchData}
       />
     </div>
   );

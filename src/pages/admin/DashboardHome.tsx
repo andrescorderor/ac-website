@@ -18,14 +18,12 @@ import {
   HiOutlineCheckCircle,
   HiOutlineBookOpen,
   HiOutlineSparkles,
-  HiOutlineCamera,
   HiX,
 } from 'react-icons/hi';
 import { FaDumbbell } from 'react-icons/fa';
 import { Link } from 'react-router-dom';
 import { useToast } from '@/components/common/ToastContext';
 import MandadoModal from '@/components/admin/MandadoModal';
-import TicketScannerModal from '@/components/admin/TicketScannerModal';
 import { parseExpenseInfo } from '@/pages/admin/Finanzas';
 import { parseTaskMeta } from '@/lib/taskMeta';
 import { 
@@ -84,7 +82,6 @@ export default function DashboardHome() {
   const [loading, setLoading] = useState(true);
   const [isPrivacyMode, setIsPrivacyMode] = useState(true);
   const [showMandadoModal, setShowMandadoModal] = useState(false);
-  const [showScannerModal, setShowScannerModal] = useState(false);
   const { toast } = useToast();
 
   const translateType = (type: string) => {
@@ -812,14 +809,12 @@ export default function DashboardHome() {
                   Disponible · {briefing.pendingShoppingCount} en mandado
                 </span>
               </div>
-              <button
-                type="button"
-                onClick={() => setShowScannerModal(true)}
-                className="w-full min-h-[44px] py-2 px-3 rounded-xl bg-sky-500/10 hover:bg-sky-500/20 border border-sky-500/20 text-sky-700 dark:text-sky-300 font-syne text-[11px] font-bold uppercase tracking-wider flex items-center justify-center gap-1.5 transition-all cursor-pointer"
+              <Link
+                to="/admin/panel/compras?scan=1"
+                className="w-full min-h-[44px] py-2 px-3 rounded-xl bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/20 text-emerald-700 dark:text-emerald-300 font-syne text-[11px] font-bold uppercase tracking-wider flex items-center justify-center gap-1.5 transition-all cursor-pointer"
               >
-                <HiOutlineCamera className="text-sm" />
-                <span>Escanear Ticket</span>
-              </button>
+                <span>🛒 Escanear Mandado</span>
+              </Link>
             </div>
           </div>
         </motion.section>
@@ -998,16 +993,6 @@ export default function DashboardHome() {
       <MandadoModal 
         isOpen={showMandadoModal} 
         onClose={() => setShowMandadoModal(false)} 
-      />
-
-      {/* Ticket Scanner Modal */}
-      <TicketScannerModal
-        isOpen={showScannerModal}
-        onClose={() => setShowScannerModal(false)}
-        onSaved={() => {
-          invalidateCache('dashboard');
-          fetchStats();
-        }}
       />
     </div>
   );

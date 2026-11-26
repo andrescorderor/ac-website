@@ -1,7 +1,7 @@
 <div align="center">
   <img src="public/assets/ac-website-icon.svg" alt="Logo" width="100" />
   
-  # Andrés Cordero - Professional Portfolio & Personal Panel PWA (v8.3.3) 🔍✨
+  # Andrés Cordero - Professional Portfolio & Personal Panel PWA (v8.4.0) 🔍✨
   
   **Welcome to my personal ecosystem: a professional portfolio and a custom productivity hub.**  
   Built with UX/UI best practices, premium design, and a focus on mobile-first efficiency.
@@ -16,11 +16,14 @@
 
 ---
 
-## 🚀 Overview (Version 8.3.3)
+## 🚀 Overview (Version 8.4.0)
 
 This repository hosts a dual-purpose platform:
 1. **Professional Portfolio:** A high-end landing page showcasing my engineering background, skills, and achievements with dynamic copyright year updates and zero horizontal overflow.
-2. **Personal Panel PWA (v8.3.3):** An executive personal operating system featuring:
+2. **Personal Panel PWA (v8.4.0):** An executive personal operating system featuring:
+   * **Escáner Inteligente de Mandado con Lista Preliminar Editable (`Compras.tsx`, `MandadoModal.tsx`, `MandadoScannerModal.tsx` - v8.4.0):**
+     * Traslada el escáner con cámara/foto directamente al módulo de **Compras** y dentro del modal de **Mandado** (además de acceso rápido desde Captura Rápida y `CommandPalette`).
+     * Analiza fotos de tickets, productos o listas escritas con Gemini Vision cruzando contra tu catálogo actual de Mandado y genera una **lista preliminar 100% editable**: ajusta manualmente filas para **Completar existente** (vinculado por `CustomSelect`, cantidad y precio), **Agregar como nuevo** (categoría, frecuencia, estado inicial), descarta o agrega filas manuales y decide si registrar los precios en Finanzas antes de aplicar en lote.
    * **Resiliencia del Escáner de Tickets & Descubrimiento Gemini 2.5 (`TicketScannerModal.tsx`, `CommandPalette.tsx` - v8.3.3):**
      * Descubrimiento dinámico de modelos activos vía `ListModels` priorizando `gemini-2.5-flash`, `gemini-2.5-flash-lite` y `gemini-2.0-flash` en reemplazo de variantes 1.5 retiradas.
      * Configuración JSON estricta (`responseMimeType: 'application/json'`), filtrado seguro de partes `thought` de Gemini 2.5, banner in-modal de diagnóstico con configuración rápida de API key y actualización automática de caché al guardar el gasto.
