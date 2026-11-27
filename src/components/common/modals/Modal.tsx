@@ -139,7 +139,7 @@ export default function Modal({
             aria-modal="true"
             aria-labelledby={titleId}
             tabIndex={-1}
-            className="relative w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden shadow-[0_32px_64px_-16px_rgba(0,0,0,0.55)] bg-[var(--pub-surface)] text-[var(--black)] rounded-3xl sm:rounded-[2rem] border border-[var(--pub-border-strong)] cursor-default outline-none"
+            className="portfolio-dialog public-dialog relative w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden shadow-[0_32px_64px_-16px_rgba(0,0,0,0.55)] bg-[var(--site-paper)] text-[var(--site-ink)] rounded-xl border border-[var(--site-line)] cursor-default outline-none"
             onClick={(e) => e.stopPropagation()}
             variants={modalVariants}
             initial="hidden"

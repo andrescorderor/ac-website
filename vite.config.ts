@@ -39,29 +39,53 @@ export default defineConfig({
             short_name: 'Tarea',
             description: 'Crear una nueva tarea pendiente',
             url: '/admin/panel/pendientes?new=1',
-            icons: [{ src: 'assets/ac-website-icon-192.png', sizes: '192x192', type: 'image/png' }]
+            icons: [
+              {
+                src: 'assets/ac-website-icon-192.png',
+                sizes: '192x192',
+                type: 'image/png',
+              },
+            ],
           },
           {
             name: 'Modo Súper',
             short_name: 'Súper',
             description: 'Abrir listado semanal de mandado',
             url: '/admin/panel/compras?mandado=true',
-            icons: [{ src: 'assets/ac-website-icon-192.png', sizes: '192x192', type: 'image/png' }]
+            icons: [
+              {
+                src: 'assets/ac-website-icon-192.png',
+                sizes: '192x192',
+                type: 'image/png',
+              },
+            ],
           },
           {
             name: 'Registrar Gasto',
             short_name: 'Gasto',
             description: 'Agregar gasto rápido en Finanzas',
             url: '/admin/panel/finanzas?new=1',
-            icons: [{ src: 'assets/ac-website-icon-192.png', sizes: '192x192', type: 'image/png' }]
+            icons: [
+              {
+                src: 'assets/ac-website-icon-192.png',
+                sizes: '192x192',
+                type: 'image/png',
+              },
+            ],
           },
           {
             name: 'Calendario 360°',
             short_name: 'Calendario',
             description: 'Ver agenda unificada de todo el panel',
             url: '/admin/panel/calendario',
-            icons: [{ src: 'assets/ac-website-icon-192.png', sizes: '192x192', type: 'image/png' }]
-          }
+            icons: [
+              {
+                src: 'assets/ac-website-icon-192.png',
+                sizes: '192x192',
+                type: 'image/png',
+              },
+            ],
+          },
         ],
       },
       workbox: {
@@ -70,14 +94,19 @@ export default defineConfig({
         clientsClaim: true,
         skipWaiting: true,
         navigateFallback: '/index.html',
-        navigateFallbackDenylist: [/^\/assets\//, /^\/robots\.txt$/, /^\/sitemap\.xml$/, /^\/llms\.txt$/],
+        navigateFallbackDenylist: [
+          /^\/assets\//,
+          /^\/robots\.txt$/,
+          /^\/sitemap\.xml$/,
+          /^\/llms\.txt$/,
+        ],
         importScripts: ['/sw-push.js'],
         runtimeCaching: [
           {
             urlPattern: /^https:\/\/.*\.supabase\.co\/.*/i,
             handler: 'NetworkOnly',
-          }
-        ]
+          },
+        ],
       },
     }),
   ],

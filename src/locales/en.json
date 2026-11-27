@@ -11,69 +11,7 @@
       "Scale"
     ],
     "paragraph": "Software Engineer, Process Consultant, and QA Lead based in León, Guanajuato, México. I partner with companies across Mexico and internationally in English to build custom software, integrate applied AI, digitize operations, and ensure zero-regression quality.",
-    "cta_work": "Explore Case Studies"
-  },
-  "services": {
-    "eyebrow": "02 // SOLUTIONS FOR COMPANIES & TEAMS",
-    "title": "How I help your",
-    "title_highlight": "business & team",
-    "intro": "Turning operational bottlenecks and product ideas into reliable software, measurable workflows, and confident releases — onsite in Bajío, remote across Mexico, and worldwide in English.",
-    "cta": "Request discovery",
-    "coverage": [
-      {
-        "code": "LOC // BAJÍO",
-        "title": "León, Guanajuato",
-        "desc": "Onsite and hybrid availability for industrial, commercial, and tech teams across León and the Bajío region."
-      },
-      {
-        "code": "LOC // MEXICO",
-        "title": "Nationwide Remote",
-        "desc": "Seamless remote execution for companies in Mexico City, Monterrey, Guadalajara, Querétaro, and beyond."
-      },
-      {
-        "code": "LANG // EN & ES",
-        "title": "Bilingual English / Spanish",
-        "desc": "Fluent executive communication, technical documentation, and agile coordination with US and global teams."
-      }
-    ],
-    "items": [
-      {
-        "id": "software-ai",
-        "code": "SRV // 01",
-        "topic": "Custom Software & AI",
-        "title": "Custom Software & Applied AI",
-        "desc": "End-to-end engineering of web apps, internal portals, PWAs, and B2B platforms augmented with AI workflows for automated data capture, analysis, and operations.",
-        "bullets": [
-          "Scalable full-stack platforms & internal systems (React, TypeScript, Node, SQL)",
-          "Applied AI: document & image extraction, smart assistants, and operational analytics",
-          "Production-grade architecture with strict typing and clean performance"
-        ]
-      },
-      {
-        "id": "process-pm",
-        "code": "SRV // 02",
-        "topic": "Process Digitization & PM",
-        "title": "Process Digitization & Optimization",
-        "desc": "Replace fragmented spreadsheets and manual follow-ups with traceable digital systems, clear operating rules, and structured agile delivery.",
-        "bullets": [
-          "Operational bottleneck discovery and digital workflow architecture",
-          "Technical leadership and Agile Project Management (Scrum / Kanban)",
-          "Real-time executive dashboards and cross-team traceability"
-        ]
-      },
-      {
-        "id": "qa-testing",
-        "code": "SRV // 03",
-        "topic": "Software Testing & QA",
-        "title": "Software Testing & QA Leadership",
-        "desc": "Protect production stability through risk-based QA strategies, critical-path test planning, automated regression suites, and release quality gates.",
-        "bullets": [
-          "Functional, integration, UAT, and API validation coverage",
-          "Automated E2E suites and CI/CD deployment quality gates",
-          "QA team leadership reducing production defects and rework"
-        ]
-      }
-    ]
+    "cta_work": "Explore case studies"
   },
   "roles": {
     "qa": "Quality Assurance",
@@ -106,7 +44,7 @@
   },
   "portfolio": {
     "title": "Impact Portfolio",
-    "subtitle": "A curated selection of architectural solutions, enterprise platforms, and strategic projects."
+    "subtitle": "A curated selection of architectural solutions and strategic projects."
   },
   "certifications": {
     "title": "Certifications",
@@ -128,36 +66,21 @@
     "cert7_title": "Strategic Applications of IT Project & Program Management",
     "cert7_subtitle": "edX • University of Washington"
   },
-  "faq": {
-    "eyebrow": "08 // FREQUENTLY ASKED QUESTIONS",
-    "title": "Clear answers before we start",
-    "subtitle": "Scope, geographic coverage, process digitization, custom software delivery, and QA collaboration details.",
-    "items": [
-      {
-        "q": "Do you only work in León, Guanajuato, or also across Mexico and internationally?",
-        "a": "I am based in León, Guanajuato (available onsite/hybrid across the Bajío corridor) and work remotely with companies nationwide in Mexico as well as international teams in the US and abroad in English or Spanish."
-      },
-      {
-        "q": "How do you help digitize or optimize workflows currently run in spreadsheets or chat?",
-        "a": "I audit your current workflow to pinpoint bottlenecks, manual rework, and error-prone handoffs, then engineer a custom web system or AI-assisted automation tailored to your operation with permissions and real-time visibility."
-      },
-      {
-        "q": "Can we hire you specifically for software testing and QA leadership?",
-        "a": "Yes. I can plug directly into your engineering team to establish QA strategy, author functional and regression test plans, validate APIs, automate critical paths, and set release gates before production deploys."
-      },
-      {
-        "q": "Can you build a product from scratch even if we do not have technical specs yet?",
-        "a": "Yes. I guide you from business scoping and process mapping to system architecture, full-stack development, AI integration, QA validation, and production deployment."
-      },
-      {
-        "q": "Can you collaborate and lead technical work fluently in English?",
-        "a": "Yes. I work fluently in both English and Spanish across stakeholder calls, technical specifications, agile project leadership, and distributed engineering coordination."
-      },
-      {
-        "q": "How do we start a project or technical audit?",
-        "a": "Reach out via direct WhatsApp or the contact form with your goal, operational challenge, or engineering need; we align on scope in a brief discovery call and map out an actionable delivery plan."
-      }
-    ]
+  "portfolioRedesign": {
+    "availability": "AVAILABLE FOR COLLABORATION",
+    "location": "LEÓN, GUANAJUATO · ALL MEXICO · EN / ES",
+    "contactCta": "Let’s talk",
+    "whatsapp": "WhatsApp direct",
+    "resume": "Download résumé",
+    "faqEyebrow": "KEY QUESTIONS / 05",
+    "faqHeading": "Clear from the first step.",
+    "faqIntro": "Direct collaboration, clear scope and measurable delivery.",
+    "faq1Question": "What kind of work do you take on?",
+    "faq1Answer": "Custom software with AI, process digitization, and software testing or QA leadership.",
+    "faq2Question": "How does a collaboration start?",
+    "faq2Answer": "We align on the challenge, users and outcome, then define a phased delivery plan.",
+    "faq3Question": "Do you work with teams outside León?",
+    "faq3Answer": "Yes. I work remotely with teams across Mexico and internationally in English or Spanish."
   },
   "contact": {
     "title1": "Got an idea or workflow to optimize?",
@@ -188,32 +111,32 @@
     "title": "Professional Path",
     "exp1_title": "QA Department Lead",
     "exp1_company": "CBQA Solutions Inc.",
-    "exp1_desc": "Architecting enterprise-grade testing ecosystems and leading high-performance QA teams. Integrated automated CI/CD pipelines that reduced deployment errors by 40%.",
+    "exp1_desc": "Enterprise QA architecture and team leadership with automated CI/CD gates that cut deployment defects by 40%.",
     "exp2_title": "Strategic Project Lead & QA",
     "exp2_company": "Uanify",
-    "exp2_desc": "Orchestrating cross-functional teams and technical roadmaps. Aligned development cycles with business objectives while maintaining 100% compliance with QA standards.",
+    "exp2_desc": "Cross-functional roadmap orchestration aligning engineering cycles with business goals at 100% QA compliance.",
     "exp3_title": "Full-Stack Solution Architect",
     "exp3_company": "Independent Consulting",
-    "exp3_desc": "Designing and deploying bespoke digital products for national and international clients. Focused on user-centered design, technical SEO, and high-conversion architectures.",
+    "exp3_desc": "Bespoke digital platforms for national and international clients focused on UX clarity, SEO, and conversion.",
     "exp4_title": "Software Engineering Graduate",
     "exp4_company": "Universidad de La Salle Bajío",
-    "exp4_desc": "Specialized in software architecture, distributed systems, and advanced project management. Graduated with professional honors in León, Guanajuato."
+    "exp4_desc": "Specialized in software architecture, distributed systems, and project leadership; graduated with honors in León, Guanajuato."
   },
   "projects_data": {
     "proj1_title": "AI-Enhanced Incident Management",
-    "proj1_desc": "A robust internal system designed for Volkswagen, now optimized with AI-driven predictive analytics for faster incident resolution.",
+    "proj1_desc": "Enterprise platform for Volkswagen optimized with AI predictive analytics for faster incident resolution.",
     "proj1_tags": ["React", "Node.js", "AWS", "AI"],
     "proj2_title": "GovTech Integration Platform",
-    "proj2_desc": "A centralized digital hub for citizens to process government procedures, significantly reducing wait times and bureaucratic overhead.",
+    "proj2_desc": "Centralized digital citizen hub streamlining public procedures and cutting operational wait times.",
     "proj2_tags": ["Vue.js", "Python", "PostgreSQL", "Docker"],
     "proj3_title": "Entrepreneurship Ecosystem",
-    "proj3_desc": "A statewide platform connecting startups, investors, and mentors. Features include matchmaking algorithms and resource directories.",
+    "proj3_desc": "Statewide platform connecting startups, investors, and mentors with matchmaking and resource hubs.",
     "proj3_tags": ["Next.js", "TypeScript", "Tailwind CSS"],
     "proj4_title": "Industrial Trade Platform",
-    "proj4_desc": "B2B e-commerce software specialized in the pipe sector, managing complex inventory systems and large-scale transactions.",
+    "proj4_desc": "B2B e-commerce system managing complex industrial inventory and high-volume transactions.",
     "proj4_tags": ["React", "Express", "MySQL", "Stripe"],
     "proj5_title": "Medical Imaging AI Service",
-    "proj5_desc": "Secure, HIPAA-compliant service for clinics to analyze ultrasound images with patient-facing AI diagnostics.",
+    "proj5_desc": "HIPAA-compliant clinical service analyzing ultrasound imaging with AI-assisted diagnostics.",
     "proj5_tags": ["React Native", "Firebase", "AI", "AWS S3"]
   },
   "language": {

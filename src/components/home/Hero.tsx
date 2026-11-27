@@ -2,18 +2,19 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { motion, useReducedMotion } from 'framer-motion';
 import { FaGithub, FaLinkedin } from 'react-icons/fa';
-import { IoLogoWhatsapp } from 'react-icons/io';
-import { HiOutlineDownload, HiOutlineArrowRight, HiOutlineMail, HiOutlineLocationMarker } from 'react-icons/hi';
+import { HiOutlineDownload } from 'react-icons/hi';
+import { DynamicButton } from '../common/buttons/DynamicButton';
 import SignatureMark from '@components/common/SignatureMark';
-import { openContactModal } from '@components/common/modals/ContactModal';
-import { loadPortfolioCms, PortfolioCmsData } from '@/lib/portfolioCms';
 import PipelineVisualizer from './PipelineVisualizer';
+import { loadPortfolioCms, PortfolioCmsData } from '@/lib/portfolioCms';
 
 const EASE = [0.16, 1, 0.3, 1] as const;
+const HEADLINE_SIZE =
+  'font-dm-sans text-[clamp(2.35rem,7.2vw,6.25rem)] lg:text-[clamp(3.5rem,5.2vw,6.25rem)] font-bold leading-[0.95] tracking-tight';
 
 export default function Hero() {
   const { t, i18n } = useTranslation();
-  const isSpanish = i18n.language?.startsWith('es');
+  const spanish = i18n.language?.startsWith('es') ?? true;
   const reducedMotion = useReducedMotion();
   const [cmsOverride, setCmsOverride] = useState<PortfolioCmsData | null>(null);
   const [phraseIndex, setPhraseIndex] = useState(0);
@@ -40,10 +41,10 @@ export default function Hero() {
 
   useEffect(() => {
     if (reducedMotion || phrases.length < 2) return undefined;
-    const id = window.setInterval(() => {
+    const id = setInterval(() => {
       setPhraseIndex((prev) => (prev + 1) % phrases.length);
-    }, 3000);
-    return () => window.clearInterval(id);
+    }, 3200);
+    return () => clearInterval(id);
   }, [phrases.length, reducedMotion]);
 
   const handlePointerMove = (e: React.PointerEvent<HTMLElement>) => {
@@ -56,12 +57,12 @@ export default function Hero() {
       const rect = el.getBoundingClientRect();
       el.style.setProperty('--mx', `${clientX - rect.left}px`);
       el.style.setProperty('--my', `${clientY - rect.top}px`);
-      el.classList.add('arch-spotlight-active');
+      el.classList.add('spotlight-active');
     });
   };
 
   const handlePointerLeave = () => {
-    sectionRef.current?.classList.remove('arch-spotlight-active');
+    sectionRef.current?.classList.remove('spotlight-active');
   };
 
   useEffect(
@@ -71,221 +72,130 @@ export default function Hero() {
     []
   );
 
-  const quickStats = isSpanish
-    ? [
-        { val: '0 → PROD', label: 'Software a medida' },
-        { val: 'AI + OPS', label: 'Procesos e IA' },
-        { val: 'QA LEAD', label: 'Pruebas y calidad' },
-        { val: 'MX / EN', label: 'Alcance bilingüe' },
-      ]
-    : [
-        { val: '0 → PROD', label: 'Custom software' },
-        { val: 'AI + OPS', label: 'Processes & AI' },
-        { val: 'QA LEAD', label: 'Testing & quality' },
-        { val: 'MX / EN', label: 'Bilingual scope' },
-      ];
-
-  const whatsappUrl = useMemo(() => {
-    const msg = isSpanish
-      ? 'Hola Andrés, visité tu sitio y me gustaría platicar sobre desarrollo de software, procesos o QA.'
-      : 'Hi Andrés, I visited your website and would like to discuss software engineering, process optimization, or QA.';
-    return `https://wa.me/524777037913?text=${encodeURIComponent(msg)}`;
-  }, [isSpanish]);
-
   return (
     <section
-      id="hero-section"
       ref={sectionRef}
       onPointerMove={handlePointerMove}
       onPointerLeave={handlePointerLeave}
-      className="arch-spotlight-parent relative isolate overflow-hidden pt-28 pb-16 sm:pt-32 sm:pb-24"
+      className="relative isolate overflow-hidden min-h-screen flex items-center pt-24 pb-12"
     >
-      {/* Background Architectural Layer */}
-      <div className="arch-grid-canvas absolute inset-0 -z-20 pointer-events-none" aria-hidden="true" />
-      <div className="absolute inset-0 -z-10 pointer-events-none" aria-hidden="true">
-        <div className="absolute -top-24 -left-24 w-[520px] h-[520px] rounded-full bg-[var(--vibrant-sky-blue)]/10 blur-[130px] animate-drift-a" />
-        <div className="absolute -bottom-24 -right-24 w-[460px] h-[460px] rounded-full bg-[var(--magenta-pink)]/10 blur-[130px] animate-drift-b" />
-        <div className="arch-spotlight" />
+      <div className="absolute inset-0 -z-10 overflow-hidden pointer-events-none" aria-hidden="true">
+        <div className="absolute top-[-20%] left-[-10%] w-[70vw] h-[70vw] rounded-full bg-gradient-to-br from-[var(--vibrant-sky-blue)]/10 to-transparent blur-[120px] animate-drift-a" />
+        <div className="absolute bottom-[-20%] right-[-10%] w-[60vw] h-[60vw] rounded-full bg-gradient-to-tl from-[var(--magenta-pink)]/10 to-transparent blur-[120px] animate-drift-b" />
+        <div className="spotlight-surface" />
       </div>
 
-      <div className="container mx-auto max-w-6xl px-5 sm:px-8 lg:px-12 w-full">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12 items-center">
-          {/* Left Identity & Value Proposition (Zero Personal Photos) */}
-          <div className="lg:col-span-6 space-y-6 min-w-0">
-            <motion.div
-              initial={reducedMotion ? false : { opacity: 0, y: 14 }}
+      <div className="container mx-auto max-w-7xl px-6 md:px-12 lg:px-20 w-full">
+        <div className="flex flex-col lg:flex-row items-start lg:items-center gap-10 lg:gap-16">
+          <div className="flex-1 z-10 min-w-0">
+            <motion.span
+              initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.55, ease: EASE }}
-              className="flex flex-wrap items-center gap-2.5"
+              transition={{ duration: 0.7, ease: EASE }}
+              className="font-syne text-[var(--vibrant-sky-blue)] font-bold tracking-[0.3em] uppercase text-xs mb-6 block"
             >
-              <SignatureMark size="md" animated />
-              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[var(--pub-surface)] border border-[var(--pub-border)] shadow-2xs">
-                <span className="size-2 rounded-full bg-emerald-500" />
-                <span className="font-mono-tech text-[11px] font-semibold uppercase tracking-wider text-[var(--black)]">
-                  {cmsOverride?.heroEyebrow?.trim() ||
-                    (isSpanish
-                      ? 'Ingeniería · IA · Procesos · QA'
-                      : 'Engineering · AI · Processes · QA')}
-                </span>
-              </div>
-              <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[var(--pub-surface)] border border-[var(--pub-border)] shadow-2xs">
-                <HiOutlineLocationMarker className="text-sm text-[var(--vibrant-sky-blue)] shrink-0" />
-                <span className="font-mono-tech text-[11px] font-medium text-[var(--dark-gray)]">
-                  {isSpanish ? 'León, Gto. · Todo México · EN / ES' : 'León, MX · Nationwide & Remote · EN / ES'}
-                </span>
-              </div>
-            </motion.div>
+              {cmsOverride?.heroEyebrow?.trim() || `${t('roles.sd')} & ${t('roles.pm')}`}
+            </motion.span>
 
-            {/* Kinetic Headline + Width-Locked Specialty Rotator */}
-            <motion.div
-              initial={reducedMotion ? false : { opacity: 0, y: 20 }}
+            <motion.h1
+              initial={{ opacity: 0, y: 28 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.7, delay: 0.08, ease: EASE }}
-              className="space-y-1"
+              transition={{ duration: 0.9, delay: 0.1, ease: EASE }}
+              className={`${HEADLINE_SIZE} text-[var(--black)] mb-2 sm:mb-3 whitespace-nowrap`}
             >
-              <h1 className="font-dm-sans text-[clamp(2.4rem,6vw,4.35rem)] font-bold leading-[0.98] tracking-tight text-[var(--black)]">
-                {cmsOverride?.heroHeadline?.trim() || t('hero.make_it')}
-              </h1>
+              {cmsOverride?.heroHeadline?.trim() || t('hero.make_it')}
+            </motion.h1>
 
-              <div className="grid" aria-live="polite" aria-atomic="true">
-                {phrases.map((phrase, index) => {
-                  const isActive = index === phraseIndex;
-                  const textCls =
-                    'font-dm-sans text-[clamp(2.4rem,6vw,4.35rem)] font-bold leading-[1.02] tracking-tight col-start-1 row-start-1';
-                  return isActive ? (
-                    <motion.span
-                      key={`active-${phraseIndex}-${phrase}`}
-                      initial={reducedMotion ? false : { opacity: 0, y: 18 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ duration: 0.5, ease: EASE }}
-                      className={`${textCls} text-gradient inline-block`}
+            <div className="grid" aria-live="polite" aria-atomic="true">
+              {phrases.map((phrase, index) => {
+                const isActive = index === phraseIndex;
+                return isActive ? (
+                  <motion.span
+                    key={`active-${phraseIndex}-${phrase}`}
+                    initial={reducedMotion ? false : { opacity: 0, y: 26 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.65, ease: EASE }}
+                    className={`${HEADLINE_SIZE} text-gradient col-start-1 row-start-1 inline-block`}
+                  >
+                    {phrase}
+                  </motion.span>
+                ) : (
+                  <span
+                    key={`ghost-${index}-${phrase}`}
+                    aria-hidden="true"
+                    className={`${HEADLINE_SIZE} col-start-1 row-start-1 invisible`}
+                  >
+                    {phrase}
+                  </span>
+                );
+              })}
+            </div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 32 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.9, delay: 0.35, ease: EASE }}
+              className="mt-10 sm:mt-16 lg:mt-20 max-w-2xl"
+            >
+              <div className="flex flex-col md:flex-row gap-6 sm:gap-10 items-start md:items-center">
+                <SignatureMark size="lg" />
+                <p className="font-inter text-lg sm:text-xl lg:text-2xl font-light tracking-tight text-[var(--dark-gray)] leading-relaxed italic">
+                  &quot;{cmsOverride?.heroBio?.trim() || t('hero.paragraph')}&quot;
+                </p>
+              </div>
+
+              <div className="flex flex-wrap items-center gap-5 sm:gap-8 mt-8 sm:mt-12">
+                <a
+                  href="#projects"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    document
+                      .querySelector('#projects')
+                      ?.scrollIntoView({ behavior: reducedMotion ? 'auto' : 'smooth' });
+                  }}
+                  className="group"
+                >
+                  <DynamicButton
+                    style="BLACK"
+                    type="full-static"
+                    name={cmsOverride?.heroCta?.trim() || t('hero.cta_work')}
+                  />
+                </a>
+
+                <div className="flex items-center gap-4 sm:gap-5">
+                  {[
+                    { icon: HiOutlineDownload, href: '/assets/Resume.pdf', label: 'CV' },
+                    { icon: FaGithub, href: 'https://github.com/andrescorderor', label: 'GitHub' },
+                    {
+                      icon: FaLinkedin,
+                      href: 'https://www.linkedin.com/in/andresmcorderor/',
+                      label: 'LinkedIn',
+                    },
+                  ].map((social) => (
+                    <a
+                      key={social.label}
+                      href={social.href}
+                      target="_blank"
+                      rel="noreferrer"
+                      title={social.label}
+                      aria-label={social.label}
+                      className="group relative flex items-center justify-center size-14 rounded-2xl bg-[var(--white)] border border-[var(--light-gray)] hover:border-[var(--black)] hover:-translate-y-1 hover:scale-105 active:scale-95 shadow-sm hover:shadow-xl transition-all duration-300"
                     >
-                      {phrase}
-                    </motion.span>
-                  ) : (
-                    <span key={`ghost-${index}-${phrase}`} aria-hidden="true" className={`${textCls} invisible`}>
-                      {phrase}
-                    </span>
-                  );
-                })}
-              </div>
-            </motion.div>
-
-            <motion.p
-              initial={reducedMotion ? false : { opacity: 0, y: 18 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.7, delay: 0.16, ease: EASE }}
-              className="font-inter text-base sm:text-lg text-[var(--dark-gray)] leading-relaxed max-w-xl"
-            >
-              {cmsOverride?.heroBio?.trim() || t('hero.paragraph')}
-            </motion.p>
-
-            {/* Compact Telemetry Strip */}
-            <motion.div
-              initial={reducedMotion ? false : { opacity: 0, y: 16 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.7, delay: 0.22, ease: EASE }}
-              className="grid grid-cols-2 sm:grid-cols-4 gap-2.5"
-            >
-              {quickStats.map((stat) => (
-                <div
-                  key={stat.val}
-                  className="p-3 rounded-xl bg-[var(--pub-surface)] border border-[var(--pub-border)] shadow-2xs"
-                >
-                  <span className="font-mono-tech text-xs font-bold text-[var(--vibrant-sky-blue)] block">
-                    {stat.val}
-                  </span>
-                  <span className="font-inter text-[11px] text-[var(--dark-gray)] block mt-0.5 truncate">
-                    {stat.label}
-                  </span>
+                      <social.icon className="text-[var(--dark-gray)] group-hover:text-[var(--black)] text-2xl transition-colors duration-300" />
+                    </a>
+                  ))}
                 </div>
-              ))}
-            </motion.div>
-
-            {/* Primary & Secondary Action Cluster */}
-            <motion.div
-              initial={reducedMotion ? false : { opacity: 0, y: 16 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.7, delay: 0.28, ease: EASE }}
-              className="flex flex-wrap items-center gap-3 pt-1"
-            >
-              <button
-                type="button"
-                onClick={() => openContactModal()}
-                className="inline-flex items-center justify-center gap-2 px-5 min-h-[48px] rounded-xl bg-[var(--black)] text-[var(--white)] font-syne text-xs font-bold uppercase tracking-wider shadow-md hover:opacity-90 active:scale-[0.98] transition-all cursor-pointer"
-              >
-                <HiOutlineMail className="text-base" />
-                <span>{isSpanish ? 'Cotizar / Platicar' : "Let's build together"}</span>
-              </button>
-
-              <a
-                href={whatsappUrl}
-                target="_blank"
-                rel="noreferrer"
-                className="inline-flex items-center justify-center gap-2 px-4 min-h-[48px] rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-syne text-xs font-bold uppercase tracking-wider shadow-sm active:scale-[0.98] transition-all cursor-pointer"
-              >
-                <IoLogoWhatsapp className="text-base" />
-                <span>WhatsApp</span>
-              </a>
-
-              <a
-                href="#portfolio-section"
-                onClick={(e) => {
-                  e.preventDefault();
-                  document
-                    .getElementById('portfolio-section')
-                    ?.scrollIntoView({ behavior: reducedMotion ? 'auto' : 'smooth' });
-                }}
-                className="inline-flex items-center justify-center gap-2 px-4 min-h-[48px] rounded-xl bg-[var(--pub-surface)] border border-[var(--pub-border-strong)] text-[var(--black)] font-syne text-xs font-bold uppercase tracking-wider hover:border-[var(--vibrant-sky-blue)] active:scale-[0.98] transition-all cursor-pointer"
-              >
-                <span>{cmsOverride?.heroCta?.trim() || t('hero.cta_work')}</span>
-                <HiOutlineArrowRight className="text-base" />
-              </a>
-
-              <div className="flex items-center gap-2">
-                <a
-                  href="/assets/Resume.pdf"
-                  target="_blank"
-                  rel="noreferrer"
-                  aria-label="CV PDF"
-                  title={isSpanish ? 'Descargar CV (PDF)' : 'Download Resume (PDF)'}
-                  className="min-w-[48px] min-h-[48px] px-3 rounded-xl bg-[var(--pub-surface)] border border-[var(--pub-border)] hover:border-[var(--vibrant-sky-blue)] text-[var(--black)] flex items-center justify-center gap-1.5 font-mono-tech text-xs font-semibold transition-all cursor-pointer"
-                >
-                  <HiOutlineDownload className="text-lg text-[var(--vibrant-sky-blue)]" />
-                  <span>CV</span>
-                </a>
-                <a
-                  href="https://github.com/andrescorderor"
-                  target="_blank"
-                  rel="noreferrer"
-                  aria-label="GitHub"
-                  title="GitHub"
-                  className="size-12 rounded-xl bg-[var(--pub-surface)] border border-[var(--pub-border)] hover:border-[var(--pub-border-strong)] text-[var(--dark-gray)] hover:text-[var(--black)] flex items-center justify-center transition-all cursor-pointer"
-                >
-                  <FaGithub className="text-lg" />
-                </a>
-                <a
-                  href="https://www.linkedin.com/in/andresmcorderor/"
-                  target="_blank"
-                  rel="noreferrer"
-                  aria-label="LinkedIn"
-                  title="LinkedIn"
-                  className="size-12 rounded-xl bg-[var(--pub-surface)] border border-[var(--pub-border)] hover:border-[var(--pub-border-strong)] text-[var(--dark-gray)] hover:text-[var(--black)] flex items-center justify-center transition-all cursor-pointer"
-                >
-                  <FaLinkedin className="text-lg" />
-                </a>
               </div>
             </motion.div>
           </div>
 
-          {/* Right Live Interactive Pipeline Console */}
           <motion.div
-            initial={reducedMotion ? false : { opacity: 0, y: 24 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.75, delay: 0.2, ease: EASE }}
-            className="lg:col-span-6 min-w-0"
+            initial={{ opacity: 0, scale: 0.94 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.9, ease: EASE }}
+            className="flex-1 min-w-0 w-full relative"
           >
-            <PipelineVisualizer />
+            <PipelineVisualizer spanish={spanish} />
           </motion.div>
         </div>
       </div>

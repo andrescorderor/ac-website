@@ -1,1201 +1,810 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { motion, AnimatePresence, useReducedMotion, useScroll, useSpring } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
-import {
-  HiOutlineCode,
-  HiOutlineChip,
-  HiOutlineClipboardCheck,
-  HiOutlineBeaker,
-  HiOutlineExternalLink,
-  HiOutlineShieldCheck,
-  HiOutlineSparkles,
-  HiOutlineChevronDown,
-  HiOutlineLocationMarker,
-  HiOutlineGlobeAlt,
-  HiOutlineCheckCircle,
-  HiOutlineCog,
-} from 'react-icons/hi';
-import { HiOutlineArrowUpRight } from 'react-icons/hi2';
+import { AnimatePresence, motion, useReducedMotion, useScroll, useSpring, useTransform } from 'framer-motion';
+import { FaArrowDown, FaArrowRight, FaGithub, FaLinkedinIn } from 'react-icons/fa';
 import { IoLogoWhatsapp } from 'react-icons/io';
-import Hero from './Hero';
+import {
+  HiOutlineArrowUpRight,
+  HiOutlineCheckBadge,
+  HiOutlineCodeBracket,
+  HiOutlineSquares2X2,
+  HiOutlineShieldCheck,
+} from 'react-icons/hi2';
+import ContactModal from '@components/common/modals/ContactModal';
 import Modal from '@components/common/modals/Modal';
 import SignatureMark from '@components/common/SignatureMark';
-import { openContactModal } from '@components/common/modals/ContactModal';
-import { expertiseCards, ExpertiseCards } from '@mocks/HomeMocks';
-import { knowledgeCarouselImageMocks } from '@mocks/KnowledgeCarouselMocks';
-import { projectsSectionMocks } from '@mocks/ProjectsSectionMocks';
-import { certificationsSectionMocks } from '@mocks/CertificationsSectionMocks';
-import { loadPortfolioCms, CmsExperience, CmsProject, CmsCertification } from '@/lib/portfolioCms';
+import PipelineVisualizer from './PipelineVisualizer';
+import { expertiseCards } from '@mocks/HomeMocks';
+import {
+  DEFAULT_CMS_DATA,
+  loadPortfolioCms,
+  type CmsCertification,
+  type CmsExperience,
+  type CmsProject,
+} from '@/lib/portfolioCms';
 import './portfolio-home.css';
 
-const EASE = [0.16, 1, 0.3, 1] as const;
+const stack = [
+  'React',
+  'TypeScript',
+  'Node.js',
+  'PostgreSQL',
+  'AWS',
+  'Python',
+  'CI/CD',
+  'Gemini Vision',
+  'Playwright',
+  'Supabase',
+  'Tailwind',
+  'Framer Motion',
+];
 
-/** Shared pointer spotlight updater writing directly to CSS vars (--cx, --cy) with zero React re-renders. */
-function handleCardSpotlight(e: React.PointerEvent<HTMLElement>) {
-  if (e.pointerType !== 'mouse') return;
-  const rect = e.currentTarget.getBoundingClientRect();
-  e.currentTarget.style.setProperty('--cx', `${e.clientX - rect.left}px`);
-  e.currentTarget.style.setProperty('--cy', `${e.clientY - rect.top}px`);
+const capabilityCopy = {
+  en: [
+    {
+      title: 'Software development + AI',
+      subtitle: 'Build the product and the intelligence around it.',
+      detail:
+        'Full-stack applications, modern architecture, PWAs, LLM workflows, computer vision and agentic systems—with human oversight where it matters.',
+      stack: ['React / TypeScript', 'APIs & data', 'LLM / vision', 'Production delivery'],
+      icon: HiOutlineCodeBracket,
+      key: 'SD',
+    },
+    {
+      title: 'Process design + PM',
+      subtitle: 'Turn operational chaos into an executable system.',
+      detail:
+        'Translate business goals into clear ownership, roadmaps, measurable milestones and low-friction delivery rituals across teams.',
+      stack: ['Discovery', 'Roadmaps', 'Agile delivery', 'Operational metrics'],
+      icon: HiOutlineSquares2X2,
+      key: 'PM',
+    },
+    {
+      title: 'QA + quality engineering',
+      subtitle: 'Build confidence into every release.',
+      detail:
+        'Risk-based test strategy, automation, CI quality gates and production observability that keep teams moving without sacrificing reliability.',
+      stack: ['Test strategy', 'Automation', 'CI / CD', 'Release confidence'],
+      icon: HiOutlineShieldCheck,
+      key: 'QA',
+    },
+  ],
+  es: [
+    {
+      title: 'Desarrollo de software + IA',
+      subtitle: 'Construir el producto y la inteligencia que lo potencia.',
+      detail:
+        'Aplicaciones full-stack, arquitecturas modernas, PWA, flujos con LLM, visión computacional y sistemas agénticos con supervisión humana.',
+      stack: ['React / TypeScript', 'APIs y datos', 'LLM / visión', 'Entrega a producción'],
+      icon: HiOutlineCodeBracket,
+      key: 'SD',
+    },
+    {
+      title: 'Diseño de procesos + PM',
+      subtitle: 'Transformar el caos operativo en un sistema ejecutable.',
+      detail:
+        'Convertir objetivos de negocio en responsables claros, roadmaps, hitos medibles y rituales de entrega ágiles entre equipos.',
+      stack: ['Discovery', 'Roadmaps', 'Entrega ágil', 'Métricas operativas'],
+      icon: HiOutlineSquares2X2,
+      key: 'PM',
+    },
+    {
+      title: 'QA + ingeniería de calidad',
+      subtitle: 'Incorporar confianza a cada liberación.',
+      detail:
+        'Estrategia de pruebas basada en riesgo, automatización, controles de CI y observabilidad para avanzar sin sacrificar confiabilidad.',
+      stack: ['Estrategia de pruebas', 'Automatización', 'CI / CD', 'Confianza al liberar'],
+      icon: HiOutlineShieldCheck,
+      key: 'QA',
+    },
+  ],
+} as const;
+
+const sections = ['top', 'capabilities', 'experience', 'projects', 'credentials', 'contact'];
+
+const reveal = {
+  hidden: { opacity: 0, y: 18 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.55, ease: [0.22, 1, 0.36, 1] } },
+};
+
+function SectionHeading({ eyebrow, title, detail }: { eyebrow: string; title: string; detail?: string }) {
+  return (
+    <motion.div
+      className="portfolio-heading"
+      initial="hidden"
+      whileInView="visible"
+      viewport={{ once: true, amount: 0.2 }}
+      variants={{ hidden: {}, visible: { transition: { staggerChildren: 0.08 } } }}
+    >
+      <motion.span className="portfolio-eyebrow" variants={reveal}>
+        {eyebrow}
+      </motion.span>
+      <motion.h2 variants={reveal}>{title}</motion.h2>
+      {detail && <motion.p variants={reveal}>{detail}</motion.p>}
+    </motion.div>
+  );
 }
 
-type WorkbenchPillarId = 'dev' | 'ai' | 'process' | 'qa';
-type StackDomain = 'all' | 'frontend' | 'backend' | 'qa' | 'process';
-type ProjectFilter = 'all' | 'ai' | 'fullstack' | 'enterprise';
-
-interface ServiceItem {
-  id: string;
-  code: string;
-  topic: string;
-  title: string;
-  desc: string;
-  bullets: string[];
-}
-
-interface CoverageItem {
-  code: string;
-  title: string;
-  desc: string;
-}
-
-interface FaqItem {
-  q: string;
-  a: string;
-}
-
-function classifyTechDomain(alt: string): Exclude<StackDomain, 'all'> {
-  const name = alt.toLowerCase();
-  if (name.includes('react') || name.includes('flutter') || name.includes('dart') || name.includes('swift') || name.includes('typescript') || name.includes('javascript') || name.includes('html') || name.includes('css') || name.includes('figma') || name.includes('android')) {
-    return 'frontend';
-  }
-  if (name.includes('aws') || name.includes('node') || name.includes('sql') || name.includes('mysql') || name.includes('git') || name.includes('vscode') || name.includes('visual')) {
-    return 'backend';
-  }
-  if (name.includes('selenium') || name.includes('junit') || name.includes('postman')) {
-    return 'qa';
-  }
-  return 'process';
-}
-
-function classifyProjectCategory(tags: string[], title: string): Exclude<ProjectFilter, 'all'>[] {
-  const blob = `${title} ${tags.join(' ')}`.toLowerCase();
-  const categories: Exclude<ProjectFilter, 'all'>[] = [];
-  if (blob.includes('ia') || blob.includes('ai') || blob.includes('hipaa') || blob.includes('analítica') || blob.includes('predictive')) {
-    categories.push('ai');
-  }
-  if (blob.includes('react') || blob.includes('next') || blob.includes('vue') || blob.includes('typescript') || blob.includes('node')) {
-    categories.push('fullstack');
-  }
-  if (blob.includes('gov') || blob.includes('volkswagen') || blob.includes('b2b') || blob.includes('stripe') || blob.includes('empresa') || blob.includes('estatal')) {
-    categories.push('enterprise');
-  }
-  if (categories.length === 0) categories.push('fullstack');
-  return categories;
+function Marquee({ reverse = false }: { reverse?: boolean }) {
+  return (
+    <div
+      className={`tech-marquee ${reverse ? 'is-reverse' : ''}`}
+      role="group"
+      tabIndex={0}
+      aria-label="Technology stack marquee — focus to pause"
+    >
+      <div className="tech-marquee-track" aria-hidden="true">
+        {[0, 1].map((copy) => (
+          <div className="tech-marquee-group" key={copy}>
+            {stack.map((item) => (
+              <span className="tech-chip" key={`${copy}-${item}`}>
+                <i />
+                {item}
+              </span>
+            ))}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
 }
 
 export default function PortfolioHome() {
   const { t, i18n } = useTranslation();
-  const isSpanish = i18n.language?.startsWith('es');
-  const reducedMotion = useReducedMotion();
-
-  // Dynamic CMS state synced with PortafolioCMS
-  const [cmsProjects, setCmsProjects] = useState<CmsProject[] | null>(null);
-  const [cmsExperiences, setCmsExperiences] = useState<CmsExperience[] | null>(null);
-  const [cmsCerts, setCmsCerts] = useState<CmsCertification[] | null>(null);
-
-  // Interactive Section States
-  const [activePillar, setActivePillar] = useState<WorkbenchPillarId>('dev');
-  const [modalExpertise, setModalExpertise] = useState<ExpertiseCards | null>(null);
-  const [stackDomain, setStackDomain] = useState<StackDomain>('all');
-  const [projectFilter, setProjectFilter] = useState<ProjectFilter>('all');
-  const [activeSectionId, setActiveSectionId] = useState('hero-section');
-  const [openFaqIdx, setOpenFaqIdx] = useState<number | null>(0);
-
+  const spanish = i18n.language?.startsWith('es') ?? true;
+  const copy = spanish ? capabilityCopy.es : capabilityCopy.en;
+  const [activeCapability, setActiveCapability] = useState(0);
+  const [activeModal, setActiveModal] = useState<number | null>(null);
+  const [activeProjectFilter, setActiveProjectFilter] = useState('all');
+  const [activeSection, setActiveSection] = useState(0);
+  const [cms, setCms] = useState(DEFAULT_CMS_DATA);
+  const [cmsSource, setCmsSource] = useState<'default' | 'public_table' | 'system_store'>('default');
+  const [contactOpen, setContactOpen] = useState(false);
+  const [contactTopic, setContactTopic] = useState<string | undefined>(undefined);
+  const reduceMotion = useReducedMotion();
+  const pageRef = useRef<HTMLDivElement>(null);
+  const { scrollYProgress } = useScroll({ target: pageRef, offset: ['start start', 'end end'] });
+  const progress = useSpring(scrollYProgress, { stiffness: 100, damping: 30, restDelta: 0.001 });
+  const heroParallax = useTransform(scrollYProgress, [0, 0.45], [0, 42]);
   const timelineRef = useRef<HTMLDivElement>(null);
-  const { scrollYProgress: timelineScroll } = useScroll({
-    target: timelineRef,
-    offset: ['start 75%', 'end 65%'],
-  });
-  const timelineScaleY = useSpring(timelineScroll, { stiffness: 180, damping: 28, restDelta: 0.001 });
+  const { scrollYProgress: timelineScroll } = useScroll({ target: timelineRef, offset: ['start 75%', 'end 35%'] });
+  const timelineFill = useSpring(timelineScroll, { stiffness: 90, damping: 28, restDelta: 0.001 });
+
+  const openContactWithTopic = (topic?: string) => {
+    setContactTopic(topic);
+    setContactOpen(true);
+  };
 
   useEffect(() => {
+    let active = true;
     loadPortfolioCms().then(({ data, source }) => {
-      if (source !== 'default') {
-        if (Array.isArray(data.projects) && data.projects.length > 0) {
-          setCmsProjects(data.projects.filter((p) => p.visible !== false));
-        }
-        if (Array.isArray(data.experiences) && data.experiences.length > 0) {
-          setCmsExperiences(data.experiences.filter((e) => e.visible !== false));
-        }
-        if (Array.isArray(data.certifications) && data.certifications.length > 0) {
-          setCmsCerts(data.certifications.filter((c) => c.visible !== false));
-        }
+      if (active) {
+        setCms(data);
+        setCmsSource(source);
       }
     });
-  }, []);
-
-  // Section Telemetry Rail Observer
-  useEffect(() => {
-    const ids = [
-      'hero-section',
-      'services-section',
-      'capabilities-section',
-      'stack-section',
-      'experience-section',
-      'portfolio-section',
-      'credentials-section',
-      'faq-section',
-    ];
+    const observed = sections
+      .map((id) => document.getElementById(id))
+      .filter((node): node is HTMLElement => Boolean(node));
     const observer = new IntersectionObserver(
       (entries) => {
         const visible = entries
-          .filter((en) => en.isIntersecting)
-          .sort((a, b) => b.intersectionRatio - a.intersectionRatio);
-        if (visible[0]?.target.id) {
-          setActiveSectionId(visible[0].target.id);
-        }
+          .filter((entry) => entry.isIntersecting)
+          .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
+        if (visible) setActiveSection(Math.max(0, sections.indexOf(visible.target.id)));
       },
-      { rootMargin: '-25% 0px -45% 0px', threshold: [0.1, 0.3, 0.6] }
+      { rootMargin: '-20% 0px -60% 0px', threshold: [0, 0.15, 0.35, 0.6] }
     );
-
-    ids.forEach((id) => {
-      const el = document.getElementById(id);
-      if (el) observer.observe(el);
-    });
-    return () => observer.disconnect();
+    observed.forEach((node) => observer.observe(node));
+    return () => {
+      active = false;
+      observer.disconnect();
+    };
   }, []);
 
-  const sectionRail = [
-    { id: 'hero-section', code: '01', label: isSpanish ? 'Inicio' : 'Overview' },
-    { id: 'services-section', code: '02', label: isSpanish ? 'Soluciones' : 'Solutions' },
-    { id: 'capabilities-section', code: '03', label: isSpanish ? 'Capacidades' : 'Capabilities' },
-    { id: 'stack-section', code: '04', label: 'Stack' },
-    { id: 'experience-section', code: '05', label: isSpanish ? 'Trayectoria' : 'Career' },
-    { id: 'portfolio-section', code: '06', label: isSpanish ? 'Proyectos' : 'Projects' },
-    { id: 'credentials-section', code: '07', label: isSpanish ? 'Credenciales' : 'Credentials' },
-    { id: 'faq-section', code: '08', label: 'FAQ' },
-  ];
-
-  const serviceItems = useMemo(() => {
-    const raw = t('services.items', { returnObjects: true }) as unknown;
-    return Array.isArray(raw) ? (raw as ServiceItem[]) : [];
-  }, [t]);
-
-  const coverageItems = useMemo(() => {
-    const raw = t('services.coverage', { returnObjects: true }) as unknown;
-    return Array.isArray(raw) ? (raw as CoverageItem[]) : [];
-  }, [t]);
-
-  const faqItems = useMemo(() => {
-    const raw = t('faq.items', { returnObjects: true }) as unknown;
-    return Array.isArray(raw) ? (raw as FaqItem[]) : [];
-  }, [t]);
-
-  const serviceIcons = [HiOutlineCode, HiOutlineCog, HiOutlineBeaker] as const;
-
-  const whatsappClosureUrl = useMemo(() => {
-    const text = isSpanish
-      ? 'Hola Andrés, me gustaría conversar sobre un proyecto de desarrollo de software, optimización de procesos o QA.'
-      : 'Hi Andrés, I would like to discuss a software development, process optimization, or QA project.';
-    return `https://wa.me/524777037913?text=${encodeURIComponent(text)}`;
-  }, [isSpanish]);
-
-  // Workbench 4-Pillar Data
-  const pillars = useMemo(
-    () => [
-      {
-        id: 'dev' as WorkbenchPillarId,
-        code: 'SYS // 01',
-        title: isSpanish ? 'Desarrollo Full-Stack' : 'Full-Stack Engineering',
-        subtitle: isSpanish
-          ? 'Construcción de aplicaciones web, PWAs y plataformas escalables listas para usuarios reales.'
-          : 'Building scalable web platforms, PWAs, and APIs engineered for real production workloads.',
-        icon: HiOutlineCode,
-        modalKey: 'sd' as const,
-        metrics: isSpanish
-          ? [
-              { k: 'Arquitectura', v: 'React 18 · TypeScript · Node' },
-              { k: 'Datos & Auth', v: 'PostgreSQL · Supabase RLS' },
-              { k: 'Resiliencia', v: 'PWA Offline & Lazy Chunks' },
-            ]
-          : [
-              { k: 'Architecture', v: 'React 18 · TypeScript · Node' },
-              { k: 'Data & Auth', v: 'PostgreSQL · Supabase RLS' },
-              { k: 'Resilience', v: 'Offline PWA & Code-Splitting' },
-            ],
-        blueprintLines: isSpanish
-          ? [
-              { tag: 'UI/UX', text: 'Design systems bimodales accesibles (WAI-ARIA & 44px táctil)' },
-              { tag: 'CORE', text: 'Estado desacoplado, caché en memoria y consultas proyectadas' },
-              { tag: 'PROD', text: 'Build estricto TypeScript con despliegue automatizado en Netlify' },
-            ]
-          : [
-              { tag: 'UI/UX', text: 'Accessible bimodal design systems (WAI-ARIA & touch-first)' },
-              { tag: 'CORE', text: 'Decoupled state, memory caching, and projected queries' },
-              { tag: 'PROD', text: 'Strict TypeScript compilation and automated CI/CD releases' },
-            ],
-      },
-      {
-        id: 'ai' as WorkbenchPillarId,
-        code: 'AI // 02',
-        title: isSpanish ? 'Integración de IA Aplicada' : 'Applied AI Systems',
-        subtitle: isSpanish
-          ? 'Transformo modelos LLM y visión computacional en flujos útiles integrados al negocio.'
-          : 'Turning LLMs and computer vision into practical, measurable product workflows.',
-        icon: HiOutlineChip,
-        modalKey: 'sd' as const,
-        metrics: isSpanish
-          ? [
-              { k: 'Modelos', v: 'Gemini Vision · LLMs · JSON estricto' },
-              { k: 'Flujos', v: 'Extracción OCR & Asistentes contextuales' },
-              { k: 'Eficiencia', v: 'Procesamiento directo sin fricción' },
-            ]
-          : [
-              { k: 'Models', v: 'Gemini Vision · LLMs · Structured JSON' },
-              { k: 'Pipelines', v: 'OCR extraction & Context Assistants' },
-              { k: 'Efficiency', v: 'Low-latency client & API orchestration' },
-            ],
-        blueprintLines: isSpanish
-          ? [
-              { tag: 'DISCOVERY', text: 'Selección dinámica de modelos activos y fallbacks resilientes' },
-              { tag: 'VISION', text: 'Compresión en cliente + análisis multimodal en memoria' },
-              { tag: 'ACTIONS', text: 'Prompts estructurados con validación previa antes de persistir' },
-            ]
-          : [
-              { tag: 'DISCOVERY', text: 'Dynamic active model discovery and graceful fallback chains' },
-              { tag: 'VISION', text: 'Client-side compression + zero-storage multimodal parsing' },
-              { tag: 'ACTIONS', text: 'Deterministic schema outputs with human review gates' },
-            ],
-      },
-      {
-        id: 'process' as WorkbenchPillarId,
-        code: 'OPS // 03',
-        title: isSpanish ? 'Procesos & Project Management' : 'Process & Project Management',
-        subtitle: isSpanish
-          ? 'Estructuro ideas, coordino equipos técnicos y optimizo el flujo operativo de principio a fin.'
-          : 'Structuring ideas, orchestrating cross-functional teams, and optimizing delivery.',
-        icon: HiOutlineClipboardCheck,
-        modalKey: 'pm' as const,
-        metrics: isSpanish
-          ? [
-              { k: 'Marcos', v: 'Scrum · Kanban · Roadmaps claros' },
-              { k: 'Gobernanza', v: 'Alineación Negocio ↔ Ingeniería' },
-              { k: 'Enfoque', v: 'Eliminación de cuellos de botella' },
-            ]
-          : [
-              { k: 'Frameworks', v: 'Scrum · Kanban · Clear Roadmaps' },
-              { k: 'Governance', v: 'Business ↔ Engineering alignment' },
-              { k: 'Focus', v: 'Blocker removal & Predictable pacing' },
-            ],
-        blueprintLines: isSpanish
-          ? [
-              { tag: 'SCOPE', text: 'De necesidad de negocio a historias técnicas priorizadas' },
-              { tag: 'SYNC', text: 'Rituales cortos, documentación viva y visibilidad para stakeholders' },
-              { tag: 'FLOW', text: 'Reglas operativas estandarizadas que reducen retrabajo' },
-            ]
-          : [
-              { tag: 'SCOPE', text: 'From business needs to prioritized technical specifications' },
-              { tag: 'SYNC', text: 'Tight feedback loops, living documentation & stakeholder clarity' },
-              { tag: 'FLOW', text: 'Standardized operating playbooks that cut rework' },
-            ],
-      },
-      {
-        id: 'qa' as WorkbenchPillarId,
-        code: 'QA // 04',
-        title: isSpanish ? 'Coordinación de Pruebas & Calidad' : 'QA Coordination & Quality Control',
-        subtitle: isSpanish
-          ? 'Lidero estrategias de aseguramiento de calidad para prevenir regresiones antes de llegar al usuario.'
-          : 'Leading QA strategies and automated test suites to guarantee release confidence.',
-        icon: HiOutlineBeaker,
-        modalKey: 'qa' as const,
-        metrics: isSpanish
-          ? [
-              { k: 'Cobertura', v: 'Regresión · Integración · UAT' },
-              { k: 'Automatización', v: 'Selenium · JUnit · Postman · CI' },
-              { k: 'Impacto', v: '−40% errores en despliegue' },
-            ]
-          : [
-              { k: 'Coverage', v: 'Regression · Integration · UAT' },
-              { k: 'Automation', v: 'Selenium · JUnit · Postman · CI' },
-              { k: 'Impact', v: '−40% deployment defect rate' },
-            ],
-        blueprintLines: isSpanish
-          ? [
-              { tag: 'STRATEGY', text: 'Pruebas basadas en riesgo sobre rutas críticas de negocio' },
-              { tag: 'GATES', text: 'Validación TypeScript, smoke tests y criterios de aceptación' },
-              { tag: 'AUDIT', text: 'Trazabilidad completa de incidentes de reporte a resolución' },
-            ]
-          : [
-              { tag: 'STRATEGY', text: 'Risk-based test planning focused on revenue-critical flows' },
-              { tag: 'GATES', text: 'Automated build checks, API suites & release sign-off gates' },
-              { tag: 'AUDIT', text: 'Full defect traceability from discovery through verification' },
-            ],
-      },
-    ],
-    [isSpanish]
-  );
-
-  const activePillarData = pillars.find((p) => p.id === activePillar) || pillars[0];
-
-  const openModalForKey = (key: 'pm' | 'sd' | 'qa') => {
-    const found = expertiseCards.find((c) => c.id === key);
-    if (found) setModalExpertise(found);
-  };
-
-  // Localized Experience & CMS binding
-  const defaultExperiences: CmsExperience[] = [
-    {
-      id: 'exp1',
-      year: '2023 - Present',
-      title: t('experience.exp1_title'),
-      company: t('experience.exp1_company'),
-      description: t('experience.exp1_desc'),
-      visible: true,
-    },
-    {
-      id: 'exp2',
-      year: '2023 - Present',
-      title: t('experience.exp2_title'),
-      company: t('experience.exp2_company'),
-      description: t('experience.exp2_desc'),
-      visible: true,
-    },
-    {
-      id: 'exp3',
-      year: '2023 - 2024',
-      title: t('experience.exp3_title'),
-      company: t('experience.exp3_company'),
-      description: t('experience.exp3_desc'),
-      visible: true,
-    },
-    {
-      id: 'exp4',
-      year: '2020 - 2024',
-      title: t('experience.exp4_title'),
-      company: t('experience.exp4_company'),
-      description: t('experience.exp4_desc'),
-      visible: true,
-    },
-  ];
-  const experiences = cmsExperiences ?? defaultExperiences;
-
-  // Localized Projects & CMS binding
-  const displayedProjects = useMemo(() => {
-    if (cmsProjects) {
-      return cmsProjects.map((p) => ({
-        id: p.id,
-        image: p.image,
-        title: p.title,
-        description: p.description,
-        tags: Array.isArray(p.tags) ? p.tags : [],
-      }));
-    }
-    return projectsSectionMocks.map((project) => {
-      const rawTags = t(`projects_data.${project.id}_tags`, { returnObjects: true }) as unknown;
-      return {
-        id: project.id,
-        image: project.image,
-        title: t(`projects_data.${project.id}_title`),
-        description: t(`projects_data.${project.id}_desc`),
-        tags: Array.isArray(rawTags) ? (rawTags as string[]) : [],
-      };
-    });
-  }, [cmsProjects, t]);
-
-  const filteredProjects = useMemo(() => {
-    if (projectFilter === 'all') return displayedProjects;
-    return displayedProjects.filter((p) => classifyProjectCategory(p.tags, p.title).includes(projectFilter));
-  }, [displayedProjects, projectFilter]);
-
-  // Localized Certifications & CMS binding
-  const displayedCertifications = useMemo(() => {
-    if (cmsCerts) {
-      return cmsCerts.map((c) => ({
-        id: c.id,
-        title: c.title,
-        subtitle: c.subtitle,
-        link: c.link,
-      }));
-    }
-    return certificationsSectionMocks.map((cert) => ({
-      id: cert.id,
-      title: t(`certifications_data.${cert.id}_title`),
-      subtitle: t(`certifications_data.${cert.id}_subtitle`),
-      link: cert.link,
-    }));
-  }, [cmsCerts, t]);
-
-  // Stack items split into dual marquee rows or domain grid
-  const techItems = useMemo(
+  const experiences: CmsExperience[] = useMemo(
     () =>
-      knowledgeCarouselImageMocks.map((item) => ({
-        ...item,
-        cleanName: item.alt.replace(/\s*logo$/i, '').trim(),
-        domain: classifyTechDomain(item.alt),
-      })),
-    []
+      cmsSource === 'default'
+        ? [1, 2, 3, 4].map((number) => ({
+            id: `exp${number}`,
+            year: number === 4 ? '2020 — 2024' : number === 3 ? '2023 — 2024' : spanish ? '2023 — hoy' : '2023 — now',
+            title: t(`experience.exp${number}_title`),
+            company: t(`experience.exp${number}_company`),
+            description: t(`experience.exp${number}_desc`),
+            visible: true,
+          }))
+        : cms.experiences.filter((item) => item.visible !== false),
+    [cms.experiences, cmsSource, spanish, t]
   );
 
-  const rowOneTech = techItems.slice(0, Math.ceil(techItems.length / 2));
-  const rowTwoTech = techItems.slice(Math.ceil(techItems.length / 2));
-  const filteredTech = stackDomain === 'all' ? techItems : techItems.filter((i) => i.domain === stackDomain);
+  const projects: CmsProject[] = useMemo(
+    () =>
+      cmsSource === 'default'
+        ? DEFAULT_CMS_DATA.projects.map((item, index) => ({
+            ...item,
+            title: t(`projects_data.proj${index + 1}_title`),
+            description: t(`projects_data.proj${index + 1}_desc`),
+            tags: t(`projects_data.proj${index + 1}_tags`, { returnObjects: true }) as string[],
+          }))
+        : cms.projects.filter((item) => item.visible !== false),
+    [cms.projects, cmsSource, t]
+  );
+
+  const certifications: CmsCertification[] = useMemo(
+    () =>
+      cmsSource === 'default'
+        ? DEFAULT_CMS_DATA.certifications.map((item, index) => ({
+            ...item,
+            title: t(`certifications_data.cert${index + 1}_title`),
+            subtitle: t(`certifications_data.cert${index + 1}_subtitle`),
+          }))
+        : cms.certifications.filter((item) => item.visible !== false),
+    [cms.certifications, cmsSource, t]
+  );
+
+  const filteredProjects = projects.filter((project) => {
+    if (activeProjectFilter === 'all') return true;
+    const tags = project.tags.join(' ').toLowerCase();
+    if (activeProjectFilter === 'ai') return /ai|ia|vision|llm|machine/.test(tags);
+    if (activeProjectFilter === 'product') return /react|vue|next|typescript|web|app/.test(tags);
+    return /qa|test|quality|process|scrum|automation/.test(tags);
+  });
+
+  const filterOptions = spanish
+    ? [
+        { id: 'all', label: 'Todos' },
+        { id: 'product', label: 'Producto' },
+        { id: 'ai', label: 'IA' },
+        { id: 'quality', label: 'Calidad' },
+      ]
+    : [
+        { id: 'all', label: 'All work' },
+        { id: 'product', label: 'Product' },
+        { id: 'ai', label: 'AI' },
+        { id: 'quality', label: 'Quality' },
+      ];
+
+  const expertiseModalIndexes = [1, 0, 2] as const;
+  const selectedModal = activeModal === null ? null : expertiseCards[expertiseModalIndexes[activeModal]];
+  const modalTitle = selectedModal
+    ? selectedModal.id === 'pm'
+      ? t('expertise.pm_header_title')
+      : selectedModal.id === 'sd'
+      ? t('expertise.sd_header_title')
+      : t('expertise.qa_header_title')
+    : '';
+  const modalParagraph = selectedModal
+    ? selectedModal.id === 'pm'
+      ? t('expertise.pm_header_paragraph')
+      : selectedModal.id === 'sd'
+      ? t('expertise.sd_header_paragraph')
+      : t('expertise.qa_header_paragraph')
+    : '';
+
+  const whatsappUrl = useMemo(() => {
+    const text = spanish
+      ? 'Hola Andrés, visité tu sitio y me interesa conversar sobre desarrollo de software, optimización de procesos o QA.'
+      : 'Hi Andrés, I visited your site and would like to discuss software engineering, process optimization, or QA.';
+    return `https://wa.me/524777037913?text=${encodeURIComponent(text)}`;
+  }, [spanish]);
 
   return (
-    <div className="relative overflow-x-clip bg-[var(--pub-bg)] text-[var(--black)] selection:bg-[var(--vibrant-sky-blue)] selection:text-white">
-      {/* Floating Section Telemetry Rail (Desktop XL) */}
-      <aside
-        aria-label={isSpanish ? 'Navegación de secciones' : 'Section navigation'}
-        className="hidden xl:flex fixed right-6 top-1/2 -translate-y-1/2 z-40 flex-col gap-1.5 p-2 rounded-2xl glass"
-      >
-        {sectionRail.map((sec) => {
-          const isCurrent = activeSectionId === sec.id;
-          return (
-            <button
-              key={sec.id}
-              type="button"
-              onClick={() =>
-                document.getElementById(sec.id)?.scrollIntoView({ behavior: reducedMotion ? 'auto' : 'smooth' })
-              }
-              title={sec.label}
-              aria-label={sec.label}
-              className="relative min-w-[44px] min-h-[36px] px-2.5 rounded-xl flex items-center justify-center font-mono-tech text-[11px] font-semibold transition-colors cursor-pointer"
-            >
-              {isCurrent && (
-                <motion.span
-                  layoutId="railActiveIndicator"
-                  transition={{ type: 'spring', stiffness: 360, damping: 30 }}
-                  className="absolute inset-0 rounded-xl bg-[var(--vibrant-sky-blue)]/15 border border-[var(--vibrant-sky-blue)]/40"
-                />
-              )}
-              <span className={`relative z-10 ${isCurrent ? 'text-[var(--vibrant-sky-blue)]' : 'text-[var(--dark-gray)]'}`}>
-                {sec.code}
-              </span>
-            </button>
-          );
-        })}
+    <div ref={pageRef} className="portfolio" lang={spanish ? 'es' : 'en'}>
+      <motion.div className="portfolio-progress" style={{ scaleX: progress }} aria-hidden="true" />
+      <aside className="portfolio-telemetry" aria-label={spanish ? 'Progreso de navegación' : 'Navigation progress'}>
+        <span>{String(activeSection + 1).padStart(2, '0')}</span>
+        <i />
+        <span>06</span>
       </aside>
 
-      {/* ═══ 01. HERO + INTERACTIVE PIPELINE ═══ */}
-      <Hero />
-
-      {/* ═══ 02. BUSINESS SOLUTIONS & GEOGRAPHIC COVERAGE ═══ */}
-      <section id="services-section" className="relative py-20 lg:py-24 bg-[var(--deep-navy-blue-light)] border-t border-[var(--pub-border)]">
-        <div className="container mx-auto max-w-6xl px-5 sm:px-8 lg:px-12 space-y-12">
-          <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6">
-            <div className="space-y-3 max-w-2xl">
-              <span className="font-mono-tech text-xs font-semibold uppercase tracking-[0.25em] text-[var(--vibrant-sky-blue)] block">
-                {t('services.eyebrow')}
+      <section id="top" className="portfolio-hero" aria-labelledby="hero-title">
+        <div className="portfolio-grid-bg" aria-hidden="true" />
+        <div className="hero-glow hero-glow-a" aria-hidden="true" />
+        <div className="hero-glow hero-glow-b" aria-hidden="true" />
+        <div className="portfolio-shell portfolio-hero-layout">
+          <motion.div
+            className="portfolio-hero-copy"
+            initial="hidden"
+            animate="visible"
+            variants={{ hidden: {}, visible: { transition: { staggerChildren: 0.09, delayChildren: 0.1 } } }}
+          >
+            <motion.div className="portfolio-status" variants={reveal}>
+              <span className="status-dot" />
+              {t('portfolioRedesign.availability')}
+              <span className="status-line" />
+              {t('portfolioRedesign.location')}
+            </motion.div>
+            <motion.div className="hero-brandline" variants={reveal}>
+              <SignatureMark size="md" />
+              <span>
+                INDEPENDENT PRODUCT ENGINEERING
+                <br />
+                {spanish ? 'DE LA IDEA A PRODUCCIÓN' : 'FROM IDEA TO PRODUCTION'}
               </span>
-              <h2 className="font-dm-sans text-3xl sm:text-5xl font-bold tracking-tight leading-[1.02] text-[var(--black)]">
-                {t('services.title')} <span className="text-gradient">{t('services.title_highlight')}</span>
-              </h2>
+            </motion.div>
+            <motion.p className="portfolio-kicker" variants={reveal}>
+              {cms.heroEyebrow.trim() ||
+                (spanish ? 'INGENIERÍA · OPERACIONES · INTELIGENCIA' : 'ENGINEERING · OPERATIONS · INTELLIGENCE')}
+            </motion.p>
+            <motion.h1 id="hero-title" variants={reveal}>
+              {cms.heroHeadline.trim() ||
+                (spanish ? (
+                  <>
+                    De la idea
+                    <br />
+                    <span>a producción.</span>
+                  </>
+                ) : (
+                  <>
+                    From idea
+                    <br />
+                    <span>to production.</span>
+                  </>
+                ))}
+            </motion.h1>
+            <motion.p className="portfolio-intro" variants={reveal}>
+              {cms.heroBio.trim() ||
+                (spanish
+                  ? 'Diseño y construyo productos digitales de extremo a extremo: software full-stack, inteligencia aplicada y operaciones listas para escalar.'
+                  : 'I design and ship end-to-end digital products: full-stack software, applied intelligence and operations built to scale.')}
+            </motion.p>
+            <motion.div className="hero-proofline" variants={reveal}>
+              <span>
+                <i />
+                {spanish ? 'ESTRATEGIA' : 'STRATEGY'}
+              </span>
+              <b>→</b>
+              <span>
+                <i />
+                {spanish ? 'INGENIERÍA' : 'ENGINEERING'}
+              </span>
+              <b>→</b>
+              <span>
+                <i />
+                {spanish ? 'CONFIANZA' : 'CONFIDENCE'}
+              </span>
+            </motion.div>
+            <motion.div className="portfolio-hero-actions" variants={reveal}>
+              <button
+                type="button"
+                className="portfolio-button portfolio-button-primary"
+                onClick={() => openContactWithTopic()}
+              >
+                {t('portfolioRedesign.contactCta')}
+                <FaArrowRight aria-hidden="true" />
+              </button>
+              <a
+                className="portfolio-button portfolio-button-quiet"
+                href={whatsappUrl}
+                target="_blank"
+                rel="noreferrer"
+                aria-label={t('portfolioRedesign.whatsapp')}
+              >
+                <IoLogoWhatsapp aria-hidden="true" />
+                {t('portfolioRedesign.whatsapp')}
+              </a>
+              <a className="portfolio-button portfolio-button-quiet" href="/assets/Resume.pdf" target="_blank" rel="noreferrer">
+                {t('portfolioRedesign.resume')}
+                <HiOutlineArrowUpRight aria-hidden="true" />
+              </a>
+              <a className="portfolio-scroll-link" href="#projects">
+                <FaArrowDown aria-hidden="true" />
+                <span>{cms.heroCta.trim() || (spanish ? 'Explorar casos' : 'Explore case studies')}</span>
+              </a>
+            </motion.div>
+            <motion.div className="portfolio-socials" variants={reveal}>
+              <a href="https://github.com/andrescorderor" target="_blank" rel="noreferrer">
+                <FaGithub aria-hidden="true" />
+                GitHub
+              </a>
+              <a href="https://www.linkedin.com/in/andresmcorderor/" target="_blank" rel="noreferrer">
+                <FaLinkedinIn aria-hidden="true" />
+                LinkedIn
+              </a>
+              <span className="hero-divider" />
+              {spanish ? 'ES / EN' : 'EN / ES'}
+            </motion.div>
+          </motion.div>
+          <motion.div className="hero-visual-wrap" style={{ y: reduceMotion ? 0 : heroParallax }}>
+            <PipelineVisualizer spanish={spanish} />
+            <div className="hero-visual-caption">
+              <span>FIG. 01</span>
+              <span>{spanish ? 'CICLO DE ENTREGA DE PRODUCTO' : 'PRODUCT DELIVERY SYSTEM'}</span>
+              <SignatureMark size="sm" />
             </div>
-            <p className="font-inter text-sm sm:text-base text-[var(--dark-gray)] max-w-md leading-relaxed">
-              {t('services.intro')}
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {serviceItems.map((srv, idx) => {
-              const Icon = serviceIcons[idx] || HiOutlineCode;
-              return (
-                <motion.article
-                  key={srv.id}
-                  initial={reducedMotion ? false : { opacity: 0, y: 18 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true, amount: 0.2 }}
-                  transition={{ duration: 0.45, delay: idx * 0.06, ease: EASE }}
-                  onPointerMove={handleCardSpotlight}
-                  className="spotlight-card corner-ticks rounded-3xl p-6 sm:p-7 flex flex-col justify-between gap-6"
-                >
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-between gap-3">
-                      <div className="size-12 rounded-2xl bg-[var(--vibrant-sky-blue)]/12 border border-[var(--vibrant-sky-blue)]/25 text-[var(--vibrant-sky-blue)] flex items-center justify-center shrink-0">
-                        <Icon className="text-2xl" />
-                      </div>
-                      <span className="font-mono-tech text-[11px] font-semibold uppercase tracking-widest text-[var(--vibrant-sky-blue)]">
-                        {srv.code}
-                      </span>
-                    </div>
-
-                    <h3 className="font-dm-sans text-xl sm:text-2xl font-bold text-[var(--black)] leading-snug">
-                      {srv.title}
-                    </h3>
-
-                    <p className="font-inter text-sm text-[var(--dark-gray)] leading-relaxed">
-                      {srv.desc}
-                    </p>
-
-                    <ul className="space-y-2.5 pt-2 border-t border-[var(--pub-border)]">
-                      {Array.isArray(srv.bullets) &&
-                        srv.bullets.map((bullet) => (
-                          <li key={bullet} className="flex items-start gap-2.5 text-xs sm:text-sm font-inter text-[var(--black)]">
-                            <HiOutlineCheckCircle className="text-base text-[var(--vibrant-sky-blue)] shrink-0 mt-0.5" />
-                            <span className="leading-relaxed">{bullet}</span>
-                          </li>
-                        ))}
-                    </ul>
-                  </div>
-
-                  <button
-                    type="button"
-                    onClick={() => openContactModal(srv.topic)}
-                    className="w-full min-h-[44px] px-4 rounded-xl bg-[var(--pub-bg)] hover:bg-[var(--black)] text-[var(--black)] hover:text-[var(--white)] border border-[var(--pub-border)] font-syne text-[11px] font-bold uppercase tracking-wider flex items-center justify-between transition-all cursor-pointer"
-                  >
-                    <span>{t('services.cta')}</span>
-                    <HiOutlineArrowUpRight className="text-base" />
-                  </button>
-                </motion.article>
-              );
-            })}
-          </div>
-
-          {/* Geographic & Bilingual Coverage Strip */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {coverageItems.map((cov, idx) => {
-              const CovIcon = idx === 2 ? HiOutlineGlobeAlt : HiOutlineLocationMarker;
-              return (
-                <div
-                  key={cov.code}
-                  className="p-4 sm:p-5 rounded-2xl bg-[var(--pub-surface)] border border-[var(--pub-border)] flex items-start gap-3.5"
-                >
-                  <div className="size-10 rounded-xl bg-[var(--vibrant-sky-blue)]/10 border border-[var(--vibrant-sky-blue)]/25 text-[var(--vibrant-sky-blue)] flex items-center justify-center shrink-0">
-                    <CovIcon className="text-lg" />
-                  </div>
-                  <div className="min-w-0">
-                    <span className="font-mono-tech text-[10px] font-semibold uppercase tracking-widest text-[var(--vibrant-sky-blue)] block">
-                      {cov.code}
-                    </span>
-                    <h3 className="font-dm-sans text-sm sm:text-base font-bold text-[var(--black)] mt-0.5">
-                      {cov.title}
-                    </h3>
-                    <p className="font-inter text-xs text-[var(--dark-gray)] mt-1 leading-relaxed">
-                      {cov.desc}
-                    </p>
-                  </div>
-                </div>
-              );
-            })}
+          </motion.div>
+          <div className="portfolio-scanline">
+            <span>SCROLL TO EXPLORE</span>
+            <span>↓</span>
+            <span>01 — 06</span>
           </div>
         </div>
       </section>
 
-      {/* ═══ 03. CAPABILITIES WORKBENCH ═══ */}
-      <section id="capabilities-section" className="relative py-20 lg:py-28 border-t border-[var(--pub-border)]">
-        <div className="container mx-auto max-w-6xl px-5 sm:px-8 lg:px-12 space-y-10">
-          <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6">
-            <div className="space-y-3 max-w-2xl">
-              <span className="font-mono-tech text-xs font-semibold uppercase tracking-[0.25em] text-[var(--vibrant-sky-blue)] block">
-                03 // {t('expertise.title')}
-              </span>
-              <h2 className="font-dm-sans text-3xl sm:text-5xl font-bold tracking-tight leading-[1.02] text-[var(--black)]">
-                {t('expertise.core_title')} <span className="text-gradient">{t('expertise.core_title_bold')}</span>
-              </h2>
-            </div>
-            <p className="font-inter text-sm sm:text-base text-[var(--dark-gray)] max-w-md leading-relaxed">
-              {t('expertise.intro')}
-            </p>
-          </div>
-
-          {/* Workbench Layout: Left Pillar Tabs + Right Interactive Architecture Sheet */}
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
-            <div className="lg:col-span-5 flex flex-col gap-3" role="tablist" aria-label={t('expertise.title')}>
-              {pillars.map((pillar) => {
-                const Icon = pillar.icon;
-                const selected = pillar.id === activePillar;
+      <section className="portfolio-capabilities portfolio-section" id="capabilities">
+        <div className="portfolio-shell">
+          <SectionHeading
+            eyebrow="WORKBENCH / 01—03"
+            title={spanish ? 'Tres disciplinas. Un mismo sistema.' : 'Three disciplines. One connected system.'}
+            detail={
+              spanish
+                ? 'Ingeniería, IA, procesos y calidad coordinados para llevar ideas hasta producción.'
+                : 'Engineering, AI, process and quality, orchestrated to take ideas all the way to production.'
+            }
+          />
+          <div className="workbench-layout">
+            <div
+              className="workbench-selector"
+              role="tablist"
+              aria-label={spanish ? 'Seleccionar capacidad' : 'Choose a capability'}
+            >
+              {copy.map((item, index) => {
+                const Icon = item.icon;
                 return (
                   <button
-                    key={pillar.id}
-                    type="button"
+                    key={item.key}
+                    id={`workbench-tab-${item.key}`}
                     role="tab"
-                    aria-selected={selected}
-                    onClick={() => setActivePillar(pillar.id)}
-                    onPointerMove={handleCardSpotlight}
-                    className={`spotlight-card relative w-full text-left p-4 sm:p-5 rounded-2xl transition-all cursor-pointer flex items-start gap-4 ${
-                      selected
-                        ? 'border-[var(--vibrant-sky-blue)] ring-1 ring-[var(--vibrant-sky-blue)]/30 shadow-md'
-                        : ''
-                    }`}
+                    aria-selected={activeCapability === index}
+                    aria-controls="workbench-panel"
+                    tabIndex={activeCapability === index ? 0 : -1}
+                    type="button"
+                    className={`workbench-tab ${activeCapability === index ? 'is-active' : ''}`}
+                    onClick={() => setActiveCapability(index)}
+                    onKeyDown={(event) => {
+                      if (event.key === 'ArrowRight' || event.key === 'ArrowLeft') {
+                        event.preventDefault();
+                        const next = (index + (event.key === 'ArrowRight' ? 1 : -1) + copy.length) % copy.length;
+                        setActiveCapability(next);
+                        document.getElementById(`workbench-tab-${copy[next].key}`)?.focus();
+                      }
+                    }}
                   >
-                    <div
-                      className={`size-11 rounded-xl flex items-center justify-center shrink-0 border transition-colors ${
-                        selected
-                          ? 'bg-[var(--vibrant-sky-blue)] text-white border-transparent'
-                          : 'bg-[var(--pub-bg)] text-[var(--vibrant-sky-blue)] border-[var(--pub-border)]'
-                      }`}
-                    >
-                      <Icon className="text-xl" />
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <span className="font-mono-tech text-[10px] font-semibold uppercase tracking-widest text-[var(--vibrant-sky-blue)] block">
-                        {pillar.code}
-                      </span>
-                      <h3 className="font-dm-sans font-bold text-base sm:text-lg text-[var(--black)] mt-0.5">
-                        {pillar.title}
-                      </h3>
-                      <p className="font-inter text-xs text-[var(--dark-gray)] mt-1 line-clamp-2">
-                        {pillar.subtitle}
-                      </p>
-                    </div>
+                    <span className="workbench-tab-index">0{index + 1}</span>
+                    <span className="workbench-tab-icon">
+                      <Icon />
+                    </span>
+                    <span>
+                      <b>{item.title}</b>
+                      <small>{item.subtitle}</small>
+                    </span>
+                    <FaArrowRight className="workbench-tab-arrow" />
                   </button>
                 );
               })}
             </div>
-
-            <div className="lg:col-span-7 flex">
-              <AnimatePresence mode="wait">
-                <motion.div
-                  key={activePillarData.id}
-                  initial={reducedMotion ? false : { opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={reducedMotion ? undefined : { opacity: 0, y: -8 }}
-                  transition={{ duration: 0.25, ease: EASE }}
-                  onPointerMove={handleCardSpotlight}
-                  className="spotlight-card corner-ticks w-full rounded-3xl p-6 sm:p-8 flex flex-col justify-between gap-6"
-                >
-                  <div className="space-y-5">
-                    <div className="flex flex-wrap items-center justify-between gap-3 pb-4 border-b border-[var(--pub-border)]">
-                      <div>
-                        <span className="font-mono-tech text-[11px] uppercase tracking-widest text-[var(--vibrant-sky-blue)] block">
-                          {activePillarData.code}
-                        </span>
-                        <h3 className="font-dm-sans text-2xl sm:text-3xl font-bold text-[var(--black)] mt-1">
-                          {activePillarData.title}
-                        </h3>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() => openModalForKey(activePillarData.modalKey)}
-                        className="inline-flex items-center gap-2 px-4 min-h-[44px] rounded-xl bg-[var(--black)] text-[var(--white)] font-syne text-[11px] font-bold uppercase tracking-wider hover:opacity-90 active:scale-95 transition-all cursor-pointer shrink-0"
-                      >
-                        <span>{isSpanish ? 'Ver Inmersión y Stack' : 'Deep Dive & Tools'}</span>
-                        <HiOutlineArrowUpRight className="text-sm" />
-                      </button>
+            <AnimatePresence mode="wait">
+              <motion.article
+                key={activeCapability}
+                id="workbench-panel"
+                role="tabpanel"
+                aria-labelledby={`workbench-tab-${copy[activeCapability].key}`}
+                className="workbench-panel"
+                initial={reduceMotion ? false : { opacity: 0, y: 14 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={reduceMotion ? undefined : { opacity: 0, y: -8 }}
+                transition={{ duration: 0.28 }}
+              >
+                <div className="workbench-panel-top">
+                  <span>MODULE / {copy[activeCapability].key}</span>
+                  <span>
+                    <i />
+                    {spanish ? 'LISTO PARA ENTREGAR' : 'READY TO SHIP'}
+                  </span>
+                </div>
+                <div className="workbench-artifact" aria-hidden="true">
+                  {activeCapability === 0 ? (
+                    <div className="artifact-architecture">
+                      <div className="artifact-node primary">UI / PWA</div>
+                      <b>→</b>
+                      <div className="artifact-node">API</div>
+                      <b>→</b>
+                      <div className="artifact-node ai">LLM + VISION</div>
+                      <b>→</b>
+                      <div className="artifact-node">DATA</div>
+                      <span className="artifact-line" />
                     </div>
-
-                    <p className="font-inter text-sm sm:text-base text-[var(--dark-gray)] leading-relaxed">
-                      {activePillarData.subtitle}
-                    </p>
-
-                    {/* Architectural Blueprint Log */}
-                    <div className="rounded-2xl bg-[var(--pub-bg)] border border-[var(--pub-border)] p-4 space-y-2.5">
-                      {activePillarData.blueprintLines.map((line) => (
-                        <div key={line.tag} className="flex items-start gap-3 text-xs sm:text-sm">
-                          <span className="font-mono-tech text-[10px] font-bold px-2 py-0.5 rounded bg-[var(--vibrant-sky-blue)]/12 text-[var(--vibrant-sky-blue)] border border-[var(--vibrant-sky-blue)]/25 shrink-0 mt-0.5">
-                            {line.tag}
-                          </span>
-                          <span className="font-inter text-[var(--black)] leading-relaxed">{line.text}</span>
-                        </div>
+                  ) : activeCapability === 1 ? (
+                    <div className="artifact-roadmap">
+                      <span className="roadmap-step done">
+                        <i />
+                        DISCOVER
+                      </span>
+                      <span className="roadmap-step done">
+                        <i />
+                        ALIGN
+                      </span>
+                      <span className="roadmap-step active">
+                        <i />
+                        DELIVER
+                      </span>
+                      <span className="roadmap-step">
+                        <i />
+                        MEASURE
+                      </span>
+                    </div>
+                  ) : (
+                    <div className="artifact-tests">
+                      <span className="test-run-label">PIPELINE / E2E</span>
+                      {['Auth flows', 'Critical paths', 'Accessibility'].map((test, index) => (
+                        <span className="test-run" key={test}>
+                          <i>{index < 2 ? '✓' : '···'}</i>
+                          {test}
+                          <b>{index < 2 ? 'PASS' : 'RUNNING'}</b>
+                        </span>
                       ))}
                     </div>
-                  </div>
-
-                  {/* Metrics Grid */}
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
-                    {activePillarData.metrics.map((m) => (
-                      <div
-                        key={m.k}
-                        className="p-3.5 rounded-xl bg-[var(--pub-bg)] border border-[var(--pub-border)]"
-                      >
-                        <span className="font-mono-tech text-[10px] uppercase tracking-wider text-[var(--dark-gray)] block">
-                          {m.k}
-                        </span>
-                        <span className="font-dm-sans font-bold text-xs sm:text-sm text-[var(--black)] mt-1 block">
-                          {m.v}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                </motion.div>
-              </AnimatePresence>
+                  )}
+                </div>
+                <h3>{copy[activeCapability].subtitle}</h3>
+                <p>{copy[activeCapability].detail}</p>
+                <div className="workbench-tags">
+                  {copy[activeCapability].stack.map((tag) => (
+                    <span key={tag}>{tag}</span>
+                  ))}
+                </div>
+                <button type="button" className="workbench-more" onClick={() => setActiveModal(activeCapability)}>
+                  {spanish ? 'Explorar disciplina' : 'Explore discipline'}
+                  <HiOutlineArrowUpRight />
+                </button>
+              </motion.article>
+            </AnimatePresence>
+            <div className="workbench-metric">
+              <span>{spanish ? 'DEL CONCEPTO A PRODUCCIÓN' : 'CONCEPT TO PRODUCTION'}</span>
+              <b>
+                01 <i>—</i> 05
+              </b>
+              <div>
+                <i />
+              </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* ═══ 04. DUAL-ROW KINETIC TECH STACK ═══ */}
-      <section id="stack-section" className="relative py-20 lg:py-24 bg-[var(--deep-navy-blue-light)] border-y border-[var(--pub-border)]">
-        <div className="container mx-auto max-w-6xl px-5 sm:px-8 lg:px-12 space-y-8">
-          <div className="flex flex-col md:flex-row md:items-end justify-between gap-5">
-            <div className="space-y-2">
-              <span className="font-mono-tech text-xs font-semibold uppercase tracking-[0.25em] text-[var(--vibrant-sky-blue)] block">
-                04 // ECOSYSTEM
-              </span>
-              <h2 className="font-dm-sans text-3xl sm:text-5xl font-bold tracking-tight text-[var(--black)]">
-                {t('expertise.knowledge_title')}
-              </h2>
-            </div>
+      <section className="portfolio-stack-section" aria-label={spanish ? 'Stack tecnológico' : 'Technology stack'}>
+        <div className="portfolio-shell stack-section-heading">
+          <span className="portfolio-eyebrow">{spanish ? 'HERRAMIENTAS / SISTEMAS' : 'TOOLS / SYSTEMS'}</span>
+          <p>
+            {spanish
+              ? 'Un stack práctico para construir, integrar y operar.'
+              : 'A practical stack to build, integrate and operate.'}
+          </p>
+        </div>
+        <Marquee />
+        <Marquee reverse />
+      </section>
 
-            {/* Domain Filter Pills */}
-            <div className="flex flex-wrap gap-1.5 bg-[var(--pub-surface)] p-1.5 rounded-2xl border border-[var(--pub-border)]">
-              {[
-                { id: 'all', label: isSpanish ? 'Flujo Completo' : 'Full Stream' },
-                { id: 'frontend', label: 'Frontend & Mobile' },
-                { id: 'backend', label: 'Cloud & Data' },
-                { id: 'qa', label: 'QA & Testing' },
-                { id: 'process', label: isSpanish ? 'Procesos' : 'Process' },
-              ].map((tab) => {
-                const active = stackDomain === tab.id;
-                return (
-                  <button
-                    key={tab.id}
-                    type="button"
-                    onClick={() => setStackDomain(tab.id as StackDomain)}
-                    className={`relative px-3.5 min-h-[38px] rounded-xl font-mono-tech text-[11px] font-semibold transition-colors cursor-pointer ${
-                      active ? 'text-[var(--white)]' : 'text-[var(--dark-gray)] hover:text-[var(--black)]'
-                    }`}
-                  >
-                    {active && (
-                      <motion.span
-                        layoutId="stackDomainPill"
-                        transition={{ type: 'spring', stiffness: 360, damping: 30 }}
-                        className="absolute inset-0 rounded-xl bg-[var(--black)]"
-                      />
-                    )}
-                    <span className="relative z-10">{tab.label}</span>
-                  </button>
-                );
-              })}
-            </div>
+      <section className="portfolio-experience portfolio-section" id="experience">
+        <div className="portfolio-shell">
+          <SectionHeading
+            eyebrow={spanish ? 'TRAYECTORIA / 02' : 'EXPERIENCE / 02'}
+            title={spanish ? 'Experiencia que conecta capas.' : 'Experience across the stack.'}
+            detail={
+              spanish
+                ? 'Liderazgo, ingeniería y calidad aplicados a sistemas que operan en el mundo real.'
+                : 'Leadership, engineering and quality applied to systems operating in the real world.'
+            }
+          />
+          <div ref={timelineRef} className="experience-timeline">
+            <span className="timeline-track" aria-hidden="true" />
+            <motion.span className="timeline-fill" style={{ scaleY: timelineFill, transformOrigin: 'top' }} aria-hidden="true" />
+            {experiences.map((item, index) => (
+              <motion.article
+                key={item.id}
+                className="experience-row"
+                initial={reduceMotion ? false : { opacity: 0, x: 16 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true, amount: 0.4 }}
+                transition={{ duration: 0.45, delay: index * 0.07 }}
+              >
+                <span className="experience-node" aria-hidden="true">
+                  <i />
+                </span>
+                <span className="experience-index">0{index + 1}</span>
+                <span className="experience-date">{item.year}</span>
+                <div className="experience-detail">
+                  <div className="experience-title-line">
+                    <h3>{item.title}</h3>
+                    <span>{item.company}</span>
+                  </div>
+                  <p>{item.description}</p>
+                </div>
+                <span className="experience-marker">{spanish ? 'ENTREGA' : 'DELIVERY'}</span>
+              </motion.article>
+            ))}
           </div>
+        </div>
+      </section>
 
-          {stackDomain === 'all' ? (
-            <div className="space-y-4">
-              {/* Row 1 -> Left */}
-              <div className="marquee-viewport">
-                <div className="marquee-row-left gap-4 py-1">
-                  {[...rowOneTech, ...rowOneTech].map((item, idx) => (
-                    <div
-                      key={`r1-${item.cleanName}-${idx}`}
-                      className={`${idx >= rowOneTech.length ? 'marquee-dup ' : ''}inline-flex items-center gap-3 px-4 py-3 rounded-2xl bg-[var(--pub-surface)] border border-[var(--pub-border)] shadow-2xs shrink-0`}
-                    >
-                      <img src={item.src} alt={item.cleanName} className="size-7 object-contain" />
-                      <span className="font-mono-tech text-xs font-semibold text-[var(--black)] whitespace-nowrap">
-                        {item.cleanName}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Row 2 -> Right */}
-              <div className="marquee-viewport">
-                <div className="marquee-row-right gap-4 py-1">
-                  {[...rowTwoTech, ...rowTwoTech].map((item, idx) => (
-                    <div
-                      key={`r2-${item.cleanName}-${idx}`}
-                      className={`${idx >= rowTwoTech.length ? 'marquee-dup ' : ''}inline-flex items-center gap-3 px-4 py-3 rounded-2xl bg-[var(--pub-surface)] border border-[var(--pub-border)] shadow-2xs shrink-0`}
-                    >
-                      <img src={item.src} alt={item.cleanName} className="size-7 object-contain" />
-                      <span className="font-mono-tech text-xs font-semibold text-[var(--black)] whitespace-nowrap">
-                        {item.cleanName}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          ) : (
-            <motion.div
-              layout
-              className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3"
-            >
-              {filteredTech.map((item) => (
-                <motion.div
-                  key={item.cleanName}
-                  initial={reducedMotion ? false : { opacity: 0, scale: 0.94 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ duration: 0.2 }}
-                  onPointerMove={handleCardSpotlight}
-                  className="spotlight-card rounded-2xl p-4 flex items-center gap-3"
-                >
-                  <img src={item.src} alt={item.cleanName} className="size-8 object-contain shrink-0" />
-                  <span className="font-mono-tech text-xs font-semibold text-[var(--black)] truncate">
-                    {item.cleanName}
+      <section className="portfolio-projects portfolio-section" id="projects">
+        <div className="portfolio-shell">
+          <SectionHeading
+            eyebrow={spanish ? 'CASOS / 03' : 'CASE FILES / 03'}
+            title={spanish ? 'Construido para mover indicadores.' : 'Built to move real outcomes.'}
+            detail={
+              spanish
+                ? 'Casos conectados al CMS del portafolio: arquitectura, automatización e impacto operativo.'
+                : 'Case studies connected to the portfolio CMS: architecture, automation and operational impact.'
+            }
+          />
+          <div className="project-filters" role="tablist" aria-label={spanish ? 'Filtrar casos' : 'Filter case studies'}>
+            {filterOptions.map((filter) => (
+              <button
+                key={filter.id}
+                role="tab"
+                type="button"
+                aria-selected={activeProjectFilter === filter.id}
+                onClick={() => setActiveProjectFilter(filter.id)}
+                className="project-filter"
+              >
+                {activeProjectFilter === filter.id && (
+                  <motion.span layoutId="project-filter-active" className="project-filter-active" />
+                )}
+                <span>{filter.label}</span>
+              </button>
+            ))}
+          </div>
+          <motion.div layout className="project-grid">
+            {filteredProjects.map((project, index) => (
+              <motion.article
+                layout
+                key={project.id}
+                className={`project-card project-card-${index % 3} spotlight-card`}
+                onPointerMove={(event) => {
+                  const box = event.currentTarget.getBoundingClientRect();
+                  event.currentTarget.style.setProperty('--mx', `${event.clientX - box.left}px`);
+                  event.currentTarget.style.setProperty('--my', `${event.clientY - box.top}px`);
+                }}
+                initial={reduceMotion ? false : { opacity: 0, y: 18 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, amount: 0.1 }}
+                transition={{ duration: 0.42, delay: index * 0.05 }}
+              >
+                <div className="project-art">
+                  <img src={project.image} alt={project.title} loading="lazy" />
+                  <span className="project-number">CASE / {String(index + 1).padStart(2, '0')}</span>
+                  <span className="project-corner" aria-hidden="true">
+                    <HiOutlineArrowUpRight />
                   </span>
-                </motion.div>
-              ))}
-            </motion.div>
+                  <div className="project-art-overlay" />
+                </div>
+                <div className="project-content">
+                  <div className="project-domain">{project.tags.slice(0, 2).join(' / ') || 'PRODUCT ENGINEERING'}</div>
+                  <h3>{project.title}</h3>
+                  <p>{project.description}</p>
+                  <div className="project-tags">
+                    {project.tags.map((tag) => (
+                      <span key={tag}>{tag}</span>
+                    ))}
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => openContactWithTopic(project.title)}
+                    className="project-card-foot w-full bg-transparent border-x-0 border-b-0 text-left cursor-pointer"
+                  >
+                    <span>{spanish ? 'SOLICITAR SISTEMA SIMILAR' : 'DISCUSS SIMILAR SYSTEM'}</span>
+                    <HiOutlineArrowUpRight aria-hidden="true" />
+                  </button>
+                </div>
+              </motion.article>
+            ))}
+          </motion.div>
+          {filteredProjects.length === 0 && (
+            <p className="projects-empty">
+              {spanish ? 'No hay casos en este filtro.' : 'No case studies match this filter.'}
+            </p>
           )}
         </div>
       </section>
 
-      {/* ═══ 05. SCROLL-ENERGIZED EXPERIENCE TIMELINE ═══ */}
-      <section id="experience-section" className="relative py-20 lg:py-28">
-        <div className="container mx-auto max-w-6xl px-5 sm:px-8 lg:px-12 space-y-12">
-          <div className="space-y-3">
-            <span className="font-mono-tech text-xs font-semibold uppercase tracking-[0.25em] text-[var(--vibrant-sky-blue)] block">
-              05 // {isSpanish ? 'TRAYECTORIA' : 'CAREER PATH'}
-            </span>
-            <h2 className="font-dm-sans text-3xl sm:text-5xl font-bold tracking-tight text-[var(--black)]">
-              {t('experience.title')}
-            </h2>
+      <section className="portfolio-credentials portfolio-section" id="credentials">
+        <div className="portfolio-shell credentials-layout">
+          <div>
+            <SectionHeading
+              eyebrow={spanish ? 'CREDENCIALES / 04' : 'CREDENTIALS / 04'}
+              title={spanish ? 'Aprender. Validar. Aplicar.' : 'Learn. Validate. Apply.'}
+              detail={
+                spanish
+                  ? 'Formación verificada que amplía la capacidad de ejecución en ingeniería y entrega.'
+                  : 'Verified learning that expands execution across engineering and delivery.'
+              }
+            />
+            <div className="credential-count">
+              <strong>{String(certifications.length).padStart(2, '0')}</strong>
+              <span>{spanish ? 'CREDENCIALES' : 'CREDENTIALS'}</span>
+            </div>
           </div>
-
-          <div ref={timelineRef} className="relative pl-7 sm:pl-10 space-y-6">
-            {/* Base Timeline Line */}
-            <div
-              aria-hidden="true"
-              className="absolute left-2.5 sm:left-3.5 top-2 bottom-2 w-px bg-[var(--pub-border)]"
-            />
-            {/* Scroll-Energized Line */}
-            <motion.div
-              aria-hidden="true"
-              style={{ scaleY: reducedMotion ? 1 : timelineScaleY, transformOrigin: 'top' }}
-              className="absolute left-2.5 sm:left-3.5 top-2 bottom-2 w-[2px] -ml-[0.5px] bg-gradient-to-b from-[var(--vibrant-sky-blue)] via-[var(--magenta-pink)] to-[var(--vibrant-sky-blue)]"
-            />
-
-            {experiences.map((exp, idx) => (
-              <motion.article
-                key={exp.id || idx}
-                initial={reducedMotion ? false : { opacity: 0, y: 18 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, amount: 0.25 }}
-                transition={{ duration: 0.45, delay: idx * 0.06, ease: EASE }}
-                onPointerMove={handleCardSpotlight}
-                className="spotlight-card relative rounded-2xl sm:rounded-3xl p-5 sm:p-7"
-              >
-                {/* Node Dot */}
-                <span
-                  aria-hidden="true"
-                  className="absolute -left-[25px] sm:-left-[33px] top-7 size-3.5 rounded-full bg-[var(--vibrant-sky-blue)] border-[3px] border-[var(--pub-bg)] shadow-xs"
+          <div className="credential-list">
+            {certifications.map((cert, index) => (
+              <a key={cert.id} href={cert.link} target="_blank" rel="noreferrer" className="credential-row">
+                <span className="credential-index">{String(index + 1).padStart(2, '0')}</span>
+                <span className="credential-copy">
+                  <b>{cert.title}</b>
+                  <small>{cert.subtitle}</small>
+                </span>
+                <HiOutlineCheckBadge
+                  className="credential-verified"
+                  aria-label={spanish ? 'Credencial verificable' : 'Verifiable credential'}
                 />
-
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-[var(--pub-border)]">
-                  <div>
-                    <h3 className="font-dm-sans text-xl sm:text-2xl font-bold text-[var(--black)]">
-                      {exp.title}
-                    </h3>
-                    <p className="font-syne text-xs sm:text-sm font-bold uppercase tracking-wider text-[var(--vibrant-sky-blue)] mt-1">
-                      {exp.company}
-                    </p>
-                  </div>
-                  <span className="self-start sm:self-auto font-mono-tech text-xs font-semibold px-3 py-1 rounded-lg bg-[var(--pub-bg)] border border-[var(--pub-border)] text-[var(--dark-gray)] shrink-0">
-                    {exp.year}
-                  </span>
-                </div>
-
-                <p className="font-inter text-sm sm:text-base text-[var(--dark-gray)] leading-relaxed pt-3">
-                  {exp.description}
-                </p>
-              </motion.article>
+                <HiOutlineArrowUpRight className="credential-external" aria-hidden="true" />
+              </a>
             ))}
           </div>
         </div>
       </section>
 
-      {/* ═══ 06. FILTERABLE TECHNICAL CASE STUDIES ═══ */}
-      <section id="portfolio-section" className="relative py-20 lg:py-28 bg-[var(--deep-navy-blue-light)] border-y border-[var(--pub-border)]">
-        <div className="container mx-auto max-w-6xl px-5 sm:px-8 lg:px-12 space-y-10">
-          <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6">
-            <div className="space-y-3">
-              <span className="font-mono-tech text-xs font-semibold uppercase tracking-[0.25em] text-[var(--vibrant-sky-blue)] block">
-                06 // {isSpanish ? 'CASOS DE INGENIERÍA' : 'ENGINEERING CASES'}
-              </span>
-              <h2 className="font-dm-sans text-3xl sm:text-5xl font-bold tracking-tight text-[var(--black)]">
-                {t('portfolio.title')}
-              </h2>
-              <p className="font-inter text-sm sm:text-base text-[var(--dark-gray)] max-w-xl">
-                {t('portfolio.subtitle')}
-              </p>
-            </div>
-
-            <div className="flex flex-wrap gap-1.5 bg-[var(--pub-surface)] p-1.5 rounded-2xl border border-[var(--pub-border)] self-start lg:self-auto">
-              {[
-                { id: 'all', label: isSpanish ? 'Todos' : 'All' },
-                { id: 'ai', label: isSpanish ? 'IA & Datos' : 'AI & Data' },
-                { id: 'fullstack', label: 'Full-Stack' },
-                { id: 'enterprise', label: 'GovTech & B2B' },
-              ].map((tab) => {
-                const active = projectFilter === tab.id;
-                return (
-                  <button
-                    key={tab.id}
-                    type="button"
-                    onClick={() => setProjectFilter(tab.id as ProjectFilter)}
-                    className={`relative px-3.5 min-h-[38px] rounded-xl font-mono-tech text-[11px] font-semibold transition-colors cursor-pointer ${
-                      active ? 'text-[var(--white)]' : 'text-[var(--dark-gray)] hover:text-[var(--black)]'
-                    }`}
-                  >
-                    {active && (
-                      <motion.span
-                        layoutId="projectFilterPill"
-                        transition={{ type: 'spring', stiffness: 360, damping: 30 }}
-                        className="absolute inset-0 rounded-xl bg-[var(--black)]"
-                      />
-                    )}
-                    <span className="relative z-10">{tab.label}</span>
-                  </button>
-                );
-              })}
-            </div>
+      <section className="portfolio-faq portfolio-section" id="faq" aria-label={t('portfolioRedesign.faqHeading')}>
+        <div className="portfolio-shell faq-layout">
+          <div>
+            <SectionHeading eyebrow={t('portfolioRedesign.faqEyebrow')} title={t('portfolioRedesign.faqHeading')} />
+            <p className="faq-intro">{t('portfolioRedesign.faqIntro')}</p>
           </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredProjects.map((project, idx) => (
-              <motion.article
-                key={project.id}
-                layout
-                initial={reducedMotion ? false : { opacity: 0, y: 18 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, amount: 0.15 }}
-                transition={{ duration: 0.4, delay: idx * 0.05, ease: EASE }}
-                onPointerMove={handleCardSpotlight}
-                className="spotlight-card corner-ticks rounded-3xl overflow-hidden flex flex-col justify-between group"
-              >
-                <div>
-                  <div className="relative h-48 overflow-hidden bg-[var(--pub-surface-muted)] border-b border-[var(--pub-border)]">
-                    <img
-                      src={project.image}
-                      alt={project.title}
-                      loading="lazy"
-                      className="size-full object-cover transition-transform duration-500 group-hover:scale-105"
-                    />
-                    <div
-                      aria-hidden="true"
-                      className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/15 to-transparent"
-                    />
-                    <span className="absolute top-3 left-3 font-mono-tech text-[10px] font-semibold px-2.5 py-1 rounded-md bg-black/70 text-white border border-white/15 backdrop-blur-md">
-                      CASE // 0{idx + 1}
-                    </span>
-                  </div>
-
-                  <div className="p-5 sm:p-6 space-y-3">
-                    <h3 className="font-dm-sans text-xl font-bold text-[var(--black)] leading-snug">
-                      {project.title}
-                    </h3>
-                    <p className="font-inter text-xs sm:text-sm text-[var(--dark-gray)] leading-relaxed">
-                      {project.description}
-                    </p>
-                  </div>
-                </div>
-
-                <div className="px-5 sm:px-6 pb-5 sm:pb-6 pt-2 space-y-4">
-                  <div className="flex flex-wrap gap-1.5">
-                    {project.tags.map((tag) => (
-                      <span
-                        key={tag}
-                        className="px-2.5 py-1 rounded-lg bg-[var(--pub-bg)] border border-[var(--pub-border)] font-mono-tech text-[10px] font-semibold text-[var(--black)]"
-                      >
-                        {tag}
-                      </span>
-                    ))}
-                  </div>
-
-                  <button
-                    type="button"
-                    onClick={() => openContactModal(project.title)}
-                    className="w-full min-h-[44px] px-4 rounded-xl bg-[var(--pub-bg)] hover:bg-[var(--black)] text-[var(--black)] hover:text-[var(--white)] border border-[var(--pub-border)] font-syne text-[11px] font-bold uppercase tracking-wider flex items-center justify-between transition-all cursor-pointer touch-reveal"
-                  >
-                    <span>{isSpanish ? 'Solicitar arquitectura similar' : 'Discuss similar system'}</span>
-                    <HiOutlineArrowUpRight className="text-base" />
-                  </button>
-                </div>
-              </motion.article>
+          <div className="faq-list">
+            {[1, 2, 3].map((number) => (
+              <details className="faq-item" key={number}>
+                <summary>
+                  {t(`portfolioRedesign.faq${number}Question`)}
+                  <span aria-hidden="true">+</span>
+                </summary>
+                <p>{t(`portfolioRedesign.faq${number}Answer`)}</p>
+              </details>
             ))}
           </div>
         </div>
       </section>
 
-      {/* ═══ 07. CREDENTIALS VAULT ═══ */}
-      <section id="credentials-section" className="relative py-20 lg:py-24">
-        <div className="container mx-auto max-w-6xl px-5 sm:px-8 lg:px-12 space-y-14">
-          <div className="space-y-3">
-            <span className="font-mono-tech text-xs font-semibold uppercase tracking-[0.25em] text-[var(--vibrant-sky-blue)] block">
-              07 // {isSpanish ? 'VALIDACIÓN TÉCNICA' : 'VERIFIED CREDENTIALS'}
-            </span>
-            <h2 className="font-dm-sans text-3xl sm:text-5xl font-bold tracking-tight text-[var(--black)]">
-              {t('certifications.title')}
-            </h2>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-            {displayedCertifications.map((cert, idx) => (
-              <motion.div
-                key={cert.id || idx}
-                initial={reducedMotion ? false : { opacity: 0, y: 16 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, amount: 0.15 }}
-                transition={{ duration: 0.4, delay: idx * 0.04, ease: EASE }}
-                onPointerMove={handleCardSpotlight}
-                className="spotlight-card rounded-2xl p-5 flex flex-col justify-between gap-4"
-              >
-                <div className="space-y-2.5">
-                  <div className="flex items-center justify-between gap-2">
-                    <span className="inline-flex items-center gap-1.5 font-mono-tech text-[10px] font-semibold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">
-                      <HiOutlineShieldCheck className="text-sm" />
-                      VERIFIED
-                    </span>
-                    <span className="font-mono-tech text-[10px] text-[var(--dark-gray)]">
-                      #{String(idx + 1).padStart(2, '0')}
-                    </span>
-                  </div>
-                  <h3 className="font-dm-sans font-bold text-base sm:text-lg text-[var(--black)] leading-snug">
-                    {cert.title}
-                  </h3>
-                  <p className="font-inter text-xs text-[var(--dark-gray)]">{cert.subtitle}</p>
-                </div>
-
-                {cert.link && (
-                  <a
-                    href={cert.link}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="inline-flex items-center justify-between px-4 min-h-[44px] rounded-xl bg-[var(--pub-bg)] border border-[var(--pub-border)] hover:border-[var(--vibrant-sky-blue)] font-mono-tech text-[11px] font-semibold text-[var(--black)] transition-all cursor-pointer"
-                  >
-                    <span>{t('certifications.view')}</span>
-                    <HiOutlineExternalLink className="text-sm text-[var(--vibrant-sky-blue)]" />
-                  </a>
-                )}
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ═══ 08. FREQUENTLY ASKED QUESTIONS & CONVERSION CLOSURE ═══ */}
-      <section id="faq-section" className="relative py-20 lg:py-28 bg-[var(--deep-navy-blue-light)] border-t border-[var(--pub-border)]">
-        <div className="container mx-auto max-w-6xl px-5 sm:px-8 lg:px-12 space-y-14">
-          <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6">
-            <div className="space-y-3 max-w-2xl">
-              <span className="font-mono-tech text-xs font-semibold uppercase tracking-[0.25em] text-[var(--vibrant-sky-blue)] block">
-                {t('faq.eyebrow')}
-              </span>
-              <h2 className="font-dm-sans text-3xl sm:text-5xl font-bold tracking-tight text-[var(--black)]">
-                {t('faq.title')}
-              </h2>
-            </div>
-            <p className="font-inter text-sm sm:text-base text-[var(--dark-gray)] max-w-md leading-relaxed">
-              {t('faq.subtitle')}
+      <section className="portfolio-contact" id="contact">
+        <div className="contact-orbit" aria-hidden="true" />
+        <div className="portfolio-shell contact-inner">
+          <div>
+            <span className="portfolio-eyebrow">{spanish ? 'SIGUIENTE PASO / 05' : 'NEXT STEP / 05'}</span>
+            <SignatureMark size="lg" />
+            <h2>{spanish ? '¿Qué llevamos a producción?' : 'What will we take to production?'}</h2>
+            <p>
+              {spanish
+                ? 'Cuéntame el reto. Diseñemos una solución clara, confiable y lista para crecer.'
+                : 'Tell me about the challenge. Let’s shape a clear, reliable solution built to grow.'}
             </p>
           </div>
-
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 items-start">
-            {faqItems.map((item, idx) => {
-              const isOpen = openFaqIdx === idx;
-              const panelId = `faq-answer-${idx}`;
-              return (
-                <div
-                  key={item.q}
-                  className="rounded-2xl bg-[var(--pub-surface)] border border-[var(--pub-border)] overflow-hidden transition-colors"
-                >
-                  <button
-                    type="button"
-                    aria-expanded={isOpen}
-                    aria-controls={panelId}
-                    onClick={() => setOpenFaqIdx(isOpen ? null : idx)}
-                    className="w-full min-h-[56px] p-5 text-left flex items-center justify-between gap-4 cursor-pointer hover:bg-[var(--pub-bg)]/50 transition-colors"
-                  >
-                    <span className="font-dm-sans font-bold text-sm sm:text-base text-[var(--black)] leading-snug">
-                      {item.q}
-                    </span>
-                    <HiOutlineChevronDown
-                      className={`text-lg text-[var(--vibrant-sky-blue)] shrink-0 transition-transform duration-200 ${
-                        isOpen ? 'rotate-180' : ''
-                      }`}
-                    />
-                  </button>
-
-                  <AnimatePresence initial={false}>
-                    {isOpen && (
-                      <motion.div
-                        id={panelId}
-                        initial={reducedMotion ? false : { opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={reducedMotion ? undefined : { opacity: 0 }}
-                        transition={{ duration: 0.18 }}
-                        className="px-5 pb-5 pt-1 border-t border-[var(--pub-border)]"
-                      >
-                        <p className="font-inter text-xs sm:text-sm text-[var(--dark-gray)] leading-relaxed pt-2">
-                          {item.a}
-                        </p>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                </div>
-              );
-            })}
+          <div className="contact-actions">
+            <button
+              type="button"
+              className="portfolio-button portfolio-button-primary"
+              onClick={() => openContactWithTopic()}
+            >
+              {spanish ? 'Iniciar conversación' : 'Start a conversation'}
+              <FaArrowRight aria-hidden="true" />
+            </button>
+            <a className="portfolio-button portfolio-button-quiet" href={whatsappUrl} target="_blank" rel="noreferrer">
+              <IoLogoWhatsapp aria-hidden="true" />
+              {t('portfolioRedesign.whatsapp')}
+            </a>
           </div>
-
-          {/* Executive Conversion Banner */}
-          <motion.div
-            initial={reducedMotion ? false : { opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, amount: 0.25 }}
-            transition={{ duration: 0.55, ease: EASE }}
-            onPointerMove={handleCardSpotlight}
-            className="spotlight-card corner-ticks rounded-3xl p-7 sm:p-10 lg:p-12 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-8"
-          >
-            <div className="space-y-4 max-w-2xl">
-              <div className="flex flex-wrap items-center gap-3">
-                <SignatureMark size="md" />
-                <span className="inline-flex items-center gap-1.5 font-mono-tech text-[11px] font-semibold uppercase tracking-widest text-[var(--vibrant-sky-blue)]">
-                  <HiOutlineSparkles className="text-sm" />
-                  {isSpanish
-                    ? 'León, Gto. · Todo México · Proyectos en Español e Inglés'
-                    : 'León, MX · All Mexico · English & Spanish'}
-                </span>
-              </div>
-              <h3 className="font-dm-sans text-2xl sm:text-4xl font-bold tracking-tight text-[var(--black)]">
-                {t('discussion.title')}
-              </h3>
-              <p className="font-inter text-sm sm:text-base text-[var(--dark-gray)] leading-relaxed">
-                {isSpanish
-                  ? 'Ya sea para desarrollar software a medida, digitalizar y optimizar procesos internos, integrar IA o liderar pruebas y aseguramiento de calidad QA, conversemos sobre tu proyecto.'
-                  : 'Whether building custom software, digitizing and optimizing internal operations, integrating AI, or leading software testing and QA, let us map out your next release.'}
-              </p>
-            </div>
-
-            <div className="flex flex-wrap gap-3 shrink-0 w-full lg:w-auto">
-              <button
-                type="button"
-                onClick={() => openContactModal()}
-                className="flex-1 sm:flex-initial inline-flex items-center justify-center gap-2 px-6 min-h-[48px] rounded-xl bg-[var(--black)] text-[var(--white)] font-syne text-xs font-bold uppercase tracking-wider shadow-md hover:opacity-90 active:scale-95 transition-all cursor-pointer"
-              >
-                <span>{t('footer.contact_button')}</span>
-                <HiOutlineArrowUpRight className="text-base" />
-              </button>
-
-              <a
-                href={whatsappClosureUrl}
-                target="_blank"
-                rel="noreferrer"
-                className="flex-1 sm:flex-initial inline-flex items-center justify-center gap-2 px-5 min-h-[48px] rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-syne text-xs font-bold uppercase tracking-wider shadow-sm active:scale-95 transition-all cursor-pointer"
-              >
-                <IoLogoWhatsapp className="text-base" />
-                <span>WhatsApp</span>
-              </a>
-            </div>
-          </motion.div>
         </div>
       </section>
 
-      {/* Standardized Expertise Deep-Dive Modal */}
-      <Modal
-        isOpen={Boolean(modalExpertise)}
-        onClose={() => setModalExpertise(null)}
-        title={
-          modalExpertise
-            ? modalExpertise.id === 'pm'
-              ? t('expertise.pm_header_title')
-              : modalExpertise.id === 'sd'
-              ? t('expertise.sd_header_title')
-              : t('expertise.qa_header_title')
-            : ''
-        }
-        paragraph={
-          modalExpertise
-            ? modalExpertise.id === 'pm'
-              ? t('expertise.pm_header_paragraph')
-              : modalExpertise.id === 'sd'
-              ? t('expertise.sd_header_paragraph')
-              : t('expertise.qa_header_paragraph')
-            : ''
-        }
-        knowledgeSection={Boolean(modalExpertise)}
-        expertiseData={modalExpertise ? { images: modalExpertise.expertiseData } : undefined}
-      >
-        {modalExpertise?.child}
-      </Modal>
+      <ContactModal
+        isOpen={contactOpen}
+        onClose={() => {
+          setContactOpen(false);
+          setContactTopic(undefined);
+        }}
+        initialTopic={contactTopic}
+      />
+
+      {selectedModal && (
+        <Modal
+          isOpen={activeModal !== null}
+          onClose={() => setActiveModal(null)}
+          title={modalTitle}
+          paragraph={modalParagraph}
+          knowledgeSection
+          expertiseData={{ images: selectedModal.expertiseData }}
+        >
+          {selectedModal.child}
+        </Modal>
+      )}
     </div>
   );
 }

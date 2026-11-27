@@ -165,7 +165,7 @@ export default function ContactModal({ isOpen, onClose, initialTopic }: ContactM
             aria-modal="true"
             aria-labelledby={titleId}
             tabIndex={-1}
-            className="relative flex flex-col w-full max-w-5xl max-h-[90vh] overflow-hidden shadow-2xl bg-[var(--pub-surface)] text-[var(--black)] rounded-3xl sm:rounded-[2rem] border border-[var(--pub-border-strong)] cursor-default outline-none"
+            className="portfolio-dialog public-dialog relative flex flex-col w-full max-w-5xl max-h-[90vh] overflow-hidden shadow-2xl bg-[var(--site-paper)] text-[var(--site-ink)] rounded-xl border border-[var(--site-line)] cursor-default outline-none"
             onClick={(e) => e.stopPropagation()}
             variants={modalVariants}
             initial="hidden"

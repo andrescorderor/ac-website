@@ -1,7 +1,7 @@
 <div align="center">
   <img src="public/assets/ac-website-icon.svg" alt="Logo" width="100" />
   
-  # Andrés Cordero - Professional Portfolio & Personal Panel PWA (v9.1.0) 🔍✨
+  # Andrés Cordero - Professional Portfolio & Personal Panel PWA (v9.2.0) 🔍✨
   
   **Welcome to my personal ecosystem: a professional portfolio and a custom productivity hub.**  
   Built with UX/UI best practices, premium design, and a focus on mobile-first efficiency.
@@ -16,11 +16,15 @@
 
 ---
 
-## 🚀 Overview (Version 9.1.0)
+## 🚀 Overview (Version 9.2.0)
 
 This repository hosts a dual-purpose platform:
 1. **Professional Portfolio:** An interactive technical CV & engineering showcase highlighting software architecture, applied AI systems, process design/PM, and QA leadership (`SignatureMark`, `PipelineVisualizer`, `PortfolioHome`, zero personal photos, full ES/EN & Light/Dark parity).
-2. **Personal Panel PWA (v9.1.0):** An executive personal operating system featuring:
+2. **Personal Panel PWA (v9.2.0):** An executive personal operating system featuring:
+   * **Optimización Visual y UX Escaneable del Portafolio Público (`v9.2.0`):**
+     * **Paleta Editorial de Ingeniería & Menos Texto (`index.css`, `portfolio-home.css`):** Sistema visual cálido de alto contraste (`#f4f4ef` / `#216d59` en claro y `#101614` / `#8bd3b4` en oscuro) con tipografía `Space Grotesk` + `DM Mono` + `DM Sans`, descripciones truncadas a 2 líneas para lectura ágil y modales homologados (`.portfolio-dialog`).
+     * **Hero `De la idea a producción` + `AC / SYSTEM MAP` (`PortfolioHome.tsx`, `PipelineVisualizer.tsx`):** Mapa interactivo de 5 nodos conectados por haces SVG animados, disponibilidad y alcance visibles (*León, Guanajuato · Todo México · ES / EN*) y accesos directos de contacto, WhatsApp y CV.
+     * **Workbench con Artefactos Visuales, Casos Compactos y FAQ Nativo (`PortfolioHome.tsx`, `Header.tsx`, `Footer.tsx`):** Panel interactivo de 3 disciplinas con diagramas visuales en vivo (*UI/PWA → API → LLM+Vision → Data*, *Roadmap*, *Pipeline E2E*), tarjetas de casos conectadas a `ContactModal`, credenciales compactas y `<details>` colapsables de preguntas clave sincronizados con JSON-LD.
    * **SEO Técnico, Local/Nacional (León, Gto. · Todo México · EN/ES), GEO IA & Conversión B2B (`v9.1.0`):**
      * **Metadatos, JSON-LD `@graph` y Crawler Discovery (`index.html`, `public/robots.txt`, `public/sitemap.xml`, `public/llms.txt`, `netlify.toml`, `vite.config.ts`):** Datos estructurados `WebSite`, `Person`, `ProfessionalService` (`areaServed`: León, Guanajuato, Bajío, CDMX, Monterrey, Guadalajara, Querétaro, México y EE.UU.) y `FAQPage`, geo-etiquetas `MX-GUA`, etiquetas `hreflang` (`es-MX` / `en`), tarjetas Open Graph/Twitter con PNG de marca (`/assets/ac-website-icon-512.png`), exclusión `/admin` en `robots.txt` y perfil estructurado `llms.txt` para buscadores e IA.
      * **Detección Inteligente de Idioma & `<head>` Dinámico (`src/i18n.ts`):** Selección automática vía `?lang=`, preferencia guardada (`ac_public_lang`) o idioma del navegador (`ES`/`EN`), sincronizando `<html lang>`, `<title>`, `description` y Open Graph en rutas públicas.
