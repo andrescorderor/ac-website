@@ -1,7 +1,7 @@
 <div align="center">
   <img src="public/assets/ac-website-icon.svg" alt="Logo" width="100" />
   
-  # Andrés Cordero - Professional Portfolio & Personal Panel PWA (v8.4.0) 🔍✨
+  # Andrés Cordero - Professional Portfolio & Personal Panel PWA (v9.0.0) 🔍✨
   
   **Welcome to my personal ecosystem: a professional portfolio and a custom productivity hub.**  
   Built with UX/UI best practices, premium design, and a focus on mobile-first efficiency.
@@ -16,11 +16,16 @@
 
 ---
 
-## 🚀 Overview (Version 8.4.0)
+## 🚀 Overview (Version 9.0.0)
 
 This repository hosts a dual-purpose platform:
-1. **Professional Portfolio:** A high-end landing page showcasing my engineering background, skills, and achievements with dynamic copyright year updates and zero horizontal overflow.
-2. **Personal Panel PWA (v8.4.0):** An executive personal operating system featuring:
+1. **Professional Portfolio:** An interactive technical CV & engineering showcase highlighting software architecture, applied AI systems, process design/PM, and QA leadership (`SignatureMark`, `PipelineVisualizer`, `PortfolioHome`, zero personal photos, full ES/EN & Light/Dark parity).
+2. **Personal Panel PWA (v9.0.0):** An executive personal operating system featuring:
+   * **Rediseño Vanguardista del Portafolio Público / CV Interactivo (`v9.0.0`):**
+     * **Identidad `<SignatureMark />` & Cero Fotos Personales:** Centraliza el ícono/firma de marca (`SIGNATURE_ASSET_SRC`) en `Header`, `Hero`, `Modal`, `ContactModal`, `Footer` y `NotFound` bajo una retícula arquitectónica bimodal (`JetBrains Mono`, `DM Sans`, `Inter`, `Syne`) y cursor de precisión sin re-renders (`MotionValue` + `useSpring`).
+     * **Consola de Ejecución `0 → PROD` (`PipelineVisualizer.tsx`):** Diagrama SVG animado e interactivo que detalla las 5 etapas (*Idea & Proceso → Arquitectura → Full-Stack + IA → Coordinación QA → Producción*) con telemetría por fase.
+     * **Workbench de Capacidades, Stack Dual-Row, Timeline & Casos Filtrables (`PortfolioHome.tsx`):** Rail de progreso por sección (`IntersectionObserver`), workbench interactivo de 4 pilares conectado a modales bilingües ES/EN, doble cinta de tecnologías con filtro por dominio, timeline energizado por scroll (`useScroll`) y casos técnicos/credenciales sincronizados con `portfolioCms.ts`.
+     * **Estandarización Total de Modales (`Modal.tsx`, `ContactModal.tsx`):** Cabeceras técnicas unificadas, contenido bilingüe ES/EN para `SD`, `PM` y `QA`, y retroalimentación in-modal al enviar formulario EmailJS.
    * **Escáner Inteligente de Mandado con Lista Preliminar Editable (`Compras.tsx`, `MandadoModal.tsx`, `MandadoScannerModal.tsx` - v8.4.0):**
      * Traslada el escáner con cámara/foto directamente al módulo de **Compras** y dentro del modal de **Mandado** (además de acceso rápido desde Captura Rápida y `CommandPalette`).
      * Analiza fotos de tickets, productos o listas escritas con Gemini Vision cruzando contra tu catálogo actual de Mandado y genera una **lista preliminar 100% editable**: ajusta manualmente filas para **Completar existente** (vinculado por `CustomSelect`, cantidad y precio), **Agregar como nuevo** (categoría, frecuencia, estado inicial), descarta o agrega filas manuales y decide si registrar los precios en Finanzas antes de aplicar en lote.

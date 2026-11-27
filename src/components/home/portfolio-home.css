@@ -1,0 +1,237 @@
+/* ═══════════════════════════════════════════════════════════════
+   Portfolio Architectural Telemetry System (v9.0.0)
+   - GPU-composited animations only (transform, opacity, stroke)
+   - Pointer spotlight driven exclusively via CSS variables (--mx / --my / --cx / --cy)
+   - Zero React setState per frame
+   - Full prefers-reduced-motion compliance
+   ═══════════════════════════════════════════════════════════════ */
+
+.arch-grid-canvas {
+  background-image:
+    linear-gradient(to right, var(--pub-grid-line) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--pub-grid-line) 1px, transparent 1px);
+  background-size: 48px 48px;
+}
+
+.arch-dot-matrix {
+  background-image: radial-gradient(var(--pub-grid-dot) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+/* Hero / Section Mouse Spotlight Layer */
+.arch-spotlight {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+  background: radial-gradient(
+    640px circle at var(--mx, 50%) var(--my, 35%),
+    color-mix(in srgb, var(--vibrant-sky-blue) 14%, transparent),
+    transparent 62%
+  );
+}
+
+.arch-spotlight-parent:hover .arch-spotlight,
+.arch-spotlight-active .arch-spotlight {
+  opacity: 1;
+}
+
+/* Interactive Spotlight Card (Light & Dark aware) */
+.spotlight-card {
+  position: relative;
+  background-color: var(--pub-surface);
+  border: 1px solid var(--pub-border);
+  transition:
+    border-color 0.25s ease,
+    transform 0.25s cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 0.25s ease;
+}
+
+.spotlight-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  background: radial-gradient(
+    420px circle at var(--cx, 50%) var(--cy, 50%),
+    color-mix(in srgb, var(--vibrant-sky-blue) 12%, transparent),
+    transparent 65%
+  );
+}
+
+.spotlight-card:hover {
+  border-color: var(--pub-border-strong);
+  box-shadow: var(--pub-shadow-hover);
+}
+
+.spotlight-card:hover::before {
+  opacity: 1;
+}
+
+/* Subtle metallic top highlight line on precision panels */
+.telemetry-panel {
+  background-color: var(--pub-surface-elevated);
+  border: 1px solid var(--pub-border);
+  box-shadow: var(--pub-shadow);
+}
+
+/* Architectural Corner Brackets */
+.corner-ticks {
+  position: relative;
+}
+
+.corner-ticks::before,
+.corner-ticks::after {
+  content: '';
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  pointer-events: none;
+  border-color: var(--vibrant-sky-blue);
+  opacity: 0.45;
+  transition: opacity 0.25s ease, transform 0.25s ease;
+}
+
+.corner-ticks::before {
+  top: 10px;
+  left: 10px;
+  border-top: 1.5px solid;
+  border-left: 1.5px solid;
+}
+
+.corner-ticks::after {
+  bottom: 10px;
+  right: 10px;
+  border-bottom: 1.5px solid;
+  border-right: 1.5px solid;
+}
+
+.corner-ticks:hover::before,
+.corner-ticks:hover::after {
+  opacity: 0.9;
+}
+
+/* Dual-Row CSS-only Marquee (Opposite Directions) */
+@keyframes marquee-left {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+  to {
+    transform: translate3d(-50%, 0, 0);
+  }
+}
+
+@keyframes marquee-right {
+  from {
+    transform: translate3d(-50%, 0, 0);
+  }
+  to {
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+.marquee-viewport {
+  overflow: hidden;
+  -webkit-mask-image: linear-gradient(
+    to right,
+    transparent 0%,
+    #000 8%,
+    #000 92%,
+    transparent 100%
+  );
+  mask-image: linear-gradient(
+    to right,
+    transparent 0%,
+    #000 8%,
+    #000 92%,
+    transparent 100%
+  );
+}
+
+.marquee-row-left,
+.marquee-row-right {
+  display: flex;
+  width: max-content;
+  will-change: transform;
+}
+
+.marquee-row-left {
+  animation: marquee-left 58s linear infinite;
+}
+
+.marquee-row-right {
+  animation: marquee-right 64s linear infinite;
+}
+
+.marquee-viewport:hover .marquee-row-left,
+.marquee-viewport:hover .marquee-row-right,
+.marquee-viewport:focus-within .marquee-row-left,
+.marquee-viewport:focus-within .marquee-row-right {
+  animation-play-state: paused;
+}
+
+/* Pipeline SVG Data Beam Animation */
+@keyframes beam-flow {
+  0% {
+    stroke-dashoffset: 36;
+  }
+  100% {
+    stroke-dashoffset: 0;
+  }
+}
+
+.pipeline-beam {
+  stroke-dasharray: 6 6;
+  animation: beam-flow 1.4s linear infinite;
+}
+
+@keyframes pulse-ring {
+  0% {
+    transform: scale(0.95);
+    opacity: 0.7;
+  }
+  70% {
+    transform: scale(1.35);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1.35);
+    opacity: 0;
+  }
+}
+
+.animate-pulse-ring {
+  animation: pulse-ring 2.4s cubic-bezier(0.22, 1, 0.36, 1) infinite;
+}
+
+/* Touch devices: show interactive labels/actions directly without relying on hover */
+@media (hover: none) {
+  .touch-reveal {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+}
+
+/* Global Reduced Motion Override */
+@media (prefers-reduced-motion: reduce) {
+  .marquee-row-left,
+  .marquee-row-right {
+    animation: none !important;
+    width: auto !important;
+    flex-wrap: wrap !important;
+    justify-content: center !important;
+  }
+
+  .marquee-viewport .marquee-dup {
+    display: none !important;
+  }
+
+  .pipeline-beam,
+  .animate-pulse-ring {
+    animation: none !important;
+  }
+}

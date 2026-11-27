@@ -1,130 +1,100 @@
 import { useEffect, useState } from 'react';
-import { motion } from 'framer-motion';
+import { motion, useMotionValue, useReducedMotion, useSpring } from 'framer-motion';
 
+/**
+ * Precision cursor ring driven by MotionValues + CSS transforms (zero React re-renders per frame).
+ * Automatically disabled on coarse/touch pointers, reduced-motion mode, and inside /admin.
+ */
 export default function Cursor() {
-  const [position, setPosition] = useState({ x: 0, y: 0 });
-  const [delayedPosition, setDelayedPosition] = useState({ x: 0, y: 0 });
-  const [active, setActive] = useState(false);
-  const [clickable, setClickable] = useState(false);
-  const [isInDiscussionCarousel, setIsInDiscussionCarousel] = useState(false);
+  const reducedMotion = useReducedMotion();
+  const [enabled, setEnabled] = useState(false);
+  const [visible, setVisible] = useState(false);
+  const [isInteractive, setIsInteractive] = useState(false);
+
+  const mouseX = useMotionValue(-100);
+  const mouseY = useMotionValue(-100);
+  const smoothX = useSpring(mouseX, { stiffness: 420, damping: 32, mass: 0.4 });
+  const smoothY = useSpring(mouseY, { stiffness: 420, damping: 32, mass: 0.4 });
 
   useEffect(() => {
-    const handleMouseMove = (e: MouseEvent) => {
-      setPosition({ x: e.clientX, y: e.clientY });
+    if (typeof window === 'undefined' || reducedMotion) {
+      setEnabled(false);
+      return undefined;
+    }
+
+    const media = window.matchMedia('(pointer: fine)');
+    const checkEnabled = () => {
+      const isAdminRoute = window.location.pathname.startsWith('/admin');
+      setEnabled(media.matches && !isAdminRoute);
     };
 
-    const handleMouseEnter = () => setActive(true);
-    const handleMouseLeave = () => setActive(false);
-
-    const handleMouseOver = (e: MouseEvent) => {
-      const target = e.target as HTMLElement;
-
-      const interactiveElement = target.closest(
-        'a, button, input, textarea, select, [role="button"], [onclick], [data-clickable="true"], .cursor-pointer',
-      );
-
-      setClickable(!!interactiveElement);
-    };
-
-    const handleMouseOut = (e: MouseEvent) => {
-      const target = e.relatedTarget as HTMLElement | null;
-      if (!target) {
-        setClickable(false);
-        return;
-      }
-
-      const interactiveElement = target.closest(
-        'a, button, input, textarea, select, [role="button"], [onclick], [data-clickable="true"], .cursor-pointer',
-      );
-
-      setClickable(!!interactiveElement);
-    };
-
-    const handleDiscussionCarouselHover = (e: CustomEvent) => {
-      setIsInDiscussionCarousel(e.detail.isHovered);
-    };
-
-    window.addEventListener('mousemove', handleMouseMove);
-    window.addEventListener('mouseenter', handleMouseEnter);
-    window.addEventListener('mouseleave', handleMouseLeave);
-    window.addEventListener('mouseover', handleMouseOver);
-    window.addEventListener('mouseout', handleMouseOut);
-    window.addEventListener(
-      'discussionCarouselHover',
-      handleDiscussionCarouselHover as EventListener,
-    );
-
-    let animationFrameId: number;
-    const animateDelayedPosition = () => {
-      setDelayedPosition((prev) => ({
-        x: prev.x + (position.x - prev.x) * 0.1,
-        y: prev.y + (position.y - prev.y) * 0.1,
-      }));
-      animationFrameId = requestAnimationFrame(animateDelayedPosition);
-    };
-
-    animateDelayedPosition();
+    checkEnabled();
+    media.addEventListener('change', checkEnabled);
+    window.addEventListener('popstate', checkEnabled);
 
     return () => {
-      window.removeEventListener('mousemove', handleMouseMove);
-      window.removeEventListener('mouseenter', handleMouseEnter);
-      window.removeEventListener('mouseleave', handleMouseLeave);
-      window.removeEventListener('mouseover', handleMouseOver);
-      window.removeEventListener('mouseout', handleMouseOut);
-      window.removeEventListener(
-        'discussionCarouselHover',
-        handleDiscussionCarouselHover as EventListener,
-      );
-      cancelAnimationFrame(animationFrameId);
+      media.removeEventListener('change', checkEnabled);
+      window.removeEventListener('popstate', checkEnabled);
     };
-  }, [position]);
+  }, [reducedMotion]);
 
-  const getScale = () => {
-    if (isInDiscussionCarousel) return 1.5;
-    if (clickable) return 1;
-    if (active) return 0.6;
-    return 0.6;
-  };
+  useEffect(() => {
+    if (!enabled) return undefined;
 
-  const getCursorClassName = () => {
-    const baseClasses =
-      'fixed left-0 top-0 z-50 rounded-full transition-colors duration-200 ease-out pointer-events-none z-[9999]';
+    const handleMove = (e: PointerEvent) => {
+      mouseX.set(e.clientX);
+      mouseY.set(e.clientY);
+      setVisible(true);
 
-    if (isInDiscussionCarousel) {
-      return `${baseClasses} flex items-center justify-center size-24 animate-gradient-random bg-[var(--soft-light-gray)] bg-opacity-50 bg-gradient-to-r from-[var(--deep-navy-blue)] via-[var(--vibrant-sky-blue)] to-[var(--magenta-pink)] text-white`;
-    }
+      const target = e.target as HTMLElement | null;
+      const interactive = Boolean(
+        target?.closest('a, button, input, textarea, select, [role="button"], [role="tab"], .cursor-pointer')
+      );
+      setIsInteractive((prev) => (prev === interactive ? prev : interactive));
+    };
 
-    if (clickable) {
-      return `${baseClasses} size-16 bg-[var(--white)] mix-blend-difference`;
-    }
+    const handleLeave = () => setVisible(false);
 
-    if (active) {
-      return `${baseClasses} size-12 bg-[var(--white)] mix-blend-difference`;
-    }
+    window.addEventListener('pointermove', handleMove, { passive: true });
+    document.addEventListener('mouseleave', handleLeave);
 
-    return `${baseClasses} size-12 bg-[var(--soft-light-gray)] mix-blend-difference`;
-  };
+    return () => {
+      window.removeEventListener('pointermove', handleMove);
+      document.removeEventListener('mouseleave', handleLeave);
+    };
+  }, [enabled, mouseX, mouseY]);
+
+  if (!enabled) return null;
 
   return (
     <motion.div
-      className={getCursorClassName()}
+      aria-hidden="true"
+      style={{
+        x: smoothX,
+        y: smoothY,
+        translateX: '-50%',
+        translateY: '-50%',
+      }}
       animate={{
-        x: delayedPosition.x,
-        y: delayedPosition.y,
-        scale: getScale(),
+        opacity: visible ? 1 : 0,
+        scale: isInteractive ? 1.45 : 1,
       }}
-      transition={{
-        type: 'spring',
-        stiffness: 400,
-        damping: 20,
-      }}
-      style={{ transform: 'translate(-50%, -50%)' }}
+      transition={{ duration: 0.18, ease: 'easeOut' }}
+      className="pointer-events-none fixed top-0 left-0 z-[9990] hidden lg:flex items-center justify-center"
     >
-      {isInDiscussionCarousel && (
-        <span className="text-center text-sm font-bold leading-tight">
-          Let&apos;s get in touch
-        </span>
-      )}
+      <div
+        className={`size-9 rounded-full border transition-colors duration-200 flex items-center justify-center ${
+          isInteractive
+            ? 'border-[var(--vibrant-sky-blue)] bg-[var(--vibrant-sky-blue)]/10'
+            : 'border-[var(--pub-border-strong)] bg-transparent'
+        }`}
+      >
+        <span
+          className={`size-1.5 rounded-full transition-colors duration-200 ${
+            isInteractive ? 'bg-[var(--vibrant-sky-blue)]' : 'bg-[var(--black)]/60'
+          }`}
+        />
+      </div>
     </motion.div>
   );
 }

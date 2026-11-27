@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { IoCloseSharp } from 'react-icons/io5';
 import { useTranslation } from 'react-i18next';
 import ExpertiseSectionModalHeader from './ExpertiseSectionModalHeader';
-import { DynamicButton } from '../buttons/DynamicButton';
+import SignatureMark from '../SignatureMark';
 
 const FOCUSABLE_SELECTOR =
   'a[href], button:not([disabled]), textarea:not([disabled]), input:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])';
@@ -139,7 +139,7 @@ export default function Modal({
             aria-modal="true"
             aria-labelledby={titleId}
             tabIndex={-1}
-            className="relative w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden shadow-[0_32px_64px_-16px_rgba(0,0,0,0.5)] bg-[var(--white)] text-[var(--black)] rounded-3xl sm:rounded-[2.5rem] border border-[var(--light-gray)] cursor-default outline-none"
+            className="relative w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden shadow-[0_32px_64px_-16px_rgba(0,0,0,0.55)] bg-[var(--pub-surface)] text-[var(--black)] rounded-3xl sm:rounded-[2rem] border border-[var(--pub-border-strong)] cursor-default outline-none"
             onClick={(e) => e.stopPropagation()}
             variants={modalVariants}
             initial="hidden"
@@ -148,35 +148,39 @@ export default function Modal({
             transition={{ type: 'spring', stiffness: 320, damping: 28 }}
           >
             {/* Cabecera fija superior */}
-            <div className="shrink-0 flex items-start justify-between gap-4 p-6 sm:p-8 md:px-12 border-b border-[var(--light-gray)]">
-              <div className="min-w-0">
-                <span className="font-syne text-[var(--vibrant-sky-blue)] font-bold tracking-[0.3em] uppercase text-xs mb-2 block">
-                  {t('expertise.modal_eyebrow')}
-                </span>
-                <h2
-                  id={titleId}
-                  className="font-dm-sans text-2xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-[var(--black)] leading-tight"
-                >
-                  {title}
-                </h2>
+            <div className="shrink-0 flex items-start justify-between gap-4 p-5 sm:p-7 md:px-10 border-b border-[var(--pub-border)] bg-[var(--pub-bg)]/60">
+              <div className="flex items-start gap-3.5 min-w-0">
+                <SignatureMark size="sm" className="hidden sm:inline-flex mt-0.5" />
+                <div className="min-w-0">
+                  <span className="font-mono-tech text-[var(--vibrant-sky-blue)] font-semibold tracking-[0.25em] uppercase text-[11px] mb-1.5 block">
+                    {t('expertise.modal_eyebrow')}
+                  </span>
+                  <h2
+                    id={titleId}
+                    className="font-dm-sans text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight text-[var(--black)] leading-tight"
+                  >
+                    {title}
+                  </h2>
+                </div>
               </div>
-              <DynamicButton
-                style="BLACK"
-                name={t('common.close')}
-                icon={IoCloseSharp}
-                type="icon-only"
+              <button
+                type="button"
                 onClick={onClose}
-              />
+                aria-label={t('common.close')}
+                className="min-w-[44px] min-h-[44px] rounded-xl bg-[var(--pub-surface)] border border-[var(--pub-border)] hover:border-[var(--pub-border-strong)] text-[var(--black)] flex items-center justify-center transition-all cursor-pointer shrink-0"
+              >
+                <IoCloseSharp className="text-xl" />
+              </button>
             </div>
 
             {/* Cuerpo central scrollable */}
-            <div className="flex-1 min-h-0 overflow-y-auto p-6 sm:p-8 md:p-12 space-y-10">
-              <p className="font-inter text-base sm:text-xl text-[var(--dark-gray)] font-light leading-relaxed max-w-4xl">
+            <div className="flex-1 min-h-0 overflow-y-auto p-5 sm:p-8 md:p-10 space-y-8">
+              <p className="font-inter text-base sm:text-lg text-[var(--dark-gray)] font-normal leading-relaxed max-w-3xl">
                 {paragraph}
               </p>
 
               {knowledgeSection && (
-                <div className="pt-8 border-t border-[var(--light-gray)]">
+                <div className="pt-6 border-t border-[var(--pub-border)]">
                   <ExpertiseSectionModalHeader expertiseData={expertiseData} />
                 </div>
               )}

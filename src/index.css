@@ -1,5 +1,5 @@
 /* Fonts */
-@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Inter:wght@400;500;700&family=Syne:wght@400;500;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Inter:wght@400;500;700&family=JetBrains+Mono:wght@400;500;600;700&family=Syne:wght@500;600;700;800&display=swap');
 
 /* Tailwind Directives */
 @tailwind base;
@@ -38,9 +38,10 @@
   --color-info-light: #dbeafe;
 }
 
-.font-inter   { font-family: 'Inter', sans-serif; }
-.font-syne    { font-family: 'Syne', sans-serif; }
-.font-dm-sans { font-family: 'DM Sans', sans-serif; }
+.font-inter     { font-family: 'Inter', sans-serif; }
+.font-syne      { font-family: 'Syne', sans-serif; }
+.font-dm-sans   { font-family: 'DM Sans', sans-serif; }
+.font-mono-tech { font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace; }
 
 html, body {
   overflow-x: hidden;
@@ -220,25 +221,47 @@ textarea {
 
 /* ═══ Public Site Theme Scope (selector Claro / Oscuro) ═══ */
 .public-site {
-  background-color: var(--white);
+  --pub-bg: #f8fafc;
+  --pub-surface: #ffffff;
+  --pub-surface-elevated: #ffffff;
+  --pub-surface-muted: #f1f5f9;
+  --pub-border: rgba(15, 23, 42, 0.1);
+  --pub-border-strong: rgba(15, 23, 42, 0.2);
+  --pub-grid-line: rgba(15, 23, 42, 0.045);
+  --pub-grid-dot: rgba(15, 23, 42, 0.12);
+  --pub-shadow: 0 10px 30px -12px rgba(15, 23, 42, 0.08);
+  --pub-shadow-hover: 0 20px 45px -16px rgba(37, 99, 235, 0.14);
+
+  background-color: var(--pub-bg);
   color: var(--black);
   transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 .public-site.public-dark {
   color-scheme: dark;
-  --black: #f3f6fa;
-  --white: #0b0f14;
+  --black: #f1f5f9;
+  --white: #070b11;
   --deep-navy-blue: #1e3a8a;
-  --deep-navy-blue-light: #121922;
-  --vibrant-sky-blue: #6ea0ff;
-  --vibrant-sky-blue-light: #14233d;
+  --deep-navy-blue-light: #0d131d;
+  --vibrant-sky-blue: #60a5fa;
+  --vibrant-sky-blue-light: #10213a;
   --magenta-pink: #38bdf8;
-  --magenta-pink-light: #0c2433;
-  --soft-light-gray: #18222d;
-  --light-gray: #283542;
-  --gray: #7b8a9a;
-  --dark-gray: #a8b4c2;
+  --magenta-pink-light: #0a2233;
+  --soft-light-gray: #111926;
+  --light-gray: rgba(148, 163, 184, 0.18);
+  --gray: #64748b;
+  --dark-gray: #94a3b8;
+
+  --pub-bg: #070b11;
+  --pub-surface: #0d131d;
+  --pub-surface-elevated: #111926;
+  --pub-surface-muted: #162030;
+  --pub-border: rgba(148, 163, 184, 0.14);
+  --pub-border-strong: rgba(96, 165, 250, 0.36);
+  --pub-grid-line: rgba(148, 163, 184, 0.055);
+  --pub-grid-dot: rgba(148, 163, 184, 0.18);
+  --pub-shadow: 0 14px 36px -14px rgba(0, 0, 0, 0.55);
+  --pub-shadow-hover: 0 24px 54px -16px rgba(56, 189, 248, 0.16);
 }
 
 .public-site.public-light .glass {

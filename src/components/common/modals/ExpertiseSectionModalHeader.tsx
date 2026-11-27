@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import { ExpertiseSectionImage } from '@mocks/ExpertiseSectionMocks';
-import { IoMdArrowDropdown, IoMdArrowDropup } from 'react-icons/io';
+import { HiChevronDown } from 'react-icons/hi';
 
 interface ExpertiseSectionModalHeaderProps {
   expertiseData: {
@@ -16,58 +16,55 @@ export default function ExpertiseSectionModalHeader({
   const { t } = useTranslation();
   const [isExpanded, setIsExpanded] = useState(true);
 
-  const toggleExpand = () => {
-    setIsExpanded(!isExpanded);
-  };
-
   return (
-    <div className="w-full">
-      <div
-        role="button"
-        className="text-[var(--black)] border-b border-[var(--light-gray)] py-6 cursor-pointer flex justify-between items-center group/header hover:bg-[var(--soft-light-gray)]/30 px-4 -mx-4 transition-colors rounded-t-xl"
-        onClick={toggleExpand}
+    <div className="w-full rounded-2xl bg-[var(--pub-bg)] border border-[var(--pub-border)] overflow-hidden">
+      <button
+        type="button"
+        aria-expanded={isExpanded}
+        onClick={() => setIsExpanded((prev) => !prev)}
+        className="w-full px-5 py-4 flex justify-between items-center gap-3 text-left hover:bg-[var(--pub-surface-muted)]/60 transition-colors cursor-pointer min-h-[48px]"
       >
-        <h2 className="text-xl font-bold font-syne text-[var(--black)] tracking-tight">
-          {t('expertise.knowledge_title')}
-        </h2>
-        <div className="size-10 flex items-center justify-center rounded-full border border-[var(--light-gray)] group-hover/header:border-[var(--black)] transition-colors">
-          {isExpanded ? (
-            <IoMdArrowDropup className="size-6" />
-          ) : (
-            <IoMdArrowDropdown className="size-6" />
-          )}
+        <div className="flex items-center gap-2.5 min-w-0">
+          <span className="font-mono-tech text-[11px] font-semibold uppercase tracking-widest text-[var(--vibrant-sky-blue)]">
+            STACK // {expertiseData.images.length}
+          </span>
+          <h3 className="text-sm sm:text-base font-bold font-dm-sans text-[var(--black)] tracking-tight truncate">
+            {t('expertise.knowledge_title')}
+          </h3>
         </div>
-      </div>
+        <div className="size-9 flex items-center justify-center rounded-xl bg-[var(--pub-surface)] border border-[var(--pub-border)] shrink-0">
+          <HiChevronDown
+            className={`text-lg text-[var(--black)] transition-transform duration-300 ${
+              isExpanded ? 'rotate-180' : ''
+            }`}
+          />
+        </div>
+      </button>
 
-      <AnimatePresence initial={true}>
+      <AnimatePresence initial={false}>
         {isExpanded && (
           <motion.div
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: 'auto', opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-            className="overflow-hidden"
+            transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
+            className="overflow-hidden border-t border-[var(--pub-border)]"
           >
-            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-6 py-10 px-2">
+            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-3.5 p-4 sm:p-5">
               {expertiseData.images.map((image, index) => (
-                <motion.div
-                  key={index}
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ delay: index * 0.03 }}
-                  className="group flex flex-col items-center gap-3"
+                <div
+                  key={`${image.alt}-${index}`}
+                  className="group flex flex-col items-center gap-2 p-2.5 rounded-xl bg-[var(--pub-surface)] border border-[var(--pub-border)] hover:border-[var(--vibrant-sky-blue)] transition-all"
                 >
-                  <div className="relative size-16 sm:size-20 flex items-center justify-center rounded-2xl bg-[var(--soft-light-gray)] border border-transparent group-hover:border-[var(--vibrant-sky-blue)] group-hover:bg-[var(--white)] group-hover:shadow-xl group-hover:-translate-y-1 transition-all duration-300">
-                    <img 
-                      src={image.src} 
-                      alt={image.alt} 
-                      className="size-10 sm:size-12 object-contain filter grayscale group-hover:grayscale-0 transition-all duration-300" 
-                    />
-                  </div>
-                  <span className="font-syne text-[10px] sm:text-xs font-bold uppercase tracking-widest text-[var(--dark-gray)] group-hover:text-[var(--black)] text-center transition-colors">
-                    {image.alt}
+                  <img
+                    src={image.src}
+                    alt={image.alt}
+                    className="size-9 object-contain transition-transform duration-300 group-hover:scale-110"
+                  />
+                  <span className="font-mono-tech text-[10px] font-medium text-[var(--dark-gray)] group-hover:text-[var(--black)] text-center leading-tight truncate max-w-full">
+                    {image.alt.replace(/\s*logo$/i, '')}
                   </span>
-                </motion.div>
+                </div>
               ))}
             </div>
           </motion.div>

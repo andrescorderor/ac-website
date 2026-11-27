@@ -1,18 +1,21 @@
-import { useId, useRef } from 'react';
+import { useId, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { IoCloseSharp } from 'react-icons/io5';
-import { DynamicButton } from '../buttons/DynamicButton';
 import { FaCode, FaLinkedinIn, FaProjectDiagram } from 'react-icons/fa';
 import { IoLogoWhatsapp, IoMdMail } from 'react-icons/io';
-import { ExpertiseContactSection } from '@components/home/ExpertiseContactSection';
-import { GrDocumentPerformance } from 'react-icons/gr';
+import { HiOutlineCheckCircle, HiOutlineExclamationCircle } from 'react-icons/hi';
 import emailjs from 'emailjs-com';
 import { useForm } from 'react-hook-form';
-import { Bounce, toast, ToastContainer } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
 import { useTranslation } from 'react-i18next';
 import { useAccessibleModal } from './Modal';
+import SignatureMark from '../SignatureMark';
+
+export const CONTACT_MODAL_EVENT = 'ac_open_contact_modal';
+
+export function openContactModal() {
+  window.dispatchEvent(new CustomEvent(CONTACT_MODAL_EVENT));
+}
 
 interface ContactModalProps {
   isOpen: boolean;
@@ -31,11 +34,19 @@ const modalVariants = {
 };
 
 export default function ContactModal({ isOpen, onClose }: ContactModalProps) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const isSpanish = i18n.language?.startsWith('es');
   const titleId = useId();
   const panelRef = useRef<HTMLDivElement>(null);
+  const [sending, setSending] = useState(false);
+  const [submitState, setSubmitState] = useState<'idle' | 'success' | 'error'>('idle');
 
-  useAccessibleModal(isOpen, onClose, panelRef);
+  const handleClose = () => {
+    setSubmitState('idle');
+    onClose();
+  };
+
+  useAccessibleModal(isOpen, handleClose, panelRef);
 
   const {
     register,
@@ -55,44 +66,51 @@ export default function ContactModal({ isOpen, onClose }: ContactModalProps) {
       message: data?.message || '',
     };
 
-    emailjs.send(serviceId, templateId, emailData, userId).then(
-      () => {
+    setSending(true);
+    setSubmitState('idle');
+
+    emailjs
+      .send(serviceId, templateId, emailData, userId)
+      .then(() => {
         reset();
-        toast.success(t('contact.success_message'), {
-          position: 'top-center',
-          autoClose: 5000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-          draggable: true,
-          progress: undefined,
-          theme: 'light',
-          transition: Bounce,
-        });
-      },
-      () => {
-        toast.error(t('contact.error_message'), {
-          position: 'bottom-left',
-          autoClose: 5000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-          draggable: true,
-          progress: undefined,
-          theme: 'light',
-          transition: Bounce,
-        });
-      }
-    );
+        setSubmitState('success');
+      })
+      .catch(() => {
+        setSubmitState('error');
+      })
+      .finally(() => {
+        setSending(false);
+      });
   };
+
+  const disciplines = [
+    {
+      icon: FaCode,
+      code: 'DEV + AI',
+      title: t('expertise.sd_header_title'),
+      desc: t('expertise.sd_subtitle'),
+    },
+    {
+      icon: FaProjectDiagram,
+      code: 'PROCESS + PM',
+      title: t('expertise.pm_header_title'),
+      desc: t('expertise.pm_subtitle'),
+    },
+    {
+      icon: HiOutlineCheckCircle,
+      code: 'QA CONTROL',
+      title: t('expertise.qa_header_title'),
+      desc: t('expertise.qa_subtitle'),
+    },
+  ];
 
   return createPortal(
     <AnimatePresence>
       {isOpen && (
         <motion.div
-          className="fixed inset-0 z-[10000] flex items-center justify-center p-3 sm:p-6 bg-black/60 backdrop-blur-md cursor-pointer"
+          className="fixed inset-0 z-[10010] flex items-center justify-center p-3 sm:p-6 bg-black/65 backdrop-blur-md cursor-pointer"
           onClick={(e) => {
-            if (e.target === e.currentTarget) onClose();
+            if (e.target === e.currentTarget) handleClose();
           }}
           initial="hidden"
           animate="visible"
@@ -106,7 +124,7 @@ export default function ContactModal({ isOpen, onClose }: ContactModalProps) {
             aria-modal="true"
             aria-labelledby={titleId}
             tabIndex={-1}
-            className="relative flex flex-col w-full max-w-5xl max-h-[90vh] overflow-hidden shadow-2xl bg-[var(--white)] text-[var(--black)] rounded-3xl sm:rounded-[2.5rem] border border-[var(--light-gray)] cursor-default outline-none"
+            className="relative flex flex-col w-full max-w-5xl max-h-[90vh] overflow-hidden shadow-2xl bg-[var(--pub-surface)] text-[var(--black)] rounded-3xl sm:rounded-[2rem] border border-[var(--pub-border-strong)] cursor-default outline-none"
             onClick={(e) => e.stopPropagation()}
             variants={modalVariants}
             initial="hidden"
@@ -114,17 +132,13 @@ export default function ContactModal({ isOpen, onClose }: ContactModalProps) {
             exit="exit"
             transition={{ type: 'spring', stiffness: 320, damping: 28 }}
           >
-            {/* Cabecera fija superior (un único cierre semántico) */}
-            <div className="shrink-0 flex items-center justify-between gap-4 px-5 py-4 sm:px-8 sm:py-5 border-b border-[var(--light-gray)]">
+            {/* Cabecera fija superior */}
+            <div className="shrink-0 flex items-center justify-between gap-4 px-5 py-4 sm:px-8 sm:py-5 border-b border-[var(--pub-border)] bg-[var(--pub-bg)]/60">
               <div className="flex items-center gap-3.5 min-w-0">
-                <img
-                  src="/assets/ac-website-icon.svg"
-                  alt=""
-                  className="size-10 shrink-0"
-                />
+                <SignatureMark size="sm" />
                 <div className="min-w-0">
-                  <span className="font-syne text-[var(--vibrant-sky-blue)] font-bold tracking-[0.25em] uppercase text-[10px] block">
-                    Andrés Cordero
+                  <span className="font-mono-tech text-[var(--vibrant-sky-blue)] font-semibold tracking-[0.2em] uppercase text-[10px] block">
+                    {isSpanish ? 'CANAL DIRECTO // ANDRÉS CORDERO' : 'DIRECT CHANNEL // ANDRÉS CORDERO'}
                   </span>
                   <h2
                     id={titleId}
@@ -134,80 +148,95 @@ export default function ContactModal({ isOpen, onClose }: ContactModalProps) {
                   </h2>
                 </div>
               </div>
-              <DynamicButton
-                style="BLACK"
-                name={t('common.close')}
-                icon={IoCloseSharp}
-                type="icon-only"
-                onClick={onClose}
-              />
+
+              <button
+                type="button"
+                onClick={handleClose}
+                aria-label={t('common.close')}
+                className="min-w-[44px] min-h-[44px] rounded-xl bg-[var(--pub-surface)] border border-[var(--pub-border)] hover:border-[var(--pub-border-strong)] text-[var(--black)] flex items-center justify-center transition-all cursor-pointer shrink-0"
+              >
+                <IoCloseSharp className="text-xl" />
+              </button>
             </div>
 
             {/* Cuerpo central scrollable */}
             <div className="flex-1 min-h-0 overflow-y-auto p-5 sm:p-8 lg:p-10">
-              <ToastContainer />
-              <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 items-start">
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
                 {/* Columna de resumen y redes */}
-                <div className="lg:col-span-5 flex flex-col justify-between space-y-6 order-2 lg:order-1">
-                  <div className="space-y-2">
-                    <ExpertiseContactSection
-                      title={t('expertise.pm_header_title')}
-                      text={t('expertise.pm_subtitle')}
-                      icon={FaProjectDiagram}
-                    />
-                    <ExpertiseContactSection
-                      title={t('expertise.sd_header_title')}
-                      text={t('expertise.sd_subtitle')}
-                      icon={FaCode}
-                    />
-                    <ExpertiseContactSection
-                      title={t('expertise.qa_header_title')}
-                      text={t('expertise.qa_subtitle')}
-                      icon={GrDocumentPerformance}
-                    />
+                <div className="lg:col-span-5 flex flex-col justify-between space-y-5 order-2 lg:order-1">
+                  <div className="space-y-3">
+                    {disciplines.map((d) => (
+                      <div
+                        key={d.code}
+                        className="p-4 rounded-2xl bg-[var(--pub-bg)] border border-[var(--pub-border)] flex items-start gap-3.5"
+                      >
+                        <div className="size-10 rounded-xl bg-[var(--vibrant-sky-blue)]/12 border border-[var(--vibrant-sky-blue)]/25 flex items-center justify-center text-[var(--vibrant-sky-blue)] shrink-0">
+                          <d.icon className="text-base" />
+                        </div>
+                        <div className="min-w-0">
+                          <span className="font-mono-tech text-[10px] font-semibold uppercase tracking-widest text-[var(--vibrant-sky-blue)] block">
+                            {d.code}
+                          </span>
+                          <h3 className="font-dm-sans font-bold text-sm text-[var(--black)]">
+                            {d.title}
+                          </h3>
+                          <p className="font-inter text-xs text-[var(--dark-gray)] mt-0.5 leading-relaxed">
+                            {d.desc}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
                   </div>
 
-                  <div className="flex flex-wrap gap-3 pt-4 border-t border-[var(--light-gray)]">
-                    <DynamicButton
-                      style="WHITE"
-                      type="icon-only"
-                      icon={FaLinkedinIn}
-                      name="LinkedIn"
-                      onClick={() =>
-                        window.open('https://www.linkedin.com/in/andresmcorderor/', '_blank')
-                      }
-                    />
-                    <DynamicButton
-                      style="WHITE"
-                      type="icon-only"
-                      icon={IoMdMail}
-                      name="Email"
-                      onClick={() =>
-                        window.open('mailto:andresmcorderor@gmail.com', '_blank')
-                      }
-                    />
-                    <DynamicButton
-                      style="WHITE"
-                      type="icon-only"
-                      icon={IoLogoWhatsapp}
-                      name="WhatsApp"
-                      onClick={() =>
-                        window.open('https://wa.me/524777037913', '_blank')
-                      }
-                    />
+                  <div className="flex flex-wrap gap-2.5 pt-4 border-t border-[var(--pub-border)]">
+                    {[
+                      { icon: FaLinkedinIn, href: 'https://www.linkedin.com/in/andresmcorderor/', label: 'LinkedIn' },
+                      { icon: IoMdMail, href: 'mailto:andresmcorderor@gmail.com', label: 'Email' },
+                      { icon: IoLogoWhatsapp, href: 'https://wa.me/524777037913', label: 'WhatsApp' },
+                    ].map((s) => (
+                      <a
+                        key={s.label}
+                        href={s.href}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="inline-flex items-center gap-2 px-3.5 min-h-[44px] rounded-xl bg-[var(--pub-bg)] border border-[var(--pub-border)] hover:border-[var(--vibrant-sky-blue)] text-[var(--black)] font-mono-tech text-xs font-medium transition-all cursor-pointer"
+                      >
+                        <s.icon className="text-sm text-[var(--vibrant-sky-blue)]" />
+                        <span>{s.label}</span>
+                      </a>
+                    ))}
                   </div>
                 </div>
 
                 {/* Columna de formulario */}
-                <div className="lg:col-span-7 rounded-2xl sm:rounded-3xl bg-[var(--soft-light-gray)] border border-[var(--light-gray)] p-5 sm:p-7 order-1 lg:order-2">
-                  <p className="font-inter pb-5 text-sm sm:text-base font-light text-[var(--dark-gray)]">
-                    {t('contact.subtitle')}
-                  </p>
+                <div className="lg:col-span-7 rounded-2xl sm:rounded-3xl bg-[var(--pub-bg)] border border-[var(--pub-border)] p-5 sm:p-7 order-1 lg:order-2 space-y-4">
+                  <p className="font-inter text-sm text-[var(--dark-gray)]">{t('contact.subtitle')}</p>
+
+                  {submitState === 'success' && (
+                    <div
+                      role="status"
+                      className="p-3.5 rounded-xl bg-emerald-500/12 border border-emerald-500/30 text-emerald-700 dark:text-emerald-300 text-xs font-inter flex items-center gap-2.5"
+                    >
+                      <HiOutlineCheckCircle className="text-lg shrink-0 text-emerald-500" />
+                      <span>{t('contact.success_message')}</span>
+                    </div>
+                  )}
+
+                  {submitState === 'error' && (
+                    <div
+                      role="alert"
+                      className="p-3.5 rounded-xl bg-rose-500/12 border border-rose-500/30 text-rose-700 dark:text-rose-300 text-xs font-inter flex items-center gap-2.5"
+                    >
+                      <HiOutlineExclamationCircle className="text-lg shrink-0 text-rose-500" />
+                      <span>{t('contact.error_message')}</span>
+                    </div>
+                  )}
+
                   <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
                     <div>
                       <label
                         htmlFor="fullName"
-                        className="block font-syne text-[11px] font-bold uppercase tracking-widest text-[var(--dark-gray)] mb-1.5"
+                        className="block font-mono-tech text-[11px] font-semibold uppercase tracking-wider text-[var(--dark-gray)] mb-1.5"
                       >
                         {t('contact.name_placeholder')} *
                       </label>
@@ -215,13 +244,13 @@ export default function ContactModal({ isOpen, onClose }: ContactModalProps) {
                         id="fullName"
                         type="text"
                         placeholder={t('contact.name_placeholder')}
-                        className="font-inter w-full min-h-[48px] px-4 py-2.5 rounded-xl bg-[var(--white)] text-[var(--black)] border border-[var(--light-gray)] focus:border-[var(--vibrant-sky-blue)] focus:outline-none text-sm"
+                        className="font-inter w-full min-h-[48px] px-4 py-2.5 rounded-xl bg-[var(--pub-surface)] text-[var(--black)] border border-[var(--pub-border)] focus:border-[var(--vibrant-sky-blue)] focus:outline-none text-sm"
                         {...register('fullName', {
                           required: t('contact.error_required'),
                         })}
                       />
                       {errors.fullName && (
-                        <p role="alert" className="text-xs font-syne font-semibold mt-1.5 text-red-500">
+                        <p role="alert" className="text-xs font-mono-tech mt-1.5 text-rose-500">
                           {errors.fullName.message as React.ReactNode}
                         </p>
                       )}
@@ -230,7 +259,7 @@ export default function ContactModal({ isOpen, onClose }: ContactModalProps) {
                     <div>
                       <label
                         htmlFor="mailAddress"
-                        className="block font-syne text-[11px] font-bold uppercase tracking-widest text-[var(--dark-gray)] mb-1.5"
+                        className="block font-mono-tech text-[11px] font-semibold uppercase tracking-wider text-[var(--dark-gray)] mb-1.5"
                       >
                         {t('contact.email_placeholder')} *
                       </label>
@@ -238,7 +267,7 @@ export default function ContactModal({ isOpen, onClose }: ContactModalProps) {
                         id="mailAddress"
                         type="email"
                         placeholder={t('contact.email_placeholder')}
-                        className="font-inter w-full min-h-[48px] px-4 py-2.5 rounded-xl bg-[var(--white)] text-[var(--black)] border border-[var(--light-gray)] focus:border-[var(--vibrant-sky-blue)] focus:outline-none text-sm"
+                        className="font-inter w-full min-h-[48px] px-4 py-2.5 rounded-xl bg-[var(--pub-surface)] text-[var(--black)] border border-[var(--pub-border)] focus:border-[var(--vibrant-sky-blue)] focus:outline-none text-sm"
                         {...register('mailAddress', {
                           required: t('contact.error_email'),
                           pattern: {
@@ -248,7 +277,7 @@ export default function ContactModal({ isOpen, onClose }: ContactModalProps) {
                         })}
                       />
                       {errors.mailAddress && (
-                        <p role="alert" className="text-xs font-syne font-semibold mt-1.5 text-red-500">
+                        <p role="alert" className="text-xs font-mono-tech mt-1.5 text-rose-500">
                           {errors.mailAddress.message as React.ReactNode}
                         </p>
                       )}
@@ -257,14 +286,14 @@ export default function ContactModal({ isOpen, onClose }: ContactModalProps) {
                     <div>
                       <label
                         htmlFor="message"
-                        className="block font-syne text-[11px] font-bold uppercase tracking-widest text-[var(--dark-gray)] mb-1.5"
+                        className="block font-mono-tech text-[11px] font-semibold uppercase tracking-wider text-[var(--dark-gray)] mb-1.5"
                       >
                         {t('contact.project_label')}
                       </label>
                       <textarea
                         id="message"
                         placeholder={t('contact.project_placeholder')}
-                        className="font-inter w-full p-4 rounded-xl bg-[var(--white)] text-[var(--black)] border border-[var(--light-gray)] focus:border-[var(--vibrant-sky-blue)] focus:outline-none text-sm min-h-[140px] resize-y"
+                        className="font-inter w-full p-4 rounded-xl bg-[var(--pub-surface)] text-[var(--black)] border border-[var(--pub-border)] focus:border-[var(--vibrant-sky-blue)] focus:outline-none text-sm min-h-[140px] resize-y"
                         rows={5}
                         {...register('message')}
                       />
@@ -272,9 +301,10 @@ export default function ContactModal({ isOpen, onClose }: ContactModalProps) {
 
                     <button
                       type="submit"
-                      className="w-full min-h-[48px] animate-gradient-random font-syne inline-flex items-center justify-center rounded-2xl bg-gradient-to-r from-[var(--deep-navy-blue)] via-[var(--vibrant-sky-blue)] to-[var(--magenta-pink)] px-6 py-3.5 text-sm font-bold uppercase tracking-wider text-white shadow-md hover:opacity-95 active:scale-[0.99] transition-all cursor-pointer"
+                      disabled={sending}
+                      className="w-full min-h-[48px] font-syne inline-flex items-center justify-center rounded-xl bg-[var(--black)] text-[var(--white)] px-6 py-3.5 text-xs font-bold uppercase tracking-wider shadow-md hover:opacity-90 active:scale-[0.99] transition-all cursor-pointer disabled:opacity-50"
                     >
-                      {t('contact.submit')}
+                      {sending ? (isSpanish ? 'Enviando...' : 'Sending...') : t('contact.submit')}
                     </button>
                   </form>
                 </div>

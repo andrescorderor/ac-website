@@ -9,7 +9,6 @@ import ExpertiseSectionSDModalContent from '@components/common/modals/ExpertiseS
 import ExpertiseSectionQAModalContent from '@components/common/modals/ExpertiseSectionQAModalContent';
 
 interface HeroParagraph {
-  profilePicture: string;
   text: string;
 }
 
@@ -17,7 +16,8 @@ interface RolesCarouselParagraph {
   role: string;
 }
 
-interface ExpertiseCards {
+export interface ExpertiseCards {
+  id: 'pm' | 'sd' | 'qa';
   title: string;
   subtitle: string;
   paragraph: string;
@@ -29,24 +29,18 @@ interface ExpertiseCards {
 }
 
 export const heroParagraph: HeroParagraph = {
-  profilePicture: '/assets/Profile.png',
-  text: 'Experienced front-end developer and project manager specializing in innovative solutions, quality assurance, and team coordination.',
+  text: 'Strategic Software Engineer, AI Systems Builder, Process Architect & QA Lead turning complex ideas into resilient production software.',
 };
 
 export const rolesCarousel: RolesCarouselParagraph[] = [
-  {
-    role: 'Quality Assurance',
-  },
-  {
-    role: 'Project Management',
-  },
-  {
-    role: 'Software Development',
-  },
+  { role: 'Quality Assurance' },
+  { role: 'Project Management' },
+  { role: 'Software Development' },
 ];
 
 export const expertiseCards: ExpertiseCards[] = [
   {
+    id: 'pm',
     title: 'PROJECT MANAGEMENT',
     subtitle: 'Efficient planning and coordination to ensure project success.',
     paragraph:
@@ -59,6 +53,7 @@ export const expertiseCards: ExpertiseCards[] = [
     child: <ExpertiseSectionPMModalContent />,
   },
   {
+    id: 'sd',
     title: 'SOFTWARE DEVELOPMENT',
     subtitle: 'Custom software solutions tailored to your business needs.',
     paragraph:
@@ -71,6 +66,7 @@ export const expertiseCards: ExpertiseCards[] = [
     child: <ExpertiseSectionSDModalContent />,
   },
   {
+    id: 'qa',
     title: 'QUALITY ASSURANCE',
     subtitle: 'Comprehensive QA strategies to maintain software excellence.',
     paragraph:
