@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { AnimatePresence, motion, useReducedMotion, useScroll, useSpring, useTransform } from 'framer-motion';
 import { FaArrowDown, FaArrowRight, FaGithub, FaLinkedinIn } from 'react-icons/fa';
@@ -9,7 +10,9 @@ import {
   HiOutlineCodeBracket,
   HiOutlineSquares2X2,
   HiOutlineShieldCheck,
+  HiOutlineSparkles,
 } from 'react-icons/hi2';
+import { SERVICE_LANDINGS, TECHNICAL_GUIDES } from '@/data/seoContent';
 import ContactModal from '@components/common/modals/ContactModal';
 import Modal from '@components/common/modals/Modal';
 import SignatureMark from '@components/common/SignatureMark';
@@ -559,6 +562,29 @@ export default function PortfolioHome() {
               </div>
             </div>
           </div>
+
+          {/* Compact Service Pages + Interactive Tools Bar */}
+          <div className="mt-8 pt-6 border-t border-[var(--site-line)] grid grid-cols-1 lg:grid-cols-12 gap-4 items-center">
+            <div className="lg:col-span-8 flex flex-wrap gap-2">
+              {SERVICE_LANDINGS.map((srv) => (
+                <Link
+                  key={srv.slug}
+                  to={`/servicios/${srv.slug}`}
+                  className="inline-flex items-center gap-2 px-3.5 min-h-[44px] rounded-lg bg-[var(--site-canvas)] border border-[var(--site-line)] hover:border-[var(--site-accent)] text-xs font-mono-tech text-[var(--site-ink)] transition-colors cursor-pointer"
+                >
+                  <span className="text-[var(--site-accent)]">{srv.code.split(' ')[0]}</span>
+                  <span>{spanish ? srv.topic.es : srv.topic.en}</span>
+                  <HiOutlineArrowUpRight className="text-xs text-[var(--site-accent)]" />
+                </Link>
+              ))}
+            </div>
+            <div className="lg:col-span-4 flex lg:justify-end">
+              <Link to="/diagnostico" className="portfolio-button portfolio-button-primary w-full sm:w-auto">
+                <HiOutlineSparkles aria-hidden="true" />
+                <span>{spanish ? 'Diagnóstico & Estimador Gratis' : 'Free Diagnostic & Estimator'}</span>
+              </Link>
+            </div>
+          </div>
         </div>
       </section>
 
@@ -735,21 +761,61 @@ export default function PortfolioHome() {
       </section>
 
       <section className="portfolio-faq portfolio-section" id="faq" aria-label={t('portfolioRedesign.faqHeading')}>
-        <div className="portfolio-shell faq-layout">
-          <div>
-            <SectionHeading eyebrow={t('portfolioRedesign.faqEyebrow')} title={t('portfolioRedesign.faqHeading')} />
-            <p className="faq-intro">{t('portfolioRedesign.faqIntro')}</p>
+        <div className="portfolio-shell space-y-14">
+          {/* Compact Technical Guides Row */}
+          <div className="space-y-4">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <span className="portfolio-eyebrow !mb-0">
+                {spanish ? 'GUÍAS PRÁCTICAS & DIAGNÓSTICO' : 'PRACTICAL GUIDES & DIAGNOSTIC'}
+              </span>
+              <Link
+                to="/diagnostico"
+                className="inline-flex items-center gap-1.5 min-h-[44px] font-mono-tech text-xs text-[var(--site-accent)] hover:underline cursor-pointer"
+              >
+                <span>{spanish ? 'Ir a herramientas gratuitas' : 'Open free tools'}</span>
+                <HiOutlineArrowUpRight />
+              </Link>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {TECHNICAL_GUIDES.map((guide) => (
+                <Link
+                  key={guide.slug}
+                  to={`/guias/${guide.slug}`}
+                  className="p-5 rounded-xl bg-[var(--site-canvas)] border border-[var(--site-line)] hover:border-[var(--site-accent)] transition-all flex flex-col justify-between gap-3 cursor-pointer"
+                >
+                  <div className="space-y-1.5">
+                    <span className="font-mono-tech text-[10px] text-[var(--site-accent)] block">
+                      {guide.code} · {spanish ? guide.readTime.es : guide.readTime.en}
+                    </span>
+                    <h3 className="font-semibold text-sm text-[var(--site-ink)] leading-snug">
+                      {spanish ? guide.title.es : guide.title.en}
+                    </h3>
+                  </div>
+                  <span className="inline-flex items-center gap-1 font-mono-tech text-[11px] text-[var(--site-muted)]">
+                    {spanish ? 'Leer guía' : 'Read guide'}
+                    <HiOutlineArrowUpRight className="text-[var(--site-accent)]" />
+                  </span>
+                </Link>
+              ))}
+            </div>
           </div>
-          <div className="faq-list">
-            {[1, 2, 3].map((number) => (
-              <details className="faq-item" key={number}>
-                <summary>
-                  {t(`portfolioRedesign.faq${number}Question`)}
-                  <span aria-hidden="true">+</span>
-                </summary>
-                <p>{t(`portfolioRedesign.faq${number}Answer`)}</p>
-              </details>
-            ))}
+
+          <div className="faq-layout">
+            <div>
+              <SectionHeading eyebrow={t('portfolioRedesign.faqEyebrow')} title={t('portfolioRedesign.faqHeading')} />
+              <p className="faq-intro">{t('portfolioRedesign.faqIntro')}</p>
+            </div>
+            <div className="faq-list">
+              {[1, 2, 3].map((number) => (
+                <details className="faq-item" key={number}>
+                  <summary>
+                    {t(`portfolioRedesign.faq${number}Question`)}
+                    <span aria-hidden="true">+</span>
+                  </summary>
+                  <p>{t(`portfolioRedesign.faq${number}Answer`)}</p>
+                </details>
+              ))}
+            </div>
           </div>
         </div>
       </section>

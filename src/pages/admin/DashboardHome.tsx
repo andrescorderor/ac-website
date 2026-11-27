@@ -18,6 +18,7 @@ import {
   HiOutlineCheckCircle,
   HiOutlineBookOpen,
   HiOutlineSparkles,
+  HiOutlineBriefcase,
   HiX,
 } from 'react-icons/hi';
 import { FaDumbbell } from 'react-icons/fa';
@@ -47,6 +48,7 @@ export default function DashboardHome() {
     checklist: 0,
     recipes: 0,
     plants: 0,
+    leads: 0,
   });
   const [briefing, setBriefing] = useState<{
     plantsToWater: { id: string; nickname: string; emoji: string; daysDiff: number }[];
@@ -96,6 +98,7 @@ export default function DashboardHome() {
       case 'checklist': return 'Habits 📋';
       case 'recipe': return 'Recetas 🍽️';
       case 'plant': return 'Plantas 🪴';
+      case 'lead': return 'Prospectos 💼';
       default: return type;
     }
   };
@@ -204,7 +207,7 @@ export default function DashboardHome() {
       const cachedDashboard = await fetchWithCache('dashboard_stats_and_briefing_v2', async () => {
         const currentMonthYear = `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}`;
 
-        const [exp, tsk, vlt, dbt, shp, rem, bkm, nts, prj, chk, rec, plt, sal] = await Promise.all([
+        const [exp, tsk, vlt, dbt, shp, rem, bkm, nts, prj, chk, rec, plt, sal, lds] = await Promise.all([
           supabase.from('finance_expenses').select('amount, category, concept, date, created_at'),
           supabase.from('tasks').select('id, title, description, priority, due_date').eq('completed', false),
           supabase.from('vault_items').select('*', { count: 'exact', head: true }),
@@ -222,6 +225,7 @@ export default function DashboardHome() {
           supabase.from('recipes').select('*', { count: 'exact', head: true }),
           supabase.from('plants').select('id, nickname, species, emoji, watering_frequency_days, last_watered_at'),
           supabase.from('finance_salary').select('amount').eq('user_id', user.id).limit(1),
+          supabase.from('public_leads').select('*', { count: 'exact', head: true }).eq('status', 'nuevo'),
         ]);
 
         const computedStats = {
@@ -237,6 +241,7 @@ export default function DashboardHome() {
           checklist: chk.count || 0,
           recipes: rec.count || 0,
           plants: plt.data?.length || 0,
+          leads: lds.error ? 0 : lds.count || 0,
         };
 
         const today = new Date();
@@ -444,6 +449,14 @@ export default function DashboardHome() {
   };
 
   const cards = [
+    { 
+      label: 'Prospectos Nuevos', 
+      rawVal: stats.leads,
+      isMonetary: false,
+      icon: HiOutlineBriefcase, 
+      color: 'bg-emerald-600', 
+      path: '/admin/panel/leads' 
+    },
     { 
       label: 'Gastos Mensuales', 
       rawVal: `$${stats.expenses.toLocaleString()}`,

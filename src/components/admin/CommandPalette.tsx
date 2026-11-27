@@ -26,11 +26,12 @@ import {
   HiOutlineTrash,
   HiOutlineExternalLink,
   HiOutlineDatabase,
+  HiOutlineBriefcase,
 } from 'react-icons/hi';
 import { FaDumbbell } from 'react-icons/fa';
 import { useToast } from '@/components/common/ToastContext';
 
-type ResultType = 'note' | 'task' | 'debt' | 'vault' | 'shopping' | 'reminder' | 'project' | 'checklist' | 'recipe' | 'finance' | 'plant' | 'bookmark' | 'workout' | 'backup';
+type ResultType = 'note' | 'task' | 'debt' | 'vault' | 'shopping' | 'reminder' | 'project' | 'checklist' | 'recipe' | 'finance' | 'plant' | 'bookmark' | 'workout' | 'lead' | 'backup';
 
 type AiActionPayload = {
   type: 'create_task' | 'create_expense' | 'create_mandado' | 'create_note';
@@ -76,6 +77,7 @@ const TYPE_META: Record<ResultType, { label: string; icon: React.ElementType; co
   plant:     { label: 'Planta',        icon: HiOutlineSparkles,      color: 'bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300' },
   bookmark:  { label: 'Enlace',        icon: HiOutlineExternalLink,  color: 'bg-indigo-100 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300' },
   workout:   { label: 'Rutina Gym',    icon: FaDumbbell,             color: 'bg-rose-100 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300' },
+  lead:      { label: 'Prospecto CRM', icon: HiOutlineBriefcase,     color: 'bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300' },
   backup:    { label: 'Sistema',       icon: HiOutlineDatabase,      color: 'bg-sky-100 dark:bg-sky-950/60 text-sky-700 dark:text-sky-300' },
 };
 
@@ -313,8 +315,8 @@ export default function CommandPalette({ isOpen, onClose }: CommandPaletteProps)
     try {
       // Use cached lightweight snapshot of the user's data with 2-minute TTL
       // This loads all lightweight entries once and performs 100% accent-insensitive matching client-side
-      const resultsData = await fetchWithCache('search_global_dataset_v3', async () => {
-        const [nts, rem, tsk, dbt, vlt, shp, prj, chk, rec, fin, plt, bkmRes] = await Promise.all([
+      const resultsData = await fetchWithCache('search_global_dataset_v4', async () => {
+        const [nts, rem, tsk, dbt, vlt, shp, prj, chk, rec, fin, plt, bkmRes, ldsRes] = await Promise.all([
           supabase.from('notes').select('id, title, category, content, created_at').order('created_at', { ascending: false }).limit(200),
           supabase.from('reminders').select('*').order('created_at', { ascending: false }).limit(200),
           supabase.from('tasks').select('id, title, description, priority, completed, due_date, created_at').order('created_at', { ascending: false }).limit(200),
@@ -327,12 +329,13 @@ export default function CommandPalette({ isOpen, onClose }: CommandPaletteProps)
           supabase.from('finance_expenses').select('id, concept, amount, category, created_at').order('created_at', { ascending: false }).limit(200),
           supabase.from('plants').select('id, nickname, species, location, notes, emoji, created_at').order('created_at', { ascending: false }).limit(200),
           supabase.from('bookmarks').select('id, title, url, category, created_at').order('created_at', { ascending: false }).limit(200),
+          supabase.from('public_leads').select('id, full_name, email, company, service_interest, status, source, created_at').order('created_at', { ascending: false }).limit(150),
         ]);
 
-        return { nts, rem, tsk, dbt, vlt, shp, prj, chk, rec, fin, plt, bkmRes };
+        return { nts, rem, tsk, dbt, vlt, shp, prj, chk, rec, fin, plt, bkmRes, ldsRes };
       }, 2 * 60 * 1000);
 
-      const { nts, rem, tsk, dbt, vlt, shp, prj, chk, rec, fin, plt, bkmRes } = resultsData;
+      const { nts, rem, tsk, dbt, vlt, shp, prj, chk, rec, fin, plt, bkmRes, ldsRes } = resultsData;
 
       const items: SearchResult[] = [];
       const push = (r: SearchResult) => items.push(r);
@@ -477,6 +480,29 @@ export default function CommandPalette({ isOpen, onClose }: CommandPaletteProps)
         }
       });
 
+      ldsRes?.data?.forEach((l: any) => {
+        const match =
+          !termNorm ||
+          normalize(l.full_name).includes(termNorm) ||
+          normalize(l.email).includes(termNorm) ||
+          normalize(l.company).includes(termNorm) ||
+          normalize(l.service_interest).includes(termNorm) ||
+          normalize(l.status).includes(termNorm);
+        if (match) {
+          push({
+            id: l.id,
+            type: 'lead',
+            title: l.full_name,
+            subtitle: `${l.status} · ${l.service_interest}${l.company ? ` · ${l.company}` : ''}`,
+            path: '/admin/panel/leads',
+            icon: TYPE_META.lead.icon,
+            categoryLabel: TYPE_META.lead.label,
+            badgeColor: TYPE_META.lead.color,
+            rawTitle: l.full_name,
+          });
+        }
+      });
+
       // Workout Routines (stored in notes with category Fitness_Routine_Data:)
       nts.data?.filter(n => n.category?.startsWith('Fitness_Routine_Data:')).forEach(w => {
         let routineSub = 'Rutina de Entrenamiento Gym';
@@ -506,6 +532,7 @@ export default function CommandPalette({ isOpen, onClose }: CommandPaletteProps)
         { id: 'sys_mandado_scanner', title: 'Escáner de Mandado con Cámara', subtitle: 'Analiza fotos de tickets o lista para completar o agregar mandado', path: '/admin/panel/compras?scan=1', keywords: ['escaner', 'ticket', 'foto', 'camara', 'mandado', 'compras'] },
         { id: 'sys_divisor', title: 'Divisor de Cuentas Grupales', subtitle: 'Cálculo por personas/grupos y envío por WhatsApp', path: '/admin/panel/divisor', keywords: ['divisor', 'cuentas', 'dividir', 'grupos', 'whatsapp'] },
         { id: 'sys_prompts', title: 'Prompts & Variables', subtitle: 'Plantillas dinámicas {{variable}} listas para copiar', path: '/admin/panel/prompts', keywords: ['prompts', 'plantillas', 'variables'] },
+        { id: 'sys_leads', title: 'Prospectos CRM (Leads Públicos)', subtitle: 'Seguimiento de clientes llegados desde la web, diagnóstico y asistente', path: '/admin/panel/leads', keywords: ['leads', 'prospectos', 'crm', 'clientes', 'diagnostico', 'ventas'] },
         { id: 'sys_portafolio', title: 'Mini-CMS del Portafolio', subtitle: 'Editar Hero y proyectos de la web pública', path: '/admin/panel/portafolio', keywords: ['portafolio', 'cms', 'hero', 'publico'] },
         { id: 'sys_papelera', title: 'Papelera de Reciclaje (30 días)', subtitle: 'Recuperar elementos eliminados recientemente', path: '/admin/panel/papelera', keywords: ['papelera', 'recuperar', 'eliminados', 'basura'] },
         { id: 'system_backup_module', title: 'Respaldo & Recuperación de Base de Datos', subtitle: 'Centro de exportación total (15 tablas), descarga JSON/CSV y restauración', path: '/admin/panel/respaldo', keywords: ['respaldo', 'backup', 'recuperacion', 'restaurar', 'exportar', 'base de datos'] },
@@ -567,8 +594,8 @@ export default function CommandPalette({ isOpen, onClose }: CommandPaletteProps)
 
     try {
       // Fetch database snapshot for context (vault secret content is never requested or transmitted)
-      const aiContextData = await fetchWithCache('ai_db_snapshot_v3', async () => {
-        const [exp, tsk, dbt, vlt, shp, rem, nts, prj, chk, rec, plt, bkm, sal] = await Promise.all([
+      const aiContextData = await fetchWithCache('ai_db_snapshot_v4', async () => {
+        const [exp, tsk, dbt, vlt, shp, rem, nts, prj, chk, rec, plt, bkm, sal, lds] = await Promise.all([
           supabase.from('finance_expenses').select('amount, category, concept, created_at').order('created_at', { ascending: false }).limit(25),
           supabase.from('tasks').select('title, description, priority, completed, due_date').order('created_at', { ascending: false }).limit(25),
           supabase.from('debts').select('*').order('created_at', { ascending: false }).limit(40),
@@ -582,11 +609,12 @@ export default function CommandPalette({ isOpen, onClose }: CommandPaletteProps)
           supabase.from('plants').select('nickname, species, location, watering_frequency_days, last_watered_at').limit(25),
           supabase.from('bookmarks').select('title, url, category').limit(25),
           supabase.from('finance_salary').select('amount').limit(1),
+          supabase.from('public_leads').select('full_name, company, service_interest, status, source, created_at').order('created_at', { ascending: false }).limit(20),
         ]);
-        return { exp, tsk, dbt, vlt, shp, rem, nts, prj, chk, rec, plt, bkm, sal };
+        return { exp, tsk, dbt, vlt, shp, rem, nts, prj, chk, rec, plt, bkm, sal, lds };
       }, 3 * 60 * 1000);
 
-      const { exp, tsk, dbt, vlt, shp, rem, nts, prj, chk, rec, plt, bkm, sal } = aiContextData;
+      const { exp, tsk, dbt, vlt, shp, rem, nts, prj, chk, rec, plt, bkm, sal, lds } = aiContextData;
 
       const salaryAmount = sal.data?.[0]?.amount || 0;
 
@@ -653,8 +681,11 @@ ${nts.data?.filter(n => n.category?.startsWith('Fitness_Routine_Data:')).map(w =
 🔗 ENLACES / MARCADORES:
 ${bkm.data?.map(b => `- ${b.title} [Categoría: ${b.category || 'General'}]: ${b.url}`).join('\n') || 'Ninguno'}
 
+💼 PROSPECTOS CRM (LEADS WEB):
+${lds?.data?.map((l: any) => `- [${l.status}] ${l.full_name}${l.company ? ` (${l.company})` : ''} — ${l.service_interest} (Origen: ${l.source})`).join('\n') || 'Ninguno'}
+
 💾 MÓDULO DE RESPALDO Y RECUPERACIÓN:
-- El panel cuenta con un módulo dedicado en /admin/panel/respaldo que cubre las 15 tablas completas de la base de datos (con exportación JSON/CSV y motor de restauración / importación).
+- El panel cuenta con un módulo dedicado en /admin/panel/respaldo que cubre las 16 tablas completas de la base de datos (con exportación JSON/CSV y motor de restauración / importación).
 `.trim();
 
       const userPromptBody = `DATOS ACTUALES DEL PANEL:\n${formattedContext}\n\nPREGUNTA DE ANDRÉS: "${promptText}"`;

@@ -41,7 +41,8 @@ import {
   HiOutlineExternalLink,
   HiOutlineCalculator,
   HiOutlineTemplate,
-  HiOutlineGlobe
+  HiOutlineGlobe,
+  HiOutlineBriefcase
 } from 'react-icons/hi';
 import { FaDumbbell } from 'react-icons/fa';
 
@@ -76,6 +77,7 @@ const menuGroups = [
       { icon: HiOutlineLockClosed, label: 'Bóveda', path: '/admin/panel/vault' },
       { icon: HiOutlineCalendar, label: 'Fechas', path: '/admin/panel/recordatorios' },
       { icon: FaDumbbell, label: 'Gym & Rutinas', path: '/admin/panel/entrenamiento' },
+      { icon: HiOutlineBriefcase, label: 'Prospectos CRM', path: '/admin/panel/leads' },
       { icon: HiOutlineGlobe, label: 'Portafolio CMS', path: '/admin/panel/portafolio' },
     ],
   },
@@ -160,6 +162,7 @@ function DashboardLayoutContent() {
     '/admin/panel/prompts': 'Prompts & Variables • Panel Privado',
     '/admin/panel/divisor': 'Divisor de Cuentas • Panel Privado',
     '/admin/panel/portafolio': 'Mini-CMS Portafolio • Panel Privado',
+    '/admin/panel/leads': 'Prospectos CRM • Panel Privado',
     '/admin/panel/papelera': 'Papelera de Reciclaje • Panel Privado',
   };
 
@@ -334,7 +337,7 @@ function DashboardLayoutContent() {
 
           <div className="text-center select-none pt-1">
             <span className="font-syne text-[10px] font-bold tracking-widest text-gray-400 dark:text-gray-500 block">
-              VERSIÓN v9.2.0
+              VERSIÓN v10.0.0
             </span>
           </div>
         </div>
@@ -499,7 +502,7 @@ function DashboardLayoutContent() {
 
           <div className="text-center select-none pt-2">
             <span className="font-syne text-[10px] font-bold tracking-widest text-gray-400 dark:text-gray-500 block">
-              VERSIÓN v9.2.0
+              VERSIÓN v10.0.0
             </span>
           </div>
         </div>

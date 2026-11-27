@@ -22,6 +22,7 @@ import {
   HiOutlineBookOpen,
   HiOutlineSparkles,
   HiOutlineBookmark,
+  HiOutlineBriefcase,
   HiX,
 } from 'react-icons/hi';
 import { useToast } from '@/components/common/ToastContext';
@@ -44,6 +45,7 @@ const SYSTEM_TABLES = [
   { id: 'recipes', label: 'Recetario Fitness', icon: HiOutlineBookOpen, color: 'text-orange-500 bg-orange-50 dark:bg-orange-950/40 border-orange-200 dark:border-orange-800/40' },
   { id: 'plants', label: 'Mis Plantas y Riegos', icon: HiOutlineSparkles, color: 'text-emerald-600 bg-emerald-50 dark:bg-emerald-950/40 border-emerald-300 dark:border-emerald-800/60' },
   { id: 'user_pinned_items', label: 'Elementos Fijados (Pins)', icon: HiOutlineBookmark, color: 'text-amber-600 bg-amber-50 dark:bg-amber-950/40 border-amber-300 dark:border-amber-800/60' },
+  { id: 'public_leads', label: 'Prospectos CRM (Leads)', icon: HiOutlineBriefcase, color: 'text-emerald-600 bg-emerald-50 dark:bg-emerald-950/40 border-emerald-300 dark:border-emerald-800/60' },
 ] as const;
 
 type SystemTableId = (typeof SYSTEM_TABLES)[number]['id'];

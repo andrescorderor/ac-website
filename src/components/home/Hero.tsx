@@ -32,7 +32,9 @@ export default function Hero() {
       return cmsOverride.heroPhrases;
     }
     const fromI18n = t('hero.phrases', { returnObjects: true }) as unknown;
-    return Array.isArray(fromI18n) && fromI18n.length > 0 ? (fromI18n as string[]) : [''];
+    return Array.isArray(fromI18n) && fromI18n.length > 0
+      ? (fromI18n as string[])
+      : [''];
   }, [t, cmsOverride]);
 
   useEffect(() => {
@@ -69,7 +71,7 @@ export default function Hero() {
     () => () => {
       if (rafRef.current !== null) cancelAnimationFrame(rafRef.current);
     },
-    []
+    [],
   );
 
   return (

@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {
   HiOutlineMoon,
@@ -16,38 +17,55 @@ interface HeaderProps {
 
 export default function Header({ isDark = false, onToggleTheme }: HeaderProps) {
   const { i18n } = useTranslation();
+  const location = useLocation();
+  const navigate = useNavigate();
   const [menuOpen, setMenuOpen] = useState(false);
   const spanish = i18n.language?.startsWith('es') ?? true;
+
   const links = spanish
     ? [
-        { href: '#capabilities', label: 'Capacidades' },
-        { href: '#experience', label: 'Experiencia' },
-        { href: '#projects', label: 'Proyectos' },
-        { href: '#credentials', label: 'Credenciales' },
+        { to: '/#capabilities', label: 'Capacidades' },
+        { to: '/#projects', label: 'Proyectos' },
+        { to: '/diagnostico', label: 'Diagnóstico' },
+        { to: '/#credentials', label: 'Credenciales' },
       ]
     : [
-        { href: '#capabilities', label: 'Capabilities' },
-        { href: '#experience', label: 'Experience' },
-        { href: '#projects', label: 'Work' },
-        { href: '#credentials', label: 'Credentials' },
+        { to: '/#capabilities', label: 'Capabilities' },
+        { to: '/#projects', label: 'Work' },
+        { to: '/diagnostico', label: 'Diagnostic' },
+        { to: '/#credentials', label: 'Credentials' },
       ];
+
   const closeMenu = () => setMenuOpen(false);
+
+  const handleNavClick = (e: React.MouseEvent<HTMLAnchorElement>, target: string) => {
+    closeMenu();
+    if (target.startsWith('/#')) {
+      e.preventDefault();
+      const id = target.slice(2);
+      if (location.pathname === '/') {
+        document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
+      } else {
+        navigate(`/#${id}`);
+      }
+    }
+  };
 
   return (
     <header className="portfolio-nav-wrap">
       <nav className="portfolio-nav" aria-label={spanish ? 'Navegación principal' : 'Main navigation'}>
-        <a className="portfolio-brand" href="#top" onClick={closeMenu} aria-label="Andrés Cordero — home">
+        <Link className="portfolio-brand" to="/" onClick={closeMenu} aria-label="Andrés Cordero — home">
           <SignatureMark size="sm" />
           <span className="brand-label">
             ANDRÉS CORDERO<small>PRODUCT / ENGINEERING</small>
           </span>
-        </a>
+        </Link>
         <div className="portfolio-nav-links">
           {links.map((link, index) => (
-            <a key={link.href} href={link.href}>
+            <Link key={link.to} to={link.to} onClick={(e) => handleNavClick(e, link.to)}>
               <small>0{index + 1}</small>
               {link.label}
-            </a>
+            </Link>
           ))}
         </div>
         <div className="portfolio-nav-controls">
@@ -77,10 +95,10 @@ export default function Header({ isDark = false, onToggleTheme }: HeaderProps) {
               {isDark ? <HiOutlineSun aria-hidden="true" /> : <HiOutlineMoon aria-hidden="true" />}
             </button>
           )}
-          <a className="nav-contact" href="#contact" onClick={closeMenu}>
+          <Link className="nav-contact" to="/#contact" onClick={(e) => handleNavClick(e, '/#contact')}>
             {spanish ? 'Contacto' : 'Contact'}
             <HiOutlineArrowUpRight aria-hidden="true" />
-          </a>
+          </Link>
           <button
             className="nav-menu-toggle"
             type="button"
@@ -106,11 +124,16 @@ export default function Header({ isDark = false, onToggleTheme }: HeaderProps) {
           {spanish ? 'NAVEGACIÓN' : 'NAVIGATION'} / 0{links.length}
         </span>
         {links.map((link, index) => (
-          <a key={link.href} href={link.href} tabIndex={menuOpen ? 0 : -1} onClick={closeMenu}>
+          <Link
+            key={link.to}
+            to={link.to}
+            tabIndex={menuOpen ? 0 : -1}
+            onClick={(e) => handleNavClick(e, link.to)}
+          >
             <span>0{index + 1}</span>
             {link.label}
             <HiOutlineArrowUpRight />
-          </a>
+          </Link>
         ))}
         <div className="mobile-nav-footer">
           <SignatureMark size="sm" />

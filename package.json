@@ -1,14 +1,14 @@
 {
   "name": "ac-website",
   "private": true,
-  "version": "9.2.0",
+  "version": "10.0.0",
   "type": "module",
   "engines": {
     "node": ">=20.0.0"
   },
   "scripts": {
     "dev": "vite",
-    "build": "tsc -b && vite build",
+    "build": "tsc -b && vite build && node scripts/prerender-seo.mjs",
     "lint": "eslint 'src/**/*.{js,ts,tsx}' --quiet",
     "lint:fix": "eslint --fix src --report-unused-disable-directives",
     "format": "prettier --write 'src/**/*.{js,ts,tsx,css,md}'",

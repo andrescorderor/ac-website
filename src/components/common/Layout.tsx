@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
-import { Outlet } from 'react-router-dom';
+import { Outlet, useLocation } from 'react-router-dom';
 
 import Footer from './Footer';
 import Header from './Header';
+import ScopeAssistantWidget from './ScopeAssistantWidget';
 
 const PUBLIC_THEME_KEY = 'ac_public_theme';
 
@@ -18,6 +19,7 @@ function getInitialPublicTheme(): boolean {
 
 export default function Layout() {
   const [isDark, setIsDark] = useState<boolean>(getInitialPublicTheme);
+  const { pathname, hash } = useLocation();
 
   useEffect(() => {
     try {
@@ -35,6 +37,17 @@ export default function Layout() {
     };
   }, [isDark]);
 
+  useEffect(() => {
+    if (hash) {
+      const id = hash.replace('#', '');
+      window.setTimeout(() => {
+        document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
+      }, 60);
+    } else {
+      window.scrollTo({ top: 0 });
+    }
+  }, [pathname, hash]);
+
   return (
     <div
       className={`public-site ${
@@ -46,6 +59,7 @@ export default function Layout() {
         <Outlet />
       </main>
       <Footer />
+      <ScopeAssistantWidget />
     </div>
   );
 }

@@ -1,7 +1,7 @@
 <div align="center">
   <img src="public/assets/ac-website-icon.svg" alt="Logo" width="100" />
   
-  # Andrés Cordero - Professional Portfolio & Personal Panel PWA (v9.2.0) 🔍✨
+  # Andrés Cordero - Professional Portfolio & Personal Panel PWA (v10.0.0) 🔍✨
   
   **Welcome to my personal ecosystem: a professional portfolio and a custom productivity hub.**  
   Built with UX/UI best practices, premium design, and a focus on mobile-first efficiency.
@@ -16,11 +16,16 @@
 
 ---
 
-## 🚀 Overview (Version 9.2.0)
+## 🚀 Overview (Version 10.0.0)
 
 This repository hosts a dual-purpose platform:
-1. **Professional Portfolio:** An interactive technical CV & engineering showcase highlighting software architecture, applied AI systems, process design/PM, and QA leadership (`SignatureMark`, `PipelineVisualizer`, `PortfolioHome`, zero personal photos, full ES/EN & Light/Dark parity).
-2. **Personal Panel PWA (v9.2.0):** An executive personal operating system featuring:
+1. **Professional Portfolio & Organic Acquisition Engine:** An interactive technical CV & automated B2B lead-generation hub featuring programmatic SEO service/location pages, technical guides, static HTML prerendering, interactive diagnostic/estimator/QA tools, a zero-cost guided scope assistant, and IndexNow auto-indexing.
+2. **Personal Panel PWA (v10.0.0):** An executive personal operating system featuring:
+   * **Motor Orgánico y Automatizado de Captación de Clientes + Mini-CRM (`v10.0.0`):**
+     * **Atracción Orgánica y Pre-renderizado Estático (`ServiceLandingPage.tsx`, `GuidePage.tsx`, `scripts/prerender-seo.mjs`, `.github/workflows/indexnow.yml`):** 4 páginas SEO dedicadas (`/servicios/desarrollo-software-ia`, `/servicios/digitalizacion-procesos`, `/servicios/pruebas-qa`, `/servicios/leon-guanajuato`), 3 guías técnicas evergreen (`/guias/*`) con `Article`/`Service` JSON-LD, snapshots HTML estáticos generados en cada build y auto-indexación **IndexNow** gratuita al desplegar a `production`.
+     * **Herramientas Interactivas de Calificación (`DiagnosticHubPage.tsx` — `/diagnostico`):** Diagnóstico de Madurez Digital/Procesos (score 0–100 + ahorro estimado en horas), Estimador de Alcance y Fases (roadmap visual) y Checklist de Preparación QA — conectados a captura automática de prospectos y WhatsApp prellenado.
+     * **Asistente Guiado de Alcance (`ScopeAssistantWidget.tsx`):** Widget flotante sin costo de API en el sitio público que perfila la necesidad en 3 pasos y enlaza al diagnóstico, envío directo de lead o WhatsApp.
+     * **Mini-CRM de Prospectos en Panel Privado (`/admin/panel/leads`, `Leads.tsx`, `src/lib/leads.ts`, `supabase/migrations/20261127_create_public_leads.sql`):** Tabla `public_leads` con RLS estricto (`anon` solo `INSERT`; `authenticated` CRUD completo), aviso automático vía EmailJS, notas de seguimiento, cambio de estatus, Undo, cobertura total en `CommandPalette.tsx` y `Respaldo.tsx`.
    * **Optimización Visual y UX Escaneable del Portafolio Público (`v9.2.0`):**
      * **Paleta Editorial de Ingeniería & Menos Texto (`index.css`, `portfolio-home.css`):** Sistema visual cálido de alto contraste (`#f4f4ef` / `#216d59` en claro y `#101614` / `#8bd3b4` en oscuro) con tipografía `Space Grotesk` + `DM Mono` + `DM Sans`, descripciones truncadas a 2 líneas para lectura ágil y modales homologados (`.portfolio-dialog`).
      * **Hero `De la idea a producción` + `AC / SYSTEM MAP` (`PortfolioHome.tsx`, `PipelineVisualizer.tsx`):** Mapa interactivo de 5 nodos conectados por haces SVG animados, disponibilidad y alcance visibles (*León, Guanajuato · Todo México · ES / EN*) y accesos directos de contacto, WhatsApp y CV.

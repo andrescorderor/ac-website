@@ -4,18 +4,29 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { IoCloseSharp } from 'react-icons/io5';
 import { FaCode, FaLinkedinIn, FaProjectDiagram } from 'react-icons/fa';
 import { IoLogoWhatsapp, IoMdMail } from 'react-icons/io';
-import { HiOutlineCheckCircle, HiOutlineExclamationCircle, HiOutlineLocationMarker } from 'react-icons/hi';
-import emailjs from 'emailjs-com';
+import {
+  HiOutlineCheckCircle,
+  HiOutlineExclamationCircle,
+  HiOutlineLocationMarker,
+} from 'react-icons/hi';
 import { useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { useAccessibleModal } from './Modal';
 import SignatureMark from '../SignatureMark';
+import { submitPublicLead } from '@/lib/leads';
 
 export const CONTACT_MODAL_EVENT = 'ac_open_contact_modal';
 
 export function openContactModal(presetTopic?: unknown) {
-  const topic = typeof presetTopic === 'string' && presetTopic.trim() ? presetTopic.trim() : undefined;
-  window.dispatchEvent(new CustomEvent<{ topic?: string }>(CONTACT_MODAL_EVENT, { detail: { topic } }));
+  const topic =
+    typeof presetTopic === 'string' && presetTopic.trim()
+      ? presetTopic.trim()
+      : undefined;
+  window.dispatchEvent(
+    new CustomEvent<{ topic?: string }>(CONTACT_MODAL_EVENT, {
+      detail: { topic },
+    }),
+  );
 }
 
 interface ContactModalProps {
@@ -35,13 +46,19 @@ const modalVariants = {
   exit: { opacity: 0, y: 16, scale: 0.96 },
 };
 
-export default function ContactModal({ isOpen, onClose, initialTopic }: ContactModalProps) {
+export default function ContactModal({
+  isOpen,
+  onClose,
+  initialTopic,
+}: ContactModalProps) {
   const { t, i18n } = useTranslation();
   const isSpanish = i18n.language?.startsWith('es');
   const titleId = useId();
   const panelRef = useRef<HTMLDivElement>(null);
   const [sending, setSending] = useState(false);
-  const [submitState, setSubmitState] = useState<'idle' | 'success' | 'error'>('idle');
+  const [submitState, setSubmitState] = useState<'idle' | 'success' | 'error'>(
+    'idle',
+  );
   const [selectedTopic, setSelectedTopic] = useState<string>('');
 
   const topicOptions = useMemo(
@@ -59,7 +76,7 @@ export default function ContactModal({ isOpen, onClose, initialTopic }: ContactM
             'Software Testing & QA',
             'Full Engineering Advisory',
           ],
-    [isSpanish]
+    [isSpanish],
   );
 
   useEffect(() => {
@@ -85,35 +102,34 @@ export default function ContactModal({ isOpen, onClose, initialTopic }: ContactM
     reset,
   } = useForm();
 
-  const onSubmit = (data: Record<string, unknown> | undefined) => {
-    const serviceId = 'service_4tnvqx8';
-    const templateId = 'template_jsty4d9';
-    const userId = 'UFG_EnlAJMQC_VCCO';
-
-    const rawMessage = typeof data?.message === 'string' ? data.message.trim() : '';
-    const topicPrefix = selectedTopic ? `[Interés: ${selectedTopic}]\n\n` : '';
-
-    const emailData = {
-      fullName: data?.fullName || '',
-      mailAddress: data?.mailAddress || '',
-      message: `${topicPrefix}${rawMessage}`,
-    };
+  const onSubmit = async (data: Record<string, unknown> | undefined) => {
+    const rawMessage =
+      typeof data?.message === 'string' ? data.message.trim() : '';
+    const fullName = typeof data?.fullName === 'string' ? data.fullName : '';
+    const email = typeof data?.mailAddress === 'string' ? data.mailAddress : '';
 
     setSending(true);
     setSubmitState('idle');
 
-    emailjs
-      .send(serviceId, templateId, emailData, userId)
-      .then(() => {
+    try {
+      const res = await submitPublicLead({
+        fullName,
+        email,
+        serviceInterest: selectedTopic || 'Consulta General',
+        source: 'contact_modal',
+        message: rawMessage,
+      });
+      if (res.savedToSupabase || res.emailSent) {
         reset();
         setSubmitState('success');
-      })
-      .catch(() => {
+      } else {
         setSubmitState('error');
-      })
-      .finally(() => {
-        setSending(false);
-      });
+      }
+    } catch {
+      setSubmitState('error');
+    } finally {
+      setSending(false);
+    }
   };
 
   const disciplines = [
@@ -138,7 +154,11 @@ export default function ContactModal({ isOpen, onClose, initialTopic }: ContactM
   ];
 
   const whatsappHref = useMemo(() => {
-    const topic = selectedTopic || (isSpanish ? 'desarrollo de software / procesos / QA' : 'software engineering / processes / QA');
+    const topic =
+      selectedTopic ||
+      (isSpanish
+        ? 'desarrollo de software / procesos / QA'
+        : 'software engineering / processes / QA');
     const text = isSpanish
       ? `Hola Andrés, me interesa conversar sobre: ${topic}.`
       : `Hi Andrés, I would like to discuss: ${topic}.`;
@@ -255,13 +275,25 @@ export default function ContactModal({ isOpen, onClose, initialTopic }: ContactM
                       className="w-full min-h-[48px] px-4 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-syne text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-2 transition-all cursor-pointer shadow-sm"
                     >
                       <IoLogoWhatsapp className="text-lg" />
-                      <span>{isSpanish ? 'Escribir por WhatsApp Directo' : 'Message on WhatsApp'}</span>
+                      <span>
+                        {isSpanish
+                          ? 'Escribir por WhatsApp Directo'
+                          : 'Message on WhatsApp'}
+                      </span>
                     </a>
 
                     <div className="grid grid-cols-2 gap-2.5">
                       {[
-                        { icon: FaLinkedinIn, href: 'https://www.linkedin.com/in/andresmcorderor/', label: 'LinkedIn' },
-                        { icon: IoMdMail, href: 'mailto:andresmcorderor@gmail.com', label: 'Email' },
+                        {
+                          icon: FaLinkedinIn,
+                          href: 'https://www.linkedin.com/in/andresmcorderor/',
+                          label: 'LinkedIn',
+                        },
+                        {
+                          icon: IoMdMail,
+                          href: 'mailto:andresmcorderor@gmail.com',
+                          label: 'Email',
+                        },
                       ].map((s) => (
                         <a
                           key={s.label}
@@ -280,7 +312,9 @@ export default function ContactModal({ isOpen, onClose, initialTopic }: ContactM
 
                 {/* Columna de formulario */}
                 <div className="lg:col-span-7 rounded-2xl sm:rounded-3xl bg-[var(--pub-bg)] border border-[var(--pub-border)] p-5 sm:p-7 order-1 lg:order-2 space-y-4">
-                  <p className="font-inter text-sm text-[var(--dark-gray)]">{t('contact.subtitle')}</p>
+                  <p className="font-inter text-sm text-[var(--dark-gray)]">
+                    {t('contact.subtitle')}
+                  </p>
 
                   {/* Selector rápido de enfoque / servicio */}
                   <div className="space-y-2">
@@ -305,11 +339,12 @@ export default function ContactModal({ isOpen, onClose, initialTopic }: ContactM
                           </button>
                         );
                       })}
-                      {selectedTopic && !topicOptions.includes(selectedTopic) && (
-                        <span className="px-3 min-h-[44px] rounded-xl font-mono-tech text-[11px] font-semibold bg-[var(--vibrant-sky-blue)]/15 text-[var(--vibrant-sky-blue)] border border-[var(--vibrant-sky-blue)]/40 inline-flex items-center">
-                          {selectedTopic}
-                        </span>
-                      )}
+                      {selectedTopic &&
+                        !topicOptions.includes(selectedTopic) && (
+                          <span className="px-3 min-h-[44px] rounded-xl font-mono-tech text-[11px] font-semibold bg-[var(--vibrant-sky-blue)]/15 text-[var(--vibrant-sky-blue)] border border-[var(--vibrant-sky-blue)]/40 inline-flex items-center">
+                            {selectedTopic}
+                          </span>
+                        )}
                     </div>
                   </div>
 
@@ -351,7 +386,10 @@ export default function ContactModal({ isOpen, onClose, initialTopic }: ContactM
                         })}
                       />
                       {errors.fullName && (
-                        <p role="alert" className="text-xs font-mono-tech mt-1.5 text-rose-500">
+                        <p
+                          role="alert"
+                          className="text-xs font-mono-tech mt-1.5 text-rose-500"
+                        >
                           {errors.fullName.message as React.ReactNode}
                         </p>
                       )}
@@ -372,13 +410,17 @@ export default function ContactModal({ isOpen, onClose, initialTopic }: ContactM
                         {...register('mailAddress', {
                           required: t('contact.error_email'),
                           pattern: {
-                            value: /^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$/,
+                            value:
+                              /^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$/,
                             message: t('contact.error_email_invalid'),
                           },
                         })}
                       />
                       {errors.mailAddress && (
-                        <p role="alert" className="text-xs font-mono-tech mt-1.5 text-rose-500">
+                        <p
+                          role="alert"
+                          className="text-xs font-mono-tech mt-1.5 text-rose-500"
+                        >
                           {errors.mailAddress.message as React.ReactNode}
                         </p>
                       )}
@@ -405,7 +447,11 @@ export default function ContactModal({ isOpen, onClose, initialTopic }: ContactM
                       disabled={sending}
                       className="w-full min-h-[48px] font-syne inline-flex items-center justify-center rounded-xl bg-[var(--black)] text-[var(--white)] px-6 py-3.5 text-xs font-bold uppercase tracking-wider shadow-md hover:opacity-90 active:scale-[0.99] transition-all cursor-pointer disabled:opacity-50"
                     >
-                      {sending ? (isSpanish ? 'Enviando...' : 'Sending...') : t('contact.submit')}
+                      {sending
+                        ? isSpanish
+                          ? 'Enviando...'
+                          : 'Sending...'
+                        : t('contact.submit')}
                     </button>
                   </form>
                 </div>
@@ -415,6 +461,6 @@ export default function ContactModal({ isOpen, onClose, initialTopic }: ContactM
         </motion.div>
       )}
     </AnimatePresence>,
-    document.body
+    document.body,
   );
 }

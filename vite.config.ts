@@ -99,6 +99,7 @@ export default defineConfig({
           /^\/robots\.txt$/,
           /^\/sitemap\.xml$/,
           /^\/llms\.txt$/,
+          /^\/7a9f4c2e8b1d4e6a9c3f5b2d8e1a4c7f\.txt$/,
         ],
         importScripts: ['/sw-push.js'],
         runtimeCaching: [

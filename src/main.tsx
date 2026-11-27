@@ -17,6 +17,9 @@ import { registerSW } from 'virtual:pwa-register';
 
 const Login = lazyWithRetry(() => import('@pages/admin/Login'));
 const DashboardLayout = lazyWithRetry(() => import('@components/admin/DashboardLayout'));
+const ServiceLandingPage = lazyWithRetry(() => import('@pages/ServiceLandingPage'));
+const GuidePage = lazyWithRetry(() => import('@pages/GuidePage'));
+const DiagnosticHubPage = lazyWithRetry(() => import('@pages/DiagnosticHubPage'));
 import NotFound from '@pages/NotFound';
 
 const CHUNK_RELOAD_KEY = 'ac_chunk_reload_ts';
@@ -141,6 +144,7 @@ const Calendario = lazyWithRetry(() => import('@pages/admin/Calendario'));
 const Prompts = lazyWithRetry(() => import('@pages/admin/Prompts'));
 const DivisorCuentas = lazyWithRetry(() => import('@pages/admin/DivisorCuentas'));
 const PortafolioCMS = lazyWithRetry(() => import('@pages/admin/PortafolioCMS'));
+const Leads = lazyWithRetry(() => import('@pages/admin/Leads'));
 const Papelera = lazyWithRetry(() => import('@pages/admin/Papelera'));
 
 const PageLoader = () => (
@@ -166,6 +170,30 @@ const router = createBrowserRouter([
       {
         path: '/',
         element: <Home />,
+      },
+      {
+        path: '/diagnostico',
+        element: (
+          <Suspense fallback={null}>
+            <DiagnosticHubPage />
+          </Suspense>
+        ),
+      },
+      {
+        path: '/servicios/:slug',
+        element: (
+          <Suspense fallback={null}>
+            <ServiceLandingPage />
+          </Suspense>
+        ),
+      },
+      {
+        path: '/guias/:slug',
+        element: (
+          <Suspense fallback={null}>
+            <GuidePage />
+          </Suspense>
+        ),
       },
     ],
   },
@@ -336,6 +364,14 @@ const router = createBrowserRouter([
         element: (
           <Suspense fallback={<PageLoader />}>
             <PortafolioCMS />
+          </Suspense>
+        ),
+      },
+      {
+        path: 'leads',
+        element: (
+          <Suspense fallback={<PageLoader />}>
+            <Leads />
           </Suspense>
         ),
       },

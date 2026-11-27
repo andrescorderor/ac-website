@@ -1,0 +1,35 @@
+name: IndexNow SEO Auto-Indexing
+
+on:
+  push:
+    branches:
+      - production
+  workflow_dispatch:
+
+jobs:
+  notify-indexnow:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Wait briefly for Netlify deploy propagation
+        run: sleep 45
+
+      - name: Submit public URLs to IndexNow
+        run: |
+          curl -sS -X POST "https://api.indexnow.org/indexnow" \
+            -H "Content-Type: application/json; charset=utf-8" \
+            -d '{
+              "host": "andresmcorderor.netlify.app",
+              "key": "7a9f4c2e8b1d4e6a9c3f5b2d8e1a4c7f",
+              "keyLocation": "https://andresmcorderor.netlify.app/7a9f4c2e8b1d4e6a9c3f5b2d8e1a4c7f.txt",
+              "urlList": [
+                "https://andresmcorderor.netlify.app/",
+                "https://andresmcorderor.netlify.app/diagnostico",
+                "https://andresmcorderor.netlify.app/servicios/desarrollo-software-ia",
+                "https://andresmcorderor.netlify.app/servicios/digitalizacion-procesos",
+                "https://andresmcorderor.netlify.app/servicios/pruebas-qa",
+                "https://andresmcorderor.netlify.app/servicios/leon-guanajuato",
+                "https://andresmcorderor.netlify.app/guias/de-excel-y-whatsapp-a-sistema-web",
+                "https://andresmcorderor.netlify.app/guias/reducir-errores-produccion-qa",
+                "https://andresmcorderor.netlify.app/guias/ia-aplicada-empresas-mexico"
+              ]
+            }' || true
