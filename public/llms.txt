@@ -1,0 +1,49 @@
+# Andrés Cordero — Software Engineering, Process Digitization, Applied AI & QA Leadership
+
+> Software Engineer, Strategic Project Manager, and QA Lead based in León, Guanajuato, México (Bajío). Available for onsite/hybrid collaboration in León & Bajío, remote projects across all of México (CDMX, Monterrey, Guadalajara, Querétaro), and international teams in English or Spanish.
+
+- Website: https://andresmcorderor.netlify.app/
+- Email: mailto:andresmcorderor@gmail.com
+- WhatsApp: https://wa.me/524777037913
+- LinkedIn: https://www.linkedin.com/in/andresmcorderor/
+- GitHub: https://github.com/andrescorderor
+- Resume PDF: https://andresmcorderor.netlify.app/assets/Resume.pdf
+- Languages: Español (Nativo / ES-MX) & English (Fluent / Business & Technical)
+
+## Core Services & Solutions
+
+1. **Custom Software Development & Applied AI (`Desarrollo de Software a Medida e IA`)**
+   - Full-stack web applications, progressive web apps (PWAs), internal portals, B2B commerce platforms, and APIs built with React, TypeScript, Next.js, Node.js, Python, PostgreSQL, and Supabase.
+   - Practical AI integration: Gemini Vision OCR/document extraction, LLM workflow automation, structured data pipelines, and contextual assistants integrated directly into business operations.
+
+2. **Process Digitization, Optimization & Project Management (`Digitalización y Optimización de Procesos`)**
+   - Transforming manual spreadsheets, paper workflows, and disconnected operations into traceable digital systems.
+   - Technical roadmap design, Scrum/Agile orchestration, stakeholder alignment, and bottleneck removal from discovery through production release.
+
+3. **Software Testing, QA Coordination & Quality Control (`Pruebas de Software y Aseguramiento de Calidad QA`)**
+   - QA department leadership, risk-based test strategies, end-to-end and API test automation (Selenium, JUnit, Postman), CI/CD quality gates, and UAT coordination reducing production defects by up to 40%.
+
+4. **Bilingual Technical Advisory & Team Augmentation (`Consultoría Bilingüe ES/EN`)**
+   - Seamless collaboration with Mexican enterprises, Bajío industrial/commercial companies, startups nationwide, and US/international engineering organizations.
+
+## Experience Highlights
+
+- **QA Department Lead — CBQA Solutions Inc.** (2023 – Present): Architected enterprise-grade testing ecosystems and led QA teams, integrating CI/CD quality gates that reduced deployment errors by 40%.
+- **Strategic Project Lead & QA — Uanify** (2023 – Present): Orchestrated multidisciplinary engineering teams and roadmaps with 100% QA standard compliance.
+- **Full-Stack Solution Architect — Independent Consulting** (2023 – 2024): Built bespoke digital products with UX/UI focus, technical SEO, and high-conversion architectures.
+- **B.S. Software & Systems Engineering — Universidad de La Salle Bajío** (2020 – 2024): Graduated with professional honors; specialized in software architecture, distributed systems, and project management.
+
+## Selected Engineering Case Studies
+
+- **AI-Enhanced Incident Management (Volkswagen):** Predictive analytics & incident workflow system using React, Node.js, AWS, and AI.
+- **GovTech Integration Platform:** Centralized digital hub streamlining public citizen procedures with Vue.js, Python, PostgreSQL, and Docker.
+- **Statewide Entrepreneurship Ecosystem:** Matching and directory platform connecting startups, investors, and mentors (Next.js, TypeScript, Tailwind CSS).
+- **Industrial B2B Trade Platform:** Large-scale inventory and transaction portal for the industrial pipe sector (React, Express, MySQL, Stripe).
+- **HIPAA-Compliant Medical Imaging AI Service:** Secure ultrasound diagnostic assistance service (React Native, Firebase, AI, AWS S3).
+
+## Verified Credentials
+
+- DevOps on AWS: Code, Build, and Test (edX · AWS)
+- IT Fundamentals for Business Professionals: Software Development (edX · UPV)
+- DevOps Basics for Everyone; Cloud Native, DevOps, Agile & NoSQL; Web Development (edX · IBM)
+- Agile & Scrum Fundamentals; Strategic Applications of IT Project & Program Management (edX · University of Washington)

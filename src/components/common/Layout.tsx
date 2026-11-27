@@ -20,6 +20,7 @@ function getInitialPublicTheme(): boolean {
 export default function Layout() {
   const [isDark, setIsDark] = useState<boolean>(getInitialPublicTheme);
   const [isContactOpen, setIsContactOpen] = useState(false);
+  const [contactTopic, setContactTopic] = useState<string | undefined>(undefined);
 
   useEffect(() => {
     try {
@@ -38,10 +39,24 @@ export default function Layout() {
   }, [isDark]);
 
   useEffect(() => {
-    const handleOpenContact = () => setIsContactOpen(true);
+    const handleOpenContact = (event: Event) => {
+      const custom = event as CustomEvent<{ topic?: string }>;
+      setContactTopic(custom.detail?.topic);
+      setIsContactOpen(true);
+    };
     window.addEventListener(CONTACT_MODAL_EVENT, handleOpenContact);
     return () => window.removeEventListener(CONTACT_MODAL_EVENT, handleOpenContact);
   }, []);
+
+  const openBlankContact = () => {
+    setContactTopic(undefined);
+    setIsContactOpen(true);
+  };
+
+  const handleCloseContact = () => {
+    setIsContactOpen(false);
+    setContactTopic(undefined);
+  };
 
   return (
     <div
@@ -52,13 +67,17 @@ export default function Layout() {
       <Header
         isDark={isDark}
         onToggleTheme={() => setIsDark((prev) => !prev)}
-        onOpenContact={() => setIsContactOpen(true)}
+        onOpenContact={openBlankContact}
       />
       <main className="flex-1 w-full overflow-x-hidden">
         <Outlet />
       </main>
-      <Footer onOpenContact={() => setIsContactOpen(true)} />
-      <ContactModal isOpen={isContactOpen} onClose={() => setIsContactOpen(false)} />
+      <Footer onOpenContact={openBlankContact} />
+      <ContactModal
+        isOpen={isContactOpen}
+        onClose={handleCloseContact}
+        initialTopic={contactTopic}
+      />
     </div>
   );
 }

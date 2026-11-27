@@ -1,0 +1,37 @@
+User-agent: *
+Allow: /
+Disallow: /admin
+Disallow: /admin/
+
+# AI Search & Assistant Crawlers
+User-agent: GPTBot
+Allow: /
+Disallow: /admin
+Disallow: /admin/
+
+User-agent: OAI-SearchBot
+Allow: /
+Disallow: /admin
+Disallow: /admin/
+
+User-agent: ChatGPT-User
+Allow: /
+Disallow: /admin
+Disallow: /admin/
+
+User-agent: PerplexityBot
+Allow: /
+Disallow: /admin
+Disallow: /admin/
+
+User-agent: ClaudeBot
+Allow: /
+Disallow: /admin
+Disallow: /admin/
+
+User-agent: Google-Extended
+Allow: /
+Disallow: /admin
+Disallow: /admin/
+
+Sitemap: https://andresmcorderor.netlify.app/sitemap.xml

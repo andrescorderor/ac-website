@@ -1,7 +1,7 @@
 <div align="center">
   <img src="public/assets/ac-website-icon.svg" alt="Logo" width="100" />
   
-  # Andrés Cordero - Professional Portfolio & Personal Panel PWA (v9.0.0) 🔍✨
+  # Andrés Cordero - Professional Portfolio & Personal Panel PWA (v9.1.0) 🔍✨
   
   **Welcome to my personal ecosystem: a professional portfolio and a custom productivity hub.**  
   Built with UX/UI best practices, premium design, and a focus on mobile-first efficiency.
@@ -16,11 +16,15 @@
 
 ---
 
-## 🚀 Overview (Version 9.0.0)
+## 🚀 Overview (Version 9.1.0)
 
 This repository hosts a dual-purpose platform:
 1. **Professional Portfolio:** An interactive technical CV & engineering showcase highlighting software architecture, applied AI systems, process design/PM, and QA leadership (`SignatureMark`, `PipelineVisualizer`, `PortfolioHome`, zero personal photos, full ES/EN & Light/Dark parity).
-2. **Personal Panel PWA (v9.0.0):** An executive personal operating system featuring:
+2. **Personal Panel PWA (v9.1.0):** An executive personal operating system featuring:
+   * **SEO Técnico, Local/Nacional (León, Gto. · Todo México · EN/ES), GEO IA & Conversión B2B (`v9.1.0`):**
+     * **Metadatos, JSON-LD `@graph` y Crawler Discovery (`index.html`, `public/robots.txt`, `public/sitemap.xml`, `public/llms.txt`, `netlify.toml`, `vite.config.ts`):** Datos estructurados `WebSite`, `Person`, `ProfessionalService` (`areaServed`: León, Guanajuato, Bajío, CDMX, Monterrey, Guadalajara, Querétaro, México y EE.UU.) y `FAQPage`, geo-etiquetas `MX-GUA`, etiquetas `hreflang` (`es-MX` / `en`), tarjetas Open Graph/Twitter con PNG de marca (`/assets/ac-website-icon-512.png`), exclusión `/admin` en `robots.txt` y perfil estructurado `llms.txt` para buscadores e IA.
+     * **Detección Inteligente de Idioma & `<head>` Dinámico (`src/i18n.ts`):** Selección automática vía `?lang=`, preferencia guardada (`ac_public_lang`) o idioma del navegador (`ES`/`EN`), sincronizando `<html lang>`, `<title>`, `description` y Open Graph en rutas públicas.
+     * **Soluciones B2B, Cobertura, FAQ y WhatsApp Directo (`Hero.tsx`, `PortfolioHome.tsx`, `ContactModal.tsx`, `Header.tsx`, `Footer.tsx`):** Nueva sección **Soluciones para Empresas** (*Software a Medida e IA*, *Digitalización y Optimización de Procesos*, *Pruebas de Software y Liderazgo QA*) + tira de **Cobertura Operativa** (León/Bajío, Todo México, Bilingüe ES/EN), acordeón accesible de **Preguntas Frecuentes (`#faq-section`)** y selector de área de interés con botón de WhatsApp directo prellenado dentro del modal de contacto.
    * **Rediseño Vanguardista del Portafolio Público / CV Interactivo (`v9.0.0`):**
      * **Identidad `<SignatureMark />` & Cero Fotos Personales:** Centraliza el ícono/firma de marca (`SIGNATURE_ASSET_SRC`) en `Header`, `Hero`, `Modal`, `ContactModal`, `Footer` y `NotFound` bajo una retícula arquitectónica bimodal (`JetBrains Mono`, `DM Sans`, `Inter`, `Syne`) y cursor de precisión sin re-renders (`MotionValue` + `useSpring`).
      * **Consola de Ejecución `0 → PROD` (`PipelineVisualizer.tsx`):** Diagrama SVG animado e interactivo que detalla las 5 etapas (*Idea & Proceso → Arquitectura → Full-Stack + IA → Coordinación QA → Producción*) con telemetría por fase.

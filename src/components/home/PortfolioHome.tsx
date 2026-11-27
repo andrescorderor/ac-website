@@ -9,8 +9,14 @@ import {
   HiOutlineExternalLink,
   HiOutlineShieldCheck,
   HiOutlineSparkles,
+  HiOutlineChevronDown,
+  HiOutlineLocationMarker,
+  HiOutlineGlobeAlt,
+  HiOutlineCheckCircle,
+  HiOutlineCog,
 } from 'react-icons/hi';
 import { HiOutlineArrowUpRight } from 'react-icons/hi2';
+import { IoLogoWhatsapp } from 'react-icons/io';
 import Hero from './Hero';
 import Modal from '@components/common/modals/Modal';
 import SignatureMark from '@components/common/SignatureMark';
@@ -35,6 +41,26 @@ function handleCardSpotlight(e: React.PointerEvent<HTMLElement>) {
 type WorkbenchPillarId = 'dev' | 'ai' | 'process' | 'qa';
 type StackDomain = 'all' | 'frontend' | 'backend' | 'qa' | 'process';
 type ProjectFilter = 'all' | 'ai' | 'fullstack' | 'enterprise';
+
+interface ServiceItem {
+  id: string;
+  code: string;
+  topic: string;
+  title: string;
+  desc: string;
+  bullets: string[];
+}
+
+interface CoverageItem {
+  code: string;
+  title: string;
+  desc: string;
+}
+
+interface FaqItem {
+  q: string;
+  a: string;
+}
 
 function classifyTechDomain(alt: string): Exclude<StackDomain, 'all'> {
   const name = alt.toLowerCase();
@@ -82,6 +108,7 @@ export default function PortfolioHome() {
   const [stackDomain, setStackDomain] = useState<StackDomain>('all');
   const [projectFilter, setProjectFilter] = useState<ProjectFilter>('all');
   const [activeSectionId, setActiveSectionId] = useState('hero-section');
+  const [openFaqIdx, setOpenFaqIdx] = useState<number | null>(0);
 
   const timelineRef = useRef<HTMLDivElement>(null);
   const { scrollYProgress: timelineScroll } = useScroll({
@@ -110,11 +137,13 @@ export default function PortfolioHome() {
   useEffect(() => {
     const ids = [
       'hero-section',
+      'services-section',
       'capabilities-section',
       'stack-section',
       'experience-section',
       'portfolio-section',
       'credentials-section',
+      'faq-section',
     ];
     const observer = new IntersectionObserver(
       (entries) => {
@@ -137,12 +166,38 @@ export default function PortfolioHome() {
 
   const sectionRail = [
     { id: 'hero-section', code: '01', label: isSpanish ? 'Inicio' : 'Overview' },
-    { id: 'capabilities-section', code: '02', label: isSpanish ? 'Capacidades' : 'Capabilities' },
-    { id: 'stack-section', code: '03', label: 'Stack' },
-    { id: 'experience-section', code: '04', label: isSpanish ? 'Trayectoria' : 'Career' },
-    { id: 'portfolio-section', code: '05', label: isSpanish ? 'Proyectos' : 'Projects' },
-    { id: 'credentials-section', code: '06', label: isSpanish ? 'Credenciales' : 'Credentials' },
+    { id: 'services-section', code: '02', label: isSpanish ? 'Soluciones' : 'Solutions' },
+    { id: 'capabilities-section', code: '03', label: isSpanish ? 'Capacidades' : 'Capabilities' },
+    { id: 'stack-section', code: '04', label: 'Stack' },
+    { id: 'experience-section', code: '05', label: isSpanish ? 'Trayectoria' : 'Career' },
+    { id: 'portfolio-section', code: '06', label: isSpanish ? 'Proyectos' : 'Projects' },
+    { id: 'credentials-section', code: '07', label: isSpanish ? 'Credenciales' : 'Credentials' },
+    { id: 'faq-section', code: '08', label: 'FAQ' },
   ];
+
+  const serviceItems = useMemo(() => {
+    const raw = t('services.items', { returnObjects: true }) as unknown;
+    return Array.isArray(raw) ? (raw as ServiceItem[]) : [];
+  }, [t]);
+
+  const coverageItems = useMemo(() => {
+    const raw = t('services.coverage', { returnObjects: true }) as unknown;
+    return Array.isArray(raw) ? (raw as CoverageItem[]) : [];
+  }, [t]);
+
+  const faqItems = useMemo(() => {
+    const raw = t('faq.items', { returnObjects: true }) as unknown;
+    return Array.isArray(raw) ? (raw as FaqItem[]) : [];
+  }, [t]);
+
+  const serviceIcons = [HiOutlineCode, HiOutlineCog, HiOutlineBeaker] as const;
+
+  const whatsappClosureUrl = useMemo(() => {
+    const text = isSpanish
+      ? 'Hola Andrés, me gustaría conversar sobre un proyecto de desarrollo de software, optimización de procesos o QA.'
+      : 'Hi Andrés, I would like to discuss a software development, process optimization, or QA project.';
+    return `https://wa.me/524777037913?text=${encodeURIComponent(text)}`;
+  }, [isSpanish]);
 
   // Workbench 4-Pillar Data
   const pillars = useMemo(
@@ -422,13 +477,115 @@ export default function PortfolioHome() {
       {/* ═══ 01. HERO + INTERACTIVE PIPELINE ═══ */}
       <Hero />
 
-      {/* ═══ 02. CAPABILITIES WORKBENCH ═══ */}
+      {/* ═══ 02. BUSINESS SOLUTIONS & GEOGRAPHIC COVERAGE ═══ */}
+      <section id="services-section" className="relative py-20 lg:py-24 bg-[var(--deep-navy-blue-light)] border-t border-[var(--pub-border)]">
+        <div className="container mx-auto max-w-6xl px-5 sm:px-8 lg:px-12 space-y-12">
+          <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6">
+            <div className="space-y-3 max-w-2xl">
+              <span className="font-mono-tech text-xs font-semibold uppercase tracking-[0.25em] text-[var(--vibrant-sky-blue)] block">
+                {t('services.eyebrow')}
+              </span>
+              <h2 className="font-dm-sans text-3xl sm:text-5xl font-bold tracking-tight leading-[1.02] text-[var(--black)]">
+                {t('services.title')} <span className="text-gradient">{t('services.title_highlight')}</span>
+              </h2>
+            </div>
+            <p className="font-inter text-sm sm:text-base text-[var(--dark-gray)] max-w-md leading-relaxed">
+              {t('services.intro')}
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {serviceItems.map((srv, idx) => {
+              const Icon = serviceIcons[idx] || HiOutlineCode;
+              return (
+                <motion.article
+                  key={srv.id}
+                  initial={reducedMotion ? false : { opacity: 0, y: 18 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, amount: 0.2 }}
+                  transition={{ duration: 0.45, delay: idx * 0.06, ease: EASE }}
+                  onPointerMove={handleCardSpotlight}
+                  className="spotlight-card corner-ticks rounded-3xl p-6 sm:p-7 flex flex-col justify-between gap-6"
+                >
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between gap-3">
+                      <div className="size-12 rounded-2xl bg-[var(--vibrant-sky-blue)]/12 border border-[var(--vibrant-sky-blue)]/25 text-[var(--vibrant-sky-blue)] flex items-center justify-center shrink-0">
+                        <Icon className="text-2xl" />
+                      </div>
+                      <span className="font-mono-tech text-[11px] font-semibold uppercase tracking-widest text-[var(--vibrant-sky-blue)]">
+                        {srv.code}
+                      </span>
+                    </div>
+
+                    <h3 className="font-dm-sans text-xl sm:text-2xl font-bold text-[var(--black)] leading-snug">
+                      {srv.title}
+                    </h3>
+
+                    <p className="font-inter text-sm text-[var(--dark-gray)] leading-relaxed">
+                      {srv.desc}
+                    </p>
+
+                    <ul className="space-y-2.5 pt-2 border-t border-[var(--pub-border)]">
+                      {Array.isArray(srv.bullets) &&
+                        srv.bullets.map((bullet) => (
+                          <li key={bullet} className="flex items-start gap-2.5 text-xs sm:text-sm font-inter text-[var(--black)]">
+                            <HiOutlineCheckCircle className="text-base text-[var(--vibrant-sky-blue)] shrink-0 mt-0.5" />
+                            <span className="leading-relaxed">{bullet}</span>
+                          </li>
+                        ))}
+                    </ul>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => openContactModal(srv.topic)}
+                    className="w-full min-h-[44px] px-4 rounded-xl bg-[var(--pub-bg)] hover:bg-[var(--black)] text-[var(--black)] hover:text-[var(--white)] border border-[var(--pub-border)] font-syne text-[11px] font-bold uppercase tracking-wider flex items-center justify-between transition-all cursor-pointer"
+                  >
+                    <span>{t('services.cta')}</span>
+                    <HiOutlineArrowUpRight className="text-base" />
+                  </button>
+                </motion.article>
+              );
+            })}
+          </div>
+
+          {/* Geographic & Bilingual Coverage Strip */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {coverageItems.map((cov, idx) => {
+              const CovIcon = idx === 2 ? HiOutlineGlobeAlt : HiOutlineLocationMarker;
+              return (
+                <div
+                  key={cov.code}
+                  className="p-4 sm:p-5 rounded-2xl bg-[var(--pub-surface)] border border-[var(--pub-border)] flex items-start gap-3.5"
+                >
+                  <div className="size-10 rounded-xl bg-[var(--vibrant-sky-blue)]/10 border border-[var(--vibrant-sky-blue)]/25 text-[var(--vibrant-sky-blue)] flex items-center justify-center shrink-0">
+                    <CovIcon className="text-lg" />
+                  </div>
+                  <div className="min-w-0">
+                    <span className="font-mono-tech text-[10px] font-semibold uppercase tracking-widest text-[var(--vibrant-sky-blue)] block">
+                      {cov.code}
+                    </span>
+                    <h3 className="font-dm-sans text-sm sm:text-base font-bold text-[var(--black)] mt-0.5">
+                      {cov.title}
+                    </h3>
+                    <p className="font-inter text-xs text-[var(--dark-gray)] mt-1 leading-relaxed">
+                      {cov.desc}
+                    </p>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+
+      {/* ═══ 03. CAPABILITIES WORKBENCH ═══ */}
       <section id="capabilities-section" className="relative py-20 lg:py-28 border-t border-[var(--pub-border)]">
         <div className="container mx-auto max-w-6xl px-5 sm:px-8 lg:px-12 space-y-10">
           <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6">
             <div className="space-y-3 max-w-2xl">
               <span className="font-mono-tech text-xs font-semibold uppercase tracking-[0.25em] text-[var(--vibrant-sky-blue)] block">
-                02 // {t('expertise.title')}
+                03 // {t('expertise.title')}
               </span>
               <h2 className="font-dm-sans text-3xl sm:text-5xl font-bold tracking-tight leading-[1.02] text-[var(--black)]">
                 {t('expertise.core_title')} <span className="text-gradient">{t('expertise.core_title_bold')}</span>
@@ -555,13 +712,13 @@ export default function PortfolioHome() {
         </div>
       </section>
 
-      {/* ═══ 03. DUAL-ROW KINETIC TECH STACK ═══ */}
+      {/* ═══ 04. DUAL-ROW KINETIC TECH STACK ═══ */}
       <section id="stack-section" className="relative py-20 lg:py-24 bg-[var(--deep-navy-blue-light)] border-y border-[var(--pub-border)]">
         <div className="container mx-auto max-w-6xl px-5 sm:px-8 lg:px-12 space-y-8">
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-5">
             <div className="space-y-2">
               <span className="font-mono-tech text-xs font-semibold uppercase tracking-[0.25em] text-[var(--vibrant-sky-blue)] block">
-                03 // ECOSYSTEM
+                04 // ECOSYSTEM
               </span>
               <h2 className="font-dm-sans text-3xl sm:text-5xl font-bold tracking-tight text-[var(--black)]">
                 {t('expertise.knowledge_title')}
@@ -662,12 +819,12 @@ export default function PortfolioHome() {
         </div>
       </section>
 
-      {/* ═══ 04. SCROLL-ENERGIZED EXPERIENCE TIMELINE ═══ */}
+      {/* ═══ 05. SCROLL-ENERGIZED EXPERIENCE TIMELINE ═══ */}
       <section id="experience-section" className="relative py-20 lg:py-28">
         <div className="container mx-auto max-w-6xl px-5 sm:px-8 lg:px-12 space-y-12">
           <div className="space-y-3">
             <span className="font-mono-tech text-xs font-semibold uppercase tracking-[0.25em] text-[var(--vibrant-sky-blue)] block">
-              04 // {isSpanish ? 'TRAYECTORIA' : 'CAREER PATH'}
+              05 // {isSpanish ? 'TRAYECTORIA' : 'CAREER PATH'}
             </span>
             <h2 className="font-dm-sans text-3xl sm:text-5xl font-bold tracking-tight text-[var(--black)]">
               {t('experience.title')}
@@ -726,13 +883,13 @@ export default function PortfolioHome() {
         </div>
       </section>
 
-      {/* ═══ 05. FILTERABLE TECHNICAL CASE STUDIES ═══ */}
+      {/* ═══ 06. FILTERABLE TECHNICAL CASE STUDIES ═══ */}
       <section id="portfolio-section" className="relative py-20 lg:py-28 bg-[var(--deep-navy-blue-light)] border-y border-[var(--pub-border)]">
         <div className="container mx-auto max-w-6xl px-5 sm:px-8 lg:px-12 space-y-10">
           <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6">
             <div className="space-y-3">
               <span className="font-mono-tech text-xs font-semibold uppercase tracking-[0.25em] text-[var(--vibrant-sky-blue)] block">
-                05 // {isSpanish ? 'CASOS DE INGENIERÍA' : 'ENGINEERING CASES'}
+                06 // {isSpanish ? 'CASOS DE INGENIERÍA' : 'ENGINEERING CASES'}
               </span>
               <h2 className="font-dm-sans text-3xl sm:text-5xl font-bold tracking-tight text-[var(--black)]">
                 {t('portfolio.title')}
@@ -826,7 +983,7 @@ export default function PortfolioHome() {
 
                   <button
                     type="button"
-                    onClick={openContactModal}
+                    onClick={() => openContactModal(project.title)}
                     className="w-full min-h-[44px] px-4 rounded-xl bg-[var(--pub-bg)] hover:bg-[var(--black)] text-[var(--black)] hover:text-[var(--white)] border border-[var(--pub-border)] font-syne text-[11px] font-bold uppercase tracking-wider flex items-center justify-between transition-all cursor-pointer touch-reveal"
                   >
                     <span>{isSpanish ? 'Solicitar arquitectura similar' : 'Discuss similar system'}</span>
@@ -839,12 +996,12 @@ export default function PortfolioHome() {
         </div>
       </section>
 
-      {/* ═══ 06. CREDENTIALS VAULT & EXECUTIVE CLOSURE ═══ */}
-      <section id="credentials-section" className="relative py-20 lg:py-28">
+      {/* ═══ 07. CREDENTIALS VAULT ═══ */}
+      <section id="credentials-section" className="relative py-20 lg:py-24">
         <div className="container mx-auto max-w-6xl px-5 sm:px-8 lg:px-12 space-y-14">
           <div className="space-y-3">
             <span className="font-mono-tech text-xs font-semibold uppercase tracking-[0.25em] text-[var(--vibrant-sky-blue)] block">
-              06 // {isSpanish ? 'VALIDACIÓN TÉCNICA' : 'VERIFIED CREDENTIALS'}
+              07 // {isSpanish ? 'VALIDACIÓN TÉCNICA' : 'VERIFIED CREDENTIALS'}
             </span>
             <h2 className="font-dm-sans text-3xl sm:text-5xl font-bold tracking-tight text-[var(--black)]">
               {t('certifications.title')}
@@ -892,6 +1049,72 @@ export default function PortfolioHome() {
               </motion.div>
             ))}
           </div>
+        </div>
+      </section>
+
+      {/* ═══ 08. FREQUENTLY ASKED QUESTIONS & CONVERSION CLOSURE ═══ */}
+      <section id="faq-section" className="relative py-20 lg:py-28 bg-[var(--deep-navy-blue-light)] border-t border-[var(--pub-border)]">
+        <div className="container mx-auto max-w-6xl px-5 sm:px-8 lg:px-12 space-y-14">
+          <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6">
+            <div className="space-y-3 max-w-2xl">
+              <span className="font-mono-tech text-xs font-semibold uppercase tracking-[0.25em] text-[var(--vibrant-sky-blue)] block">
+                {t('faq.eyebrow')}
+              </span>
+              <h2 className="font-dm-sans text-3xl sm:text-5xl font-bold tracking-tight text-[var(--black)]">
+                {t('faq.title')}
+              </h2>
+            </div>
+            <p className="font-inter text-sm sm:text-base text-[var(--dark-gray)] max-w-md leading-relaxed">
+              {t('faq.subtitle')}
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 items-start">
+            {faqItems.map((item, idx) => {
+              const isOpen = openFaqIdx === idx;
+              const panelId = `faq-answer-${idx}`;
+              return (
+                <div
+                  key={item.q}
+                  className="rounded-2xl bg-[var(--pub-surface)] border border-[var(--pub-border)] overflow-hidden transition-colors"
+                >
+                  <button
+                    type="button"
+                    aria-expanded={isOpen}
+                    aria-controls={panelId}
+                    onClick={() => setOpenFaqIdx(isOpen ? null : idx)}
+                    className="w-full min-h-[56px] p-5 text-left flex items-center justify-between gap-4 cursor-pointer hover:bg-[var(--pub-bg)]/50 transition-colors"
+                  >
+                    <span className="font-dm-sans font-bold text-sm sm:text-base text-[var(--black)] leading-snug">
+                      {item.q}
+                    </span>
+                    <HiOutlineChevronDown
+                      className={`text-lg text-[var(--vibrant-sky-blue)] shrink-0 transition-transform duration-200 ${
+                        isOpen ? 'rotate-180' : ''
+                      }`}
+                    />
+                  </button>
+
+                  <AnimatePresence initial={false}>
+                    {isOpen && (
+                      <motion.div
+                        id={panelId}
+                        initial={reducedMotion ? false : { opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={reducedMotion ? undefined : { opacity: 0 }}
+                        transition={{ duration: 0.18 }}
+                        className="px-5 pb-5 pt-1 border-t border-[var(--pub-border)]"
+                      >
+                        <p className="font-inter text-xs sm:text-sm text-[var(--dark-gray)] leading-relaxed pt-2">
+                          {item.a}
+                        </p>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+              );
+            })}
+          </div>
 
           {/* Executive Conversion Banner */}
           <motion.div
@@ -903,11 +1126,13 @@ export default function PortfolioHome() {
             className="spotlight-card corner-ticks rounded-3xl p-7 sm:p-10 lg:p-12 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-8"
           >
             <div className="space-y-4 max-w-2xl">
-              <div className="flex items-center gap-3">
+              <div className="flex flex-wrap items-center gap-3">
                 <SignatureMark size="md" />
                 <span className="inline-flex items-center gap-1.5 font-mono-tech text-[11px] font-semibold uppercase tracking-widest text-[var(--vibrant-sky-blue)]">
                   <HiOutlineSparkles className="text-sm" />
-                  {isSpanish ? 'Disponible para proyectos estratégicos' : 'Open for high-impact engineering'}
+                  {isSpanish
+                    ? 'León, Gto. · Todo México · Proyectos en Español e Inglés'
+                    : 'León, MX · All Mexico · English & Spanish'}
                 </span>
               </div>
               <h3 className="font-dm-sans text-2xl sm:text-4xl font-bold tracking-tight text-[var(--black)]">
@@ -915,20 +1140,30 @@ export default function PortfolioHome() {
               </h3>
               <p className="font-inter text-sm sm:text-base text-[var(--dark-gray)] leading-relaxed">
                 {isSpanish
-                  ? 'Ya sea para estructurar procesos técnicos, construir plataformas web integradas con IA o coordinar el aseguramiento de calidad en producción, llevemos tu idea al siguiente nivel.'
-                  : 'Whether orchestrating technical processes, engineering AI-powered platforms, or leading production QA, let us turn your roadmap into measurable reality.'}
+                  ? 'Ya sea para desarrollar software a medida, digitalizar y optimizar procesos internos, integrar IA o liderar pruebas y aseguramiento de calidad QA, conversemos sobre tu proyecto.'
+                  : 'Whether building custom software, digitizing and optimizing internal operations, integrating AI, or leading software testing and QA, let us map out your next release.'}
               </p>
             </div>
 
             <div className="flex flex-wrap gap-3 shrink-0 w-full lg:w-auto">
               <button
                 type="button"
-                onClick={openContactModal}
-                className="flex-1 lg:flex-initial inline-flex items-center justify-center gap-2 px-6 min-h-[48px] rounded-xl bg-[var(--black)] text-[var(--white)] font-syne text-xs font-bold uppercase tracking-wider shadow-md hover:opacity-90 active:scale-95 transition-all cursor-pointer"
+                onClick={() => openContactModal()}
+                className="flex-1 sm:flex-initial inline-flex items-center justify-center gap-2 px-6 min-h-[48px] rounded-xl bg-[var(--black)] text-[var(--white)] font-syne text-xs font-bold uppercase tracking-wider shadow-md hover:opacity-90 active:scale-95 transition-all cursor-pointer"
               >
                 <span>{t('footer.contact_button')}</span>
                 <HiOutlineArrowUpRight className="text-base" />
               </button>
+
+              <a
+                href={whatsappClosureUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="flex-1 sm:flex-initial inline-flex items-center justify-center gap-2 px-5 min-h-[48px] rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-syne text-xs font-bold uppercase tracking-wider shadow-sm active:scale-95 transition-all cursor-pointer"
+              >
+                <IoLogoWhatsapp className="text-base" />
+                <span>WhatsApp</span>
+              </a>
             </div>
           </motion.div>
         </div>

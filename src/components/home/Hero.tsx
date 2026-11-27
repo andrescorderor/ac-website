@@ -2,7 +2,8 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { motion, useReducedMotion } from 'framer-motion';
 import { FaGithub, FaLinkedin } from 'react-icons/fa';
-import { HiOutlineDownload, HiOutlineArrowRight, HiOutlineMail } from 'react-icons/hi';
+import { IoLogoWhatsapp } from 'react-icons/io';
+import { HiOutlineDownload, HiOutlineArrowRight, HiOutlineMail, HiOutlineLocationMarker } from 'react-icons/hi';
 import SignatureMark from '@components/common/SignatureMark';
 import { openContactModal } from '@components/common/modals/ContactModal';
 import { loadPortfolioCms, PortfolioCmsData } from '@/lib/portfolioCms';
@@ -72,17 +73,24 @@ export default function Hero() {
 
   const quickStats = isSpanish
     ? [
-        { val: '0 → PROD', label: 'Ciclo completo' },
-        { val: 'AI + DEV', label: 'Flujos con IA' },
-        { val: 'QA LEAD', label: 'Pruebas & CI/CD' },
-        { val: 'PM / AGILE', label: 'Procesos claros' },
+        { val: '0 → PROD', label: 'Software a medida' },
+        { val: 'AI + OPS', label: 'Procesos e IA' },
+        { val: 'QA LEAD', label: 'Pruebas y calidad' },
+        { val: 'MX / EN', label: 'Alcance bilingüe' },
       ]
     : [
-        { val: '0 → PROD', label: 'Full lifecycle' },
-        { val: 'AI + DEV', label: 'Applied AI systems' },
-        { val: 'QA LEAD', label: 'Testing & CI/CD' },
-        { val: 'PM / AGILE', label: 'Process orchestration' },
+        { val: '0 → PROD', label: 'Custom software' },
+        { val: 'AI + OPS', label: 'Processes & AI' },
+        { val: 'QA LEAD', label: 'Testing & quality' },
+        { val: 'MX / EN', label: 'Bilingual scope' },
       ];
+
+  const whatsappUrl = useMemo(() => {
+    const msg = isSpanish
+      ? 'Hola Andrés, visité tu sitio y me gustaría platicar sobre desarrollo de software, procesos o QA.'
+      : 'Hi Andrés, I visited your website and would like to discuss software engineering, process optimization, or QA.';
+    return `https://wa.me/524777037913?text=${encodeURIComponent(msg)}`;
+  }, [isSpanish]);
 
   return (
     <section
@@ -108,7 +116,7 @@ export default function Hero() {
               initial={reducedMotion ? false : { opacity: 0, y: 14 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.55, ease: EASE }}
-              className="flex flex-wrap items-center gap-3"
+              className="flex flex-wrap items-center gap-2.5"
             >
               <SignatureMark size="md" animated />
               <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[var(--pub-surface)] border border-[var(--pub-border)] shadow-2xs">
@@ -118,6 +126,12 @@ export default function Hero() {
                     (isSpanish
                       ? 'Ingeniería · IA · Procesos · QA'
                       : 'Engineering · AI · Processes · QA')}
+                </span>
+              </div>
+              <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[var(--pub-surface)] border border-[var(--pub-border)] shadow-2xs">
+                <HiOutlineLocationMarker className="text-sm text-[var(--vibrant-sky-blue)] shrink-0" />
+                <span className="font-mono-tech text-[11px] font-medium text-[var(--dark-gray)]">
+                  {isSpanish ? 'León, Gto. · Todo México · EN / ES' : 'León, MX · Nationwide & Remote · EN / ES'}
                 </span>
               </div>
             </motion.div>
@@ -197,12 +211,22 @@ export default function Hero() {
             >
               <button
                 type="button"
-                onClick={openContactModal}
+                onClick={() => openContactModal()}
                 className="inline-flex items-center justify-center gap-2 px-5 min-h-[48px] rounded-xl bg-[var(--black)] text-[var(--white)] font-syne text-xs font-bold uppercase tracking-wider shadow-md hover:opacity-90 active:scale-[0.98] transition-all cursor-pointer"
               >
                 <HiOutlineMail className="text-base" />
-                <span>{isSpanish ? 'Construyamos tu idea' : "Let's build together"}</span>
+                <span>{isSpanish ? 'Cotizar / Platicar' : "Let's build together"}</span>
               </button>
+
+              <a
+                href={whatsappUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center justify-center gap-2 px-4 min-h-[48px] rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-syne text-xs font-bold uppercase tracking-wider shadow-sm active:scale-[0.98] transition-all cursor-pointer"
+              >
+                <IoLogoWhatsapp className="text-base" />
+                <span>WhatsApp</span>
+              </a>
 
               <a
                 href="#portfolio-section"
@@ -212,7 +236,7 @@ export default function Hero() {
                     .getElementById('portfolio-section')
                     ?.scrollIntoView({ behavior: reducedMotion ? 'auto' : 'smooth' });
                 }}
-                className="inline-flex items-center justify-center gap-2 px-5 min-h-[48px] rounded-xl bg-[var(--pub-surface)] border border-[var(--pub-border-strong)] text-[var(--black)] font-syne text-xs font-bold uppercase tracking-wider hover:border-[var(--vibrant-sky-blue)] active:scale-[0.98] transition-all cursor-pointer"
+                className="inline-flex items-center justify-center gap-2 px-4 min-h-[48px] rounded-xl bg-[var(--pub-surface)] border border-[var(--pub-border-strong)] text-[var(--black)] font-syne text-xs font-bold uppercase tracking-wider hover:border-[var(--vibrant-sky-blue)] active:scale-[0.98] transition-all cursor-pointer"
               >
                 <span>{cmsOverride?.heroCta?.trim() || t('hero.cta_work')}</span>
                 <HiOutlineArrowRight className="text-base" />

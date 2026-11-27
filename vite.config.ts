@@ -70,7 +70,7 @@ export default defineConfig({
         clientsClaim: true,
         skipWaiting: true,
         navigateFallback: '/index.html',
-        navigateFallbackDenylist: [/^\/assets\//],
+        navigateFallbackDenylist: [/^\/assets\//, /^\/robots\.txt$/, /^\/sitemap\.xml$/, /^\/llms\.txt$/],
         importScripts: ['/sw-push.js'],
         runtimeCaching: [
           {

@@ -2,16 +2,78 @@
   "hero": {
     "make_it": "Arquitectura",
     "phrases": [
-      "Estabilidad",
-      "Precisión",
-      "Impacto",
-      "Innovación",
-      "Sinergia de IA",
-      "Excelencia",
+      "Software a Medida",
+      "Procesos Ágiles",
+      "Sinergia con IA",
+      "Calidad QA",
+      "Impacto Real",
+      "Digitalización",
       "Escala"
     ],
-    "paragraph": "Ingeniero de Software y Project Manager Estratégico especializado en arquitecturas integradas con IA. Cierro la brecha entre la estrategia y la ejecución técnica, aprovechando flujos de trabajo impulsados por IA para entregar soluciones digitales resilientes y de alto impacto.",
-    "cta_work": "Explora mi Portafolio"
+    "paragraph": "Ingeniero de Software, Consultor de Procesos y Líder de QA en León, Guanajuato. Ayudo a empresas y equipos en todo México y en inglés a construir software a medida, integrar inteligencia artificial, digitalizar operaciones y asegurar la calidad antes de cada lanzamiento.",
+    "cta_work": "Explorar Proyectos"
+  },
+  "services": {
+    "eyebrow": "02 // SOLUCIONES PARA EMPRESAS Y EQUIPOS",
+    "title": "Cómo ayudo a tu",
+    "title_highlight": "negocio y equipo",
+    "intro": "Convierto necesidades operativas y retos técnicos en sistemas confiables, procesos medibles y lanzamientos sin fricciones desde León, Gto. para todo México y equipos internacionales.",
+    "cta": "Solicitar diagnóstico",
+    "coverage": [
+      {
+        "code": "LOC // BAJÍO",
+        "title": "León, Guanajuato",
+        "desc": "Atención presencial e híbrida para industria, comercio y empresas en León y el corredor del Bajío."
+      },
+      {
+        "code": "LOC // MÉXICO",
+        "title": "Todo México (Remoto)",
+        "desc": "Colaboración directa con startups y corporativos en CDMX, Monterrey, Guadalajara, Querétaro y más."
+      },
+      {
+        "code": "LANG // ES & EN",
+        "title": "Bilingüe Español / Inglés",
+        "desc": "Comunicación ejecutiva, documentación técnica y coordinación con equipos internacionales en inglés."
+      }
+    ],
+    "items": [
+      {
+        "id": "software-ai",
+        "code": "SRV // 01",
+        "topic": "Desarrollo de Software & IA",
+        "title": "Software a Medida e IA Aplicada",
+        "desc": "Diseño y desarrollo de aplicaciones web, portales internos, PWAs y plataformas B2B integradas con modelos de IA para automatizar captura, análisis y operación diaria.",
+        "bullets": [
+          "Plataformas web y sistemas internos escalables (React, TypeScript, Node, SQL)",
+          "Flujos con IA: lectura de tickets/documentos, asistentes y analítica operativa",
+          "Arquitecturas modernas de alto rendimiento listas para producción real"
+        ]
+      },
+      {
+        "id": "process-pm",
+        "code": "SRV // 02",
+        "topic": "Digitalización y Optimización de Procesos",
+        "title": "Digitalización y Optimización de Procesos",
+        "desc": "Reemplaza hojas de cálculo dispersas y seguimiento manual por flujos digitales trazables, reglas claras y gestión técnica estructurada de principio a fin.",
+        "bullets": [
+          "Mapeo de cuellos de botella y diseño de flujos operativos digitales",
+          "Liderazgo técnico y Project Management Ágil (Scrum / Kanban)",
+          "Tableros de control y trazabilidad para directivos y áreas operativas"
+        ]
+      },
+      {
+        "id": "qa-testing",
+        "code": "SRV // 03",
+        "topic": "Pruebas de Software y QA",
+        "title": "Pruebas de Software y Liderazgo QA",
+        "desc": "Aseguro la estabilidad de tus sistemas mediante estrategias de calidad, validación de flujos críticos, automatización de regresiones y control de lanzamientos.",
+        "bullets": [
+          "Planes de pruebas funcionales, UAT, APIs y escenarios basados en riesgo",
+          "Automatización E2E y compuertas de calidad en pipelines CI/CD",
+          "Coordinación de equipos QA y reducción de incidentes en producción"
+        ]
+      }
+    ]
   },
   "roles": {
     "qa": "Aseguramiento de Calidad",
@@ -34,17 +96,17 @@
     "sd_header_title": "Precisión Full-Stack",
     "sd_header_paragraph": "Aprovechando React, Node.js y arquitecturas AI-first para construir productos que escalan con su negocio mientras mantienen una experiencia de usuario premium.",
     "qa_title": "CONFIABILIDAD IMPULSADA POR IA",
-    "qa_subtitle": "Pruebas inteligentes para despliegues sin defectos.",
+    "qa_subtitle": "Validación inteligente para despliegues sin defectos.",
     "qa_paragraph": "Garantizando la máxima confiabilidad a través de pipelines de pruebas aumentadas con IA y protocolos avanzados de QA. Construyo confianza en cada línea de código.",
     "qa_header_title": "Confiabilidad de Próxima Generación",
     "qa_header_paragraph": "Implementación de pipelines CI/CD y automatización E2E impulsada por IA para garantizar la estabilidad del producto al 99.9% y experiencias de usuario fluidas.",
-    "intro": "Sincronizando la visión empresarial con maestría tecnológica potenciada por IA para construir productos de alto rendimiento.",
+    "intro": "Sincronizando la visión empresarial con ingeniería de software, IA aplicada y control de calidad para construir productos confiables.",
     "knowledge_title": "Tecnologías Principales",
     "modal_eyebrow": "Inmersión Estratégica"
   },
   "portfolio": {
     "title": "Portafolio de Impacto",
-    "subtitle": "Una selección curada de soluciones arquitectónicas y proyectos estratégicos."
+    "subtitle": "Una selección curada de soluciones arquitectónicas, sistemas empresariales y proyectos estratégicos."
   },
   "certifications": {
     "title": "Certificaciones",
@@ -66,27 +128,58 @@
     "cert7_title": "Aplicaciones Estratégicas de Gestión de Proyectos y Programas de TI",
     "cert7_subtitle": "edX • Universidad de Washington"
   },
+  "faq": {
+    "eyebrow": "08 // PREGUNTAS FRECUENTES",
+    "title": "Resuelve tus dudas",
+    "subtitle": "Información clara sobre modalidad de trabajo, alcance geográfico, digitalización de procesos, desarrollo y calidad QA.",
+    "items": [
+      {
+        "q": "¿Trabajas únicamente en León, Guanajuato o con empresas de todo México y el extranjero?",
+        "a": "Estoy basado en León, Guanajuato con disponibilidad presencial e híbrida en el Bajío, y colaboro de forma remota con empresas de todo México (CDMX, Monterrey, Guadalajara, Querétaro) así como con equipos en Estados Unidos y otros países en inglés o español."
+      },
+      {
+        "q": "¿Cómo ayudas a digitalizar u optimizar procesos que hoy manejamos en Excel o por WhatsApp?",
+        "a": "Analizo el flujo operativo actual para detectar cuellos de botella, duplicidad de captura y riesgos de error, y diseño una solución web o automatización con IA a la medida de tu equipo con permisos, trazabilidad y reportes en tiempo real."
+      },
+      {
+        "q": "¿Puedo contratarte solo para pruebas de software y aseguramiento de calidad (QA)?",
+        "a": "Sí. Puedo integrarme a tu equipo actual para estructurar la estrategia de QA, diseñar planes de pruebas funcionales y de regresión, validar APIs, automatizar flujos críticos y establecer compuertas de calidad antes de cada despliegue a producción."
+      },
+      {
+        "q": "¿Puedes desarrollar una idea desde cero si aún no tengo especificaciones técnicas?",
+        "a": "Sí. Te acompaño desde la definición del alcance y el mapeo del proceso de negocio hasta la arquitectura, desarrollo Full-Stack, integración de IA, pruebas de calidad y puesta en marcha en producción."
+      },
+      {
+        "q": "¿Trabajas proyectos y comunicación técnica en inglés?",
+        "a": "Sí, trabajo de manera fluida en español e inglés tanto en sesiones con directivos y clientes como en documentación técnica, gestión de proyectos ágiles y coordinación con equipos distribuidos."
+      },
+      {
+        "q": "¿Cómo iniciamos un proyecto o diagnóstico?",
+        "a": "Puedes escribirme por WhatsApp directo o mediante el formulario de contacto contando tu objetivo, reto operativo o necesidad técnica; revisamos el alcance en una breve llamada de diagnóstico y definimos el plan de ejecución."
+      }
+    ]
+  },
   "contact": {
-    "title1": "¿Tienes ideas? Tengo las habilidades.",
-    "title2": "¡Hagamos equipo!",
-    "subtitle": "Cuéntame un poco más sobre ti y tu proyecto",
-    "name_placeholder": "Tu nombre",
-    "email_placeholder": "tu@correo.com",
-    "project_label": "Cuéntame sobre tu proyecto",
-    "project_placeholder": "Explica un poco...",
-    "submit": "¡Comencemos!",
+    "title1": "¿Tienes una idea o proceso por optimizar?",
+    "title2": "¡Construyámoslo!",
+    "subtitle": "Cuéntame qué necesitas desarrollar, digitalizar o validar y definamos el siguiente paso.",
+    "name_placeholder": "Tu nombre completo",
+    "email_placeholder": "tu@empresa.com",
+    "project_label": "Detalles de tu proyecto o proceso",
+    "project_placeholder": "Describe brevemente qué proceso quieres mejorar, qué sistema necesitas o qué metas tiene tu equipo...",
+    "submit": "Enviar solicitud",
     "error_required": "Este campo es obligatorio",
     "error_email": "El correo es obligatorio",
     "error_email_invalid": "Ingresa un correo válido",
-    "success_message": "¡Mensaje enviado con éxito!",
-    "error_message": "Error al enviar el mensaje. Inténtalo de nuevo."
+    "success_message": "¡Mensaje enviado con éxito! Te responderé a la brevedad.",
+    "error_message": "Error al enviar el mensaje. Inténtalo de nuevo o contáctame por WhatsApp."
   },
   "footer": {
     "quote1": "\"Haz que suceda. La mejor forma de",
     "quote2": "predecir el futuro es creándolo.\"",
     "rights": "Todos los derechos reservados.",
-    "contact_button": "Ponte en contacto",
-    "crafted": "Creado con Precisión"
+    "contact_button": "Hablemos de tu proyecto",
+    "crafted": "León, Gto. · Todo México · EN/ES"
   },
   "discussion": {
     "title": "Hablemos de tu proyecto"
@@ -100,11 +193,11 @@
     "exp2_company": "Uanify",
     "exp2_desc": "Orquestación de equipos multidisciplinarios y hojas de ruta técnicas. Alineación de ciclos de desarrollo con objetivos comerciales manteniendo el 100% de cumplimiento en estándares de QA.",
     "exp3_title": "Arquitecto de Soluciones Full-Stack",
-    "exp3_company": "Freelance",
-    "exp3_desc": "Diseño y despliegue de productos digitales a medida para clientes internacionales. Enfocado en el diseño centrado en el usuario, optimización SEO y arquitecturas de alta conversión.",
+    "exp3_company": "Consultoría Independiente",
+    "exp3_desc": "Diseño y despliegue de productos digitales a medida para clientes nacionales e internacionales. Enfocado en diseño centrado en el usuario, optimización SEO y arquitecturas de alta conversión.",
     "exp4_title": "Ingeniero en Software y Sistemas",
     "exp4_company": "Universidad de La Salle Bajío",
-    "exp4_desc": "Especializado en arquitectura de software, sistemas distribuidos y gestión avanzada de proyectos. Graduado con honores profesionales."
+    "exp4_desc": "Especializado en arquitectura de software, sistemas distribuidos y gestión avanzada de proyectos. Graduado con honores profesionales en León, Guanajuato."
   },
   "projects_data": {
     "proj1_title": "Gestión de Incidentes con IA",

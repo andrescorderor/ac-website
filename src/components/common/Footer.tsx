@@ -1,7 +1,7 @@
 import { FaGithub, FaLinkedinIn } from 'react-icons/fa';
 import { IoLogoWhatsapp, IoMdMail } from 'react-icons/io';
 import { HiOutlineArrowUpRight } from 'react-icons/hi2';
-import { HiOutlineDownload } from 'react-icons/hi';
+import { HiOutlineDownload, HiOutlineLocationMarker } from 'react-icons/hi';
 import { useTranslation } from 'react-i18next';
 import SignatureMark from './SignatureMark';
 
@@ -14,11 +14,22 @@ export default function Footer({ onOpenContact }: FooterProps) {
   const isSpanish = i18n.language?.startsWith('es');
   const currentYear = new Date().getFullYear();
 
+  const quickLinks = [
+    { id: 'services-section', label: isSpanish ? 'Soluciones' : 'Solutions' },
+    { id: 'capabilities-section', label: isSpanish ? 'Capacidades' : 'Capabilities' },
+    { id: 'portfolio-section', label: isSpanish ? 'Proyectos' : 'Projects' },
+    { id: 'faq-section', label: 'FAQ' },
+  ];
+
+  const scrollToSection = (id: string) => {
+    document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
+
   return (
     <footer className="relative bg-[var(--pub-surface)] border-t border-[var(--pub-border)] pt-16 pb-10">
       <div className="container mx-auto max-w-6xl px-5 sm:px-8 lg:px-12">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12 pb-12 border-b border-[var(--pub-border)]">
-          {/* Brand & Quote */}
+          {/* Brand, Quote & Local Coverage */}
           <div className="lg:col-span-7 space-y-6">
             <SignatureMark size="md" showWordmark showRoleTag />
 
@@ -29,9 +40,18 @@ export default function Footer({ onOpenContact }: FooterProps) {
             <p className="font-mono-tech text-xs uppercase tracking-[0.2em] text-[var(--vibrant-sky-blue)]">
               — Peter Drucker
             </p>
+
+            <div className="inline-flex items-start gap-2.5 px-3.5 py-2.5 rounded-xl bg-[var(--pub-bg)] border border-[var(--pub-border)] max-w-xl">
+              <HiOutlineLocationMarker className="text-base text-[var(--vibrant-sky-blue)] shrink-0 mt-0.5" />
+              <p className="font-inter text-xs text-[var(--dark-gray)] leading-relaxed">
+                {isSpanish
+                  ? 'León, Guanajuato, México · Desarrollo de software a medida con IA, digitalización de procesos y liderazgo QA para todo México y equipos en inglés.'
+                  : 'León, Guanajuato, México · Custom software engineering, applied AI, process digitization, and QA leadership across Mexico and remotely in English.'}
+              </p>
+            </div>
           </div>
 
-          {/* Direct Actions & Socials */}
+          {/* Direct Actions, Quick Links & Socials */}
           <div className="lg:col-span-5 flex flex-col justify-between gap-6">
             <div className="space-y-3">
               <span className="font-mono-tech text-[11px] uppercase tracking-widest text-[var(--dark-gray)] block">
@@ -59,6 +79,19 @@ export default function Footer({ onOpenContact }: FooterProps) {
                   <span>{isSpanish ? 'Descargar CV' : 'Resume PDF'}</span>
                 </a>
               </div>
+            </div>
+
+            <div className="flex flex-wrap gap-2">
+              {quickLinks.map((lnk) => (
+                <button
+                  key={lnk.id}
+                  type="button"
+                  onClick={() => scrollToSection(lnk.id)}
+                  className="px-3 min-h-[44px] rounded-xl bg-[var(--pub-bg)] border border-[var(--pub-border)] hover:border-[var(--vibrant-sky-blue)] font-mono-tech text-[11px] font-medium text-[var(--dark-gray)] hover:text-[var(--black)] transition-all cursor-pointer"
+                >
+                  {lnk.label}
+                </button>
+              ))}
             </div>
 
             <div className="flex flex-wrap gap-2.5">
@@ -90,7 +123,7 @@ export default function Footer({ onOpenContact }: FooterProps) {
           </p>
           <div className="flex items-center gap-4">
             <span className="font-mono-tech text-[11px] uppercase tracking-widest text-[var(--dark-gray)]">
-              {t('footer.crafted')} · BUILD v9.0.0
+              {t('footer.crafted')} · BUILD v9.1.0
             </span>
             <span className="h-1.5 w-14 rounded-full bg-gradient-to-r from-[var(--vibrant-sky-blue)] to-[var(--magenta-pink)]" />
           </div>

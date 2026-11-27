@@ -1,10 +1,10 @@
-import { useId, useRef, useState } from 'react';
+import { useEffect, useId, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { IoCloseSharp } from 'react-icons/io5';
 import { FaCode, FaLinkedinIn, FaProjectDiagram } from 'react-icons/fa';
 import { IoLogoWhatsapp, IoMdMail } from 'react-icons/io';
-import { HiOutlineCheckCircle, HiOutlineExclamationCircle } from 'react-icons/hi';
+import { HiOutlineCheckCircle, HiOutlineExclamationCircle, HiOutlineLocationMarker } from 'react-icons/hi';
 import emailjs from 'emailjs-com';
 import { useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
@@ -13,13 +13,15 @@ import SignatureMark from '../SignatureMark';
 
 export const CONTACT_MODAL_EVENT = 'ac_open_contact_modal';
 
-export function openContactModal() {
-  window.dispatchEvent(new CustomEvent(CONTACT_MODAL_EVENT));
+export function openContactModal(presetTopic?: unknown) {
+  const topic = typeof presetTopic === 'string' && presetTopic.trim() ? presetTopic.trim() : undefined;
+  window.dispatchEvent(new CustomEvent<{ topic?: string }>(CONTACT_MODAL_EVENT, { detail: { topic } }));
 }
 
 interface ContactModalProps {
   isOpen: boolean;
   onClose: () => void;
+  initialTopic?: string;
 }
 
 const backdropVariants = {
@@ -33,13 +35,41 @@ const modalVariants = {
   exit: { opacity: 0, y: 16, scale: 0.96 },
 };
 
-export default function ContactModal({ isOpen, onClose }: ContactModalProps) {
+export default function ContactModal({ isOpen, onClose, initialTopic }: ContactModalProps) {
   const { t, i18n } = useTranslation();
   const isSpanish = i18n.language?.startsWith('es');
   const titleId = useId();
   const panelRef = useRef<HTMLDivElement>(null);
   const [sending, setSending] = useState(false);
   const [submitState, setSubmitState] = useState<'idle' | 'success' | 'error'>('idle');
+  const [selectedTopic, setSelectedTopic] = useState<string>('');
+
+  const topicOptions = useMemo(
+    () =>
+      isSpanish
+        ? [
+            'Desarrollo de Software & IA',
+            'Digitalización y Optimización de Procesos',
+            'Pruebas de Software y QA',
+            'Consultoría Integral',
+          ]
+        : [
+            'Custom Software & AI',
+            'Process Digitization & PM',
+            'Software Testing & QA',
+            'Full Engineering Advisory',
+          ],
+    [isSpanish]
+  );
+
+  useEffect(() => {
+    if (!isOpen) return;
+    if (initialTopic && initialTopic.trim()) {
+      setSelectedTopic(initialTopic.trim());
+    } else {
+      setSelectedTopic(topicOptions[0]);
+    }
+  }, [isOpen, initialTopic, topicOptions]);
 
   const handleClose = () => {
     setSubmitState('idle');
@@ -60,10 +90,13 @@ export default function ContactModal({ isOpen, onClose }: ContactModalProps) {
     const templateId = 'template_jsty4d9';
     const userId = 'UFG_EnlAJMQC_VCCO';
 
+    const rawMessage = typeof data?.message === 'string' ? data.message.trim() : '';
+    const topicPrefix = selectedTopic ? `[Interés: ${selectedTopic}]\n\n` : '';
+
     const emailData = {
       fullName: data?.fullName || '',
       mailAddress: data?.mailAddress || '',
-      message: data?.message || '',
+      message: `${topicPrefix}${rawMessage}`,
     };
 
     setSending(true);
@@ -104,6 +137,14 @@ export default function ContactModal({ isOpen, onClose }: ContactModalProps) {
     },
   ];
 
+  const whatsappHref = useMemo(() => {
+    const topic = selectedTopic || (isSpanish ? 'desarrollo de software / procesos / QA' : 'software engineering / processes / QA');
+    const text = isSpanish
+      ? `Hola Andrés, me interesa conversar sobre: ${topic}.`
+      : `Hi Andrés, I would like to discuss: ${topic}.`;
+    return `https://wa.me/524777037913?text=${encodeURIComponent(text)}`;
+  }, [isSpanish, selectedTopic]);
+
   return createPortal(
     <AnimatePresence>
       {isOpen && (
@@ -137,8 +178,10 @@ export default function ContactModal({ isOpen, onClose }: ContactModalProps) {
               <div className="flex items-center gap-3.5 min-w-0">
                 <SignatureMark size="sm" />
                 <div className="min-w-0">
-                  <span className="font-mono-tech text-[var(--vibrant-sky-blue)] font-semibold tracking-[0.2em] uppercase text-[10px] block">
-                    {isSpanish ? 'CANAL DIRECTO // ANDRÉS CORDERO' : 'DIRECT CHANNEL // ANDRÉS CORDERO'}
+                  <span className="font-mono-tech text-[var(--vibrant-sky-blue)] font-semibold tracking-[0.2em] uppercase text-[10px] block truncate">
+                    {isSpanish
+                      ? 'CANAL DIRECTO // LEÓN, GTO. · TODO MÉXICO · EN/ES'
+                      : 'DIRECT CHANNEL // LEÓN, MX · REMOTE WORLDWIDE · EN/ES'}
                   </span>
                   <h2
                     id={titleId}
@@ -162,8 +205,24 @@ export default function ContactModal({ isOpen, onClose }: ContactModalProps) {
             {/* Cuerpo central scrollable */}
             <div className="flex-1 min-h-0 overflow-y-auto p-5 sm:p-8 lg:p-10">
               <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-                {/* Columna de resumen y redes */}
+                {/* Columna de resumen y canales directos */}
                 <div className="lg:col-span-5 flex flex-col justify-between space-y-5 order-2 lg:order-1">
+                  <div className="p-3.5 rounded-2xl bg-[var(--pub-bg)] border border-[var(--pub-border)] flex items-center gap-3">
+                    <div className="size-9 rounded-xl bg-[var(--vibrant-sky-blue)]/12 text-[var(--vibrant-sky-blue)] flex items-center justify-center shrink-0">
+                      <HiOutlineLocationMarker className="text-lg" />
+                    </div>
+                    <div className="min-w-0">
+                      <span className="font-mono-tech text-[10px] font-semibold uppercase tracking-wider text-[var(--vibrant-sky-blue)] block">
+                        {isSpanish ? 'Cobertura Operativa' : 'Service Coverage'}
+                      </span>
+                      <span className="font-inter text-xs text-[var(--black)] block">
+                        {isSpanish
+                          ? 'León, Guanajuato · Todo México · Inglés / Español'
+                          : 'León, Guanajuato · All Mexico · English / Spanish'}
+                      </span>
+                    </div>
+                  </div>
+
                   <div className="space-y-3">
                     {disciplines.map((d) => (
                       <div
@@ -188,29 +247,71 @@ export default function ContactModal({ isOpen, onClose }: ContactModalProps) {
                     ))}
                   </div>
 
-                  <div className="flex flex-wrap gap-2.5 pt-4 border-t border-[var(--pub-border)]">
-                    {[
-                      { icon: FaLinkedinIn, href: 'https://www.linkedin.com/in/andresmcorderor/', label: 'LinkedIn' },
-                      { icon: IoMdMail, href: 'mailto:andresmcorderor@gmail.com', label: 'Email' },
-                      { icon: IoLogoWhatsapp, href: 'https://wa.me/524777037913', label: 'WhatsApp' },
-                    ].map((s) => (
-                      <a
-                        key={s.label}
-                        href={s.href}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="inline-flex items-center gap-2 px-3.5 min-h-[44px] rounded-xl bg-[var(--pub-bg)] border border-[var(--pub-border)] hover:border-[var(--vibrant-sky-blue)] text-[var(--black)] font-mono-tech text-xs font-medium transition-all cursor-pointer"
-                      >
-                        <s.icon className="text-sm text-[var(--vibrant-sky-blue)]" />
-                        <span>{s.label}</span>
-                      </a>
-                    ))}
+                  <div className="space-y-2.5 pt-4 border-t border-[var(--pub-border)]">
+                    <a
+                      href={whatsappHref}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="w-full min-h-[48px] px-4 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-syne text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-2 transition-all cursor-pointer shadow-sm"
+                    >
+                      <IoLogoWhatsapp className="text-lg" />
+                      <span>{isSpanish ? 'Escribir por WhatsApp Directo' : 'Message on WhatsApp'}</span>
+                    </a>
+
+                    <div className="grid grid-cols-2 gap-2.5">
+                      {[
+                        { icon: FaLinkedinIn, href: 'https://www.linkedin.com/in/andresmcorderor/', label: 'LinkedIn' },
+                        { icon: IoMdMail, href: 'mailto:andresmcorderor@gmail.com', label: 'Email' },
+                      ].map((s) => (
+                        <a
+                          key={s.label}
+                          href={s.href}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="inline-flex items-center justify-center gap-2 px-3.5 min-h-[44px] rounded-xl bg-[var(--pub-bg)] border border-[var(--pub-border)] hover:border-[var(--vibrant-sky-blue)] text-[var(--black)] font-mono-tech text-xs font-medium transition-all cursor-pointer"
+                        >
+                          <s.icon className="text-sm text-[var(--vibrant-sky-blue)]" />
+                          <span>{s.label}</span>
+                        </a>
+                      ))}
+                    </div>
                   </div>
                 </div>
 
                 {/* Columna de formulario */}
                 <div className="lg:col-span-7 rounded-2xl sm:rounded-3xl bg-[var(--pub-bg)] border border-[var(--pub-border)] p-5 sm:p-7 order-1 lg:order-2 space-y-4">
                   <p className="font-inter text-sm text-[var(--dark-gray)]">{t('contact.subtitle')}</p>
+
+                  {/* Selector rápido de enfoque / servicio */}
+                  <div className="space-y-2">
+                    <span className="block font-mono-tech text-[11px] font-semibold uppercase tracking-wider text-[var(--dark-gray)]">
+                      {isSpanish ? 'Área de interés' : 'Focus area'}
+                    </span>
+                    <div className="flex flex-wrap gap-2">
+                      {topicOptions.map((topic) => {
+                        const active = selectedTopic === topic;
+                        return (
+                          <button
+                            key={topic}
+                            type="button"
+                            onClick={() => setSelectedTopic(topic)}
+                            className={`px-3 min-h-[44px] rounded-xl font-mono-tech text-[11px] font-semibold border transition-all cursor-pointer ${
+                              active
+                                ? 'bg-[var(--black)] text-[var(--white)] border-transparent shadow-xs'
+                                : 'bg-[var(--pub-surface)] text-[var(--dark-gray)] border-[var(--pub-border)] hover:text-[var(--black)]'
+                            }`}
+                          >
+                            {topic}
+                          </button>
+                        );
+                      })}
+                      {selectedTopic && !topicOptions.includes(selectedTopic) && (
+                        <span className="px-3 min-h-[44px] rounded-xl font-mono-tech text-[11px] font-semibold bg-[var(--vibrant-sky-blue)]/15 text-[var(--vibrant-sky-blue)] border border-[var(--vibrant-sky-blue)]/40 inline-flex items-center">
+                          {selectedTopic}
+                        </span>
+                      )}
+                    </div>
+                  </div>
 
                   {submitState === 'success' && (
                     <div

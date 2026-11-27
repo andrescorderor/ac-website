@@ -35,11 +35,11 @@ export default function Header({ isDark = false, onToggleTheme, onOpenContact }:
   });
 
   const navItems = [
+    { id: 'services-section', label: isSpanish ? 'Soluciones' : 'Solutions' },
     { id: 'capabilities-section', label: isSpanish ? 'Capacidades' : 'Capabilities' },
-    { id: 'stack-section', label: 'Stack' },
     { id: 'experience-section', label: isSpanish ? 'Trayectoria' : 'Path' },
     { id: 'portfolio-section', label: isSpanish ? 'Proyectos' : 'Projects' },
-    { id: 'credentials-section', label: isSpanish ? 'Credenciales' : 'Credentials' },
+    { id: 'faq-section', label: 'FAQ' },
   ];
 
   useEffect(() => {
